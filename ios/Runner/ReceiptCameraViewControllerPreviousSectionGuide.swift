@@ -115,7 +115,8 @@ extension ReceiptCameraViewController {
   }
 
   func previousSectionGhostSliceImage(_ image: UIImage) -> UIImage? {
-    guard let cgImage = image.cgImage else { return nil }
+    let normalizedImage = normalizedReceiptGhostGuideImage(image) ?? image
+    guard let cgImage = normalizedImage.cgImage else { return nil }
     let height = CGFloat(cgImage.height)
     let width = CGFloat(cgImage.width)
     guard width > 0, height > 0 else { return image }
@@ -130,18 +131,30 @@ extension ReceiptCameraViewController {
     let sliceHeight = min(requestedHeight, height - startY)
     let rect = CGRect(x: 0, y: startY, width: width, height: sliceHeight)
     guard let cropped = cgImage.cropping(to: rect) else { return nil }
-    return UIImage(cgImage: cropped, scale: image.scale, orientation: image.imageOrientation)
+    return UIImage(cgImage: cropped, scale: normalizedImage.scale, orientation: .up)
   }
 
   func nextSectionGhostSliceImage(_ image: UIImage) -> UIImage? {
-    guard let cgImage = image.cgImage else { return nil }
+    let normalizedImage = normalizedReceiptGhostGuideImage(image) ?? image
+    guard let cgImage = normalizedImage.cgImage else { return nil }
     let height = CGFloat(cgImage.height)
     let width = CGFloat(cgImage.width)
     guard width > 0, height > 0 else { return image }
     let sliceHeight = min(max(ceil(height * 0.20), 1), height)
     let rect = CGRect(x: 0, y: 0, width: width, height: sliceHeight)
     guard let cropped = cgImage.cropping(to: rect) else { return nil }
-    return UIImage(cgImage: cropped, scale: image.scale, orientation: image.imageOrientation)
+    return UIImage(cgImage: cropped, scale: normalizedImage.scale, orientation: .up)
+  }
+
+  func normalizedReceiptGhostGuideImage(_ image: UIImage) -> UIImage? {
+    guard image.size.width > 0, image.size.height > 0 else { return nil }
+    guard image.imageOrientation != .up else { return image }
+    let format = UIGraphicsImageRendererFormat.default()
+    format.scale = image.scale
+    format.opaque = false
+    return UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
+      image.draw(in: CGRect(origin: .zero, size: image.size))
+    }
   }
 
   func previousSectionGhostGuideTitle() -> String {

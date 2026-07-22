@@ -68,12 +68,13 @@ void main() {
     expect(sources.stitchControls, contains('Safe Fallback Ready'));
     expect(sources.modeControls, contains('Long Receipt Match'));
     expect(sources.modeControls, contains("label: 'Match Photos'"));
+    expect(sources.reviewControls, contains('if (!bestShotCandidateMode &&'));
     expect(
       sources.reviewControls,
-      contains(
-        "return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Receipt';",
-      ),
+      contains('reviewMode != _ReceiptReviewMode.stitch'),
     );
+    expect(sources.reviewControls, contains('photoPaths.length > 1'));
+    expect(sources.reviewControls, contains("return 'Check Photo Match';"));
     expect(sources.reviewControls, contains('waitingForStitch'));
     expect(sources.reviewControls, contains('continueEnabled'));
     expect(sources.reviewControls, contains("return 'Use Receipt';"));
@@ -310,7 +311,7 @@ void main() {
     expect(sources.reviewScreen, contains('bottomInset'));
     expect(
       sources.reviewPreviewControls,
-      contains('minimumSize: const Size(0, 38)'),
+      contains('minimumSize: const Size(0, 48)'),
     );
     expect(
       sources.contextControls,
@@ -324,11 +325,12 @@ void main() {
     expect(sources.reviewScreen, contains('BoxFit.contain'));
     expect(
       sources.reviewScreen,
-      contains(
-        'widget.uiConfig.previewControlsMultiPhotoHeight',
-      ),
+      contains('widget.uiConfig.previewControlsMultiPhotoHeight'),
     );
-    expect(sources.reviewScreen, contains('widget.uiConfig.orderControlsHeight'));
+    expect(
+      sources.reviewScreen,
+      contains('widget.uiConfig.orderControlsHeight'),
+    );
     expect(
       sources.reviewScreen,
       contains('widget.uiConfig.stitchControlsHeight'),
@@ -390,7 +392,9 @@ void main() {
     expect(sources.imagePicker, contains('ReceiptPickedPhotoSet'));
     expect(
       sources.imagePicker,
-      contains('Do not ask the picker to recompress the only high-quality source'),
+      contains(
+        'Do not ask the picker to recompress the only high-quality source',
+      ),
     );
     expect(sources.imagePicker, isNot(contains('imageQuality:')));
     expect(
@@ -412,14 +416,8 @@ void main() {
     expect(sources.productStandard, contains('reviewed separately'));
     expect(sources.productStandard, isNot(contains('read receipt')));
     expect(sources.productStandard, isNot(contains('or read receipt')));
-    expect(
-      sources.realDeviceScript,
-      contains('Receipt-Review Handoff'),
-    );
-    expect(
-      sources.realDeviceScript,
-      contains('Multi-Photo Capture Handoff'),
-    );
+    expect(sources.realDeviceScript, contains('Receipt-Review Handoff'));
+    expect(sources.realDeviceScript, contains('Multi-Photo Capture Handoff'));
     expect(
       sources.realDeviceScript,
       contains('does not attempt to stitch, deduplicate, or reorder'),

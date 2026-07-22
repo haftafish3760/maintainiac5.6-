@@ -14,7 +14,7 @@
 | --- | --- |
 | `Maintainiac_5.6` | No unique compatible project content; duplicate/generated evidence recorded. |
 | `Maintainiac_5.6_Fuel_System` | Source history is already an ancestor of 5.7; 3,151 exact duplicates and 358 older same-path differences recorded, with no overwrite. |
-| `Maintainiac_5.6_Long_Receipt` | Added the unique cross-platform long-receipt handoff document. A 62-commit batch and four isolated old tests were rejected after compatibility validation. |
+| `Maintainiac_5.6_Long_Receipt` | The rejected 62-commit batch was reopened and compared semantically. Current 5.7 already owned the application flow; unique native ghost-image orientation normalization and real-probe source-integrity safeguards were integrated. Analyzer, Swift parse, Android compile, and focused tests passed; physical-device and real-fixture proof remain pending. |
 | `Maintainiac_5.6_PDF_Engine` | Source history is already an ancestor of 5.7; 3,773 exact duplicates and 133 older same-path differences recorded. |
 | `Maintainiac_5.6_ReceiptCamera` | Added the native-camera preference mapper and its focused test, then merged 82 compatible camera files. Full changed-file analysis and the 87-test batch passed. |
 | `Maintainiac_5.6_Receipt_OCR` | The rejected bulk trial was reopened. All 33 source-only commits were evaluated semantically. OCR evidence, recovery, editable candidates, review totals, and explicit split ownership were integrated; newer 5.7 owners were retained; automatic OCR-owned Fuel/Inventory routing was rejected. A durable Jobs/context capability remains routed to the single Jobs owner for manual merge. |

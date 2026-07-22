@@ -3,6 +3,7 @@ package com.maintainiac
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Matrix
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.exifinterface.media.ExifInterface
 import java.io.File
 import kotlin.math.ceil
 import kotlin.math.floor
@@ -130,7 +132,7 @@ internal fun ReceiptCameraActivity.updateNextSectionGuide(path: String?) {
 }
 
 internal fun ReceiptCameraActivity.previousSectionGhostSliceBitmap(file: File): Bitmap? {
-    val source = BitmapFactory.decodeFile(file.absolutePath) ?: return null
+    val source = receiptGhostBitmapWithVisualOrientation(file) ?: return null
     if (source.width <= 0 || source.height <= 0) return source
     val sourceStartFraction = boundedFraction(previousSectionGhostSourceStartFraction, 0.80)
     val sourceHeightFraction = boundedFraction(previousSectionGhostSourceHeightFraction, 0.20)
@@ -149,12 +151,46 @@ internal fun ReceiptCameraActivity.previousSectionGhostSliceBitmap(file: File): 
 }
 
 internal fun ReceiptCameraActivity.nextSectionGhostSliceBitmap(file: File): Bitmap? {
-    val source = BitmapFactory.decodeFile(file.absolutePath) ?: return null
+    val source = receiptGhostBitmapWithVisualOrientation(file) ?: return null
     if (source.width <= 0 || source.height <= 0) return source
     val requestedHeight = ceil(source.height * 0.20).roundToInt().coerceAtLeast(1)
     val sliceHeight = min(requestedHeight, source.height).coerceAtLeast(1)
     return try {
         Bitmap.createBitmap(source, 0, 0, source.width, sliceHeight)
+    } catch (_: IllegalArgumentException) {
+        source
+    }
+}
+
+private fun receiptGhostBitmapWithVisualOrientation(file: File): Bitmap? {
+    val source = BitmapFactory.decodeFile(file.absolutePath) ?: return null
+    val orientation = try {
+        ExifInterface(file.absolutePath).getAttributeInt(
+            ExifInterface.TAG_ORIENTATION,
+            ExifInterface.ORIENTATION_NORMAL,
+        )
+    } catch (_: Exception) {
+        ExifInterface.ORIENTATION_NORMAL
+    }
+    val matrix = Matrix()
+    when (orientation) {
+        ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> matrix.setScale(-1f, 1f)
+        ExifInterface.ORIENTATION_ROTATE_180 -> matrix.setRotate(180f)
+        ExifInterface.ORIENTATION_FLIP_VERTICAL -> matrix.setScale(1f, -1f)
+        ExifInterface.ORIENTATION_TRANSPOSE -> {
+            matrix.setRotate(90f)
+            matrix.postScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_ROTATE_90 -> matrix.setRotate(90f)
+        ExifInterface.ORIENTATION_TRANSVERSE -> {
+            matrix.setRotate(-90f)
+            matrix.postScale(-1f, 1f)
+        }
+        ExifInterface.ORIENTATION_ROTATE_270 -> matrix.setRotate(-90f)
+        else -> return source
+    }
+    return try {
+        Bitmap.createBitmap(source, 0, 0, source.width, source.height, matrix, true)
     } catch (_: IllegalArgumentException) {
         source
     }

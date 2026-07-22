@@ -2,7 +2,7 @@
 
 ## Current Status
 
-`PRESENT / VERIFIED SUBSET / NEEDS RECONCILIATION`. Native/import capture,
+`CONSOLIDATED SUBSET / DEVICE QA PENDING`. Native/import capture,
 app-private staging, OCR evidence, editable handoff, duplicate detection, and
 long-receipt support exist. This is suggestion-only intelligence.
 
@@ -44,12 +44,19 @@ long-receipt support exist. This is suggestion-only intelligence.
   through `ca3c29504` were compared. Newer 5.7 recovery and visible suggestion
   models were retained. The older automatic multi-consumer route was rejected
   because OCR must not choose Fuel or Inventory ownership; 51 tests passed.
+- `CONSOLIDATED`: all 62 source-only commits in
+  `Maintainiac_5.6_Long_Receipt` were reopened after the rejected bulk trial and
+  compared against the current 5.7 owners. The unique visual-orientation guard
+  for native previous-section ghost crops and source-integrity guards for real
+  receipt probes were integrated without importing an older parallel review
+  UI. Analyzer, Swift parse, Android Kotlin compile, and 11 focused tests passed;
+  3 opt-in real-photo probes were skipped because fixture paths were not set.
 - `DEFERRED`: user-selectable retention, 90-day default, seven-day reminder,
   advance warning, similarity evidence, proof thumbnail, and Review/Save/Keep/
   Delete workflow. This is a dedicated future subsystem, not consolidation work.
-- `NEEDS RECONCILIATION`: ReceiptCamera, Receipt_OCR, and Long_Receipt source
-  history still requires semantic feature-level comparison; final device proof
-  and full platform builds are not complete.
+- `REMAINING`: ReceiptCamera is consolidated and Receipt_OCR and Long_Receipt
+  source history have been semantically reconciled. Final project-wide gates,
+  real-receipt fixtures, and physical-device proof are not complete.
 
 ## Rolling Log
 
@@ -61,3 +68,6 @@ long-receipt support exist. This is suggestion-only intelligence.
   newer 5.7 equivalents after 33-test and 7-test targeted gates.
 - 2026-07-22: Closed the remaining OCR recovery/classification cluster while
   preserving user-selected routing and rejecting automatic domain dispatch.
+- 2026-07-22: Reopened all 62 Long Receipt source-only commits, integrated the
+  two unique native/source-integrity safeguards, retained the newer 5.7 review
+  owner, and passed analyzer, focused, Swift-parse, and Android compile gates.

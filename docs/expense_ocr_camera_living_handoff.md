@@ -106,6 +106,11 @@ The product owner stated that it is not being implemented during consolidation.
   and restore owners were retained; 124 focused tests passed. The source's
   durable job directory and receipt job/profile/vehicle chooser remain queued
   for a single shared Jobs/context merge, never a parallel Expense store.
+- All 62 source-only Long Receipt commits were compared semantically. Current
+  5.7 already owned the newer review flow; native visual-orientation handling
+  for previous-section ghost crops and source-integrity checks for real receipt
+  probes were integrated. Analyzer, Swift parse, Android Kotlin compile, and 11
+  focused tests passed; 3 opt-in real-photo probes remain fixture-dependent.
 
 ## Consolidation And Validation Boundary
 
@@ -133,3 +138,5 @@ final project-wide tests remain required before final consolidation completion.
   explicit rejection of OCR-owned domain routing.
 - 2026-07-22: Finished all 33 source-only commit evaluations and routed the one
   unresolved Jobs/context capability to its owning system handoff.
+- 2026-07-22: Finished the 62-commit Long Receipt semantic reconciliation and
+  recorded the result in its dedicated receipt-system handoff.

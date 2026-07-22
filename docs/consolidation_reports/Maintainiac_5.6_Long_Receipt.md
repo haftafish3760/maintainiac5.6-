@@ -131,7 +131,21 @@
 
 - Added: `docs/long_receipt_stitching_cross_platform_handoff_2026_07_15.md`.
 - Broad Git merge preflight identified 36 overlapping paths.
-- A preservation-biased merge was rejected after targeted analysis reported 323 issues; the merge was aborted cleanly.
-- Four target-absent tests analyzed without diagnostics but failed their 5.7 runtime contracts because required older companion implementations were intentionally not imported.
-- Those four candidate copies were rejected; their originals remain in the read-only source and its GitHub branch.
+- The rejected 62-commit batch was reopened and compared semantically against
+  the newer 5.7 owners. No target-absent application file remained; most source
+  behavior was already present or superseded.
+- Preserved the source's two unique safeguards without replacing newer 5.7
+  flows: Android and iOS now normalize the previous-section ghost image to its
+  visual orientation before cropping, and all real-receipt probe scripts verify
+  that source images are byte-for-byte unchanged after testing.
+- Added focused native-orientation and real-probe-integrity contract tests.
+  Updated two stale source-text expectations to protect the current state-aware
+  review labels and 48-point primary action target.
+- The older photo-review widget test was not copied because its UI contract is
+  superseded by the current 5.7 review flow; this was not treated as missing
+  application functionality.
+- Validation: Dart formatting and shell syntax passed; Swift parsed cleanly;
+  `flutter analyze` reported no issues; the focused gate passed 11 tests with
+  3 opt-in real-photo probes skipped; Android `:app:compileDebugKotlin` built
+  successfully with Android Studio's bundled JDK.
 - No source repository content was modified.

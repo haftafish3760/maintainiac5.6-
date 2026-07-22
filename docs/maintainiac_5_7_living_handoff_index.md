@@ -22,7 +22,7 @@ not implemented during the current work:
 | --- | --- | --- |
 | App shell, Dashboard, vehicles | Present; reconciliation required | `docs/system_handoffs/app_shell_dashboard_vehicles.md` |
 | Expenses | Verified subset; reconciliation required | `docs/system_handoffs/expenses.md` |
-| Receipt capture, OCR, long receipts | Verified subset; reconciliation required | `docs/system_handoffs/receipt_capture_ocr_long_receipt.md` |
+| Receipt capture, OCR, long receipts | Consolidated; device and final QA pending | `docs/system_handoffs/receipt_capture_ocr_long_receipt.md` |
 | Fuel and vehicle energy | Present; reconciliation required | `docs/system_handoffs/fuel_energy.md` |
 | Work Supplies / Materials / Inventory | Present; reconciliation required | `docs/system_handoffs/work_supplies_materials_inventory.md` |
 | Jobs and Estimates | Durable Jobs merge required; Estimates unverified | `docs/system_handoffs/jobs_estimates.md` |
