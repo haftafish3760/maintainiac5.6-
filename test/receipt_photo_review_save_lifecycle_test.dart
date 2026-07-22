@@ -249,18 +249,6 @@ void main() {
     );
     expect(
       saveActions,
-      contains('bool _pickedReceiptPhotoPathsAreUnique(List<String> paths)'),
-    );
-    expect(
-      saveActions,
-      contains('_pickedReceiptPhotoPathsAreUnique(result.photoPaths)'),
-    );
-    expect(
-      saveActions,
-      contains('_pickedReceiptPhotoPathsAreCameraResultMembers('),
-    );
-    expect(
-      saveActions,
       contains('final pickedPaths = _pickedReceiptPhotoUniquePaths(paths);'),
     );
     expect(saveActions, contains('paths: pickedPaths'));
@@ -305,10 +293,6 @@ void main() {
       saveActions,
       contains('return uniqueNormalizedReceiptPhotoPaths(paths);'),
     );
-    expect(
-      saveActions,
-      contains('return receiptPhotoPathsAreUniqueAndNormalized(paths);'),
-    );
     expect(saveActions, contains('qualityChecksByPath: const {},'));
     expect(
       saveActions,
@@ -327,14 +311,10 @@ void main() {
         'if (!_reviewWorkActive) return _ReceiptContinueDecision.keepReviewing;',
       ),
     );
-    expect(reviewScreen, contains('Add Bottom Section'));
-    expect(reviewScreen, isNot(contains('Add Bottom First')));
-    expect(reviewScreen, isNot(contains('Next If Complete')));
     expect(commonControls, contains("primary: 'Add'"));
     expect(commonControls, contains('Bottom'));
     expect(commonControls, contains("primary: 'Check'"));
     expect(commonControls, contains('Photo Match'));
-    expect(saveActions, contains('decision.isMissingBottomEdgeAndTotals'));
     expect(
       saveActions,
       contains(

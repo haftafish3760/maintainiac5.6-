@@ -122,7 +122,7 @@ class _ReceiptSinglePhotoActionRow extends StatelessWidget {
         label: Text(strings.cropReceiptPhoto),
         style: TextButton.styleFrom(
           foregroundColor: const Color(0xFFC8D0D3),
-          minimumSize: const Size(0, 34),
+          minimumSize: const Size(0, 48),
           padding: const EdgeInsets.symmetric(horizontal: 8),
           textStyle: const TextStyle(fontWeight: FontWeight.w800),
         ),
