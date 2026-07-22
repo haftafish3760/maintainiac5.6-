@@ -133,3 +133,10 @@
 - `trip_tracking_bluetooth_coordinator.dart` analyzed cleanly, but its coordinator behavior has already been superseded by the newer controller-owned implementation and stronger tests in 5.7; adding it would duplicate code and ownership.
 - Both candidate copies were removed from 5.7. Their source versions remain untouched and preserved on GitHub.
 - The source has 24 commits not reachable from 5.7, requiring batch history evaluation.
+
+## History-batch validation
+
+- A non-committing merge trial evaluated all 24 source-only commits together while retaining the 5.7 side of textual conflicts.
+- The trial changed 87 files. One auto-merged test was syntactically invalid; after restoring that test to 5.7, changed-file analysis still reported 731 issues across incompatible lifecycle enums, session/review schemas, dashboard wiring, and tests.
+- The trial was aborted completely; none of the incompatible batch entered 5.7.
+- The unique source history remains preserved on GitHub and indexed for later feature-level reconciliation.
