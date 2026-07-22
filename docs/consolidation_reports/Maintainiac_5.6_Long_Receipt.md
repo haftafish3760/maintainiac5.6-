@@ -126,3 +126,12 @@
 - `lib/screens/expenses/data/fuel_economy_helpers.dart` — same target path has different content
 - `lib/screens/expenses/data/fuel_economy_metrics.dart` — same target path has different content
 - Remaining manual items: 358 (see JSONL)
+
+## Migration and validation outcome
+
+- Added: `docs/long_receipt_stitching_cross_platform_handoff_2026_07_15.md`.
+- Broad Git merge preflight identified 36 overlapping paths.
+- A preservation-biased merge was rejected after targeted analysis reported 323 issues; the merge was aborted cleanly.
+- Four target-absent tests analyzed without diagnostics but failed their 5.7 runtime contracts because required older companion implementations were intentionally not imported.
+- Those four candidate copies were rejected; their originals remain in the read-only source and its GitHub branch.
+- No source repository content was modified.
