@@ -162,9 +162,19 @@ class ExpenseLedgerController extends ChangeNotifier {
         .where((receipt) => range.contains(receipt.receiptDate))
         .toList(growable: false);
     return ExpenseLedgerSummary(
-      total: records.fold(0, (sum, receipt) => sum + receipt.total),
-      business: records.fold(0, (sum, receipt) => sum + receipt.businessTotal),
-      personal: records.fold(0, (sum, receipt) => sum + receipt.personalTotal),
+      totalCents: records.fold(0, (sum, receipt) => sum + receipt.totalCents),
+      businessCents: records.fold(
+        0,
+        (sum, receipt) => sum + receipt.businessTotalCents,
+      ),
+      personalCents: records.fold(
+        0,
+        (sum, receipt) => sum + receipt.personalTotalCents,
+      ),
+      unclassifiedCents: records.fold(
+        0,
+        (sum, receipt) => sum + receipt.unclassifiedTotalCents,
+      ),
       recordCount: records.length,
     );
   }

@@ -80,7 +80,12 @@ class ExpenseReceiptLineRecord {
       quantity: _expenseDouble(map['quantity']) ?? 1,
       unitsPerPackage: _expenseDouble(map['unitsPerPackage']) ?? 1,
       unit: _expenseString(map['unit'], fallback: 'each'),
-      subtotal: _expenseDouble(map['subtotal']) ?? 0,
+      subtotal:
+          _expenseAmountFromStoredMoney(
+            map['subtotalCents'],
+            map['subtotal'],
+          ) ??
+          0,
       businessPercent: _clampedPercent(_expenseDouble(map['businessPercent'])),
       splitAllocation: ExpenseSplitAllocation.fromMap(
         _expenseMap(map['splitAllocation']),
@@ -88,7 +93,10 @@ class ExpenseReceiptLineRecord {
       odometerReading: _expenseInt(map['odometerReading']),
       fuelType: _nullableExpenseString(map['fuelType']),
       fillType: _nullableExpenseString(map['fillType']),
-      unitPrice: _expenseDouble(map['unitPrice']),
+      unitPrice: _expenseAmountFromStoredMoney(
+        map['unitPriceCents'],
+        map['unitPrice'],
+      ),
       rawReceiptText: _expenseString(map['rawReceiptText']),
       sourceReceiptText: _expenseString(
         map['sourceReceiptText'],
@@ -136,12 +144,14 @@ class ExpenseReceiptLineRecord {
   final double unitsPerPackage;
   final String unit;
   final double subtotal;
+  int get subtotalCents => _expenseCentsFromAmount(subtotal) ?? 0;
   final double? businessPercent;
   final ExpenseSplitAllocation? splitAllocation;
   final int? odometerReading;
   final String? fuelType;
   final String? fillType;
   final double? unitPrice;
+  int? get unitPriceCents => _expenseCentsFromAmount(unitPrice);
   // Evidence fields deliberately remain separate. `description` is retained
   // for backwards-compatible consumers, while displayReceiptText is the only
   // text an Expense user may revise.
@@ -473,23 +483,28 @@ class ExpenseReceiptLineRecord {
     return 1 - effectiveBusinessPercent;
   }
 
-  double get businessAmount {
+  int get businessCents {
     return switch (use) {
       ExpenseLineUse.unclassified => 0,
-      ExpenseLineUse.business => subtotal,
+      ExpenseLineUse.business => subtotalCents,
       ExpenseLineUse.personal => 0,
-      ExpenseLineUse.split => subtotal * effectiveBusinessPercent,
+      ExpenseLineUse.split =>
+        (subtotalCents * effectiveBusinessPercent).round(),
     };
   }
 
-  double get personalAmount {
+  int get personalCents {
     return switch (use) {
       ExpenseLineUse.unclassified => 0,
       ExpenseLineUse.business => 0,
-      ExpenseLineUse.personal => subtotal,
-      ExpenseLineUse.split => subtotal * effectivePersonalPercent,
+      ExpenseLineUse.personal => subtotalCents,
+      ExpenseLineUse.split => subtotalCents - businessCents,
     };
   }
+
+  double get businessAmount => businessCents / 100;
+
+  double get personalAmount => personalCents / 100;
 
   String get quantityLabel {
     if (unitsPerPackage <= 1) return 'Qty ${_formatNumber(quantity)} $unit';

@@ -68,9 +68,18 @@ class ExpenseReceiptRecord {
           const [],
       rawOcrText: _expenseString(map['rawOcrText']),
       ocrReview: ExpenseReceiptOcrReview.fromMap(_expenseMap(map['ocrReview'])),
-      enteredSubtotal: _expenseDouble(map['enteredSubtotal']),
-      enteredTax: _expenseDouble(map['enteredTax']),
-      enteredTotal: _expenseDouble(map['enteredTotal']),
+      enteredSubtotal: _expenseAmountFromStoredMoney(
+        map['enteredSubtotalCents'],
+        map['enteredSubtotal'],
+      ),
+      enteredTax: _expenseAmountFromStoredMoney(
+        map['enteredTaxCents'],
+        map['enteredTax'],
+      ),
+      enteredTotal: _expenseAmountFromStoredMoney(
+        map['enteredTotalCents'],
+        map['enteredTotal'],
+      ),
       trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
       vehicleId: _expenseString(map['vehicleId']).trim().isEmpty
           ? null
@@ -135,6 +144,9 @@ class ExpenseReceiptRecord {
   final double? enteredSubtotal;
   final double? enteredTax;
   final double? enteredTotal;
+  int? get enteredSubtotalCents => _expenseCentsFromAmount(enteredSubtotal);
+  int? get enteredTaxCents => _expenseCentsFromAmount(enteredTax);
+  int? get enteredTotalCents => _expenseCentsFromAmount(enteredTotal);
   final bool trackMaterialsInInventory;
   final String? vehicleId;
   final String? workProfileId;

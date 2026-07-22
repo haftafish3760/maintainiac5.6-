@@ -1,35 +1,54 @@
 part of 'expense_ledger_models.dart';
 
 extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
-  double get lineSubtotal => lines.fold(0, (sum, line) => sum + line.subtotal);
-  double get receiptSubtotal => enteredSubtotal ?? lineSubtotal;
-  double get receiptTax {
-    if (enteredTax != null) return enteredTax!;
-    final total = enteredTotal;
-    final subtotal = enteredSubtotal;
+  int get lineSubtotalCents =>
+      lines.fold(0, (sum, line) => sum + line.subtotalCents);
+  int get receiptSubtotalCents => enteredSubtotalCents ?? lineSubtotalCents;
+  int get receiptTaxCents {
+    final entered = enteredTaxCents;
+    if (entered != null) return entered;
+    final total = enteredTotalCents;
+    final subtotal = enteredSubtotalCents;
     if (total != null && subtotal != null) {
       return total - subtotal;
     }
     return 0;
   }
 
-  double get total => enteredTotal ?? lineSubtotal + receiptAdjustment;
-  double get receiptAdjustment =>
-      (enteredTotal ?? receiptSubtotal + receiptTax) - lineSubtotal;
+  int get totalCents =>
+      enteredTotalCents ?? receiptSubtotalCents + receiptTaxCents;
+  int get receiptAdjustmentCents => totalCents - lineSubtotalCents;
+
+  double get lineSubtotal => lineSubtotalCents / 100;
+  double get receiptSubtotal => receiptSubtotalCents / 100;
+  double get receiptTax => receiptTaxCents / 100;
+  double get total => totalCents / 100;
+  double get receiptAdjustment => receiptAdjustmentCents / 100;
   double? get effectiveTaxRate {
     final subtotal = receiptSubtotal;
     if (subtotal <= 0 || receiptTax == 0) return null;
     return receiptTax / subtotal;
   }
 
-  double get businessLineSubtotal =>
-      lines.fold(0, (sum, line) => sum + line.businessAmount);
-  double get personalLineSubtotal =>
-      lines.fold(0, (sum, line) => sum + line.personalAmount);
-  double get businessTotal =>
-      businessLineSubtotal + _allocatedReceiptAdjustment(businessLineSubtotal);
-  double get personalTotal =>
-      personalLineSubtotal + _allocatedReceiptAdjustment(personalLineSubtotal);
+  int get businessLineSubtotalCents =>
+      lines.fold(0, (sum, line) => sum + line.businessCents);
+  int get personalLineSubtotalCents =>
+      lines.fold(0, (sum, line) => sum + line.personalCents);
+  int get unclassifiedLineSubtotalCents => lines
+      .where((line) => line.use == ExpenseLineUse.unclassified)
+      .fold(0, (sum, line) => sum + line.subtotalCents);
+  double get businessLineSubtotal => businessLineSubtotalCents / 100;
+  double get personalLineSubtotal => personalLineSubtotalCents / 100;
+  double get unclassifiedLineSubtotal => unclassifiedLineSubtotalCents / 100;
+  int get businessTotalCents =>
+      businessLineSubtotalCents + _businessReceiptAdjustmentCents;
+  int get personalTotalCents =>
+      personalLineSubtotalCents + _personalReceiptAdjustmentCents;
+  int get unclassifiedTotalCents =>
+      unclassifiedLineSubtotalCents + _unclassifiedReceiptAdjustmentCents;
+  double get businessTotal => businessTotalCents / 100;
+  double get personalTotal => personalTotalCents / 100;
+  double get unclassifiedTotal => unclassifiedTotalCents / 100;
   bool get hasMissingReceiptProof => attachments.any(
     (attachment) =>
         attachment.storageState == ReceiptAttachmentStorageState.missing,
@@ -79,6 +98,11 @@ extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
         _allocatedReceiptAdjustment(line.personalAmount);
   }
 
+  double unclassifiedTotalForLine(ExpenseReceiptLineRecord line) {
+    if (line.use != ExpenseLineUse.unclassified) return 0;
+    return line.subtotal + _allocatedReceiptAdjustment(line.subtotal);
+  }
+
   DateTime get sortDate {
     final minutes = receiptTimeMinutes;
     if (minutes == null) {
@@ -104,4 +128,30 @@ extension ExpenseReceiptRecordComputedFields on ExpenseReceiptRecord {
     if (subtotal <= 0 || receiptAdjustment == 0) return 0;
     return receiptAdjustment * (lineAmount / subtotal);
   }
+
+  int get _businessReceiptAdjustmentCents {
+    if (lineSubtotalCents <= 0 || businessLineSubtotalCents == 0) return 0;
+    if (personalLineSubtotalCents == 0 && unclassifiedLineSubtotalCents == 0) {
+      return receiptAdjustmentCents;
+    }
+    return (receiptAdjustmentCents *
+            businessLineSubtotalCents /
+            lineSubtotalCents)
+        .round();
+  }
+
+  int get _personalReceiptAdjustmentCents {
+    if (lineSubtotalCents <= 0 || personalLineSubtotalCents == 0) return 0;
+    final remaining = receiptAdjustmentCents - _businessReceiptAdjustmentCents;
+    if (unclassifiedLineSubtotalCents == 0) return remaining;
+    return (receiptAdjustmentCents *
+            personalLineSubtotalCents /
+            lineSubtotalCents)
+        .round();
+  }
+
+  int get _unclassifiedReceiptAdjustmentCents =>
+      receiptAdjustmentCents -
+      _businessReceiptAdjustmentCents -
+      _personalReceiptAdjustmentCents;
 }
