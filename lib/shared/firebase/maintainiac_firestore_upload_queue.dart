@@ -4,7 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'maintainiac_firestore_documents.dart';
+import 'maintainiac_cloud_identity.dart';
 import 'maintainiac_firestore_revision_policy.dart';
+import 'maintainiac_firestore_scope_policy.dart';
 import 'maintainiac_firestore_schema.dart';
 import 'hosted_usage_limits.dart';
 import '../trip_tracking/trip_tracking_firestore_contract.dart';
@@ -52,16 +54,26 @@ typedef MaintainiacFirestoreFreeSyncAttemptRecorder =
 /// from inventing competing merge semantics.
 class FirebaseFirestoreDocumentSink
     implements MaintainiacFirestoreDocumentSink {
-  FirebaseFirestoreDocumentSink({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirebaseFirestoreDocumentSink({
+    FirebaseFirestore? firestore,
+    MaintainiacCloudIdentityProvider? identityProvider,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _identityProvider =
+           identityProvider ?? FirebaseMaintainiacCloudIdentityProvider();
 
   final FirebaseFirestore _firestore;
+  final MaintainiacCloudIdentityProvider _identityProvider;
 
   @override
   Future<void> writeDocument({
     required String path,
     required Map<String, Object?> data,
   }) async {
+    MaintainiacFirestoreScopePolicy.validateWrite(
+      path: path,
+      data: data,
+      authenticatedUid: _identityProvider.currentUid,
+    );
     // Module builders emit complete backup documents. Replacing the document
     // prevents removed fields from surviving as stale cloud state and lets
     // Firestore rules compare exact idempotent retries safely.
