@@ -8,6 +8,7 @@ part 'expense_split_allocation.dart';
 part 'expense_receipt_duplicate_models.dart';
 part 'expense_receipt_ocr_review.dart';
 part 'expense_receipt_ocr_review_helpers.dart';
+part 'expense_receipt_context_snapshot.dart';
 part 'expense_receipt_record.dart';
 part 'expense_receipt_record_computed_fields.dart';
 part 'expense_receipt_record_serialization.dart';

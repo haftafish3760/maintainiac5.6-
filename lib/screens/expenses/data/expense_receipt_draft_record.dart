@@ -35,6 +35,7 @@ class ExpenseReceiptDraftRecord {
     this.enteredTotal,
     this.trackMaterialsInInventory = false,
     this.odometerReading,
+    this.contextSnapshot = const ExpenseReceiptContextSnapshot(),
     this.editingReceiptId,
     this.sourceScreen = 'expenses',
     this.lines = const [],
@@ -100,6 +101,9 @@ class ExpenseReceiptDraftRecord {
       ),
       trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
       odometerReading: _expenseInt(map['odometerReading']),
+      contextSnapshot: ExpenseReceiptContextSnapshot.fromMap(
+        _expenseMap(map['contextSnapshot']),
+      ),
       editingReceiptId: _nullableExpenseString(map['editingReceiptId']),
       sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
       updatedAt: _expenseDateTime(map['updatedAt']) ?? DateTime.now(),
@@ -147,6 +151,7 @@ class ExpenseReceiptDraftRecord {
   int? get enteredTotalCents => _expenseCentsFromAmount(enteredTotal);
   final bool trackMaterialsInInventory;
   final int? odometerReading;
+  final ExpenseReceiptContextSnapshot contextSnapshot;
   final String? editingReceiptId;
   final String sourceScreen;
   final DateTime updatedAt;
@@ -229,6 +234,7 @@ class ExpenseReceiptDraftRecord {
       'enteredTotalCents': enteredTotalCents,
       'trackMaterialsInInventory': trackMaterialsInInventory,
       'odometerReading': odometerReading,
+      'contextSnapshot': contextSnapshot.toMap(),
       'editingReceiptId': editingReceiptId,
       'sourceScreen': sourceScreen,
       'updatedAt': updatedAt.toIso8601String(),

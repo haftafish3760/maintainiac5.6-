@@ -68,6 +68,11 @@ class ExpenseCloudRestoreCodec {
       trackMaterialsInInventory: _boolean(data['trackMaterialsInInventory']),
       vehicleId: _nullableText(data['vehicleId']),
       workProfileId: _nullableText(data['workProfileId']),
+      contextSnapshot: ExpenseReceiptContextSnapshot.fromMap(
+        _map(data['context']),
+        fallbackWorkProfileId: _text(data['workProfileId']),
+        fallbackVehicleId: _text(data['vehicleId']),
+      ),
       odometerReading: _integer(data['odometerReading']),
       sourceScreen: _text(data['sourceScreen'], fallback: 'expenses'),
       createdAt: createdAt,

@@ -265,6 +265,8 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   var _telemetryAddFlowFinished = false;
   int _lastAttachmentCount = 0;
   ExpenseReceiptRecord? _editingReceipt;
+  ExpenseReceiptContextSnapshot _expenseContext =
+      const ExpenseReceiptContextSnapshot();
 
   void _setReceiptEntryState(VoidCallback update) {
     setState(update);

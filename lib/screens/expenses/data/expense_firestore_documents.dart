@@ -63,6 +63,7 @@ class ExpenseFirestoreDocumentBuilder {
         'paymentMethod': _readable(receipt.paymentMethod),
         'vehicleId': _nullableToken(receipt.vehicleId),
         'workProfileId': _nullableToken(receipt.workProfileId),
+        'context': _contextFor(receipt.contextSnapshot),
         'odometerReading': receipt.odometerReading,
         'trackMaterialsInInventory': receipt.trackMaterialsInInventory,
         'hasReceiptProof': receipt.hasReceiptAttachment,
@@ -299,6 +300,17 @@ Map<String, Object?> _lineFor(ExpenseReceiptLineRecord line) {
     'parserReviewLabel': _nullableToken(line.parserReviewLabel),
     'parserNeedsReview': line.parserNeedsReview,
     'rawReceiptTextStored': false,
+  };
+}
+
+Map<String, Object?> _contextFor(ExpenseReceiptContextSnapshot context) {
+  return {
+    'workProfileId': _nullableToken(context.workProfileId),
+    'workProfileName': _readable(context.workProfileName, maxLength: 120),
+    'vehicleId': _nullableToken(context.vehicleId),
+    'vehicleLabel': _readable(context.vehicleLabel, maxLength: 120),
+    'jobId': _nullableToken(context.jobId),
+    'jobLabel': _readable(context.jobLabel, maxLength: 180),
   };
 }
 

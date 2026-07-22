@@ -39,6 +39,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
       enteredTotal: _enteredReceiptTotal,
       trackMaterialsInInventory: _trackMaterialsInInventory,
       odometerReading: _expenseOdometerReading,
+      contextSnapshot: _expenseContext,
       editingReceiptId: _isEditingReceipt ? widget.receiptId : null,
       sourceScreen: _isMaterialsFlow
           ? 'materials_expense_receipt'
@@ -78,6 +79,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
   }
 
   void _applyDraft(ExpenseReceiptDraftRecord draft) {
+    _expenseContext = draft.contextSnapshot;
     _selectedDate = DateTime(
       draft.receiptDate.year,
       draft.receiptDate.month,
@@ -156,6 +158,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
 
   void _applyReceipt(ExpenseReceiptRecord receipt) {
     _editingReceipt = receipt;
+    _expenseContext = receipt.contextSnapshot;
     _selectedDate = DateTime(
       receipt.receiptDate.year,
       receipt.receiptDate.month,

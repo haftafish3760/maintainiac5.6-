@@ -195,6 +195,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
                   fallbackLabel: activeVehicle.nickname,
                 )),
       workProfileId: editing?.workProfileId ?? activeWorkProfile.id,
+      contextSnapshot: editing?.contextSnapshot ?? _expenseContext,
       odometerReading: _expenseOdometerReading,
       sourceScreen:
           editing?.sourceScreen ??

@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../shared/records/maintainiac_record_lifecycle.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import 'expense_ledger_models.dart';
+import 'expense_ledger_scope_filter.dart';
 import 'expense_receipt_item_memory_store.dart';
 import '../../../shared/widgets/receipt_capture/receipt_capture_models.dart';
 
@@ -157,10 +158,21 @@ class ExpenseLedgerController extends ChangeNotifier {
     return records;
   }
 
-  ExpenseLedgerSummary summaryForRange(ExpenseDateRange range) {
-    final records = receipts
+  List<ExpenseReceiptRecord> receiptsForRange(
+    ExpenseDateRange range, {
+    ExpenseLedgerScopeFilter scope = const ExpenseLedgerScopeFilter(),
+  }) {
+    return receipts
         .where((receipt) => range.contains(receipt.receiptDate))
+        .where(scope.matches)
         .toList(growable: false);
+  }
+
+  ExpenseLedgerSummary summaryForRange(
+    ExpenseDateRange range, {
+    ExpenseLedgerScopeFilter scope = const ExpenseLedgerScopeFilter(),
+  }) {
+    final records = receiptsForRange(range, scope: scope);
     return ExpenseLedgerSummary(
       totalCents: records.fold(0, (sum, receipt) => sum + receipt.totalCents),
       businessCents: records.fold(

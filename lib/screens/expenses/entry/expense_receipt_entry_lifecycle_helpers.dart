@@ -68,6 +68,23 @@ extension _ExpenseReceiptEntryLifecycleHelpers
   void _handleReceiptEntryDependencies() {
     _telemetrySnapshot = ExpenseScreenTelemetryRecorder.snapshot(context);
     _drafts = ExpenseDraftScope.maybeOf(context);
+    if (_expenseContext.isEmpty) {
+      final activeVehicle = AppStateScope.of(context).activeVehicle;
+      final activeWorkProfile = ExpenseWorkProfileScope.of(
+        context,
+      ).activeWorkProfile;
+      _expenseContext = ExpenseReceiptContextSnapshot(
+        workProfileId: activeWorkProfile.id,
+        workProfileName: activeWorkProfile.name,
+        vehicleId: activeVehicle == null
+            ? ''
+            : odometerVehicleIdForVehicleId(
+                activeVehicle.id,
+                fallbackLabel: activeVehicle.nickname,
+              ),
+        vehicleLabel: activeVehicle?.displayName ?? '',
+      );
+    }
     if (!_appliedReceiptReviewStyleDefault) {
       _appliedReceiptReviewStyleDefault = true;
       _detailEntryMode = _ReceiptDetailEntryModeX.fromSettingsStyle(

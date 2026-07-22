@@ -30,6 +30,7 @@ extension ExpenseReceiptRecordSerialization on ExpenseReceiptRecord {
       'trackMaterialsInInventory': trackMaterialsInInventory,
       'vehicleId': vehicleId,
       'workProfileId': workProfileId,
+      'contextSnapshot': contextSnapshot.toMap(),
       'odometerReading': odometerReading,
       'sourceScreen': sourceScreen,
       'createdAt': createdAt?.toIso8601String(),

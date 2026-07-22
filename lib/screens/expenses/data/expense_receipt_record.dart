@@ -27,6 +27,7 @@ class ExpenseReceiptRecord {
     this.trackMaterialsInInventory = false,
     this.vehicleId,
     this.workProfileId,
+    this.contextSnapshot = const ExpenseReceiptContextSnapshot(),
     this.odometerReading,
     this.sourceScreen = 'expenses',
     this.createdAt,
@@ -82,11 +83,20 @@ class ExpenseReceiptRecord {
       ),
       trackMaterialsInInventory: _expenseBool(map['trackMaterialsInInventory']),
       vehicleId: _expenseString(map['vehicleId']).trim().isEmpty
-          ? null
+          ? _nullableExpenseString(
+              _expenseMap(map['contextSnapshot'])?['vehicleId'],
+            )
           : _expenseString(map['vehicleId']),
       workProfileId: _expenseString(map['workProfileId']).trim().isEmpty
-          ? null
+          ? _nullableExpenseString(
+              _expenseMap(map['contextSnapshot'])?['workProfileId'],
+            )
           : _expenseString(map['workProfileId']),
+      contextSnapshot: ExpenseReceiptContextSnapshot.fromMap(
+        _expenseMap(map['contextSnapshot']),
+        fallbackWorkProfileId: _expenseString(map['workProfileId']),
+        fallbackVehicleId: _expenseString(map['vehicleId']),
+      ),
       odometerReading: _expenseInt(map['odometerReading']),
       sourceScreen: _expenseString(map['sourceScreen'], fallback: 'expenses'),
       createdAt: _expenseDateTime(map['createdAt']),
@@ -150,6 +160,7 @@ class ExpenseReceiptRecord {
   final bool trackMaterialsInInventory;
   final String? vehicleId;
   final String? workProfileId;
+  final ExpenseReceiptContextSnapshot contextSnapshot;
   final int? odometerReading;
   final String sourceScreen;
   final DateTime? createdAt;
@@ -195,6 +206,7 @@ class ExpenseReceiptRecord {
     Object? trackMaterialsInInventory = _unset,
     Object? vehicleId = _unset,
     Object? workProfileId = _unset,
+    ExpenseReceiptContextSnapshot? contextSnapshot,
     Object? odometerReading = _unset,
     Object? sourceScreen = _unset,
     DateTime? createdAt,
@@ -260,6 +272,7 @@ class ExpenseReceiptRecord {
       workProfileId: workProfileId == _unset
           ? this.workProfileId
           : workProfileId as String?,
+      contextSnapshot: contextSnapshot ?? this.contextSnapshot,
       odometerReading: odometerReading == _unset
           ? this.odometerReading
           : odometerReading as int?,
