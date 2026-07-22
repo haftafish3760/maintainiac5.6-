@@ -283,6 +283,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       engine: engine,
       projection: projection,
       finishedAt: completedAt,
+      finishedTimeZoneContextAt: observedCompletedAt,
     );
     try {
       await _sessionStore.saveReview(review);
@@ -325,7 +326,9 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     required TripTrackingEngine engine,
     required TripLiveOdometerProjection projection,
     required DateTime finishedAt,
+    DateTime? finishedTimeZoneContextAt,
   }) {
+    final finishedContext = finishedTimeZoneContextAt ?? finishedAt;
     final estimatedEndingOdometer = projection.updateAcceptedMeters(
       engine.totalAcceptedMeters,
       gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
@@ -343,6 +346,10 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       profileId: session.effectiveProfileId,
       startedAt: session.startedAt,
       finishedAt: finishedAt,
+      startedTimeZoneOffsetMinutes: session.startedTimeZoneOffsetMinutes,
+      startedTimeZoneName: session.startedTimeZoneName,
+      finishedTimeZoneOffsetMinutes: finishedContext.timeZoneOffset.inMinutes,
+      finishedTimeZoneName: finishedContext.timeZoneName,
       engineSnapshot: engine.snapshot,
       advisories: session.advisories,
       transitionAudits: session.transitionAudits,
@@ -469,6 +476,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       engine: engine,
       projection: projection,
       finishedAt: completedAt,
+      finishedTimeZoneContextAt: observedCompletedAt,
     );
     try {
       await _sessionStore.saveReview(review);

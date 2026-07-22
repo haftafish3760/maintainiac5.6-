@@ -119,6 +119,8 @@ class TripTrackingSessionRecord {
     this.profileId = '',
     required this.startedAt,
     required this.updatedAt,
+    this.startedTimeZoneOffsetMinutes = 0,
+    this.startedTimeZoneName = 'UTC',
     required this.engineSnapshot,
     this.advisories = const [],
     this.lifecycleState = TripTrackingSessionLifecycleState.ready,
@@ -152,6 +154,8 @@ class TripTrackingSessionRecord {
       : _safeIdentifier(profileId);
   final DateTime startedAt;
   final DateTime updatedAt;
+  final int startedTimeZoneOffsetMinutes;
+  final String startedTimeZoneName;
   final TripTrackingEngineSnapshot engineSnapshot;
   final List<TripTrackingAdvisoryEvent> advisories;
   final TripTrackingSessionLifecycleState lifecycleState;
@@ -233,6 +237,8 @@ class TripTrackingSessionRecord {
       profileId: effectiveProfileId,
       startedAt: startedAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      startedTimeZoneOffsetMinutes: startedTimeZoneOffsetMinutes,
+      startedTimeZoneName: startedTimeZoneName,
       engineSnapshot: engineSnapshot ?? this.engineSnapshot,
       advisories: advisories ?? this.advisories,
       lifecycleState: lifecycleState ?? this.lifecycleState,
@@ -271,8 +277,10 @@ class TripTrackingSessionRecord {
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
     'profileId': effectiveProfileId,
-    'startedAt': startedAt.toIso8601String(),
-    'updatedAt': updatedAt.toIso8601String(),
+    'startedAt': startedAt.toUtc().toIso8601String(),
+    'updatedAt': updatedAt.toUtc().toIso8601String(),
+    'startedTimeZoneOffsetMinutes': startedTimeZoneOffsetMinutes,
+    'startedTimeZoneName': _safeTimeZoneName(startedTimeZoneName),
     'engineSnapshot': engineSnapshot.toMap(),
     'advisories': _boundedAdvisories(
       advisories,
@@ -329,6 +337,10 @@ class TripTrackingSessionRecord {
         !map.containsKey('vehicleConfigurationRevision') ||
         (map['vehicleConfigurationRevision'] is int &&
             (map['vehicleConfigurationRevision'] as int) >= 0);
+    final hasValidStartedTimeZone =
+        !map.containsKey('startedTimeZoneOffsetMinutes') ||
+        (_isValidTimeZoneOffset(map['startedTimeZoneOffsetMinutes']) &&
+            _isSafeTimeZoneName(map['startedTimeZoneName']));
     final safeId = _safeIdentifier(map['id']);
     final safeVehicleId = _safeIdentifier(map['vehicleId']);
     final safeProfile = TripTrackingProfile.values.firstWhere(
@@ -356,6 +368,13 @@ class TripTrackingSessionRecord {
       startedAt: safeStartedAt,
       updatedAt:
           updatedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      startedTimeZoneOffsetMinutes:
+          map.containsKey('startedTimeZoneOffsetMinutes')
+          ? _safeTimeZoneOffset(map['startedTimeZoneOffsetMinutes'])
+          : 0,
+      startedTimeZoneName: map.containsKey('startedTimeZoneName')
+          ? _safeTimeZoneName(map['startedTimeZoneName'])
+          : 'unknown',
       engineSnapshot: map['engineSnapshot'] is Map
           ? TripTrackingEngineSnapshot.fromMap(map['engineSnapshot'] as Map)
           : const TripTrackingEngineSnapshot(
@@ -404,6 +423,7 @@ class TripTrackingSessionRecord {
           hasValidLifecycleState &&
           hasValidHealthState &&
           hasValidVehicleConfigurationRevision &&
+          hasValidStartedTimeZone &&
           hasSupportedSchemaVersion,
       revision: _safeTransitionRevision(map['revision']),
       recoveryCount: _safeRecoveryCount(map['recoveryCount']),

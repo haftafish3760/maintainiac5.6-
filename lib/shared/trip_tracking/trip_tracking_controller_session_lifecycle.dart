@@ -191,6 +191,8 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       profileId: effectiveProfileId,
       startedAt: started,
       updatedAt: started,
+      startedTimeZoneOffsetMinutes: started.timeZoneOffset.inMinutes,
+      startedTimeZoneName: started.timeZoneName,
       engineSnapshot: _engine!.snapshot,
     );
     try {
@@ -685,6 +687,9 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       review.effectiveProfileId == session.effectiveProfileId &&
       review.vehicleConfigurationRevision ==
           session.vehicleConfigurationRevision &&
+      review.startedTimeZoneOffsetMinutes ==
+          session.startedTimeZoneOffsetMinutes &&
+      review.startedTimeZoneName == session.startedTimeZoneName &&
       review.startingOdometer == session.startingOdometer &&
       review.startedAt == session.startedAt &&
       review.estimatedEndingOdometer >= review.startingOdometer;

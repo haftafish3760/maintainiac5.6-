@@ -263,7 +263,9 @@ class TripTrackingSessionStore {
     }
     if (!session.hasValidTimeline ||
         session.updatedAt.isBefore(session.startedAt) ||
-        session.vehicleConfigurationRevision < 0) {
+        session.vehicleConfigurationRevision < 0 ||
+        !_isValidTimeZoneOffset(session.startedTimeZoneOffsetMinutes) ||
+        !_isSafeTimeZoneName(session.startedTimeZoneName)) {
       throw ArgumentError.value(
         session.id,
         'session',
@@ -290,6 +292,9 @@ class TripTrackingSessionStore {
               vehicleId: session.vehicleId,
               vehicleConfigurationRevision:
                   session.vehicleConfigurationRevision,
+              startedTimeZoneOffsetMinutes:
+                  session.startedTimeZoneOffsetMinutes,
+              startedTimeZoneName: session.startedTimeZoneName,
               startingOdometer: session.startingOdometer,
               profile: session.profile,
               profileId: session.effectiveProfileId,
@@ -413,6 +418,10 @@ class TripTrackingSessionStore {
         if (!review.hasValidTimeline ||
             review.finishedAt.isBefore(review.startedAt) ||
             review.vehicleConfigurationRevision < 0 ||
+            !_isValidTimeZoneOffset(review.startedTimeZoneOffsetMinutes) ||
+            !_isSafeTimeZoneName(review.startedTimeZoneName) ||
+            !_isValidTimeZoneOffset(review.finishedTimeZoneOffsetMinutes) ||
+            !_isSafeTimeZoneName(review.finishedTimeZoneName) ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
