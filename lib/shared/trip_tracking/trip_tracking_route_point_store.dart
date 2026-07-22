@@ -1,4 +1,6 @@
 // odometerIsGlobalTruth: true.
+import 'dart:math' as math;
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'trip_tracking_map_route_point_payload_policy.dart';
@@ -32,6 +34,7 @@ class TripTrackingRoutePointStore {
 
   final Box<dynamic>? _box;
   final Map<String, Object?> _memory = {};
+  Future<void> _writeTail = Future<void>.value();
 
   static Future<TripTrackingRoutePointStore> create() async =>
       TripTrackingRoutePointStore._(await Hive.openBox<dynamic>(boxName));
@@ -42,7 +45,7 @@ class TripTrackingRoutePointStore {
     required String localDayKey,
     required DateTime nowUtc,
     required TripTrackingSettings settings,
-  }) async {
+  }) => _enqueue(() async {
     final safeDayKey = _safeDayKey(localDayKey);
     if (safeDayKey == null) {
       return const TripTrackingRoutePointWriteResult(
@@ -106,7 +109,7 @@ class TripTrackingRoutePointStore {
       reasonCode: 'route_point_saved_locally',
       persistedPointsForDay: persistedToday + 1,
     );
-  }
+  });
 
   List<Map<String, Object?>> pointsForTrip(String tripId) {
     final values = _box == null ? _memory.values : _box.values;
@@ -130,6 +133,57 @@ class TripTrackingRoutePointStore {
 
   int nextSequenceForTrip(String tripId) =>
       (_readInt(_lastSequenceKey(tripId)) ?? -1) + 1;
+
+  /// Route history is optional private data and can only be erased after an
+  /// explicit user confirmation. Trip mileage and reviews are not stored here.
+  Future<bool> deleteRoute(String tripId, {required bool userConfirmed}) =>
+      _enqueue(() async {
+        if (!userConfirmed) return false;
+        final pointKeys = <String>[];
+        final removedByDay = <String, int>{};
+        for (final key in _keys.whereType<String>()) {
+          if (!key.startsWith('point:')) continue;
+          final value = _read(key);
+          if (value is! Map || _decodeRoutePoint(value)?['tripId'] != tripId) {
+            continue;
+          }
+          pointKeys.add(key);
+          final day = _dayFromPointKey(key);
+          if (day != null) {
+            removedByDay.update(day, (count) => count + 1, ifAbsent: () => 1);
+          }
+        }
+        final keysToDelete = <String>[...pointKeys, _lastSequenceKey(tripId)];
+        if (_box == null) {
+          for (final key in keysToDelete) {
+            _memory.remove(key);
+          }
+        } else {
+          await _box.deleteAll(keysToDelete);
+        }
+        final countUpdates = <String, int>{};
+        for (final entry in removedByDay.entries) {
+          final countKey = _dayCountKey(entry.key);
+          final current = _readInt(countKey) ?? 0;
+          countUpdates[countKey] = math.max(0, current - entry.value);
+        }
+        if (_box == null) {
+          _memory.addAll(countUpdates);
+        } else if (countUpdates.isNotEmpty) {
+          await _box.putAll(countUpdates);
+        }
+        return true;
+      });
+
+  Iterable<dynamic> get _keys => _box == null ? _memory.keys : _box.keys;
+
+  Object? _read(String key) => _box == null ? _memory[key] : _box.get(key);
+
+  Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final next = _writeTail.then((_) => operation());
+    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
 }
 
 Map<String, Object?>? _decodeRoutePoint(Map<dynamic, dynamic> value) {
@@ -179,3 +233,10 @@ String _pointKey(String day, String tripId, int sequence) =>
     'point:$day:$tripId:$sequence';
 String _dayCountKey(String day) => 'count:$day';
 String _lastSequenceKey(String tripId) => 'last:$tripId';
+
+String? _dayFromPointKey(String key) {
+  if (key.length < 17 || !key.startsWith('point:') || key[16] != ':') {
+    return null;
+  }
+  return _safeDayKey(key.substring(6, 16));
+}
