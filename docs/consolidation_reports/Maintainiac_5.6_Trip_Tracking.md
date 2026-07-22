@@ -140,3 +140,70 @@
 - The trial changed 87 files. One auto-merged test was syntactically invalid; after restoring that test to 5.7, changed-file analysis still reported 731 issues across incompatible lifecycle enums, session/review schemas, dashboard wiring, and tests.
 - The trial was aborted completely; none of the incompatible batch entered 5.7.
 - The unique source history remains preserved on GitHub and indexed for later feature-level reconciliation.
+
+## Semantic reconciliation completed — 2026-07-22
+
+The incompatible bulk merge described above was not used. All 24 commits unique
+to `codex/gps-assisted-trip-commercial-20260720` were reviewed in chronological
+capability batches against the newer 5.7 architecture. The source worktree and
+branch remained read-only and clean.
+
+The repository's separate `codex/gps-assisted-trip-commercial-20260721` head
+(`a0cb57c1`) is already an ancestor of 5.7. Its later runtime checkpoint,
+completion-review, TripLog revision, ingestion serialization, cancellation
+retry, GPS hardening, and receipt-review changes were therefore retained as the
+baseline rather than re-imported as duplicates.
+
+### Added or semantically merged
+
+- Odometer rollover and unit-change audit safeguards.
+- Tire calibration context, vehicle-configuration isolation, and bound
+  vehicle/profile recovery context.
+- GPS opt-in tire-setup guidance and trip-start time-zone context.
+- Stop-advisory ancestry, reviewed-trip local-day bundles, and driver-confirmed
+  pickup/drop-off/manual events using the existing canonical event model.
+- Rejected-distance and estimated-gap diagnostics without allowing GPS to
+  become official mileage truth.
+- Private route write serialization, explicit confirmed route deletion, and
+  mid-trip map-consent revocation while GPS mileage continues.
+- Idempotent corrupt-checkpoint diagnostics and lossless quarantine of unsafe
+  or terminal recovery evidence.
+- iOS monotonic location ordering plus mocked, malformed-motion, and
+  pre-session initial-fix rejection.
+- Native Bluetooth capability reporting and serialized, user-approved linked
+  vehicle coordination, while retaining the newer 5.7 automatic-start detector
+  and Bluetooth link model.
+- Checksummed, generation-ordered active-session recovery across active,
+  pending, and previous slots, including corruption fallback diagnostics.
+- Exhaustive current-state lifecycle transition matrix coverage.
+- A Firebase-neutral trip backup port while retaining the fuller consent-bound,
+  reviewed-mileage Firebase mirror and the module-neutral durable record bridge.
+
+### Intentionally not duplicated or overwritten
+
+- The older parallel lifecycle enum, cancelled-session record,
+  lifecycle-event class, route-history store, initial-fix classifier,
+  assisted-start detector, and Bluetooth link model were not copied. Their
+  unique behavior was merged into the newer canonical 5.7 models instead.
+- Older schema-boundary and pause/cancellation implementations were superseded
+  by 5.7's revisioned reviews, transition audits, operation serialization,
+  completion crash recovery, and quarantine path.
+- The final deletion-only dashboard Firebase wiring change was not applied.
+  The privacy-safe dashboard snapshot, durable reviewed-trip bundle, and
+  Firebase mirror are complementary boundaries; removing one would discard
+  capability rather than remove duplicate code.
+
+### Validation
+
+- Dart formatting and changed-file analysis: clean.
+- Swift native bridge parse: passed.
+- Android `:app:compileDebugKotlin`: passed after restoring the missing receipt
+  photo-quality executor exposed by the build.
+- Trip controller suite: 195 passed.
+- Store/recovery suite: 64 passed.
+- Bluetooth/automatic-start suite: 20 passed.
+- Native capability boundary suite: 12 passed.
+- Snapshot corruption/interrupted-write suite: 2 passed.
+- State-machine and contract suite: 13 passed.
+- Firebase trip-backup tests and the controller suite passed when run in their
+  isolated test groups.
