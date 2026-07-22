@@ -24,7 +24,13 @@ abuse controls, feature bridges, rules, indexes, and emulator tests exist.
   of deployed production Firebase, complete proof lifecycle, or device migration.
 - `NEEDS RECONCILIATION`: restore, proof upload, Storage emulator coverage,
   schemas, migrations, conflicts, quotas, and protected-path source differences.
+- `VERIFIED SUBSET`: the Receipt OCR repository's older Expense backup queue,
+  direct sink, proof transport, and deletion queue were compared to the newer
+  centralized queue, secure proof grant/finalization/reference, restore, and
+  tombstone owners; the focused cross-system persistence batch passed 124 tests.
 
 ## Rolling Log
 
 - 2026-07-22: Created with local evidence separated from production readiness.
+- 2026-07-22: Recorded semantic supersession of the Receipt OCR repository's
+  parallel cloud owners; no production deployment claim was made.

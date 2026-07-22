@@ -30,6 +30,11 @@ calendar/detail, reports, reminders, settings, and work profiles exist.
   specified in the receipt-system handoff; do not implement fragments.
 - `NEEDS RECONCILIATION`: continue source-by-source Expense behavior and history
   comparison; final full tests and platform builds are not complete.
+- `VERIFIED SUBSET`: the Receipt OCR repository's final Expense persistence and
+  cloud batch is covered by newer 5.7 owners; 124 focused tests passed.
+- `NEEDS RECONCILIATION`: receipts retain job/work-profile/vehicle context, but
+  the source's chooser UI must be connected to centralized owners rather than
+  importing its parallel Expense-only stores.
 
 ## Rolling Log
 
@@ -37,3 +42,5 @@ calendar/detail, reports, reminders, settings, and work profiles exist.
   recorded the verified review-mode totals checkpoint.
 - 2026-07-22: Reconciled source commits `7b053a05b` and `27694e9d1`; integrated
   explicit split ownership and retained the newer 5.7 evidence-display model.
+- 2026-07-22: Closed the Receipt OCR repository's Expense persistence/cloud
+  history; recorded centralized receipt-context chooser work still required.

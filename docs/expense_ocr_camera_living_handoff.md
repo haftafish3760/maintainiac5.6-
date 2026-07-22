@@ -101,6 +101,11 @@ The product owner stated that it is not being implemented during consolidation.
   were reconciled. Newer 5.7 recovery and visible suggestions remain; the older
   automatic Fuel/Inventory multi-consumer dispatch was rejected because routing
   requires the user's selection. The focused batch passed 51 tests.
+- Final Expense commits `346414ff0` through `28b6893b8` were compared. Newer
+  5.7 persistence, deletion history, profiles, reminders, cloud queue, proof,
+  and restore owners were retained; 124 focused tests passed. The source's
+  durable job directory and receipt job/profile/vehicle chooser remain queued
+  for a single shared Jobs/context merge, never a parallel Expense store.
 
 ## Consolidation And Validation Boundary
 
@@ -126,3 +131,5 @@ final project-wide tests remain required before final consolidation completion.
 - 2026-07-22: Recorded evidence/capture handoff and benchmark-history audits.
 - 2026-07-22: Recorded recovery/classification/ownership reconciliation and the
   explicit rejection of OCR-owned domain routing.
+- 2026-07-22: Finished all 33 source-only commit evaluations and routed the one
+  unresolved Jobs/context capability to its owning system handoff.

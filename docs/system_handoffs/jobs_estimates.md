@@ -13,6 +13,17 @@ recorded.
 - Requirements: `screen_notes/jobs.txt` and `screen_notes/invoices_estimates.txt`
 - Search invoices and shared records before adding a new model or store.
 
+## Discovered Preserved Capability
+
+- Receipt OCR source commit `07370e351` contains a Hive-backed job directory
+  with stable IDs, name, work profile, vehicle, customer reference, archive,
+  backup, and receipt create/choose UI.
+- Current 5.7 already persists `jobId` and `jobLabel` with receipt context and
+  recap filters, but `WorkSupplyJobsScreen` still uses `_demoJobs()`.
+- Do not copy `ExpenseJobStore` as a parallel owner. Semantically migrate its
+  durable capabilities into one shared Jobs owner used by Expenses, Work
+  Supplies, Dashboard, Estimates, Invoices, mileage, and inventory.
+
 ## Remaining
 
 - Compare source repositories and Git history for job, estimate, customer,
@@ -25,3 +36,5 @@ recorded.
 
 - 2026-07-22: Created as a separate lane; current presence is not a completion
   claim.
+- 2026-07-22: Recorded the unique durable job-directory and receipt-linking
+  capability found in Receipt OCR history; central merge remains required.

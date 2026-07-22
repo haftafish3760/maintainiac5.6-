@@ -225,3 +225,45 @@
   and that dedicated consumers receive unchanged evidence only after selection.
 - Validation: classification, explicit-route handoff, reusable QA, OCR warning/
   source recovery, native warning, and durable draft tests passed 51 tests.
+
+## Expense persistence, context, and cloud reconciliation
+
+- Compared source commits `346414ff0`, `580110973`, `07370e351`, `e064aa01b`,
+  `804f10d69`, `4884a9c9e`, `5282cff2c`, and `28b6893b8` against current 5.7.
+- Current 5.7 has newer integer-cent receipt/line persistence, serialized writes,
+  storage guards, durable drafts, recoverable receipt/reminder deletion history,
+  cloud tombstones, work-profile and vehicle historical identity, scoped recaps,
+  operational context, secure proof upload grants/finalization/references, cloud
+  restore, and a centralized Firestore upload queue. The source's parallel
+  backup queue, direct Firestore sink, proof transport, vehicle-profile store,
+  and deletion store were not copied.
+- Source `expense_completion_roadmap.md` was not copied because it is older
+  planning evidence and current system handoffs now own rolling state.
+- Validation: persistence, drafts, Firestore documents, ledger, settings,
+  operational context, work/vehicle profiles, cloud backup/proof, recaps,
+  reminders, and proof ownership passed 124 focused tests.
+
+### Manual semantic merge still required
+
+- Source commit `07370e351` contains a real Hive-backed `ExpenseJobStore` and a
+  receipt-to-job create/choose panel. Current 5.7 retains `jobId`/`jobLabel` in
+  receipt context and filtering, but `WorkSupplyJobsScreen` still reads demo
+  jobs and there is no authoritative durable Jobs directory.
+- The source store was not copied because that would create a second Jobs owner
+  under Expenses. Preserve its stable ID, name, work profile, vehicle, customer
+  reference, archive, and backup capabilities when building the single shared
+  Jobs owner, then connect Expenses, Work Supplies, Dashboard, Estimates,
+  Invoices, mileage, and inventory to that owner.
+- The source also offers per-receipt job, work-profile, and vehicle chooser
+  panels. Current 5.7 seeds the active context but does not expose all three
+  overrides. Their UX and centralized-owner integration remain manual review;
+  the older parallel profile stores must not be imported.
+
+## Repository processing status
+
+- All 33 source-only commits have now been evaluated in order.
+- High-confidence OCR/review improvements were integrated; newer 5.7 owners
+  were retained where they supersede source code; automatic OCR-owned routing
+  was rejected; the durable Jobs/context UI capability is explicitly queued for
+  a single-owner semantic merge.
+- The source repository remained unchanged.
