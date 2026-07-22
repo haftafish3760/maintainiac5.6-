@@ -247,6 +247,9 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_status.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
         ).readAsString();
     final screen =
         await File(
@@ -295,7 +298,7 @@ void main() {
     expect(screen, contains('widget.uiConfig.previewControlsHeightFraction'));
     expect(screen, contains('widget.uiConfig.previewControlsMultiPhotoHeight'));
     expect(uiConfig, contains('this.previewControlsHeightFraction = .22'));
-    expect(uiConfig, contains('this.previewControlsSinglePhotoHeight = 132'));
+    expect(uiConfig, contains('this.previewControlsSinglePhotoHeight = 144'));
     expect(uiConfig, contains('this.previewControlsMultiPhotoHeight = 178'));
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
@@ -303,7 +306,7 @@ void main() {
       previewControls,
       contains('_ReceiptPhotoSectionLabels.addNextSectionLabel'),
     );
-    expect(previewControls, contains('minimumSize: const Size(0, 38)'));
+    expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(controls, contains('open receipt details'));
     expect(
       controls,
@@ -396,7 +399,10 @@ void main() {
     expect(controls, contains('onAddPhoto'));
     expect(controls, contains('onRetake'));
     expect(controls, contains('onContinue'));
-    expect(controls, contains('ReceiptPhotoCoverageDecision.fromSignals'));
+    expect(
+      surfaceControls,
+      contains('ReceiptPhotoCoverageDecision.fromSignals'),
+    );
     expect(controls, contains('Add Bottom Section'));
     expect(controls, contains("'Use Receipt'"));
     expect(screen, contains('Future<void> addAnotherReceiptPhoto()'));

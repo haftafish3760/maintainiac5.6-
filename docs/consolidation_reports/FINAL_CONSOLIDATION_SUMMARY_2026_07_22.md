@@ -38,11 +38,13 @@
 
 ## Git-history closure
 
-All remote refs not already ancestors of 5.7 were collapsed to nine maximal
-distinct tips. Every tip now has a semantic integration, already-present,
-superseded, or intentionally excluded outcome recorded in
-`GIT_HISTORY_RECONCILIATION_2026_07_22.md`. The refs remain unmerged ancestors
-by design because source histories were not merged wholesale.
+A final fetch exposed preservation refs that were absent from the first clone's
+remote-tip inventory. The refreshed 60 refs collapse to 19 independent tips.
+Every tip now has a semantic integration, already-present, superseded, or
+intentionally excluded outcome recorded in
+`GIT_HISTORY_RECONCILIATION_2026_07_22.md` and
+`REMOTE_REF_GAP_RECONCILIATION_2026_07_22.md`. The refs remain non-ancestors by
+design because source histories were not merged wholesale.
 
 ## Validation boundary
 
