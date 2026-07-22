@@ -116,9 +116,13 @@ extension _ExpenseReceiptEntryImportedTextParseActions
       inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
     );
     try {
-      final parsed = await _receiptOcrHandoffRouter(
+      final routed = await _receiptOcrHandoffRouter(
         capability,
       ).dispatch(handoff).timeout(_receiptParserTimeout(capability));
+      final parsed = fillMissingExpenseReceiptFieldsFromOcrCandidates(
+        routed,
+        ocr.layout,
+      );
       unawaited(_recordPrivacySafeParseEvent(parsed));
       _recordParserTelemetry(parsed);
       if (!mounted) return;

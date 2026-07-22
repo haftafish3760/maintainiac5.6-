@@ -119,6 +119,13 @@ class ExpenseReceiptParseResult {
   }
 
   ExpenseReceiptParseResult copyWith({
+    String? merchantName,
+    DateTime? receiptDate,
+    int? receiptTimeMinutes,
+    double? enteredSubtotal,
+    double? enteredTax,
+    double? enteredTotal,
+    Map<String, ExpenseReceiptFieldConfidence>? fieldConfidences,
     List<ExpenseReceiptLineRecord>? lines,
     List<ExpenseReceiptLineReview>? lineReviews,
     List<String>? warnings,
@@ -126,14 +133,14 @@ class ExpenseReceiptParseResult {
   }) {
     return ExpenseReceiptParseResult(
       sourceText: sourceText,
-      merchantName: merchantName,
-      receiptDate: receiptDate,
-      receiptTimeMinutes: receiptTimeMinutes,
-      enteredSubtotal: enteredSubtotal,
-      enteredTax: enteredTax,
-      enteredTotal: enteredTotal,
+      merchantName: merchantName ?? this.merchantName,
+      receiptDate: receiptDate ?? this.receiptDate,
+      receiptTimeMinutes: receiptTimeMinutes ?? this.receiptTimeMinutes,
+      enteredSubtotal: enteredSubtotal ?? this.enteredSubtotal,
+      enteredTax: enteredTax ?? this.enteredTax,
+      enteredTotal: enteredTotal ?? this.enteredTotal,
       quality: quality,
-      fieldConfidences: fieldConfidences,
+      fieldConfidences: fieldConfidences ?? this.fieldConfidences,
       maintenanceHints: maintenanceHints,
       lines: lines ?? this.lines,
       lineReviews: lineReviews ?? this.lineReviews,

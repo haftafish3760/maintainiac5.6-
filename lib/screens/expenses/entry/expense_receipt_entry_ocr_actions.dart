@@ -297,10 +297,14 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       );
       return;
     }
-    late final ExpenseReceiptParseResult parsed;
+    late ExpenseReceiptParseResult parsed;
     try {
       parsed = _withReceiptBrainHandoffDiagnostics(
         await handoffRouter.dispatch(handoff).timeout(remaining),
+      );
+      parsed = fillMissingExpenseReceiptFieldsFromOcrCandidates(
+        parsed,
+        ocr.layout,
       );
     } on TimeoutException {
       _handleReceiptParseFailure(
