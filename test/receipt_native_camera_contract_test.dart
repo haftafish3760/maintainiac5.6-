@@ -152,7 +152,10 @@ void main() {
     expect(edgeDetection.defaultEnabled, isTrue);
     expect(edgeDetection.label, contains('edges'));
     expect(edgeDetection.description, contains('crop'));
-    expect(edgeDetection.description, contains('perspective correction'));
+    expect(
+      edgeDetection.description,
+      contains('crop guidance and safe straightening checks'),
+    );
 
     final longReceipt = descriptors.singleWhere(
       (descriptor) => descriptor.id == 'long_receipt_mode',
@@ -178,7 +181,9 @@ void main() {
     );
     expect(safeQueue.description, contains('call, crash, or app switch'));
     expect(
-      descriptors.where((descriptor) => descriptor.group == ReceiptNativeSettingGroup.storage),
+      descriptors.where(
+        (descriptor) => descriptor.group == ReceiptNativeSettingGroup.storage,
+      ),
       hasLength(1),
     );
   });

@@ -9,7 +9,6 @@ import java.time.Instant
 
 
 internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutter") {
-    lastCaptureTrigger = trigger
     lastCaptureBlockReason = "none"
     if (trigger == "manual_shutter" || trigger == "manual_add_photo") {
         manualShutterTapCount += 1
@@ -20,23 +19,31 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
     if (capture == null) {
         captureBlockedNoCameraCount += 1
         lastCaptureBlockReason = "no_camera"
+        reportManualCaptureBlocked(trigger, "no_camera")
         return
     }
     if (captureInFlight) {
         captureBlockedBusyCount += 1
         lastCaptureBlockReason = "capture_in_flight"
+        reportManualCaptureBlocked(trigger, "capture_in_flight")
         return
     }
     if (closingCamera) {
         captureBlockedClosingCount += 1
         lastCaptureBlockReason = "closing_camera"
+        reportManualCaptureBlocked(trigger, "closing_camera")
         return
     }
     if (!isCameraSurfaceActive()) {
         captureBlockedSurfaceInactiveCount += 1
         lastCaptureBlockReason = "camera_surface_inactive"
+        reportManualCaptureBlocked(trigger, "camera_surface_inactive")
         return
     }
+    // Keep provenance tied to the capture that actually begins. A blocked
+    // double-tap or auto-capture attempt must not overwrite an in-flight
+    // manual capture's trigger.
+    lastCaptureTrigger = trigger
     if (trigger == "manual_shutter" || trigger == "manual_add_photo") {
         manualCaptureStartedCount += 1
     } else if (trigger == "auto_capture") {
@@ -63,6 +70,19 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
     }
 }
 
+internal fun ReceiptCameraActivity.reportManualCaptureBlocked(trigger: String, reason: String) {
+    // Live analysis may encounter the same condition repeatedly. Only surface
+    // a message for an intentional manual action so the guidance stays stable.
+    if (trigger != "manual_shutter" && trigger != "manual_add_photo") return
+    if (!hasInitializedReceiptCameraField { guidance }) return
+    guidance.text = when (reason) {
+        "capture_in_flight" -> "Saving the last receipt photo. Please wait."
+        "closing_camera" -> "Opening receipt photo review. Your photo is being kept."
+        "camera_surface_inactive" -> "Receipt camera is still getting ready. Try again in a moment."
+        else -> "Receipt camera is unavailable. Check camera permission, then try again."
+    }
+}
+
 internal fun ReceiptCameraActivity.performReceiptCapture(
     capture: ImageCapture,
     outputFile: File,
@@ -75,6 +95,7 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
         pendingCloseAfterCapture = false
         outputFile.delete()
         if (hasInitializedReceiptCameraField { shutterButton }) shutterButton.isEnabled = true
+        reportManualCaptureBlocked(lastCaptureTrigger, "camera_surface_inactive")
         return
     }
     capture.takePicture(
@@ -116,15 +137,25 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
                 if (firstCapturedAt == null) firstCapturedAt = capturedAt
                 capturedPhotoPaths.add(outputFile.absolutePath)
                 totalCapturedByteSize += savedByteSize
-                recordCapturedPhotoQuality(outputFile)
-                autoCaptureCooldownUntilMs =
-                    System.currentTimeMillis() + autoCaptureCooldownMs
-                if (pendingCloseAfterCapture) {
-                    pendingCloseAfterCapture = false
-                    finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")
-                    return
+                // Decoding and sampling a high-resolution JPEG can take long
+                // enough to trigger an Android ANR when it runs on the UI
+                // callback. Keep the shutter locked until this lightweight
+                // evidence pass has finished, then return to the main thread.
+                receiptPhotoQualityExecutor.execute {
+                    recordCapturedPhotoQuality(outputFile)
+                    runOnUiThread {
+                        captureInFlight = false
+                        if (!isCameraSurfaceActive() || closeResultDelivered) return@runOnUiThread
+                        autoCaptureCooldownUntilMs =
+                            System.currentTimeMillis() + autoCaptureCooldownMs
+                        if (pendingCloseAfterCapture) {
+                            pendingCloseAfterCapture = false
+                            finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")
+                            return@runOnUiThread
+                        }
+                        finishWithCapturedPhotos(closeReason = "capture_saved_open_review")
+                    }
                 }
-                finishWithCapturedPhotos(closeReason = "capture_saved_open_review")
             }
 
             override fun onError(exception: ImageCaptureException) {

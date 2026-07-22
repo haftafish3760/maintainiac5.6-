@@ -207,6 +207,7 @@ while IFS= read -r path; do
       )
       ;;
     ios/Runner/ReceiptCameraViewController.swift | \
+    ios/Runner/ReceiptCameraViewControllerCapture.swift | \
     ios/Runner/ReceiptCameraViewControllerLayout.swift | \
     ios/Runner/ReceiptCameraViewControllerControls.swift | \
     ios/Runner/ReceiptCameraViewControllerLabels.swift | \
@@ -217,6 +218,7 @@ while IFS= read -r path; do
       targeted_tests+=(
         test/receipt_camera_phase3_viewer_contract_test.dart
         test/receipt_native_ios_bridge_ui_session_test.dart
+        test/receipt_native_ios_capture_format_test.dart
       )
       ;;
     ios/Runner/ReceiptCameraViewControllerLiveFrameAnalysis.swift | \

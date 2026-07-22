@@ -144,8 +144,6 @@ Future<void> _showDataSaverDetails(
     operationBytes: preview.estimatedBytes,
     purpose: AppStoragePurpose.receiptPhotoSave,
   );
-  const cloudStatus = CloudBackupStatusSnapshot.notConnected();
-  final cloud = cloudStatus.checkPendingBytes(preview.estimatedBytes);
   if (!context.mounted) return;
   await showDialog<void>(
     context: context,
@@ -196,19 +194,10 @@ Future<void> _showDataSaverDetails(
               value: storage.availableLabel,
               warning: storage.shouldWarnLowStorage || !storage.hasEnoughSpace,
             ),
-            _StorageDetailRow(
-              label: 'Backup status',
+            const _StorageDetailRow(
+              label: 'Cloud backup',
               value:
-                  '${cloudStatus.connectionState.label} (${cloud.statusLabel})',
-            ),
-            _StorageDetailRow(
-              label: 'Cloud allowance',
-              value: cloud.quotaLabel,
-            ),
-            _StorageDetailRow(
-              label: 'Cloud note',
-              value: cloud.detailLabel,
-              warning: cloud.wouldExceedCloudTier,
+                  'Connect backup in Account settings to see storage and activity.',
             ),
           ],
         ),

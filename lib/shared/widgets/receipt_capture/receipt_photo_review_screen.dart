@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../localization/maintaniac_localizations.dart';
-import '../../backup/cloud_backup_status.dart';
 import '../../storage/app_storage_guard.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_assistance_policy.dart';
@@ -17,6 +16,7 @@ import 'receipt_image_processor.dart';
 import 'receipt_image_picker.dart';
 import 'receipt_native_capture_staging.dart';
 import 'receipt_native_camera_contract.dart';
+import 'receipt_native_camera_preference_mapper.dart';
 import 'receipt_native_camera_service.dart';
 import 'receipt_picker_status.dart';
 import 'receipt_photo_review_retake_order.dart';
@@ -152,6 +152,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   Size? _cropImageSize;
   Rect? _cropRect;
   Rect? _cropDisplayRect;
+  Rect? _suggestedCropNormalized;
   String? _cropSourcePath;
   final _toolControlsScrollController = ScrollController();
   final _photoPreviewTransformController = TransformationController();

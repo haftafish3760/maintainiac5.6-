@@ -125,3 +125,12 @@
 - `lib/shared/firebase/maintainiac_firestore_schema.dart` — same target path has different content
 - `lib/shared/firebase/maintainiac_firestore_upload_policy.dart` — same target path has different content
 - Remaining manual items: 185 (see JSONL)
+
+## Compatible-history merge validation
+
+- Preflight: 18 source-only commits; 15 textual conflicts. Conflicts were resolved in favor of the 5.7 baseline before evaluating compatible camera changes.
+- Accepted batch: 82 files (1,357 insertions, 928 deletions before final contract-file rejections), limited to Receipt Camera native bridges, capture/review code, focused tools, and their targeted tests.
+- Rejected from the merge: eight incompatible or obsolete test contracts. Six were restored to the 5.7 versions; two source-only tests were omitted because their companion implementations were incompatible with the current baseline.
+- Static validation: `flutter analyze` passed for all 64 changed Dart files.
+- Targeted validation: all 87 tests in the changed test-file batch passed.
+- Source repository remained content-read-only.

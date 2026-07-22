@@ -22,6 +22,7 @@ class ReceiptEdgeCropper extends StatelessWidget {
     required this.imageBytes,
     required this.imageSize,
     required this.cropRect,
+    this.suggestedNormalizedCrop,
     required this.onCropRectChanged,
     required this.onDisplayRectChanged,
   });
@@ -29,6 +30,7 @@ class ReceiptEdgeCropper extends StatelessWidget {
   final Uint8List imageBytes;
   final Size imageSize;
   final Rect? cropRect;
+  final Rect? suggestedNormalizedCrop;
   final ValueChanged<Rect> onCropRectChanged;
   final ValueChanged<Rect> onDisplayRectChanged;
 
@@ -39,9 +41,13 @@ class ReceiptEdgeCropper extends StatelessWidget {
         final canvasSize = Size(constraints.maxWidth, constraints.maxHeight);
         final imageRect = _containedImageRect(canvasSize, imageSize);
         _notifyAfterLayout(context, () => onDisplayRectChanged(imageRect));
-        final activeCropRect = cropRect ?? imageRect;
+        final suggestedCropRect = _suggestedCropRect(
+          imageRect,
+          suggestedNormalizedCrop,
+        );
+        final activeCropRect = cropRect ?? suggestedCropRect ?? imageRect;
         if (cropRect == null) {
-          _notifyAfterLayout(context, () => onCropRectChanged(imageRect));
+          _notifyAfterLayout(context, () => onCropRectChanged(activeCropRect));
         }
         return Stack(
           fit: StackFit.expand,
@@ -89,6 +95,24 @@ class ReceiptEdgeCropper extends StatelessWidget {
       fittedSize.width,
       fittedSize.height,
     );
+  }
+
+  Rect? _suggestedCropRect(Rect imageRect, Rect? normalizedCrop) {
+    if (normalizedCrop == null || imageRect.isEmpty) return null;
+    final left = (imageRect.left + imageRect.width * normalizedCrop.left).clamp(
+      imageRect.left,
+      imageRect.right,
+    );
+    final top = (imageRect.top + imageRect.height * normalizedCrop.top).clamp(
+      imageRect.top,
+      imageRect.bottom,
+    );
+    final right = (imageRect.left + imageRect.width * normalizedCrop.right)
+        .clamp(left, imageRect.right);
+    final bottom = (imageRect.top + imageRect.height * normalizedCrop.bottom)
+        .clamp(top, imageRect.bottom);
+    if (right <= left || bottom <= top) return null;
+    return Rect.fromLTRB(left, top, right, bottom);
   }
 
   void _notifyAfterLayout(BuildContext context, VoidCallback callback) {

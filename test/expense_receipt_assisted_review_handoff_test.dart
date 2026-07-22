@@ -85,9 +85,7 @@ void main() {
     );
     expect(
       entryScreen,
-      contains(
-        'Photo review completes before attachments are installed into the\n      // entry form.',
-      ),
+      contains('onReceiptPhotoReviewAccepted: _markReceiptPhotoReviewAccepted'),
     );
     expect(
       entryScreen,

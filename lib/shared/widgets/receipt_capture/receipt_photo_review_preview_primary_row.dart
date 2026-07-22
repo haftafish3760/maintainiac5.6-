@@ -14,6 +14,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     required this.continueLabel,
     required this.onRetake,
     required this.onAddPhoto,
+    required this.onCrop,
     required this.onContinue,
   });
 
@@ -29,6 +30,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   final String continueLabel;
   final VoidCallback? onRetake;
   final VoidCallback? onAddPhoto;
+  final VoidCallback? onCrop;
   final VoidCallback? onContinue;
 
   @override
@@ -44,8 +46,6 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     );
     final addPhotoLabel = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add Bottom Section'
-        : shouldAddNextSection
-        ? uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel)
         : uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel);
     final addPhotoTooltip = coverageDecision.isMissingBottomEdgeAndTotals
         ? 'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice'
@@ -87,6 +87,31 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onCrop != null) ...[
+                  const SizedBox(width: 4),
+                  Tooltip(
+                    message: 'Crop receipt photo',
+                    child: Semantics(
+                      button: true,
+                      label: 'Crop receipt photo',
+                      child: TextButton.icon(
+                        onPressed: savingPhotos ? null : onCrop,
+                        icon: const Icon(Icons.crop_rounded, size: 17),
+                        label: const Text('Crop'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFE8ECEE),
+                          disabledForegroundColor: const Color(0xFF758188),
+                          minimumSize: const Size(40, 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          textStyle: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
             SizedBox(height: compact ? 5 : 7),

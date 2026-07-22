@@ -84,6 +84,10 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     final hasCapturedPhotos = photoPaths.isNotEmpty;
     final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;
     final continueLabel = _continueLabel;
+    final displayedContinueLabel = uiConfig.labelFor(
+      'continue',
+      continueLabel == 'Use Receipt' ? uiConfig.useReceiptLabel : continueLabel,
+    );
     final waitingForStitch =
         reviewMode == _ReceiptReviewMode.stitch &&
         photoPaths.length > 1 &&
@@ -247,7 +251,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
             _ReceiptPersistentContinueButton(
               enabled: continueEnabled,
               savingPhotos: effectiveSavingPhotos,
-              label: continueLabel,
+              label: displayedContinueLabel,
               onContinue: onContinue,
             ),
           ],
@@ -257,32 +261,18 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
   }
 
   String get _continueLabel {
-    final coverageDecision = ReceiptPhotoCoverageDecision.fromSignals(
-      quality: selectedQualityCheck,
-      diagnostics: selectedCaptureDiagnostics,
-    );
-    if (reviewMode == _ReceiptReviewMode.preview &&
-        coverageDecision.shouldPromptForMorePhotos) {
-      return 'Use Receipt';
-    }
     if (reviewMode == _ReceiptReviewMode.preview &&
         selectedQualityCheck?.hasCriticalIssue == true) {
       return 'Use Anyway';
     }
-    if (bestShotCandidateMode || photoPaths.length == 1) {
-      return 'Use Receipt';
+    if (!bestShotCandidateMode &&
+        reviewMode != _ReceiptReviewMode.stitch &&
+        photoPaths.length > 1) {
+      return 'Check Photo Match';
     }
-    if (reviewMode != _ReceiptReviewMode.stitch) {
-      return photoPaths.length > 1 ? 'Check Photo Match' : 'Use Receipt';
-    }
-    if (stitchPreviewInFlight || stitchPreview == null) {
+    if (reviewMode == _ReceiptReviewMode.stitch &&
+        (stitchPreviewInFlight || stitchPreview == null)) {
       return 'Checking Match';
-    }
-    if (stitchPreview?.didStitch == true) {
-      return 'Use Receipt';
-    }
-    if (stitchPreview?.usedFallback == true) {
-      return 'Use Receipt';
     }
     return 'Use Receipt';
   }

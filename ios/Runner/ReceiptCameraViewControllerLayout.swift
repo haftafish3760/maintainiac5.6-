@@ -43,7 +43,9 @@ extension ReceiptCameraViewController {
 
   func buildLayout() {
     let preview = AVCaptureVideoPreviewLayer(session: session)
-    preview.videoGravity = .resizeAspectFill
+    // Match the captured receipt framing in review instead of cropping the
+    // live preview to fill a taller phone display.
+    preview.videoGravity = .resizeAspect
     view.layer.addSublayer(preview)
     previewLayer = preview
     let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(zoomPreview(_:)))
@@ -94,10 +96,9 @@ extension ReceiptCameraViewController {
     guidanceLabel.text = guidanceText()
     guidanceLabel.textColor = .white
     guidanceLabel.font = .boldSystemFont(ofSize: 15)
-    guidanceLabel.numberOfLines = 1
-    guidanceLabel.lineBreakMode = .byTruncatingTail
-    guidanceLabel.adjustsFontSizeToFitWidth = true
-    guidanceLabel.minimumScaleFactor = 0.82
+    guidanceLabel.numberOfLines = 2
+    guidanceLabel.lineBreakMode = .byWordWrapping
+    guidanceLabel.adjustsFontSizeToFitWidth = false
     guidanceLabel.backgroundColor = UIColor(white: 0.02, alpha: 0.50)
     guidanceLabel.layer.cornerRadius = 8
     guidanceLabel.layer.masksToBounds = true

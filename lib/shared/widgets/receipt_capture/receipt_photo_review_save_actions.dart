@@ -32,7 +32,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     // form open immediately; its reader owns preparation and shows progress
     // there. This keeps the user from waiting behind backup or stitch work.
     if (_canOpenSinglePhotoReceiptDetailsImmediately) {
-      _openSinglePhotoReceiptDetailsImmediately();
+      await _openSinglePhotoReceiptDetailsImmediately();
       return;
     }
     _updateReviewState(() => _savingPhotos = true);
@@ -133,7 +133,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       });
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       final navigator = Navigator.of(context);
-      beginReceiptReviewClose();
+      if (!beginReceiptReviewClose()) return;
       navigator.pop(
         ReceiptPhotoReviewResult(
           photoPaths: savedPaths,
@@ -150,13 +150,15 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       _updateReviewState(() => _savingPhotos = false);
       _showCameraError(
-        'Receipt prep took too long. Try again, or retake the photo.',
+        'Preparing this receipt took too long. Your original photo is still open—try again, retake it, or continue by hand.',
       );
     } catch (_) {
       if (!_reviewWorkActive) return;
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       _updateReviewState(() => _savingPhotos = false);
-      _showCameraError('Could not save these receipt photos.');
+      _showCameraError(
+        'Could not prepare these receipt photos. Your original photo is still open—try again or return to review.',
+      );
     }
   }
 
@@ -170,9 +172,18 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       _photoPaths.length == 1 &&
       _generatedEditPaths.isEmpty;
 
-  void _openSinglePhotoReceiptDetailsImmediately() {
+  Future<void> _openSinglePhotoReceiptDetailsImmediately() async {
     final photoPath = _photoPaths.single;
     final navigator = Navigator.of(context);
+    if (!await File(photoPath).exists()) {
+      if (_reviewWorkActive) {
+        _showCameraError(
+          'This receipt photo is no longer available. Retake it or add the image again.',
+        );
+      }
+      return;
+    }
+    if (!_reviewWorkActive) return;
     if (!beginReceiptReviewClose()) return;
     navigator.pop(
       ReceiptPhotoReviewResult(

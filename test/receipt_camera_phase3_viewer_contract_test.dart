@@ -33,7 +33,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('scaleType = PreviewView.ScaleType.FILL_CENTER'),
+      contains('scaleType = PreviewView.ScaleType.FIT_CENTER'),
     );
     expect(
       cameraActivity,
@@ -54,7 +54,10 @@ void main() {
       cameraActivity,
       contains('setImageResource(R.drawable.ic_receipt_camera_shutter)'),
     );
-    expect(cameraActivity, isNot(contains('android.R.drawable.ic_menu_camera')));
+    expect(
+      cameraActivity,
+      isNot(contains('android.R.drawable.ic_menu_camera')),
+    );
     expect(
       cameraActivity,
       contains(
@@ -91,15 +94,18 @@ void main() {
       contains('text = receiptCameraText("Add Photo", "Agregar foto")'),
     );
     expect(cameraActivity, contains('visibility = View.GONE'));
-    expect(cameraActivity, contains('maxLines = 1'));
-    expect(cameraActivity, contains('ellipsize = TextUtils.TruncateAt.END'));
-    expect(cameraActivity, contains('bottomReviewButton = Button(this).apply {'));
-    expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
-    expect(cameraActivity, isNot(contains('doneButton = Button(this).apply {')));
+    expect(cameraActivity, contains('maxLines = 2'));
+    expect(cameraActivity, contains('ellipsize = null'));
     expect(
       cameraActivity,
-      contains('WindowInsetsCompat.Type.displayCutout()'),
+      contains('bottomReviewButton = Button(this).apply {'),
     );
+    expect(cameraActivity, isNot(contains('topBar.addView(doneButton)')));
+    expect(
+      cameraActivity,
+      isNot(contains('doneButton = Button(this).apply {')),
+    );
+    expect(cameraActivity, contains('WindowInsetsCompat.Type.displayCutout()'));
 
     expect(settingsIcon, contains('android:viewportWidth="24"'));
     expect(settingsIcon, contains('android:viewportHeight="24"'));
@@ -117,25 +123,42 @@ void main() {
     final ios = await readIosReceiptCameraBridgeSources();
     final cameraController = ios.cameraController;
 
-    expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
+    expect(cameraController, contains('preview.videoGravity = .resizeAspect'));
     expect(cameraController, contains('previewLayer?.frame = view.bounds'));
     expect(
       cameraController,
-      contains('let settingsButton = iconButton(title: receiptCameraText("Receipt camera settings", "Configuración de la cámara de recibos"), symbol: "gearshape.fill")'),
+      contains(
+        'let settingsButton = iconButton(title: receiptCameraText("Receipt camera settings", "Configuración de la cámara de recibos"), symbol: "gearshape.fill")',
+      ),
     );
     expect(
       cameraController,
-      contains('torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)'),
+      contains(
+        'torchButton.setImage(UIImage(systemName: "flashlight.off.fill"), for: .normal)',
+      ),
     );
     expect(cameraController, contains('bottomBar.backgroundColor = .clear'));
-    expect(cameraController, contains('guidanceLabel.numberOfLines = 1'));
-    expect(cameraController, contains('guidanceLabel.lineBreakMode = .byTruncatingTail'));
-    expect(cameraController, contains('guidanceLabel.adjustsFontSizeToFitWidth = true'));
-    expect(cameraController, contains('guidanceLabel.minimumScaleFactor = 0.82'));
+    expect(cameraController, contains('guidanceLabel.numberOfLines = 2'));
+    expect(
+      cameraController,
+      contains('guidanceLabel.lineBreakMode = .byWordWrapping'),
+    );
+    expect(
+      cameraController,
+      contains('guidanceLabel.adjustsFontSizeToFitWidth = false'),
+    );
     expect(cameraController, contains('let viewerInfoStack = UIStackView()'));
     expect(cameraController, contains('viewerInfoStack.axis = .vertical'));
-    expect(cameraController, contains('viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())'));
-    expect(cameraController, contains('viewerInfoStack.addArrangedSubview(previousSectionGuide)'));
+    expect(
+      cameraController,
+      contains(
+        'viewerInfoStack.addArrangedSubview(buildSettingsStatusStrip())',
+      ),
+    );
+    expect(
+      cameraController,
+      contains('viewerInfoStack.addArrangedSubview(previousSectionGuide)'),
+    );
     expect(cameraController, contains('updateViewerInfoStackVisibility()'));
     expect(
       cameraController,
@@ -147,25 +170,42 @@ void main() {
     );
     expect(
       cameraController,
-      contains('shutterButton.setImage(UIImage(systemName: "doc.text.viewfinder"), for: .normal)'),
+      contains(
+        'shutterButton.setImage(UIImage(systemName: "doc.text.viewfinder"), for: .normal)',
+      ),
     );
     expect(cameraController, contains('shutterButton.layer.cornerRadius = 36'));
-    expect(cameraController, contains('shutterButton.widthAnchor.constraint(equalToConstant: 72)'));
-    expect(cameraController, contains('shutterButton.heightAnchor.constraint(equalToConstant: 72)'));
+    expect(
+      cameraController,
+      contains('shutterButton.widthAnchor.constraint(equalToConstant: 72)'),
+    );
+    expect(
+      cameraController,
+      contains('shutterButton.heightAnchor.constraint(equalToConstant: 72)'),
+    );
     expect(cameraController, contains('addPhotoButton.isHidden = true'));
     expect(cameraController, contains('bottomReviewButton.isHidden = true'));
-    expect(cameraController, isNot(contains('topBar.addArrangedSubview(doneButton)')));
     expect(
       cameraController,
-      contains('topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6)'),
+      isNot(contains('topBar.addArrangedSubview(doneButton)')),
     );
     expect(
       cameraController,
-      contains('viewerInfoStack.topAnchor.constraint(equalTo: guidanceLabel.bottomAnchor, constant: 8)'),
+      contains(
+        'topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6)',
+      ),
     );
     expect(
       cameraController,
-      contains('bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4)'),
+      contains(
+        'viewerInfoStack.topAnchor.constraint(equalTo: guidanceLabel.bottomAnchor, constant: 8)',
+      ),
+    );
+    expect(
+      cameraController,
+      contains(
+        'bottomBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4)',
+      ),
     );
   });
 }

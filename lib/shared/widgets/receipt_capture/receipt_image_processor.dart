@@ -230,6 +230,21 @@ class ReceiptImageProcessor {
     return _decodeImage(bytes);
   }
 
+  /// Returns a conservative, non-destructive crop suggestion in source-image
+  /// coordinates (0–1). The review screen presents it for confirmation rather
+  /// than changing the captured evidence on its own.
+  static Rect? suggestReceiptCropNormalized(Uint8List bytes) {
+    final source = _decodeImage(bytes);
+    if (source == null) return null;
+    return suggestReceiptCropNormalizedForDecodedImage(source);
+  }
+
+  /// Same conservative suggestion for callers that already decoded the image
+  /// for display, avoiding a second decode on lower-memory devices.
+  static Rect? suggestReceiptCropNormalizedForDecodedImage(img.Image source) {
+    return _suggestReceiptCropNormalized(source);
+  }
+
   static Future<ReceiptStitchResult> stitchReceiptPhotosForOcr({
     required List<String> paths,
     List<int>? manualOverlapPixels,

@@ -24,5 +24,20 @@ void main() {
       localizedReviewCopy,
       isNot(contains('Receipt assistance uses the clear OCR source first.')),
     );
+
+    final proofControls = File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_and_proof_controls.dart',
+    ).readAsStringSync();
+    expect(proofControls, contains("'Receipt Details And Saved Proof'"));
+    expect(proofControls, isNot(contains("'OCR")));
+
+    final preparedPhotoCopy = File(
+      'lib/shared/widgets/receipt_capture/receipt_image_processor_models.dart',
+    ).readAsStringSync();
+    expect(
+      preparedPhotoCopy,
+      contains('Receipt details use the prepared clear photo before'),
+    );
+    expect(preparedPhotoCopy, isNot(contains("'OCR")));
   });
 }

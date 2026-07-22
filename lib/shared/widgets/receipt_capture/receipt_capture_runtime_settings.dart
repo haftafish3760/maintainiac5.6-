@@ -82,17 +82,11 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = ReceiptCaptureSettingsScope.of(context);
-    const cloudStatus = CloudBackupStatusSnapshot.notConnected();
-    final quotaCheck = cloudStatus.checkPendingBytes(0);
-    final policy = settings.defaultDataSaverProofTargetSizePolicy;
-    final estimate = _estimatedReceiptCount(policy);
-    final sizeLabel = policy.keepsOriginalLocalOnly
-        ? 'saved proof copy'
-        : policy.targetLabel;
     return _ReceiptSettingsSection(
       icon: Icons.cloud_done_rounded,
       title: 'Backup And Storage',
-      subtitle: 'Choose whether receipt proof photos use Maintainiac backup.',
+      subtitle:
+          'Choose whether saved receipt proof copies are eligible for Maintainiac backup.',
       children: [
         _ReceiptSettingsSwitch(
           title: 'Back Up Receipt Photos',
@@ -102,90 +96,12 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
           onChanged: settings.setReceiptPhotoBackupEnabled,
         ),
         const SizedBox(height: 8),
-        _ReceiptStorageMetricRow(
-          label: 'Backup account',
-          value: cloudStatus.connectionState.label,
-          detail: cloudStatus.message ?? 'Local receipt saving still works.',
-        ),
-        const SizedBox(height: 8),
-        _ReceiptStorageMetricRow(
-          label: 'Storage remaining',
-          value: quotaCheck.entitlement.hasCloudStorage
-              ? '${quotaCheck.remainingLabel} of ${quotaCheck.quotaLabel}'
-              : 'Available after sign-in',
-          detail: policy.keepsOriginalLocalOnly
-              ? 'Original photos stay local by default. Backup should use a smaller proof copy when enabled.'
-              : quotaCheck.entitlement.hasCloudStorage
-              ? 'At about $sizeLabel per receipt, that is roughly $estimate receipt proofs before extra storage.'
-              : 'Your authorized backup plan will show its storage limit after sign-in.',
+        const _ReceiptSettingsNote(
+          icon: Icons.info_outline_rounded,
+          text:
+              'Local saving works immediately. Cloud storage remaining and backup activity appear here only after account backup is connected; this screen never shows a made-up storage estimate.',
         ),
       ],
-    );
-  }
-
-  static int _estimatedReceiptCount(ReceiptProofTargetSizePolicy policy) {
-    if (policy.targetBytes <= 0) return 0;
-    const status = CloudBackupStatusSnapshot.notConnected();
-    final remainingBytes = status.checkPendingBytes(0).remainingBytes;
-    return (remainingBytes / policy.targetBytes).floor();
-  }
-}
-
-class _ReceiptStorageMetricRow extends StatelessWidget {
-  const _ReceiptStorageMetricRow({
-    required this.label,
-    required this.value,
-    required this.detail,
-  });
-
-  final String label;
-  final String value;
-  final String detail;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161D20),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF3D4A50)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF95A3A8),
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFFFFD166),
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
-            ),
-          ),
-          const SizedBox(height: 3),
-          Text(
-            detail,
-            style: const TextStyle(
-              color: Color(0xFFC8D0D3),
-              fontSize: 11.5,
-              fontWeight: FontWeight.w700,
-              height: 1.22,
-              letterSpacing: 0,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -240,6 +156,14 @@ class _ReceiptScannerBehaviorSettings extends StatelessWidget {
           icon: Icons.radio_button_checked_rounded,
           text:
               'Automatic photo capture stays off unless you turn it on. The shutter button remains the primary capture action.',
+        ),
+        const SizedBox(height: 6),
+        _ReceiptSettingsSwitch(
+          title: 'Show Camera Guidance',
+          detail:
+              'Show framing and readability guidance while you capture. It never prevents you from using the shutter when the photo is usable.',
+          value: settings.cameraGuidanceEnabled,
+          onChanged: settings.setCameraGuidanceEnabled,
         ),
         const SizedBox(height: 6),
         _ReceiptSettingsSwitch(

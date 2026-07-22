@@ -81,6 +81,23 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
         },
       ),
     );
+  } on ReceiptNativeCameraBusyException catch (error) {
+    return ReceiptCaptureFlowResult.canceled(
+      message: error.message,
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: _diagnostics(
+        stage: 'native_camera_open',
+        reason: 'native_camera_already_open',
+        action: 'return_to_open_receipt_camera',
+        nativeCapabilities: nativeCapabilities,
+        options: options,
+        extraMetadata: const {
+          'nativeCaptureOutcome': 'native_camera_already_open',
+          'nativeCaptureFallbackPolicy': 'keep_existing_camera_session',
+          'userNextStep': 'finish_or_cancel_the_open_receipt_camera',
+        },
+      ),
+    );
   } on ReceiptNativeCameraUnavailableException catch (error) {
     return ReceiptCaptureFlowResult.failed(
       status: ReceiptCaptureFlowStatus.nativeUnavailable,
@@ -148,6 +165,22 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
         options: options,
       ),
     );
+  } catch (_) {
+    // A malformed or unexpectedly unreadable native image must not take down
+    // the receipt entry flow after the user has accepted a camera photo.
+    return ReceiptCaptureFlowResult.failed(
+      status: ReceiptCaptureFlowStatus.stagingFailed,
+      message:
+          'Maintainiac could not prepare that receipt photo safely. Try again, or choose an existing receipt image instead.',
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: _diagnostics(
+        stage: 'native_capture_staging',
+        reason: 'unexpected_staging_failure',
+        action: 'retry_receipt_camera_or_import_existing_photo',
+        nativeCapabilities: nativeCapabilities,
+        options: options,
+      ),
+    );
   }
 
   if (!context.mounted) {
@@ -204,31 +237,53 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
     options: options,
   );
   final initialPhotoPaths = _normalizedInitialReviewPhotoPaths(options);
-  final reviewResult = await Navigator.of(context)
-      .push<ReceiptPhotoReviewResult>(
-        appNativeRoute(
-          context,
-          ReceiptPhotoReviewScreen(
-            initialPhotoPaths: [...initialPhotoPaths, ...staged.photoPaths],
-            initialSelectedIndex: _reviewInitialSelectedIndex(
-              options: options,
-              staged: staged,
-            ),
-            initialDataSaverLevel:
-                options.initialDataSaverLevel ??
-                settings?.defaultDataSaverLevel ??
-                ReceiptDataSaverLevel.balanced,
-            initialQualityChecksByPath: {...options.initialQualityChecksByPath},
-            initialCaptureDiagnosticsByPath: {
-              ...options.initialCaptureDiagnosticsByPath,
-              ...reviewOpeningDiagnostics,
-            },
-            assistedReceiptFill: cameraSettings.assistedReceiptFill,
-            uiConfig:
-                options.uiConfig?.review ?? const ReceiptPhotoReviewUiConfig(),
+  ReceiptPhotoReviewResult? reviewResult;
+  try {
+    reviewResult = await Navigator.of(context).push<ReceiptPhotoReviewResult>(
+      appNativeRoute(
+        context,
+        ReceiptPhotoReviewScreen(
+          initialPhotoPaths: [...initialPhotoPaths, ...staged.photoPaths],
+          initialSelectedIndex: _reviewInitialSelectedIndex(
+            options: options,
+            staged: staged,
           ),
+          initialDataSaverLevel:
+              options.initialDataSaverLevel ??
+              settings?.defaultDataSaverLevel ??
+              ReceiptDataSaverLevel.balanced,
+          initialQualityChecksByPath: {...options.initialQualityChecksByPath},
+          initialCaptureDiagnosticsByPath: {
+            ...options.initialCaptureDiagnosticsByPath,
+            ...reviewOpeningDiagnostics,
+          },
+          assistedReceiptFill: cameraSettings.assistedReceiptFill,
+          uiConfig:
+              options.uiConfig?.review ?? const ReceiptPhotoReviewUiConfig(),
         ),
-      );
+      ),
+    );
+  } catch (_) {
+    await flow._staging.markRecoveryStage(
+      staged.recoveryManifestPath,
+      stage: 'review_unavailable',
+      reason: 'review_route_open_failed',
+      action: 'keep_staged_receipt_for_recovery',
+    );
+    return ReceiptCaptureFlowResult.failed(
+      status: ReceiptCaptureFlowStatus.reviewUnavailable,
+      message:
+          'Receipt photo review did not open. Your receipt photo was kept for recovery. Try again, or choose an existing receipt image instead.',
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: _diagnostics(
+        stage: 'receipt_photo_review',
+        reason: 'review_route_open_failed',
+        action: 'keep_staged_receipt_for_recovery',
+        nativeCapabilities: nativeCapabilities,
+        options: options,
+      ),
+    );
+  }
   if (!context.mounted) return ReceiptCaptureFlowResult.canceled();
   return _resultFromNativePhotoReview(
     flow: flow,

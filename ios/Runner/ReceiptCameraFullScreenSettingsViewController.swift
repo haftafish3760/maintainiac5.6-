@@ -62,8 +62,8 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
     guard let camera else { return }
     content.arrangedSubviews.forEach { $0.removeFromSuperview() }
     content.addArrangedSubview(note(camera.receiptCameraText(
-      "Camera only. These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
-      "Solo cámara. Estos controles afectan la captura del recibo. La asistencia del recibo, las fotos guardadas y las preferencias de cuenta permanecen en Configuración de gastos."
+      "These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.",
+      "Estos controles se aplican mientras esta cámara está abierta. Configure sus valores predeterminados de recibos en Configuración de recibos."
     )))
     content.addArrangedSubview(section(camera.receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
     content.addArrangedSubview(toggle(camera.receiptCameraText("Long receipt mode", "Modo de recibo largo"), value: camera.longReceiptMode) { [weak self] enabled in
@@ -141,7 +141,7 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
       "Your phone handles autofocus. Pinch to zoom, and use the shutter anytime. Maintainiac does not use tap-to-focus.",
       "El teléfono controla el enfoque automático. Pellizque para acercar y use el disparador en cualquier momento. Maintainiac no usa tocar para enfocar."
     )))
-    content.addArrangedSubview(action(camera.receiptCameraText("Reset receipt camera defaults", "Restablecer ajustes de cámara de recibos"), selected: false) { [weak self] in
+    content.addArrangedSubview(action(camera.receiptCameraText("Reset this camera session", "Restablecer esta sesión de cámara"), selected: false) { [weak self] in
       camera.resetReceiptCameraDefaults()
       self?.reloadContent()
     })

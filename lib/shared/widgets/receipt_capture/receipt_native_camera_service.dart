@@ -26,6 +26,12 @@ class ReceiptNativeCameraCanceledException
   final String closeAction;
 }
 
+class ReceiptNativeCameraBusyException
+    extends ReceiptNativeCameraUnavailableException {
+  const ReceiptNativeCameraBusyException()
+    : super('Maintainiac receipt camera is already open.');
+}
+
 class ReceiptNativeCameraService {
   const ReceiptNativeCameraService({MethodChannel? methodChannel})
     : _methodChannel =
@@ -186,6 +192,9 @@ class ReceiptNativeCameraService {
         throw ReceiptNativeCameraCanceledException(
           closeAction: _platformCloseAction(error.details),
         );
+      }
+      if (error.code == 'native_camera_busy') {
+        throw const ReceiptNativeCameraBusyException();
       }
       throw ReceiptNativeCameraUnavailableException(
         error.message ?? 'Maintainiac receipt camera could not open.',

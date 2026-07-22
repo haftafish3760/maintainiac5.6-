@@ -48,7 +48,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   let nextSectionGuideImageView = UIImageView()
   var lastZoomFactor: CGFloat = 1
   var assistedReceiptFill = true
-  var longReceiptMode = true
+  var longReceiptMode = false
   var autoCaptureEnabled = false
   var autoCaptureAllowed = false
   var deviceTier = "medium"
@@ -61,6 +61,8 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var whiteBalanceMode = "auto"
   var whiteBalanceLockEnabled = false
   var dataSaverLevel = "balanced"
+  var receiptPhotoBackupEnabled = false
+  var askSavedProofSizeEachReceipt = false
   var storageSafetyLevel = "balanced"
   var storageConstrained = false
   var storageSafetyReason = "normal"
@@ -110,7 +112,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var bestShotCandidateCount = 3
   var cameraResolutionTier = "high"
   var cameraWorkloadTier = "balanced"
-  let nativePreviewScaleMode = "resize_aspect_fill_full_receipt"
+  let nativePreviewScaleMode = "resize_aspect_capture_parity"
   let nativeControlDensity = "compact_receipt_controls"
   var previewExposurePolicy = "receipt_paper_metering_safe_auto_lift_manual_slider"
   var previewBrightnessGuardPolicy = "avoid_dark_preview_full_receipt_sampling"

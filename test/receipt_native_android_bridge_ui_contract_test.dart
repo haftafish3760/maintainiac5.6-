@@ -61,6 +61,12 @@ void main() {
     expect(cameraActivity, contains('"detailedlines" -> "detailedLines"'));
     expect(cameraActivity, contains('"pricesonly" -> "pricesOnly"'));
     expect(cameraActivity, contains('Receipt Camera Settings'));
+    expect(
+      cameraActivity,
+      contains(
+        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
+      ),
+    );
     expect(cameraActivity, contains('Camera only'));
     expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
     expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));
@@ -236,13 +242,16 @@ void main() {
     expect(cameraActivity, contains('Color.argb(104, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(92, 255, 209, 102)'));
     expect(cameraActivity, contains('alpha = 0.36f'));
-    expect(cameraActivity, contains('PreviewView.ScaleType.FILL_CENTER'));
-    expect(cameraActivity, isNot(contains('PreviewView.ScaleType.FIT_CENTER')));
+    expect(cameraActivity, contains('PreviewView.ScaleType.FIT_CENTER'));
+    expect(
+      cameraActivity,
+      isNot(contains('PreviewView.ScaleType.FILL_CENTER')),
+    );
     expect(cameraActivity, contains('nativePreviewScaleMode'));
     expect(
       cameraActivity,
       contains(
-        'internal val nativePreviewScaleMode = "fill_center_full_receipt"',
+        'internal val nativePreviewScaleMode = "fit_center_capture_parity"',
       ),
     );
     expect(cameraActivity, contains('nativeControlDensity'));
@@ -350,10 +359,10 @@ void main() {
       ),
     );
     expect(cameraActivity, isNot(contains('OCR reads original first')));
-    expect(cameraActivity, contains('Smaller saved proof copies'));
+    expect(cameraActivity, contains('smaller saved copy'));
     expect(cameraActivity, isNot(contains('Capture order')));
     expect(cameraActivity, contains('updateSettingsStatusStrip()'));
-    expect(cameraActivity, contains('Reset Receipt Camera Defaults'));
+    expect(cameraActivity, contains('Reset This Camera Session'));
     expect(
       cameraActivity,
       contains(

@@ -136,6 +136,8 @@ void main() {
     expect(settingsSheet, isNot(contains('deviceManufacturer')));
     expect(settingsSheet, isNot(contains('deviceModel')));
     expect(settingsSheet, isNot(contains('deviceName')));
+    expect(settingsSheet, contains('Show Camera Guidance'));
+    expect(settingsSheet, contains('settings.setCameraGuidanceEnabled'));
     expect(settingsSheet, contains('Show Long Receipt Tips'));
     expect(settingsSheet, contains("title: 'Receipt Details And Saved Proof'"));
     expect(settingsSheet, contains('required this.hasSavedReceiptProof'));
@@ -269,11 +271,20 @@ void main() {
     expect(dataSaverPanel, contains('Capture source size'));
     expect(dataSaverPanel, isNot(contains('Original photo')));
     expect(dataSaverPanel, contains('Proof kept after reading'));
-    expect(dataSaverPanel, contains('Backup status'));
+    expect(
+      dataSaverPanel,
+      contains(
+        'Connect backup in Account settings to see storage and activity.',
+      ),
+    );
+    expect(
+      dataSaverPanel,
+      isNot(contains('CloudBackupStatusSnapshot.notConnected')),
+    );
     expect(dataSaverPanel, isNot(contains('Cloud backup copy')));
     expect(dataSaverPanel, isNot(contains('Saved copy')));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
-    expect(reviewPreviewControls, contains('_ReceiptSinglePhotoActionRow'));
+    expect(reviewPreviewControls, contains("message: 'Crop receipt photo'"));
     expect(reviewControls, contains('Scrollbar('));
     expect(reviewControls, contains('SingleChildScrollView('));
     expect(reviewControls, isNot(contains('_ReceiptPreviewStatusPill')));

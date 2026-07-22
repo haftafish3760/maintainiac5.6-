@@ -22,8 +22,8 @@ class ReceiptPreparedImage {
       : 'ocr_saved_proof_fallback_review_required';
 
   String get ocrStoragePolicyLabel => usesSeparateBackupCopy
-      ? 'OCR reads the prepared receipt source before the smaller saved proof copy is kept.'
-      : 'OCR is using the saved proof copy; review readability before trusting automatic fill.';
+      ? 'Receipt details use the prepared clear photo before the smaller saved proof copy is kept.'
+      : 'Receipt details are using the saved proof copy; review readability before trusting automatic fill.';
 
   Map<String, Object?> toStorageContractDiagnostics() {
     return {
@@ -37,12 +37,15 @@ class ReceiptPreparedImage {
       'ocrReviewScore': preparation.ocrQuality.reviewScore,
       'savedProofReviewScore': quality.reviewScore,
       'usedEnhancedOcrSource': preparation.usedEnhancedOcrSource,
+      'receiptImageProcessingVersion': preparation.processingVersion,
       'scannerDecisionCodes': preparation.scannerDecisionCodes,
     };
   }
 }
 
 class ReceiptImagePreparationReport {
+  static const currentProcessingVersion = 'receipt_image_preparation_v1';
+
   const ReceiptImagePreparationReport({
     required this.sourcePath,
     required this.ocrSourcePath,
@@ -61,6 +64,8 @@ class ReceiptImagePreparationReport {
   final bool usedEnhancedOcrSource;
   final List<String> scannerDecisionCodes;
 
+  String get processingVersion => currentProcessingVersion;
+
   bool get improvedReviewScore =>
       ocrQuality.reviewScore >= originalQuality.reviewScore;
 
@@ -69,14 +74,15 @@ class ReceiptImagePreparationReport {
 
   String get ocrSourceLabel {
     if (usedEnhancedOcrSource) {
-      return 'Enhanced OCR source: ${cleanupActions.join(', ')}';
+      return 'Prepared clear receipt photo: ${cleanupActions.join(', ')}';
     }
-    return 'Original-quality OCR source';
+    return 'Original-quality receipt photo';
   }
 
   Map<String, Object?> toDiagnostics() {
     return {
       'usedEnhancedOcrSource': usedEnhancedOcrSource,
+      'receiptImageProcessingVersion': processingVersion,
       'cleanupActions': cleanupActions,
       'originalReviewScore': originalQuality.reviewScore,
       'ocrReviewScore': ocrQuality.reviewScore,

@@ -42,9 +42,7 @@ void main() {
       expect(cameraActivity, contains('bottomReviewButton'));
       expect(
         cameraActivity,
-        contains(
-          'contentDescription = receiptCameraText(',
-        ),
+        contains('contentDescription = receiptCameraText('),
       );
       expect(cameraActivity, contains('visibility = View.GONE'));
       expect(cameraActivity, contains('isEnabled = false'));
@@ -188,6 +186,18 @@ void main() {
       expect(cameraActivity, isNot(contains('liveBucket == "dark"')));
       expect(cameraActivity, isNot(contains('liveBucket == "bright"')));
       expect(cameraActivity, contains('recordCapturedPhotoQuality'));
+      expect(cameraActivity, contains('receiptPhotoQualityExecutor.execute'));
+      expect(cameraActivity, contains('runOnUiThread'));
+      expect(
+        cameraActivity,
+        contains(
+          'val needsLiveAnalysis = autoCaptureEnabled || experimentalQualityWarningsEnabled',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains('if (!liveAnalysisEnabled || !needsLiveAnalysis)'),
+      );
       expect(cameraActivity, contains('megapixelBucket'));
       expect(cameraActivity, contains('very_large_over_8mb'));
       expect(cameraActivity, contains('photoCount'));

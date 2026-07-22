@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/receipt_native_ios_bridge_source_readers.dart';
@@ -6,6 +8,9 @@ void main() {
   test('iOS native receipt camera keeps custom UI and session close protections', () async {
     final sources = await readIosReceiptCameraBridgeSources();
     final cameraController = sources.cameraController;
+    final fullScreenSettings = await File(
+      'ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift',
+    ).readAsString();
     final readinessSummary = cameraController.substring(
       cameraController.indexOf('func nativeControlReadinessSummary()'),
       cameraController.indexOf('func backControlActualStatus()'),
@@ -38,10 +43,20 @@ void main() {
     );
     expect(cameraController, contains('let bottomReviewButton'));
     expect(cameraController, isNot(contains('let doneButton')));
-    expect(cameraController, isNot(contains('topBar.addArrangedSubview(doneButton)')));
-    expect(cameraController, contains('func shouldShowSettingsStatusStrip() -> Bool'));
-    expect(cameraController, contains('settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()'));
-    expect(cameraController, contains('settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()'));
+    expect(
+      cameraController,
+      isNot(contains('topBar.addArrangedSubview(doneButton)')),
+    );
+    expect(
+      cameraController,
+      contains('func shouldShowSettingsStatusStrip() -> Bool'),
+    );
+    expect(
+      cameraController,
+      contains(
+        'settingsStatusStrip.isHidden = !shouldShowSettingsStatusStrip()',
+      ),
+    );
     expect(
       cameraController,
       contains(
@@ -50,7 +65,9 @@ void main() {
     );
     expect(
       cameraController,
-      contains('Fill the screen with readable receipt text. Auto capture can help when the receipt is steady.'),
+      contains(
+        'Fill the screen with readable receipt text. Auto capture can help when the receipt is steady.',
+      ),
     );
     expect(cameraController, contains('bottomReviewButton.isEnabled = false'));
     expect(
@@ -125,19 +142,50 @@ void main() {
     );
     expect(cameraController, contains('bottom_darker_than_top'));
     expect(cameraController, contains('bottom_brighter_than_top'));
+    expect(cameraController, contains('preview.videoGravity = .resizeAspect'));
     expect(
       cameraController,
-      contains('preview.videoGravity = .resizeAspectFill'),
+      isNot(contains('preview.videoGravity = .resizeAspectFill')),
     );
     expect(
       cameraController,
-      isNot(contains('preview.videoGravity = .resizeAspect\n')),
+      contains('nativePreviewScaleMode = "resize_aspect_capture_parity"'),
     );
-    expect(cameraController, contains('nativePreviewScaleMode'));
     expect(cameraController, contains('nativeControlDensity'));
-    expect(cameraController, contains('Reset receipt camera defaults'));
+    expect(fullScreenSettings, contains('Reset this camera session'));
+    expect(cameraController, isNot(contains('Reset receipt camera defaults')));
+    expect(
+      fullScreenSettings,
+      contains(
+        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
+      ),
+    );
     expect(cameraController, contains('func resetReceiptCameraDefaults()'));
     expect(cameraController, contains('settingsResetCount += 1'));
+    expect(cameraController, contains('longReceiptMode = false'));
+    expect(cameraController, contains('var receiptPhotoBackupEnabled = false'));
+    expect(
+      cameraController,
+      contains('var askSavedProofSizeEachReceipt = false'),
+    );
+    expect(
+      cameraController,
+      contains(
+        'receiptPhotoBackupEnabled = arguments["receiptPhotoBackupEnabled"] as? Bool ?? false',
+      ),
+    );
+    expect(
+      cameraController,
+      contains('arguments["askSavedProofSizeEachReceipt"] as? Bool ?? false'),
+    );
+    expect(
+      cameraController,
+      contains('"receiptPhotoBackupEnabled": receiptPhotoBackupEnabled'),
+    );
+    expect(
+      cameraController,
+      contains('"askSavedProofSizeEachReceipt": askSavedProofSizeEachReceipt'),
+    );
     expect(
       cameraController,
       contains('Receipt camera defaults restored. Manual shutter is ready.'),
@@ -310,10 +358,7 @@ void main() {
         '    ]',
       ),
     );
-    expect(
-      cameraController,
-      isNot(contains('controls.append("status")')),
-    );
+    expect(cameraController, isNot(contains('controls.append("status")')));
     expect(
       cameraController,
       contains(
@@ -348,8 +393,18 @@ void main() {
       contains('func exposureControlsVisible() -> Bool'),
     );
     expect(cameraController, contains('func reviewNextControlReady() -> Bool'));
-    expect(cameraController, contains('let bottomReady = !bottomReviewButton.isHidden && bottomReviewButton.isEnabled'));
-    expect(cameraController, isNot(contains('let topReady = !doneButton.isHidden && doneButton.isEnabled')));
+    expect(
+      cameraController,
+      contains(
+        'let bottomReady = !bottomReviewButton.isHidden && bottomReviewButton.isEnabled',
+      ),
+    );
+    expect(
+      cameraController,
+      isNot(
+        contains('let topReady = !doneButton.isHidden && doneButton.isEnabled'),
+      ),
+    );
     expect(cameraController, contains('if reviewNextControlReady() {'));
     expect(
       cameraController,
@@ -361,8 +416,14 @@ void main() {
     );
     expect(cameraController, contains('"manual_shutter"'));
     expect(cameraController, contains('controls.append("long_receipt_done")'));
-    expect(cameraController, contains('func reviewNextControlActualStatus() -> String'));
-    expect(cameraController, contains('controls.append("section_ghost_guide")'));
+    expect(
+      cameraController,
+      contains('func reviewNextControlActualStatus() -> String'),
+    );
+    expect(
+      cameraController,
+      contains('controls.append("section_ghost_guide")'),
+    );
     expect(cameraController, contains('"edge_guide"'));
     expect(
       cameraController,

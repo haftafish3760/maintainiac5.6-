@@ -60,6 +60,12 @@ internal fun ReceiptCameraActivity.prepareExposureBeforeCapture(onReady: () -> U
                 captureInFlight = false
                 activeCaptureAttemptId = 0L
                 pendingCloseAfterCapture = false
+                captureBlockedSurfaceInactiveCount += 1
+                lastCaptureBlockReason = "camera_surface_inactive_during_exposure_prepare"
+                if (hasInitializedReceiptCameraField { shutterButton }) {
+                    shutterButton.isEnabled = true
+                }
+                reportManualCaptureBlocked(lastCaptureTrigger, "camera_surface_inactive")
                 preCaptureExposureAbortCount += 1
                 lastPreCaptureExposureDecision = "aborted_camera_closing"
                 lastPreCaptureExposureAbortReason = if (closeResultDelivered) {

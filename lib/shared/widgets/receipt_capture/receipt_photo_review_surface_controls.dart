@@ -51,6 +51,12 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
   }
 
   double _reviewBottomControlsMaxHeight(BuildContext context) {
+    if (_reviewMode == _ReceiptReviewMode.crop) {
+      // Crop actions must remain fully reachable even on short screens. The
+      // crop toolbar is intentionally compact, so a fractional cap would only
+      // clip controls instead of preserving more useful preview space.
+      return widget.uiConfig.cropControlsHeight;
+    }
     final screenHeight = MediaQuery.sizeOf(context).height;
     final safeHeight =
         screenHeight -
@@ -79,30 +85,6 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       _ReceiptReviewMode.dataSaver => widget.uiConfig.dataSaverControlsHeight,
     };
     return proportional < absolute ? proportional : absolute;
-  }
-
-  String _reviewTopBarContinueLabel(String photoPath) {
-    final strings = MaintaniacLocalizations.of(context);
-    if (_savingPhotos) return strings.openingReceiptReview;
-    final quality = _qualityChecksByPath[photoPath];
-    final coverageDecision = _coverageDecisionForPhotoPath(photoPath);
-    if (_reviewMode == _ReceiptReviewMode.preview &&
-        coverageDecision.shouldPromptForMorePhotos) {
-      return strings.useReceipt;
-    }
-    if (_reviewMode == _ReceiptReviewMode.preview &&
-        quality?.hasCriticalIssue == true) {
-      return strings.useAnyway;
-    }
-    if (_reviewMode == _ReceiptReviewMode.stitch &&
-        _photoPaths.length > 1 &&
-        (_stitchPreviewInFlight || _stitchPreviewResult == null)) {
-      return strings.checkingReceiptPhotos;
-    }
-    if (_reviewMode == _ReceiptReviewMode.preview) {
-      return strings.useReceipt;
-    }
-    return strings.useReceipt;
   }
 
   ReceiptPhotoCoverageDecision _coverageDecisionForPhotoPath(String photoPath) {

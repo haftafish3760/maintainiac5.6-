@@ -145,7 +145,7 @@ extension _ReceiptAttachmentCameraFallbackActions
     required String temporaryIdPrefix,
   }) async {
     try {
-      return await const ReceiptAcquiredPhotoStaging().stage(
+      return await ReceiptAcquiredPhotoStaging().stage(
         sourcePaths: photoPaths,
         dataSaverLevel: _dataSaverLevel,
         captureFlow: captureFlow,

@@ -178,13 +178,8 @@ void main() {
       qualityRecovery,
       contains('nativeCaptureWarning?.prefersAddSection'),
     );
-    expect(
-      controls,
-      contains(
-        r"'${nativeWarning.primaryActionLabel}. If the store, date, total, '",
-      ),
-    );
-    expect(controls, contains('you can still use the photo'));
+    expect(controls, contains('nativeWarning.primaryActionLabel}'));
+    expect(controls, contains('is recommended before continuing.'));
     expect(qualityRecovery, contains('required this.primaryActionLabel'));
     expect(
       qualityRecovery,

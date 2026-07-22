@@ -97,6 +97,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   continueLabel: continueLabel,
                   onRetake: interactionLocked ? null : onRetake,
                   onAddPhoto: interactionLocked ? null : onAddPhoto,
+                  onCrop: hasMultiplePhotos || interactionLocked
+                      ? null
+                      : () => onModeChanged(_ReceiptReviewMode.crop),
                   onContinue: onContinue,
                 ),
                 Flexible(
@@ -170,13 +173,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                                 ? null
                                 : () => onModeChanged(_ReceiptReviewMode.crop),
                             coverageDecision: coverageDecision,
-                          ),
-                        ],
-                        if (!hasMultiplePhotos && !hasQualityWarning) ...[
-                          const SizedBox(height: 5),
-                          _ReceiptSinglePhotoActionRow(
-                            openingCamera: interactionLocked,
-                            onModeChanged: onModeChanged,
                           ),
                         ],
                       ],

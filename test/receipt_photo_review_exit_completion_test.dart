@@ -15,10 +15,19 @@ void main() {
     expect(reviewScreen, isNot(contains('Back To Receipt Form')));
     expect(saveActions, contains('_confirmReceiptReviewExit'));
     expect(saveActions, contains('final navigator = Navigator.of(context);'));
-    expect(reviewScreen, contains('_coverageDecisionForPhotoPath(photoPath)'));
+    expect(
+      saveActions,
+      contains('_coverageDecisionForPhotoPath(_photoPaths[selected])'),
+    );
     expect(reviewScreen, contains('continueReceiptPhotoReview'));
     expect(saveActions, contains('_selectedExitCoverageDecision()'));
     expect(saveActions, contains("return 'Add Bottom Section';"));
+    expect(
+      saveActions,
+      contains(
+        "widget.uiConfig.labelFor(\n      'continue',\n      widget.uiConfig.useReceiptLabel",
+      ),
+    );
     expect(saveActions, contains('decision.shouldPromptForMorePhotos'));
     expect(
       saveActions,
@@ -65,23 +74,15 @@ void main() {
       contains('if (!didPop) leaveReceiptReviewWithoutSaving();'),
     );
     expect(emptyRecoveryLayout, contains('Return To Receipt Entry'));
-    expect(saveActions, contains('Review receipt details from this photo?'));
-    expect(saveActions, contains('Review receipt details from these photos?'));
-    expect(saveActions, contains('saved locally for recovery'));
-    expect(saveActions, contains('Receipt details have not been filled yet.'));
+    expect(saveActions, contains('Keep this receipt photo?'));
+    expect(saveActions, contains('Keep these receipt photos?'));
+    expect(saveActions, isNot(contains('saved locally for recovery')));
     expect(
       saveActions,
-      contains(
-        'This receipt photo is saved locally for recovery and will not be deleted, but receipt details have not been opened from it yet.',
-      ),
+      isNot(contains('Receipt details have not been filled yet.')),
     );
-    expect(
-      saveActions,
-      contains(
-        'These receipt photos are saved locally for recovery and will not be deleted, but receipt details have not been opened from them yet.',
-      ),
-    );
-    expect(saveActions, contains('_isRecoverableReviewPhoto'));
+    expect(saveActions, contains('You can return to this photo later.'));
+    expect(saveActions, contains('You can return to these photos later.'));
     expect(
       saveActions,
       contains(
@@ -336,10 +337,7 @@ void main() {
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
     expect(importActions, contains('_nextReceiptContinuationReasonCode()'));
     expect(importActions, contains('_nextReceiptContinuationGuidance()'));
-    expect(
-      importActions,
-      contains('_nextReceiptForceLongReceiptMode(settings)'),
-    );
+    expect(importActions, contains('_nextReceiptForceLongReceiptMode()'));
     expect(importActions, contains('_nextReceiptForceAutoCapture(settings)'));
     expect(importActions, contains("return 'missing_bottom_edge_and_totals';"));
     expect(

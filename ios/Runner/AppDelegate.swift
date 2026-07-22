@@ -109,7 +109,10 @@ import UIKit
       "supportsMacroSelection": supportsMacro,
       "supportsYuvLiveFrames": true,
       "supportsRaw": false,
-      "supportsNativeEdgeSignals": false,
+      // The Maintainiac AVFoundation receipt surface computes framing signals
+      // from live YUV frames; expose that capability so automatic capture can
+      // be enabled when the user's settings and device tier allow it.
+      "supportsNativeEdgeSignals": true,
       "minZoom": 1,
       "maxZoom": Double(camera?.maxAvailableVideoZoomFactor ?? 1),
       "minExposureOffset": Double(minExposureBias),

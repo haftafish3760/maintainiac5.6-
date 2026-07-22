@@ -201,6 +201,18 @@ void main() {
       );
       expect(script, contains('bash tool/receipt_camera_scope_gate.sh'));
       expect(script, contains('dart tool/maintainiac_source_audit.dart'));
+      expect(
+        script,
+        contains(
+          'android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt',
+        ),
+      );
+      expect(script, contains('ios/Runner/ReceiptCamera*.swift'));
+      expect(
+        script,
+        isNot(contains('android/app/src/main/kotlin/com/maintainiac\n')),
+      );
+      expect(script, isNot(contains('  ios/Runner\n')));
       expect(script, contains('run_line_cap_gate'));
       expect(script, contains('run_stale_contract_scan'));
       expect(script, contains('git diff --check'));

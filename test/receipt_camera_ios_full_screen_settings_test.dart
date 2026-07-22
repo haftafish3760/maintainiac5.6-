@@ -16,6 +16,8 @@ void main() {
 
     expect(layout, contains('#selector(openReceiptCameraSettingsFullScreen)'));
     expect(settings, contains('settings.modalPresentationStyle = .fullScreen'));
+    expect(settings, isNot(contains('func showReceiptCameraSettings()')));
+    expect(settings, isNot(contains('preferredStyle: .actionSheet')));
     expect(
       route,
       contains('final class ReceiptCameraFullScreenSettingsViewController'),
@@ -24,7 +26,7 @@ void main() {
     expect(
       route,
       contains(
-        'Receipt Assist, saved-photo, and account preferences stay in Expense Settings.',
+        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
       ),
     );
     expect(route, contains('Automatic capture'));

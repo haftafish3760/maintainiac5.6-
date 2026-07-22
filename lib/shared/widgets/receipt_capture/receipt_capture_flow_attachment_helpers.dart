@@ -13,7 +13,7 @@ List<ReceiptAttachmentRecord> _attachmentsFromReviewResult(
         kind: ReceiptAttachmentKind.photo,
         dataSaverLevel: result.dataSaverLevel,
         createdAt: createdAt,
-        displayName: 'Receipt OCR source ${index + 1}',
+        displayName: 'Receipt clear photo ${index + 1}',
         sourceLabel: 'Maintainiac clear receipt photo',
         linkedModule: module.storageName,
         storageState: ReceiptAttachmentStorageState.staged,

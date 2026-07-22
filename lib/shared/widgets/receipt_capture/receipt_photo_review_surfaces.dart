@@ -90,6 +90,7 @@ extension _ReceiptPhotoReviewSurfaces on _ReceiptPhotoReviewScreenState {
         imageBytes: imageBytes,
         imageSize: imageSize,
         cropRect: _cropRect,
+        suggestedNormalizedCrop: _suggestedCropNormalized,
         onCropRectChanged: _setCropRectFromCropper,
         onDisplayRectChanged: _setCropDisplayRectFromCropper,
       ),

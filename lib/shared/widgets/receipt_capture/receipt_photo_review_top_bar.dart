@@ -8,11 +8,9 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     required this.bestShotCandidateMode,
     required this.openingCamera,
     required this.savingPhotos,
-    required this.continueLabel,
     required this.onClose,
     required this.onOpenSettings,
     required this.onMenuSelected,
-    required this.onContinue,
   });
 
   final int current;
@@ -21,11 +19,9 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   final bool bestShotCandidateMode;
   final bool openingCamera;
   final bool savingPhotos;
-  final String continueLabel;
   final VoidCallback onClose;
   final VoidCallback onOpenSettings;
   final ValueChanged<_ReceiptReviewMenuAction> onMenuSelected;
-  final VoidCallback? onContinue;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +46,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Text(
-                    'Crop receipt',
+                    'Crop receipt — drag the yellow edges',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(

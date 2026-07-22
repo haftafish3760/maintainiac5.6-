@@ -81,7 +81,7 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     id: 'edge_detection',
     label: 'Find receipt edges',
     description:
-        'Show receipt edges and use them for crop and perspective correction.',
+        'Show receipt edges for crop guidance and safe straightening checks.',
     group: ReceiptNativeSettingGroup.receiptGuidance,
     type: ReceiptNativeSettingType.toggle,
     defaultEnabled: true,

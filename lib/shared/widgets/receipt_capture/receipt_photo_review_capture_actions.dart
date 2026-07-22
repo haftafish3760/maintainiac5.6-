@@ -274,14 +274,19 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     final nativeCapabilities = await service.readCapabilities();
     if (!_reviewWorkActive) return const _PickedReceiptPhotos.empty();
     if (!nativeCapabilities.canOpenReceiptCamera) {
+      _showCameraError(
+        'Receipt camera is unavailable right now. Check permission, then try again or add a photo from your device.',
+      );
       return const _PickedReceiptPhotos.empty();
     }
     final deviceCapability =
         settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
-    final cameraSettings = ReceiptNativeCameraSettings(
+    final cameraSettings = receiptNativeCameraSettingsForCapture(
+      settings: settings,
       assistedReceiptFill: widget.assistedReceiptFill,
-      longReceiptMode: settings?.cameraLongReceiptTips ?? true,
+      longReceiptMode: true,
       autoCaptureEnabled: settings?.cameraAutoCapture ?? false,
+      reviewDepth: ReceiptNativeReviewDepth.pricesOnly,
       dataSaverLevel: _dataSaverLevel,
     );
     try {

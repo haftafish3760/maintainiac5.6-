@@ -13,9 +13,8 @@ extension ReceiptCameraViewController {
   }
 
   func capturePhoto(trigger: String) {
-    lastCaptureTrigger = trigger
     lastCaptureBlockReason = "none"
-    if trigger == "manual_shutter" {
+    if trigger == "manual_shutter" || trigger == "manual_add_photo" {
       manualShutterTapCount += 1
     } else if trigger == "auto_capture" {
       autoCaptureAttemptCount += 1
@@ -23,24 +22,32 @@ extension ReceiptCameraViewController {
     if captureInFlight {
       captureBlockedBusyCount += 1
       lastCaptureBlockReason = "capture_in_flight"
+      reportManualCaptureBlocked(trigger: trigger, reason: "capture_in_flight")
       return
     }
     if closingCamera {
       captureBlockedClosingCount += 1
       lastCaptureBlockReason = "closing_camera"
+      reportManualCaptureBlocked(trigger: trigger, reason: "closing_camera")
       return
     }
     if !isCameraUiUsable {
       captureBlockedSurfaceInactiveCount += 1
       lastCaptureBlockReason = "camera_surface_inactive"
+      reportManualCaptureBlocked(trigger: trigger, reason: "camera_surface_inactive")
       return
     }
     if cameraDevice == nil {
       captureBlockedNoCameraCount += 1
       lastCaptureBlockReason = "no_camera"
+      reportManualCaptureBlocked(trigger: trigger, reason: "no_camera")
       return
     }
-    if trigger == "manual_shutter" {
+    // Keep provenance tied to the capture that actually begins. A blocked
+    // double-tap or auto-capture attempt must not overwrite an in-flight
+    // manual capture's trigger.
+    lastCaptureTrigger = trigger
+    if trigger == "manual_shutter" || trigger == "manual_add_photo" {
       manualCaptureStartedCount += 1
     } else if trigger == "auto_capture" {
       autoCaptureStartedCount += 1
@@ -57,11 +64,32 @@ extension ReceiptCameraViewController {
     }
   }
 
+  func reportManualCaptureBlocked(trigger: String, reason: String) {
+    // Live analysis may encounter the same condition repeatedly. Only surface
+    // a message for an intentional manual action so the guidance stays stable.
+    guard trigger == "manual_shutter" || trigger == "manual_add_photo" else { return }
+    let message: String
+    switch reason {
+    case "capture_in_flight":
+      message = "Saving the last receipt photo. Please wait."
+    case "closing_camera":
+      message = "Opening receipt photo review. Your photo is being kept."
+    case "camera_surface_inactive":
+      message = "Receipt camera is still getting ready. Try again in a moment."
+    default:
+      message = "Receipt camera is unavailable. Check camera permission, then try again."
+    }
+    guidanceLabel.text = message
+  }
+
   func capturePhotoAfterExposurePrep() {
     guard isCameraUiUsable else {
       captureInFlight = false
       pendingCloseAfterCapture = false
+      captureBlockedSurfaceInactiveCount += 1
+      lastCaptureBlockReason = "camera_surface_inactive_after_prepare"
       shutterButton.isEnabled = true
+      reportManualCaptureBlocked(trigger: lastCaptureTrigger, reason: "camera_surface_inactive")
       return
     }
     let settings = AVCapturePhotoSettings()
@@ -133,6 +161,13 @@ extension ReceiptCameraViewController {
             self.captureInFlight = false
             self.activeCaptureUniqueId = nil
             self.pendingCloseAfterCapture = false
+            self.captureBlockedSurfaceInactiveCount += 1
+            self.lastCaptureBlockReason = "camera_surface_inactive_during_exposure_prepare"
+            self.shutterButton.isEnabled = true
+            self.reportManualCaptureBlocked(
+              trigger: self.lastCaptureTrigger,
+              reason: "camera_surface_inactive"
+            )
             self.preCaptureExposureAbortCount += 1
             self.lastPreCaptureExposureDecision = "aborted_camera_closing"
             self.lastPreCaptureExposureAbortReason = self.closeResultDelivered

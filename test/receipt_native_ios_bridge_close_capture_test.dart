@@ -3,6 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/receipt_native_ios_bridge_source_readers.dart';
 
 void main() {
+  test(
+    'iOS capture provenance is not overwritten by blocked attempts',
+    () async {
+      final sources = await readIosReceiptCameraBridgeSources();
+      final capture = sources.cameraController;
+      final inFlightGuard = capture.indexOf('if captureInFlight {');
+      final triggerRecorded = capture.indexOf('lastCaptureTrigger = trigger');
+
+      expect(inFlightGuard, greaterThanOrEqualTo(0));
+      expect(triggerRecorded, greaterThan(inFlightGuard));
+    },
+  );
+
   test('iOS bridge protects close and review handoff controls', () async {
     final sources = await readIosReceiptCameraBridgeSources();
     final cameraController = sources.cameraController;

@@ -45,8 +45,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSummary(
         receiptCameraText("Camera only", "Solo cámara"),
         receiptCameraText(
-            "These controls affect receipt capture. Receipt Assist, saved-photo, and account preferences stay in Expense Settings.",
-            "Estos controles afectan la captura del recibo. La asistencia del recibo, las fotos guardadas y las preferencias de cuenta permanecen en Configuración de gastos.",
+            "These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.",
+            "Estos controles se aplican mientras esta cámara está abierta. Configure sus valores predeterminados de recibos en Configuración de recibos.",
         ),
     ))
     content.addView(settingSectionHeader(receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
@@ -136,40 +136,14 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         }
         updateSettingsStatusStrip()
     })
-    content.addView(settingSummary(
-        receiptCameraText("Long receipts", "Recibos largos"),
-        receiptCameraText(
-            "Capture sections from top to bottom and repeat a few readable lines between photos so the next receipt step can keep them in order.",
-            "Capture secciones de arriba a abajo y repita algunas líneas legibles entre fotos para que el siguiente paso del recibo pueda mantenerlas en orden.",
-        ),
-    ))
     content.addView(settingSectionHeader(receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))
     content.addView(settingSummary(
-        receiptCameraText("Brightness and light", "Brillo y luz"),
+        receiptCameraText("Autofocus and capture", "Enfoque automático y captura"),
         receiptCameraText(
-            "Brightness and the receipt light stay on the live camera screen so you can see the receipt while adjusting them.",
-            "El brillo y la luz del recibo permanecen en la cámara en vivo para que pueda ver el recibo mientras los ajusta.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Focus", "Enfoque"),
-        receiptCameraText(
-            "The phone camera owns autofocus. Maintainiac does not use tap-to-focus on the preview.",
-            "La cámara del teléfono controla el enfoque automático. Maintainiac no usa tocar para enfocar en la vista previa.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Receipt reading source", "Fuente de lectura del recibo"),
-        receiptCameraText(
-            "Maintainiac reads the temporary full-quality photo first. Smaller saved proof copies are made after the receipt is read.",
-            "Maintainiac lee primero la foto temporal de calidad completa. Las copias de prueba más pequeñas se crean después de leer el recibo.",
-        ),
-    ))
-    content.addView(settingSummary(
-        receiptCameraText("Manual capture", "Captura manual"),
-        receiptCameraText(
-            "The shutter button always works immediately. Guidance can help, but it never blocks a manual receipt photo.",
-            "El disparador siempre funciona de inmediato. La guía ayuda, pero nunca bloquea una foto manual del recibo.",
+            "The phone camera owns autofocus. Pinch to zoom, use brightness or light on the camera screen, and capture anytime. Maintainiac reads the clear full-quality photo before making a smaller saved copy.",
+            "La cámara del teléfono controla el enfoque automático. Pellizque para acercar, " +
+                "use brillo o luz en la pantalla de cámara y capture en cualquier momento. " +
+                "Maintainiac lee la foto clara de calidad completa antes de crear una copia guardada más pequeña.",
         ),
     ))
     val scroll = ScrollView(this).apply {
@@ -182,7 +156,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         1f,
     ))
     root.addView(android.widget.Button(this).apply {
-        text = receiptCameraText("Reset Receipt Camera Defaults", "Restablecer ajustes de cámara de recibos")
+        text = receiptCameraText("Reset This Camera Session", "Restablecer esta sesión de cámara")
         isAllCaps = false
         setTextColor(Color.rgb(255, 209, 102))
         setBackgroundColor(Color.rgb(31, 37, 40))
@@ -208,81 +182,6 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         )
     }
     dialog.show()
-}
-
-internal fun ReceiptCameraActivity.receiptBackupRemainingLabel(): String {
-    val quotaBytes = receiptBackupQuotaBytes()
-    val usedBytes = receiptBackupUsedBytes()
-    val remainingBytes = (quotaBytes - usedBytes).coerceIn(0, quotaBytes)
-    return "${formatReceiptBytes(remainingBytes)} of ${formatReceiptBytes(quotaBytes)}"
-}
-
-internal fun ReceiptCameraActivity.receiptBackupStorageDetailText(): String {
-    val connection = receiptBackupConnectionLabel()
-    val usedBytes = receiptBackupUsedBytes()
-    return "$connection. ${formatReceiptBytes(usedBytes)} already used for receipt backup."
-}
-
-internal fun ReceiptCameraActivity.receiptBackupEstimatedReceiptCountLabel(): String {
-    val quotaBytes = receiptBackupQuotaBytes()
-    val usedBytes = receiptBackupUsedBytes()
-    val remainingBytes = (quotaBytes - usedBytes).coerceIn(0, quotaBytes)
-    val proofBytes = receiptProofTargetBytesFor(dataSaverLevel)
-    val estimatedReceipts = if (proofBytes > 0) remainingBytes / proofBytes else 0
-    return "~$estimatedReceipts receipts"
-}
-
-internal fun ReceiptCameraActivity.receiptBackupEstimatedReceiptDetailText(): String {
-    return "Based on ${receiptProofSizeLabel(dataSaverLevel)} saved proof copies. Actual count depends on receipt length and image quality."
-}
-
-internal fun ReceiptCameraActivity.receiptBackupConnectionLabel(): String {
-    return intent.getStringExtra("receiptBackupConnectionLabel")
-        ?.trim()
-        ?.takeIf { it.isNotEmpty() }
-        ?: "Backup account not connected"
-}
-
-internal fun ReceiptCameraActivity.receiptBackupQuotaBytes(): Long {
-    return intent.getLongExtra("receiptBackupQuotaBytes", 100L * 1024L * 1024L)
-        .coerceAtLeast(0L)
-}
-
-internal fun ReceiptCameraActivity.receiptBackupUsedBytes(): Long {
-    return intent.getLongExtra("receiptBackupUsedBytes", 0L)
-        .coerceAtLeast(0L)
-}
-
-internal fun ReceiptCameraActivity.receiptProofTargetBytesFor(level: String): Long {
-    return when (level) {
-        "original" -> 4L * 1024L * 1024L
-        "light" -> 1350L * 1024L
-        "strong" -> 550L * 1024L
-        "maximum" -> 275L * 1024L
-        else -> 900L * 1024L
-    }
-}
-
-internal fun ReceiptCameraActivity.receiptProofSizeLabel(level: String): String {
-    return when (level) {
-        "original" -> "original local"
-        "light" -> "high quality"
-        "strong" -> "save storage"
-        "maximum" -> "maximum savings"
-        else -> "balanced"
-    }
-}
-
-internal fun ReceiptCameraActivity.formatReceiptBytes(bytes: Long): String {
-    val gib = 1024.0 * 1024.0 * 1024.0
-    val mib = 1024.0 * 1024.0
-    val kib = 1024.0
-    return when {
-        bytes >= 1024L * 1024L * 1024L -> String.format("%.1f GB", bytes / gib)
-        bytes >= 1024L * 1024L -> String.format("%.0f MB", bytes / mib)
-        bytes >= 1024L -> String.format("%.0f KB", bytes / kib)
-        else -> "$bytes B"
-    }
 }
 
 internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {

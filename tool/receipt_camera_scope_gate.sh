@@ -43,6 +43,7 @@ while IFS= read -r path; do
     test/helpers/receipt_recovery_handoff_fixture.dart | \
 	    test/helpers/receipt_stitching_* | \
 	    test/receipt_capture_flow_assist_opt_in_contract_test.dart | \
+	    test/receipt_capture_flow_handoff_order_test.dart | \
 	    test/receipt_capture_flow_barcode_handoff_test.dart | \
 	    test/receipt_capture_flow_ocr_source_count_test.dart | \
 	    test/receipt_attachment_panel_actions_test.dart | \

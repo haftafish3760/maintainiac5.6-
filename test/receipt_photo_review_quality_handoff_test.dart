@@ -108,7 +108,8 @@ void main() {
     expect(previewControls, contains('uiConfig.addPhotoLabel'));
     expect(previewControls, isNot(contains(": 'Add Another';")));
     expect(controls, contains('quality.userFacingStatusLabel'));
-    expect(controls, contains('quality.reviewScoreMeaningLabel'));
+    expect(controls, isNot(contains('quality.reviewScoreMeaningLabel')));
+    expect(controls, contains('line details before continuing'));
     expect(
       controls,
       contains('_ReceiptCaptureReadinessReviewCopy.fromDiagnostics'),
