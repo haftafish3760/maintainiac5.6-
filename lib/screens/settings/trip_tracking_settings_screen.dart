@@ -8,6 +8,7 @@ import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/profiles/user_profile_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
+import 'trip_tracking_gps_opt_in_flow.dart';
 
 part 'trip_tracking_settings_map_controls.dart';
 part 'trip_tracking_settings_account_panel.dart';
@@ -134,8 +135,12 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             detail:
                 'Keep the manual trip and odometer workflow available even when this is off.',
             value: settings.gpsAssistedTrackingEnabled,
-            onChanged: (value) =>
-                onChanged(settings.copyWith(gpsAssistedTrackingEnabled: value)),
+            onChanged: (value) => updateGpsAssistedTrackingOptIn(
+              context: context,
+              settings: settings,
+              onChanged: onChanged,
+              enabled: value,
+            ),
           ),
           _switch(
             title: 'Show optional maps',
