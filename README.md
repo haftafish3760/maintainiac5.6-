@@ -10,6 +10,10 @@ maintenance, employees, and related business records.
 - Production/QA directive: `docs/maintainiac_production_operating_directive.md`
 - Expense release-one blueprint: `docs/expense_release_one_blueprint.md`
 - Expense Codex B handoff: `docs/expense_codex_b_handoff.md`
+- Maintainiac 5.7 living handoff index:
+  `docs/maintainiac_5_7_living_handoff_index.md`
+- Current Expenses/OCR/Camera living handoff:
+  `docs/expense_ocr_camera_living_handoff.md`
 - Expense receipt storage, draft, proof, and duplicate contract:
   `docs/expense_receipt_storage_and_duplicate_contract.md`
 - Receipt camera release-one blueprint:

@@ -3,6 +3,8 @@
 This document is a release-blocking product contract for every Codex worker
 that changes the Maintainiac Expense app, receipt camera/OCR handoff, drafts,
 proof storage, cloud restore, or Work Supplies / Materials receipt parsing.
+Current implementation status and deferred decisions are tracked in
+`docs/expense_ocr_camera_living_handoff.md`.
 
 ## Product And Module Identity
 
@@ -101,6 +103,36 @@ and verify the account-wide duplicate-warning behavior across authorized device
 restore/sync. Current local and restore-planner coverage must be audited against
 that requirement. This reminder stays open until device/account evidence proves
 the full behavior.
+
+## Deferred Draft Retention And Visual Similarity System
+
+This is an explicitly deferred product direction, not authorization for a
+partial implementation during repository consolidation. Until the complete
+system is implemented and verified, 5.7 keeps recoverable drafts indefinitely
+and performs no age-based draft deletion.
+
+The future system must be delivered as a complete, multi-pass subsystem:
+
+- the user chooses draft retention during onboarding and later in settings;
+- the default retention period is 90 days;
+- a dashboard reminder begins when a draft reaches 7 days old;
+- advance notice appears before the selected retention deadline;
+- exact and similar matching compares drafts with other drafts and saved
+  receipts using proof hash, merchant/vendor, date, time, total, receipt
+  number, and other available receipt evidence;
+- a similarity reminder shows one safe thumbnail from the draft's
+  Maintainiac-owned proof when available;
+- Review, Save, Keep, and Delete remain explicit user actions;
+- Save opens and completes mandatory receipt review rather than bypassing it;
+- Delete requires confirmation and can remove only that draft and its
+  Maintainiac-owned files, never an imported original or unrelated proof;
+- missing thumbnails, inaccessible files, crashes, concurrent edits,
+  migration, notification timing, accessibility, and cloud/account behavior
+  require dedicated regression coverage.
+
+Do not implement isolated pieces of this design. Retention, warnings,
+similarity evidence, UI actions, cleanup boundaries, migration, and QA must be
+planned and delivered together in a future dedicated Expense effort.
 
 Any change to this contract requires explicit product-owner approval plus
 targeted regression tests for ownership boundaries, draft interruption,
