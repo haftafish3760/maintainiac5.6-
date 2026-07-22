@@ -1,4 +1,5 @@
 import AVFoundation
+import CoreBluetooth
 import CoreMotion
 import Flutter
 import Metal
@@ -52,6 +53,8 @@ final class DeviceCapabilityBridge {
         result(self.readExtendedCapabilities())
       case "readDynamicCapabilities":
         result(self.readDynamicCapabilities())
+      case "readBluetoothCapabilities":
+        result(self.readBluetoothCapabilities())
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -84,6 +87,30 @@ final class DeviceCapabilityBridge {
     return [
       "battery": readBattery(),
       "connectivity": readConnectivity()
+    ]
+  }
+
+  private func readBluetoothCapabilities() -> [String: Any] {
+    let authorization: String
+    switch CBCentralManager.authorization {
+    case .allowedAlways:
+      authorization = "authorized"
+    case .denied:
+      authorization = "denied"
+    case .restricted:
+      authorization = "restricted"
+    case .notDetermined:
+      authorization = "notRequested"
+    @unknown default:
+      authorization = "unknown"
+    }
+    return [
+      "adapterAvailable": true,
+      // Do not create a central manager or prompt merely to populate a
+      // capabilities screen. A user-approved adapter owns live observation.
+      "poweredOn": false,
+      "authorization": authorization,
+      "supportsApprovedDeviceObservation": false
     ]
   }
 

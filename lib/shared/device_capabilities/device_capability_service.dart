@@ -5,6 +5,7 @@ import 'package:disk_space_plus/disk_space_plus.dart';
 import 'package:flutter/services.dart';
 
 import 'device_capability.dart';
+import 'device_bluetooth_capabilities.dart';
 import 'device_feature_capabilities.dart';
 import 'device_feature_capability_parser.dart';
 
@@ -19,7 +20,8 @@ abstract class DeviceCapabilityLiveProbe implements DeviceCapabilityProbe {
 /// One device-local source of truth for the whole running app. It does not use
 /// account identity or durable storage, so separate devices on one account are
 /// always classified from their own hardware and current conditions.
-class DeviceCapabilityService implements DeviceCapabilityLiveProbe {
+class DeviceCapabilityService
+    implements DeviceCapabilityLiveProbe, DeviceBluetoothCapabilityProbe {
   DeviceCapabilityService({
     DeviceInfoPlugin? deviceInfo,
     MethodChannel? nativeChannel,
@@ -74,6 +76,21 @@ class DeviceCapabilityService implements DeviceCapabilityLiveProbe {
     _camera = null;
     _extendedStatic = null;
     _cachedProfile = null;
+  }
+
+  @override
+  Future<DeviceBluetoothCapabilities> bluetoothCapabilities() async {
+    final value = await _invokeMap('readBluetoothCapabilities');
+    return DeviceBluetoothCapabilities(
+      adapterAvailable: value['adapterAvailable'] == true,
+      poweredOn: value['poweredOn'] == true,
+      authorization: DeviceBluetoothAuthorizationState.values.firstWhere(
+        (state) => state.name == value['authorization'],
+        orElse: () => DeviceBluetoothAuthorizationState.unknown,
+      ),
+      supportsApprovedDeviceObservation:
+          value['supportsApprovedDeviceObservation'] == true,
+    );
   }
 
   Future<DeviceCapabilityProfile> _detect({
