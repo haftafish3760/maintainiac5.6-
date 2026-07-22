@@ -17,7 +17,6 @@ class MaintainiacFirebase {
     }
 
     final options = MaintainiacFirebaseOptions.currentPlatformOrNull;
-    if (options == null) return false;
     try {
       await Firebase.initializeApp(options: options);
     } on FirebaseException {

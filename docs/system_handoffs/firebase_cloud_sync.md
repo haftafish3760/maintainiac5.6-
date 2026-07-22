@@ -32,13 +32,15 @@ abuse controls, feature bridges, rules, indexes, and emulator tests exist.
   centralized queue, secure proof grant/finalization/reference, restore, and
   tombstone owners; the focused cross-system persistence batch passed 124 tests.
 - `VERIFIED SUBSET`: a clean Git checkout no longer requires ignored Firebase
-  credentials to analyze or compile. Mobile Firebase initializes only when the
-  required `MAINTAINIAC_FIREBASE_*` values are supplied with
-  `--dart-define-from-file`; otherwise the existing local-first app starts with
-  hosted Firebase disabled. Android's Google Services plugin is applied only
-  when a local `google-services.json` exists. The ignored iOS plist is no longer
-  a mandatory Xcode resource. This is transfer/build safety, not deployed
-  Firebase readiness.
+  credentials to analyze or compile. Mobile Firebase accepts either the
+  required `MAINTAINIAC_FIREBASE_*` values supplied with
+  `--dart-define-from-file` or the existing machine-local native configuration.
+  Android's Google Services plugin is applied only when a local
+  `google-services.json` exists. Xcode conditionally copies the ignored local
+  iOS plist when present rather than treating it as a mandatory project
+  resource. When neither configuration source exists, the existing local-first
+  app starts with hosted Firebase disabled. This is transfer/build safety, not
+  deployed Firebase readiness.
 
 ## Rolling Log
 
@@ -46,5 +48,5 @@ abuse controls, feature bridges, rules, indexes, and emulator tests exist.
 - 2026-07-22: Recorded semantic supersession of the Receipt OCR repository's
   parallel cloud owners; no production deployment claim was made.
 - 2026-07-22: Removed the clean-checkout dependency on ignored Firebase files,
-  added compile-time build options and an example configuration, and retained
-  secrets as machine-local inputs only.
+  added compile-time build options and an example configuration, retained the
+  existing native-config path, and kept secrets as machine-local inputs only.

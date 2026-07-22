@@ -53,6 +53,13 @@ void main() {
       );
       expect(project, contains('CUSTOM_GROUP_ID = group.com.maintainiac;'));
       expect(project, isNot(contains('GoogleService-Info.plist in Resources')));
+      expect(project, contains('Copy Optional Firebase Configuration'));
+      expect(
+        project,
+        contains(
+          'No local Firebase configuration; hosted Firebase remains disabled.',
+        ),
+      );
       expect(shareController, contains('com.maintainiac.ShareExtension'));
       final configFile = File('ios/Runner/GoogleService-Info.plist');
       if (!configFile.existsSync()) return;
@@ -70,6 +77,17 @@ void main() {
         expect(source, contains('String.fromEnvironment'));
         expect(source, contains('MAINTAINIAC_FIREBASE_ANDROID_APP_ID'));
         expect(source, contains('MAINTAINIAC_FIREBASE_IOS_APP_ID'));
+        final initializer = File(
+          'lib/shared/firebase/maintainiac_firebase.dart',
+        ).readAsStringSync();
+        expect(
+          initializer,
+          contains('Firebase.initializeApp(options: options)'),
+        );
+        expect(
+          initializer,
+          isNot(contains('if (options == null) return false')),
+        );
       },
     );
 

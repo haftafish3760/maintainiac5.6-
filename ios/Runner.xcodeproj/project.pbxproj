@@ -315,6 +315,7 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
+				419132306777000000000003 /* Copy Optional Firebase Configuration */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				A10000000000000000000010 /* Embed App Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
@@ -422,6 +423,22 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		419132306777000000000003 /* Copy Optional Firebase Configuration */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Optional Firebase Configuration";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "firebase_plist=\"${PROJECT_DIR}/Runner/GoogleService-Info.plist\"\nif [ -f \"$firebase_plist\" ]; then\n  destination=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n  mkdir -p \"$destination\"\n  cp \"$firebase_plist\" \"$destination/GoogleService-Info.plist\"\n  echo \"Copied local Firebase configuration.\"\nelse\n  echo \"No local Firebase configuration; hosted Firebase remains disabled.\"\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
