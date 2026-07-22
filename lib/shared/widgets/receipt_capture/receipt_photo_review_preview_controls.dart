@@ -100,37 +100,6 @@ class _ReceiptSectionPositionChip extends StatelessWidget {
   }
 }
 
-class _ReceiptSinglePhotoActionRow extends StatelessWidget {
-  const _ReceiptSinglePhotoActionRow({
-    required this.openingCamera,
-    required this.onModeChanged,
-  });
-
-  final bool openingCamera;
-  final ValueChanged<_ReceiptReviewMode> onModeChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = MaintaniacLocalizations.of(context);
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: TextButton.icon(
-        onPressed: openingCamera
-            ? null
-            : () => onModeChanged(_ReceiptReviewMode.crop),
-        icon: const Icon(Icons.crop_rounded, size: 17),
-        label: Text(strings.cropReceiptPhoto),
-        style: TextButton.styleFrom(
-          foregroundColor: const Color(0xFFC8D0D3),
-          minimumSize: const Size(0, 48),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800),
-        ),
-      ),
-    );
-  }
-}
-
 class _ReceiptPhotoCountBadge extends StatelessWidget {
   const _ReceiptPhotoCountBadge({required this.current, required this.total});
 

@@ -23,6 +23,20 @@ void main() {
     );
   });
 
+  test(
+    'photo review does not treat an upward swipe as dismissing the receipt',
+    () async {
+      final surface = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_photo_surface.dart',
+      ).readAsString();
+
+      expect(surface, contains('InteractiveViewer('));
+      expect(surface, isNot(contains('Dismissible(')));
+      expect(surface, isNot(contains('onVerticalDrag')));
+      expect(surface, isNot(contains('Navigator.of(context).pop')));
+    },
+  );
+
   test('photo review bottom controls stay capped by mode', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final controls = [
@@ -45,6 +59,12 @@ void main() {
         ).readAsString();
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
+    ).readAsString();
+    final cropControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_controls.dart',
+    ).readAsString();
+    final topBar = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
     ).readAsString();
     final uiConfig = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart',
@@ -70,6 +90,16 @@ void main() {
       contains('relying on a hidden scroll-only continuation path'),
     );
     expect(reviewScreen, contains('widget.uiConfig.cropControlsHeight'));
+    expect(
+      reviewScreen,
+      contains('if (_reviewMode == _ReceiptReviewMode.crop)'),
+    );
+    expect(
+      reviewScreen,
+      contains(
+        'Crop actions must remain fully reachable even on short screens.',
+      ),
+    );
     expect(reviewScreen, contains('_ReceiptReviewMode.order => .18'));
     expect(reviewScreen, contains('_ReceiptReviewMode.stitch => .20'));
     expect(reviewScreen, contains('_ReceiptReviewMode.dataSaver => .20'));
@@ -86,7 +116,12 @@ void main() {
       reviewScreen,
       contains('backgroundColor: widget.uiConfig.previewBackgroundColor'),
     );
-    expect(reviewScreen, contains('body: SafeArea(\n          child: Column('));
+    expect(
+      reviewScreen,
+      contains(
+        'body: SafeArea(\n          top: true,\n          bottom: true,\n          maintainBottomViewPadding: true,\n          child: Column(',
+      ),
+    );
     expect(reviewScreen, contains('Expanded(\n                child: Stack('));
     expect(reviewScreen, isNot(contains('_reviewSurfaceBottomPadding')));
     expect(uiConfig, contains('class ReceiptPhotoReviewUiConfig'));
@@ -118,9 +153,19 @@ void main() {
       contains("part 'receipt_photo_review_thumbnail_strip.dart'"),
     );
     expect(commonControls, contains('minimumSize: const Size(0, 32)'));
+    expect(previewControls, contains('minimumSize: const Size(40, 40)'));
+    expect(previewControls, contains("label: const Text('Crop')"));
+    expect(previewControls, contains("label: 'Crop receipt photo'"));
+    expect(
+      previewControls,
+      contains('onPressed: savingPhotos ? null : onCrop'),
+    );
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(cropControls, isNot(contains('class _ReceiptCropInstructionStrip')));
+    expect(cropControls, contains('height: 52'));
+    expect(topBar, contains('Crop receipt — drag the yellow edges'));
     expect(
       previewControls,
       contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
@@ -251,8 +296,7 @@ void main() {
     expect(commonControls, contains("'Proof' => 'Preview saved proof size'"));
     expect(previewControls, contains('class _ReceiptMultiPhotoActionRail'));
     expect(previewControls, contains('onAddPhoto'));
-    expect(previewControls, contains('class _ReceiptSinglePhotoActionRow'));
-    expect(previewControls, contains('label: Text(strings.cropReceiptPhoto)'));
+    expect(previewControls, contains("message: 'Crop receipt photo'"));
     expect(previewControls, isNot(contains('label: strings.savedProof')));
     expect(previewControls, contains("? 'Add Bottom Section'"));
     expect(
@@ -280,14 +324,9 @@ void main() {
     );
     expect(reviewScreen, contains('current: effectiveSelectedIndex + 1'));
     expect(topBar, contains('Review Receipt Photo'));
-    expect(previewControls, contains('strings.cropReceiptPhoto'));
+    expect(previewControls, contains("message: 'Crop receipt photo'"));
     expect(controls, contains('selectedIndex: effectiveSelectedIndex'));
-    expect(
-      controls,
-      contains(
-        'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
-      ),
-    );
+    expect(controls, contains('Check the store, date, total, '));
     expect(
       controls,
       contains('if (coverageDecision.shouldPromptForMorePhotos)'),
@@ -298,9 +337,8 @@ void main() {
         'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
       ),
     );
-    expect(controls, contains('or use this photo only if '));
-    expect(controls, contains('it already shows the full receipt.'));
-    expect(controls, contains('Saved locally for recovery.'));
+    expect(controls, contains('Add another photo if any part of the '));
+    expect(controls, contains('receipt is missing.'));
     expect(controls, contains('captureSurface.startsWith'));
     expect(controls, contains('maintainiac_native_receipt_camera'));
     expect(controls, contains('String get captureMemoryPolicyCopy'));
@@ -313,6 +351,11 @@ void main() {
       ),
     );
     expect(controls, contains("return 'Use Receipt';"));
+    expect(
+      controls,
+      contains('final displayedContinueLabel = uiConfig.labelFor('),
+    );
+    expect(controls, contains('label: displayedContinueLabel'));
     expect(commonControls, contains("primary: 'Add'"));
     expect(commonControls, contains("secondary: 'Bottom Section'"));
     expect(
@@ -381,9 +424,12 @@ void main() {
     expect(controls, isNot(contains('Use This Photo')));
     expect(controls, isNot(contains('Saved copy')));
     expect(controls, isNot(contains('Saved Copy')));
-    expect(previewControls, contains('onPressed: openingCamera'));
     expect(
-      previewControls,
+      controls,
+      contains('onCrop: hasMultiplePhotos || interactionLocked'),
+    );
+    expect(
+      controls,
       contains(': () => onModeChanged(_ReceiptReviewMode.crop)'),
     );
     expect(

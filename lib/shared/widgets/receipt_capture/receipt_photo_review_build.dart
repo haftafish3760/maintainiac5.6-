@@ -15,6 +15,9 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
       child: Scaffold(
         backgroundColor: widget.uiConfig.previewBackgroundColor,
         body: SafeArea(
+          top: true,
+          bottom: true,
+          maintainBottomViewPadding: true,
           child: Column(
             children: [
               if (widget.uiConfig.showTopBar)
@@ -29,15 +32,11 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                     bestShotCandidateMode: widget.bestShotCandidateMode,
                     openingCamera: _openingCamera,
                     savingPhotos: _savingPhotos,
-                    continueLabel: _reviewTopBarContinueLabel(photoPath),
                     onClose: _reviewMode == _ReceiptReviewMode.crop
                         ? _cancelCropReview
                         : leaveReceiptReviewWithoutSaving,
                     onOpenSettings: openReceiptReviewSettings,
                     onMenuSelected: handleReviewMenuAction,
-                    onContinue: _reviewMode == _ReceiptReviewMode.crop
-                        ? null
-                        : continueReceiptPhotoReview,
                   ),
                 ),
               Expanded(

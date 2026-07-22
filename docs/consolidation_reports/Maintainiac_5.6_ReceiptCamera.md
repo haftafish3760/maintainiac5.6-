@@ -134,3 +134,9 @@
 - Static validation: `flutter analyze` passed for all 64 changed Dart files.
 - Targeted validation: all 87 tests in the changed test-file batch passed.
 - Source repository remained content-read-only.
+
+## Final integration correction
+
+- Full-project analysis exposed a cross-file top-bar/crop contract mismatch that was invisible to changed-file-only analysis.
+- The newer primary-row crop action was retained, its obsolete duplicate single-photo crop widget was removed, SafeArea behavior and source-aligned contract coverage were restored, and four focused review/camera tests passed.
+- Final full-project `flutter analyze` passed with no issues.
