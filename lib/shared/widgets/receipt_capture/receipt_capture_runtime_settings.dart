@@ -82,26 +82,106 @@ class _ReceiptBackupStorageSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = ReceiptCaptureSettingsScope.of(context);
-    return _ReceiptSettingsSection(
-      icon: Icons.cloud_done_rounded,
-      title: 'Backup And Storage',
-      subtitle:
-          'Choose whether saved receipt proof copies are eligible for Maintainiac backup.',
-      children: [
-        _ReceiptSettingsSwitch(
-          title: 'Back Up Receipt Photos',
-          detail:
-              'When enabled, saved proof copies can be included in Maintainiac cloud backup. Original full-size photos stay temporary unless you choose to keep them.',
-          value: settings.receiptPhotoBackupEnabled,
-          onChanged: settings.setReceiptPhotoBackupEnabled,
-        ),
-        const SizedBox(height: 8),
-        const _ReceiptSettingsNote(
-          icon: Icons.info_outline_rounded,
-          text:
-              'Local saving works immediately. Cloud storage remaining and backup activity appear here only after account backup is connected; this screen never shows a made-up storage estimate.',
-        ),
-      ],
+    return FutureBuilder<ReceiptStorageCheck>(
+      future: ReceiptStorageGuard.check(ReceiptStoragePurpose.capturePhoto),
+      builder: (context, snapshot) {
+        final storage = snapshot.data;
+        final available = storage == null
+            ? 'Checking…'
+            : storage.canVerify
+            ? storage.availableLabel
+            : 'Unavailable';
+        final storageDetail = storage == null
+            ? 'Checking free device storage before you add receipt photos.'
+            : storage.canVerify
+            ? storage.shouldWarnLowStorage
+                  ? storage.warningMessage()
+                  : 'Maintainiac keeps a ${storage.reserveLabel} safety reserve and needs at least ${storage.minimumLabel} before another receipt photo.'
+            : storage.unknownMessage(ReceiptStoragePurpose.capturePhoto);
+        return _ReceiptSettingsSection(
+          icon: Icons.cloud_done_rounded,
+          title: 'Backup And Storage',
+          subtitle:
+              'Receipt proofs save locally first; cloud backup remains optional.',
+          children: [
+            _ReceiptStorageMetricRow(
+              label: 'Device Storage',
+              value: available,
+              detail: storageDetail,
+            ),
+            const SizedBox(height: 8),
+            _ReceiptSettingsSwitch(
+              title: 'Back Up Receipt Photos',
+              detail:
+                  'When enabled, saved proof copies can be included in Maintainiac cloud backup. Original full-size photos stay temporary unless you choose to keep them.',
+              value: settings.receiptPhotoBackupEnabled,
+              onChanged: settings.setReceiptPhotoBackupEnabled,
+            ),
+            const SizedBox(height: 8),
+            const _ReceiptSettingsNote(
+              icon: Icons.info_outline_rounded,
+              text:
+                  'Local saving works immediately. Cloud storage remaining and backup activity appear here only after account backup is connected; this screen never shows a made-up storage estimate.',
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ReceiptStorageMetricRow extends StatelessWidget {
+  const _ReceiptStorageMetricRow({
+    required this.label,
+    required this.value,
+    required this.detail,
+  });
+
+  final String label;
+  final String value;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161D20),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF3D4A50)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF95A3A8),
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFFFFD166),
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            detail,
+            style: const TextStyle(
+              color: Color(0xFFC8D0D3),
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              height: 1.22,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -260,6 +260,9 @@ void main() {
       expect(source, contains('profile.summaryLabel'));
       expect(source, contains('profile.notesLabel'));
       expect(source, contains('Backup And Storage'));
+      expect(source, contains("label: 'Device Storage'"));
+      expect(source, contains('ReceiptStorageGuard.check'));
+      expect(source, contains('ReceiptDataSaverLevel.original'));
       expect(source, contains('Back Up Receipt Photos'));
       expect(source, contains('receiptPhotoBackupEnabled'));
       expect(source, contains('Local saving works immediately'));

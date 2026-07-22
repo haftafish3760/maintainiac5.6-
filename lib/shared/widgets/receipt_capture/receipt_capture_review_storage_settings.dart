@@ -75,6 +75,7 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
   }
 
   static const _receiptBackupLevels = [
+    ReceiptDataSaverLevel.original,
     ReceiptDataSaverLevel.light,
     ReceiptDataSaverLevel.balanced,
     ReceiptDataSaverLevel.strong,
