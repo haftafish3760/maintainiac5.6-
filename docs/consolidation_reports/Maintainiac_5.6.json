@@ -1,0 +1,28 @@
+{
+  "engine_version": "1",
+  "source": "/Users/rbbie/Documents/Maintainiac_5.6",
+  "target": "/Users/rbbie/Documents/Maintainiac_5.7_Active",
+  "generated_at": "2026-07-22T03:52:59-0400",
+  "applied": true,
+  "git": {
+    "is_git": false,
+    "branch": "",
+    "head": "",
+    "target_head": "2f3985f7b57cf8ccf1b3fddbc1fc895178e480ed",
+    "merge_base": "",
+    "unique_commits": [],
+    "origin": ""
+  },
+  "counts": {
+    "skip_duplicate": 1,
+    "skip_generated": 5
+  },
+  "features": {},
+  "source_guard": {
+    "git": "NON_GIT_READ_ONLY",
+    "tree": "4e5658950b9f03b2f60bb626380b88eb2c956080bed0b160ea1bb4a71be2cdaf"
+  },
+  "decision_log": "Maintainiac_5.6.decisions.jsonl",
+  "manual_total": 0,
+  "manual_preview": []
+}
