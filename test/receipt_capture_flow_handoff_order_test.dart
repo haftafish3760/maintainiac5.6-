@@ -36,10 +36,11 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart',
-        ).readAsString() +
-        await File(
-          'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
         ).readAsString();
+    final receiptReadActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart',
+    ).readAsString();
+    final reviewedReadActions = '$importActions$receiptReadActions';
     final captureModels =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_models.dart',
@@ -69,7 +70,14 @@ void main() {
 
     expect(
       importActions,
-      contains('widget.onReceiptPhotoReviewAccepted?.call(result);'),
+      contains('if (!_notifyReviewedPhotoAccepted(result)) return false;'),
+    );
+    expect(importActions, contains('bool _notifyReviewedPhotoAccepted'));
+    expect(
+      importActions,
+      contains(
+        'Receipt photo saved, but the receipt details screen could not open.',
+      ),
     );
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
     expect(
@@ -84,10 +92,16 @@ void main() {
       importActions,
       contains('await _readReviewedPhotosForReceiptForm(result);'),
     );
-    expect(importActions, contains('widget.onReceiptReadStarted?.call();'));
+    expect(reviewedReadActions, contains('_notifyReceiptReadStarted();'));
+    expect(receiptReadActions, contains('void _notifyReceiptReadStarted()'));
+    expect(receiptReadActions, contains('void _notifyReceiptOcrCompleted('));
+    expect(receiptReadActions, contains('void _notifyReceiptReadFinished('));
+    expect(receiptReadActions, contains('_notifyReceiptReadStarted();'));
+    expect(receiptReadActions, contains('_notifyReceiptOcrCompleted(result);'));
+    expect(receiptReadActions, contains('_notifyReceiptReadFinished(false);'));
     expect(
       importActions.indexOf(
-        'widget.onReceiptPhotoReviewAccepted?.call(result);',
+        'if (!_notifyReviewedPhotoAccepted(result)) return false;',
       ),
       lessThan(importActions.indexOf('_startReviewedPhotoReadStatus(result);')),
     );
@@ -99,18 +113,21 @@ void main() {
         ),
       ),
     );
-    final reviewedPhotoReadStatusBlock = importActions.substring(
-      importActions.indexOf(
+    final reviewedPhotoReadStatusBlock = reviewedReadActions.substring(
+      reviewedReadActions.indexOf(
         'void _startReviewedPhotoReadStatus(ReceiptPhotoReviewResult result)',
       ),
-      importActions.indexOf('String _reviewedPhotoOcrSourceQualitySummary('),
-    );
-    expect(reviewedPhotoReadStatusBlock, contains('_readingForReview = true'));
-    expect(
-      importActions.indexOf('widget.onReceiptReadStarted?.call();'),
-      lessThan(
-        importActions.indexOf('.recognizeTextFromAttachments(readable)'),
+      reviewedReadActions.indexOf(
+        'String _reviewedPhotoOcrSourceQualitySummary(',
       ),
+    );
+    expect(
+      reviewedPhotoReadStatusBlock,
+      isNot(contains('widget.onReceiptReadStarted?.call();')),
+    );
+    expect(
+      reviewedPhotoReadStatusBlock,
+      contains('not receive two competing "reading" transitions'),
     );
     final takePhotoBlock = importActions.substring(
       importActions.indexOf('Future<void> takeReceiptPhoto() async'),

@@ -10,7 +10,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     required this.savingPhotos,
     required this.continueLabel,
     required this.onClose,
-    required this.onHideControls,
+    required this.onOpenSettings,
     required this.onMenuSelected,
     required this.onContinue,
   });
@@ -23,7 +23,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   final bool savingPhotos;
   final String continueLabel;
   final VoidCallback onClose;
-  final VoidCallback? onHideControls;
+  final VoidCallback onOpenSettings;
   final ValueChanged<_ReceiptReviewMenuAction> onMenuSelected;
   final VoidCallback? onContinue;
 
@@ -95,40 +95,23 @@ class _ReceiptReviewTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 260),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: const Color(0xAA050607),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: const Color(0x663D4A50)),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Color(0xFFE8ECEE),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Text(
+                title,
+                maxLines: 2,
+                style: const TextStyle(
+                  color: Color(0xFFE8ECEE),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),
           ),
           _OverlayIconButton(
-            icon: Icons.fullscreen_rounded,
-            label: 'Hide controls',
-            onPressed: onHideControls,
+            icon: Icons.settings_outlined,
+            label: 'Receipt review settings',
+            onPressed: onOpenSettings,
           ),
           const SizedBox(width: 4),
           PopupMenuButton<_ReceiptReviewMenuAction>(

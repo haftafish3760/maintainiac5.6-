@@ -106,7 +106,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       _receiptReadStatusMessage =
           'Reading $sourceSummary. When the details are ready, Maintainiac shows them so you can check the store, date, total, and item lines.$cloudAssistSummary';
     });
-    widget.onReceiptReadStarted?.call();
+    _notifyReceiptReadStarted();
     late final ReceiptOcrResult result;
     try {
       result = await ReceiptOcrService.forDevice(capability)
@@ -127,7 +127,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
           );
         }
       }
-      widget.onReceiptReadFinished?.call(false);
+      _notifyReceiptReadFinished(false);
       return const _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.unreadable,
         warning: 'Receipt reading timed out before details could be filled.',
@@ -147,7 +147,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
           );
         }
       }
-      widget.onReceiptReadFinished?.call(false);
+      _notifyReceiptReadFinished(false);
       return _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.unreadable,
         warning:
@@ -159,7 +159,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         _ReceiptAttachmentReadOutcome.skipped,
       );
     }
-    widget.onReceiptOcrCompleted?.call(result);
+    _notifyReceiptOcrCompleted(result);
     if (!result.hasText) {
       final warning = result.strongestActionMessage;
       final resultRecoveryAdvice = _receiptReadRecoveryAdvice(
@@ -178,7 +178,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
           '${resultRecoveryAdvice.failureLead} $warning ${resultRecoveryAdvice.primaryAction}',
         );
       }
-      widget.onReceiptReadFinished?.call(false);
+      _notifyReceiptReadFinished(false);
       return _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.unreadable,
         warning:
@@ -216,7 +216,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
             );
           }
         }
-        widget.onReceiptReadFinished?.call(false);
+        _notifyReceiptReadFinished(false);
         return _ReceiptAttachmentReadResult(
           _ReceiptAttachmentReadOutcome.unreadable,
           warning:
@@ -226,7 +226,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       }
     }
     if (!mounted) {
-      widget.onReceiptReadFinished?.call(true);
+      _notifyReceiptReadFinished(true);
       return _ReceiptAttachmentReadResult(
         _ReceiptAttachmentReadOutcome.read,
         ocrDiagnostics: result.diagnostics,
@@ -246,10 +246,37 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       _receiptReadStatusMessage = message;
     });
     showPickerMessage(message);
-    widget.onReceiptReadFinished?.call(true);
+    _notifyReceiptReadFinished(true);
     return _ReceiptAttachmentReadResult(
       _ReceiptAttachmentReadOutcome.read,
       ocrDiagnostics: result.diagnostics,
     );
+  }
+
+  void _notifyReceiptReadStarted() {
+    try {
+      widget.onReceiptReadStarted?.call();
+    } catch (_) {
+      // Status callbacks are optional UI notifications. Their failure must not
+      // interrupt local receipt reading or close the capture flow.
+    }
+  }
+
+  void _notifyReceiptOcrCompleted(ReceiptOcrResult result) {
+    try {
+      widget.onReceiptOcrCompleted?.call(result);
+    } catch (_) {
+      // Diagnostics observers cannot be allowed to turn a usable receipt into
+      // a crash after text was already read.
+    }
+  }
+
+  void _notifyReceiptReadFinished(bool succeeded) {
+    try {
+      widget.onReceiptReadFinished?.call(succeeded);
+    } catch (_) {
+      // Completion observers are best-effort; the editable form remains the
+      // source of user recovery when a surrounding screen is no longer live.
+    }
   }
 }

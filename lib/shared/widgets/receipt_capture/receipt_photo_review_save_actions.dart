@@ -13,7 +13,6 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       if (_reviewMode != _ReceiptReviewMode.stitch) {
         _updateReviewState(() {
           _reviewMode = _ReceiptReviewMode.stitch;
-          _controlsVisible = true;
         });
         unawaited(_ensureStitchPreview(force: true));
         return;

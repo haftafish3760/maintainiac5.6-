@@ -88,7 +88,7 @@ extension _ReceiptAttachmentReviewReadActions
       _needsBottomReceiptSection = false;
     });
     publishAttachmentChange();
-    widget.onReceiptPhotoReviewAccepted?.call(result);
+    if (!_notifyReviewedPhotoAccepted(result)) return false;
     if (_pauseReviewedPhotoReadUntilNextSection(result)) return true;
     _startReviewedPhotoReadStatus(result);
     final readResult = await _readReviewedPhotosForReceiptForm(result);
@@ -158,7 +158,7 @@ extension _ReceiptAttachmentReviewReadActions
       _needsBottomReceiptSection = false;
     });
     publishAttachmentChange();
-    widget.onReceiptPhotoReviewAccepted?.call(result);
+    if (!_notifyReviewedPhotoAccepted(result)) return;
     if (_pauseReviewedPhotoReadUntilNextSection(result)) return;
     _startReviewedPhotoReadStatus(result);
     final readResult = await _readReviewedPhotosForReceiptForm(result);
@@ -196,6 +196,28 @@ extension _ReceiptAttachmentReviewReadActions
       _receiptReadStatusMessage =
           'Photo review accepted. $processing $proofCount ready. Clear photo versions: $ocrSourceCount. $qualitySummary $reviewDecision $action';
     });
+  }
+
+  bool _notifyReviewedPhotoAccepted(ReceiptPhotoReviewResult result) {
+    final onAccepted = widget.onReceiptPhotoReviewAccepted;
+    if (onAccepted == null) return true;
+    try {
+      onAccepted(result);
+      return true;
+    } catch (_) {
+      if (!mounted) return false;
+      updateAttachmentState(() {
+        _readingForReview = false;
+        _receiptReadStatus = _ReceiptReadStatusKind.failed;
+        _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
+        _receiptReadStatusMessage =
+            'Receipt photo saved, but the receipt details screen could not open. Keep the photo and continue filling the receipt by hand.';
+      });
+      showPickerError(
+        'Receipt photo saved, but receipt details could not open. Keep the photo and continue filling the receipt by hand.',
+      );
+      return false;
+    }
   }
 
   bool _pauseReviewedPhotoReadUntilNextSection(

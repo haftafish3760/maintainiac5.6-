@@ -63,7 +63,9 @@ void main() {
     expect(models, contains('text_may_be_too_small'));
     expect(
       models,
-      contains('Retake recommended; use the photo only if the text is readable'),
+      contains(
+        'Retake recommended; use the photo only if the text is readable',
+      ),
     );
     expect(models, contains('Use this photo for receipt details'));
     expect(
@@ -164,11 +166,11 @@ void main() {
       saveActions,
       contains(r'Tap $nextLabel to use $target and open receipt details.'),
     );
+    expect(saveActions, contains('captureDiagnostics[prepared.backupPath] ='));
     expect(
       saveActions,
-      contains('captureDiagnostics[prepared.backupPath] ='),
+      contains('captureDiagnosticsByPhotoPath: captureDiagnostics'),
     );
-    expect(saveActions, contains('captureDiagnosticsByPhotoPath: captureDiagnostics'));
     expect(saveActions, contains('pickedPaths,'));
     expect(ocrActions, contains('final ReceiptOcrDiagnostics? ocrDiagnostics'));
     expect(ocrActions, contains('ocrDiagnostics: result.diagnostics'));
@@ -232,7 +234,16 @@ void main() {
     expect(saveActions, isNot(contains('captureDiagnosticsByPath: const {},')));
     expect(
       importActions,
-      contains('widget.onReceiptPhotoReviewAccepted?.call(result);'),
+      contains('if (!_notifyReviewedPhotoAccepted(result))'),
+    );
+    expect(
+      importActions,
+      contains('final onAccepted = widget.onReceiptPhotoReviewAccepted;'),
+    );
+    expect(importActions, contains('onAccepted(result);'));
+    expect(
+      importActions,
+      contains('Receipt photo saved, but receipt details could not open.'),
     );
     expect(importActions, contains('_startReviewedPhotoReadStatus(result);'));
     expect(
