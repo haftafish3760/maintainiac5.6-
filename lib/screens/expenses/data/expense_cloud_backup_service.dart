@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../../shared/firebase/maintainiac_cloud_identity.dart';
 import '../../../shared/firebase/maintainiac_organization_bootstrap.dart';
 import '../../../shared/firebase/maintainiac_firestore_documents.dart';
 import '../../../shared/firebase/maintainiac_firestore_upload_queue.dart';
@@ -560,10 +560,11 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     required this.proofReferences,
     required this.deviceId,
     required bool Function() backupEnabled,
-    FirebaseAuth? firebaseAuth,
+    MaintainiacCloudIdentityProvider? identityProvider,
     MaintainiacOrganizationBootstrapper? workspaceBootstrapper,
   }) : _backupEnabled = backupEnabled,
-       _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+       _identityProvider =
+           identityProvider ?? FirebaseMaintainiacCloudIdentityProvider(),
        _workspaceBootstrapper =
            workspaceBootstrapper ??
            MaintainiacOrganizationBootstrapper(
@@ -585,7 +586,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
   final ExpenseCloudProofReferenceStore proofReferences;
   final String deviceId;
   final bool Function() _backupEnabled;
-  final FirebaseAuth _firebaseAuth;
+  final MaintainiacCloudIdentityProvider _identityProvider;
   final MaintainiacOrganizationBootstrapper _workspaceBootstrapper;
   Future<void> _taskChain = Future<void>.value();
   final _knownReminderRevisions = <String, int>{};
@@ -684,8 +685,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   Future<void> _queueAndSyncReceipt(String receiptId) async {
     final service = _serviceForCurrentUser();
-    final user = _firebaseAuth.currentUser;
-    if (service == null || user == null) return;
+    final uid = _currentUid;
+    if (service == null || uid == null) return;
     final queued = await service.queueReceipt(receiptId);
     if (!queued.wasQueued) return;
     if (settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
@@ -693,7 +694,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     }
     try {
       await _workspaceBootstrapper.ensurePersonalWorkspace(
-        authenticatedUid: user.uid,
+        authenticatedUid: uid,
       );
     } catch (_) {
       // The durable local queue remains intact for the next explicit sync.
@@ -704,13 +705,13 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   Future<ExpenseCloudBackupResult> _syncSnapshot() async {
     final service = _serviceForCurrentUser();
-    final user = _firebaseAuth.currentUser;
-    if (service == null || user == null) {
+    final uid = _currentUid;
+    if (service == null || uid == null) {
       return const ExpenseCloudBackupResult.identityRequired();
     }
     try {
       await _workspaceBootstrapper.ensurePersonalWorkspace(
-        authenticatedUid: user.uid,
+        authenticatedUid: uid,
       );
     } catch (_) {
       return const ExpenseCloudBackupResult.deliveryUnavailable(
@@ -725,8 +726,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     required DateTime? now,
   }) async {
     final service = _serviceForCurrentUser();
-    final user = _firebaseAuth.currentUser;
-    if (service == null || user == null) {
+    final uid = _currentUid;
+    if (service == null || uid == null) {
       return const ExpenseScheduledBackupResult.notAuthorized();
     }
     final localNow = (now ?? DateTime.now()).toLocal();
@@ -744,7 +745,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     }
     try {
       await _workspaceBootstrapper.ensurePersonalWorkspace(
-        authenticatedUid: user.uid,
+        authenticatedUid: uid,
       );
     } catch (_) {
       return const ExpenseScheduledBackupResult.notAuthorized();
@@ -754,8 +755,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   Future<void> _queueAndSyncVehicleDirectory() async {
     final service = _serviceForCurrentUser();
-    final user = _firebaseAuth.currentUser;
-    if (service == null || user == null) return;
+    final uid = _currentUid;
+    if (service == null || uid == null) return;
     final queued = await service.queueVehicleDirectory();
     if (!queued.wasQueued ||
         settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
@@ -763,7 +764,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     }
     try {
       await _workspaceBootstrapper.ensurePersonalWorkspace(
-        authenticatedUid: user.uid,
+        authenticatedUid: uid,
       );
     } catch (_) {
       return;
@@ -773,8 +774,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   Future<void> _queueAndSyncWorkProfileDirectory() async {
     final service = _serviceForCurrentUser();
-    final user = _firebaseAuth.currentUser;
-    if (service == null || user == null) return;
+    final uid = _currentUid;
+    if (service == null || uid == null) return;
     final queued = await service.queueWorkProfileDirectory();
     if (!queued.wasQueued ||
         settings.backupSyncMode != ExpenseBackupSyncMode.immediate) {
@@ -782,7 +783,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
     }
     try {
       await _workspaceBootstrapper.ensurePersonalWorkspace(
-        authenticatedUid: user.uid,
+        authenticatedUid: uid,
       );
     } catch (_) {
       return;
@@ -792,8 +793,8 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   Future<void> _queueAndSyncReminders(List<String> reminderIds) async {
     final service = _serviceForCurrentUser();
-    final user = _firebaseAuth.currentUser;
-    if (service == null || user == null) return;
+    final uid = _currentUid;
+    if (service == null || uid == null) return;
     for (final reminderId in reminderIds) {
       final queued = await service.queueReminder(reminderId);
       if (!queued.wasQueued ||
@@ -802,7 +803,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
       }
       try {
         await _workspaceBootstrapper.ensurePersonalWorkspace(
-          authenticatedUid: user.uid,
+          authenticatedUid: uid,
         );
       } catch (_) {
         return;
@@ -813,7 +814,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
 
   ExpenseCloudBackupService? _serviceForCurrentUser() {
     if (!_isBackupEnabled) return null;
-    final uid = _firebaseAuth.currentUser?.uid.trim() ?? '';
+    final uid = _currentUid ?? '';
     if (uid.isEmpty) return null;
     return ExpenseCloudBackupService(
       ledger: ledger,
@@ -829,6 +830,11 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
       authenticatedUid: uid,
       deviceId: deviceId,
     );
+  }
+
+  String? get _currentUid {
+    final uid = _identityProvider.currentUid?.trim() ?? '';
+    return uid.isEmpty ? null : uid;
   }
 
   bool get _isBackupEnabled {

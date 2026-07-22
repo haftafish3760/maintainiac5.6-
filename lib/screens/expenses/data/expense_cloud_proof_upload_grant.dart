@@ -1,4 +1,4 @@
-import 'package:cloud_functions/cloud_functions.dart';
+import '../../../shared/firebase/maintainiac_callable_functions.dart';
 
 class ExpenseCloudProofUploadGrant {
   const ExpenseCloudProofUploadGrant({
@@ -26,10 +26,11 @@ abstract interface class ExpenseCloudProofUploadGrantIssuer {
 
 class FirebaseExpenseCloudProofUploadGrantIssuer
     implements ExpenseCloudProofUploadGrantIssuer {
-  FirebaseExpenseCloudProofUploadGrantIssuer({FirebaseFunctions? functions})
-    : _functions = functions ?? FirebaseFunctions.instance;
+  FirebaseExpenseCloudProofUploadGrantIssuer({
+    MaintainiacCallableFunctionClient? client,
+  }) : _client = client ?? FirebaseMaintainiacCallableFunctionClient();
 
-  final FirebaseFunctions _functions;
+  final MaintainiacCallableFunctionClient _client;
 
   @override
   Future<ExpenseCloudProofUploadGrant> issue({
@@ -37,14 +38,14 @@ class FirebaseExpenseCloudProofUploadGrantIssuer
     required String proofId,
     required int requestedBytes,
   }) async {
-    final result = await _functions
-        .httpsCallable('issueExpenseProofUploadGrant')
-        .call<Map<String, dynamic>>({
-          'organizationId': organizationId,
-          'proofId': proofId,
-          'requestedBytes': requestedBytes,
-        });
-    final data = result.data;
+    final data = await _client.call(
+      name: 'issueExpenseProofUploadGrant',
+      data: {
+        'organizationId': organizationId,
+        'proofId': proofId,
+        'requestedBytes': requestedBytes,
+      },
+    );
     final id = '${data['grantId'] ?? ''}'.trim();
     final maximumBytes = data['maxBytes'] is int ? data['maxBytes'] as int : 0;
     final expiresAt = DateTime.tryParse('${data['expiresAt'] ?? ''}')?.toUtc();

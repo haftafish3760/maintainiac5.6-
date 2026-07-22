@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
-import 'package:firebase_storage/firebase_storage.dart';
+
+import '../../../shared/firebase/maintainiac_cloud_object_store.dart';
 
 /// Immutable, tenant-scoped reference to a receipt proof stored in Firebase
 /// Storage. It deliberately contains no device path or OCR text.
@@ -61,10 +62,10 @@ abstract interface class ExpenseCloudProofObjectStore {
 
 class FirebaseExpenseCloudProofObjectStore
     implements ExpenseCloudProofObjectStore {
-  FirebaseExpenseCloudProofObjectStore({FirebaseStorage? storage})
-    : _storage = storage ?? FirebaseStorage.instance;
+  FirebaseExpenseCloudProofObjectStore({MaintainiacCloudObjectStore? store})
+    : _store = store ?? FirebaseMaintainiacCloudObjectStore();
 
-  final FirebaseStorage _storage;
+  final MaintainiacCloudObjectStore _store;
 
   @override
   Future<void> upload({
@@ -73,12 +74,12 @@ class FirebaseExpenseCloudProofObjectStore
     required String contentType,
     required Map<String, String> metadata,
   }) async {
-    await _storage
-        .ref(path)
-        .putData(
-          bytes,
-          SettableMetadata(contentType: contentType, customMetadata: metadata),
-        );
+    await _store.upload(
+      path: path,
+      bytes: bytes,
+      contentType: contentType,
+      metadata: metadata,
+    );
   }
 
   @override
@@ -86,9 +87,7 @@ class FirebaseExpenseCloudProofObjectStore
     required String path,
     required int maxBytes,
   }) async {
-    final bytes = await _storage.ref(path).getData(maxBytes);
-    if (bytes == null) throw StateError('Cloud proof is unavailable.');
-    return bytes;
+    return _store.download(path: path, maxBytes: maxBytes);
   }
 }
 

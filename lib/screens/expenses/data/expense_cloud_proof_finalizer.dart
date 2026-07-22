@@ -1,5 +1,5 @@
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:maintaniac/screens/expenses/data/expense_cloud_proof_storage.dart';
+import 'package:maintaniac/shared/firebase/maintainiac_callable_functions.dart';
 
 /// Server boundary that irrevocably closes a short-lived proof upload grant.
 abstract interface class ExpenseCloudProofFinalizer {
@@ -7,23 +7,24 @@ abstract interface class ExpenseCloudProofFinalizer {
 }
 
 class FirebaseExpenseCloudProofFinalizer implements ExpenseCloudProofFinalizer {
-  FirebaseExpenseCloudProofFinalizer({FirebaseFunctions? functions})
-    : _functions = functions ?? FirebaseFunctions.instance;
+  FirebaseExpenseCloudProofFinalizer({
+    MaintainiacCallableFunctionClient? client,
+  }) : _client = client ?? FirebaseMaintainiacCallableFunctionClient();
 
-  final FirebaseFunctions _functions;
+  final MaintainiacCallableFunctionClient _client;
 
   @override
   Future<void> finalize(ExpenseCloudProofReference reference) async {
-    final result = await _functions
-        .httpsCallable('finalizeExpenseProofUpload')
-        .call<Map<String, dynamic>>({
-          'organizationId': reference.organizationId,
-          'receiptId': reference.receiptId,
-          'proofId': reference.proofId,
-          'grantId': reference.uploadGrantId,
-          'contentSha256': reference.contentHashSha256,
-        });
-    final data = result.data;
+    final data = await _client.call(
+      name: 'finalizeExpenseProofUpload',
+      data: {
+        'organizationId': reference.organizationId,
+        'receiptId': reference.receiptId,
+        'proofId': reference.proofId,
+        'grantId': reference.uploadGrantId,
+        'contentSha256': reference.contentHashSha256,
+      },
+    );
     if (data['status'] != 'finalized' ||
         data['byteCount'] != reference.byteCount ||
         data['contentSha256'] != reference.contentHashSha256) {
