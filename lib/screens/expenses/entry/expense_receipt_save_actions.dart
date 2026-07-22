@@ -91,6 +91,12 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       );
       break;
     }
+    final stagedRecoveryAttachments = receipt.attachments
+        .where(
+          (attachment) =>
+              attachment.storageState == ReceiptAttachmentStorageState.staged,
+        )
+        .toList(growable: false);
     final promotedAttachments = await _persistReceiptProofs(receipt);
     if (promotedAttachments == null) return;
     if (!mounted) return;
@@ -107,6 +113,9 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     });
     if (!await _saveDraftNow()) return;
     final draftCheckpointUpdatedAt = _drafts?.draftById(_draftId)?.updatedAt;
+    await ReceiptProofStorage.instance.deleteStagedAttachments(
+      stagedRecoveryAttachments,
+    );
     final saved = await _saveReceiptToLedger(ledger, receipt);
     if (saved == null) return;
     if (!mounted) return;
@@ -231,6 +240,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
               ),
             )
             .toList(growable: false),
+        retainStagedSources: true,
       );
     } on ReceiptProofStorageException catch (error) {
       if (!mounted) return null;

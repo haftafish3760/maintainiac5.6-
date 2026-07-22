@@ -22,16 +22,26 @@ class ReceiptProofStorage {
   static const instance = ReceiptProofStorage._();
 
   Future<List<ReceiptAttachmentRecord>> persistAttachments(
-    List<ReceiptAttachmentRecord> attachments,
-  ) => _enqueue(() => _persistAttachments(attachments));
+    List<ReceiptAttachmentRecord> attachments, {
+    bool retainStagedSources = false,
+  }) => _enqueue(
+    () => _persistAttachments(
+      attachments,
+      retainStagedSources: retainStagedSources,
+    ),
+  );
 
   Future<List<ReceiptAttachmentRecord>> _persistAttachments(
-    List<ReceiptAttachmentRecord> attachments,
-  ) async {
+    List<ReceiptAttachmentRecord> attachments, {
+    required bool retainStagedSources,
+  }) async {
     final saved = <ReceiptAttachmentRecord>[];
     try {
       for (final attachment in attachments) {
-        final persisted = await _persistAttachment(attachment);
+        final persisted = await _persistAttachment(
+          attachment,
+          retainStagedSource: retainStagedSources,
+        );
         saved.add(persisted);
       }
     } catch (_) {
@@ -42,12 +52,17 @@ class ReceiptProofStorage {
   }
 
   Future<ReceiptAttachmentRecord> persistAttachment(
-    ReceiptAttachmentRecord attachment,
-  ) => _enqueue(() => _persistAttachment(attachment));
+    ReceiptAttachmentRecord attachment, {
+    bool retainStagedSource = false,
+  }) => _enqueue(
+    () =>
+        _persistAttachment(attachment, retainStagedSource: retainStagedSource),
+  );
 
   Future<ReceiptAttachmentRecord> _persistAttachment(
-    ReceiptAttachmentRecord attachment,
-  ) async {
+    ReceiptAttachmentRecord attachment, {
+    bool retainStagedSource = false,
+  }) async {
     if (attachment.path.trim().isEmpty || attachment.isImportedText) {
       return attachment;
     }
@@ -61,7 +76,10 @@ class ReceiptProofStorage {
 
     final proofRoot = await _proofRoot();
     if (attachment.storageState == ReceiptAttachmentStorageState.staged) {
-      return _promoteStagedAttachment(attachment);
+      return _promoteStagedAttachment(
+        attachment,
+        retainStagedSource: retainStagedSource,
+      );
     }
     if (path.isWithin(proofRoot.path, source.path)) {
       final currentHash = await _safeHash(source);
@@ -214,12 +232,19 @@ class ReceiptProofStorage {
   }
 
   Future<ReceiptAttachmentRecord> promoteStagedAttachment(
-    ReceiptAttachmentRecord attachment,
-  ) => _enqueue(() => _promoteStagedAttachment(attachment));
+    ReceiptAttachmentRecord attachment, {
+    bool retainStagedSource = false,
+  }) => _enqueue(
+    () => _promoteStagedAttachment(
+      attachment,
+      retainStagedSource: retainStagedSource,
+    ),
+  );
 
   Future<ReceiptAttachmentRecord> _promoteStagedAttachment(
-    ReceiptAttachmentRecord attachment,
-  ) async {
+    ReceiptAttachmentRecord attachment, {
+    bool retainStagedSource = false,
+  }) async {
     if (attachment.storageState != ReceiptAttachmentStorageState.staged) {
       return _persistAttachment(attachment);
     }
@@ -263,7 +288,7 @@ class ReceiptProofStorage {
         ? await ReceiptPdfInspector.inspect(destination.path)
         : null;
     final stagingRoot = await _stagingRoot();
-    if (path.isWithin(stagingRoot.path, source.path)) {
+    if (!retainStagedSource && path.isWithin(stagingRoot.path, source.path)) {
       try {
         await source.delete();
       } catch (_) {}

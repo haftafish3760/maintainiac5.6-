@@ -74,6 +74,29 @@ void main() {
     expect(await File(staged.path).exists(), isFalse);
     expect(await sourcePdf.exists(), isTrue);
   });
+
+  test(
+    'promoted proof keeps staged recovery until permanent path is checkpointed',
+    () async {
+      final drafts = ExpenseDraftController.memory();
+      final staged = await _stagedPdf('checkpoint-proof', sourcePdf);
+      final promoted = (await ReceiptProofStorage.instance.persistAttachments([
+        staged,
+      ], retainStagedSources: true)).single;
+
+      expect(await File(staged.path).exists(), isTrue);
+      expect(await File(promoted.path).exists(), isTrue);
+
+      await drafts.saveDraft(_draft('DRAFT-checkpoint', promoted));
+      await ReceiptProofStorage.instance.deleteStagedAttachments([staged]);
+
+      final recovered = drafts.draftById('DRAFT-checkpoint')!;
+      expect(recovered.attachments.single.path, promoted.path);
+      expect(await File(recovered.attachments.single.path).exists(), isTrue);
+      expect(await File(staged.path).exists(), isFalse);
+      expect(await sourcePdf.exists(), isTrue);
+    },
+  );
 }
 
 Future<ReceiptAttachmentRecord> _stagedPdf(String id, File source) {
