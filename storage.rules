@@ -34,7 +34,7 @@ service firebase.storage {
       return firestore.get(uploadGrantPath(orgId, grantId)).data;
     }
 
-    function hasValidUploadGrant(orgId, uid, grantId) {
+    function hasValidUploadGrant(orgId, uid, grantId, fileName) {
       return signedIn() &&
         request.auth.uid == uid &&
         isActiveMember(orgId) &&
@@ -76,7 +76,7 @@ service firebase.storage {
     match /orgs/{orgId}/proof-uploads/{uid}/{grantId}/{fileName} {
       allow read: if isOwnerOrAdmin(orgId) ||
         hasFinalizedProofGrant(orgId, uid, grantId, fileName);
-      allow create: if hasValidUploadGrant(orgId, uid, grantId) &&
+      allow create: if hasValidUploadGrant(orgId, uid, grantId, fileName) &&
         (
           hasPermission(orgId, 'addOwnReceipts') ||
           hasPermission(orgId, 'addCompanyExpenses') ||

@@ -5,6 +5,10 @@ import { resolve } from 'node:path';
 export const emulatorProjectId = 'demo-maintainiac-rules-test';
 export const firestoreHost = '127.0.0.1';
 export const firestorePort = 8080;
+export const storageHost = '127.0.0.1';
+export const storagePort = 9199;
+export const authHost = '127.0.0.1';
+export const authPort = 9099;
 
 export function assertEmulatorOnly() {
   const firebaseRc = JSON.parse(
@@ -33,8 +37,13 @@ export function assertEmulatorOnly() {
     'FIRESTORE_EMULATOR_HOST must point at the local Firestore emulator.',
   );
   assert.equal(
-    process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099',
-    '127.0.0.1:9099',
-    'Auth emulator host must be local when set.',
+    process.env.FIREBASE_AUTH_EMULATOR_HOST,
+    `${authHost}:${authPort}`,
+    'FIREBASE_AUTH_EMULATOR_HOST must point at the local Auth emulator.',
+  );
+  assert.equal(
+    process.env.FIREBASE_STORAGE_EMULATOR_HOST,
+    `${storageHost}:${storagePort}`,
+    'FIREBASE_STORAGE_EMULATOR_HOST must point at the local Storage emulator.',
   );
 }
