@@ -123,6 +123,7 @@ class TripTrackingSessionRecord {
     this.startedTimeZoneName = 'UTC',
     required this.engineSnapshot,
     this.advisories = const [],
+    this.tripEvents = const [],
     this.lifecycleState = TripTrackingSessionLifecycleState.ready,
     this.healthState = TripTrackingHealthState.healthy,
     this.pauseKind,
@@ -158,6 +159,7 @@ class TripTrackingSessionRecord {
   final String startedTimeZoneName;
   final TripTrackingEngineSnapshot engineSnapshot;
   final List<TripTrackingAdvisoryEvent> advisories;
+  final List<TripManualEvent> tripEvents;
   final TripTrackingSessionLifecycleState lifecycleState;
   final TripTrackingHealthState healthState;
   final TripTrackingPauseKind? pauseKind;
@@ -197,6 +199,7 @@ class TripTrackingSessionRecord {
     DateTime? updatedAt,
     TripTrackingEngineSnapshot? engineSnapshot,
     List<TripTrackingAdvisoryEvent>? advisories,
+    List<TripManualEvent>? tripEvents,
     TripTrackingSessionLifecycleState? lifecycleState,
     TripTrackingHealthState? healthState,
     TripTrackingPauseKind? pauseKind,
@@ -241,6 +244,7 @@ class TripTrackingSessionRecord {
       startedTimeZoneName: startedTimeZoneName,
       engineSnapshot: engineSnapshot ?? this.engineSnapshot,
       advisories: advisories ?? this.advisories,
+      tripEvents: tripEvents ?? this.tripEvents,
       lifecycleState: lifecycleState ?? this.lifecycleState,
       healthState: healthState ?? this.healthState,
       pauseKind: clearPauseKind ? null : pauseKind ?? this.pauseKind,
@@ -285,6 +289,9 @@ class TripTrackingSessionRecord {
     'advisories': _boundedAdvisories(
       advisories,
     ).map((item) => item.toMap()).toList(),
+    'tripEvents': _boundedTripEvents(
+      tripEvents,
+    ).map((item) => item.toMap()).toList(growable: false),
     'lifecycleState': lifecycleState.name,
     'healthState': healthState.name,
     if (pauseKind != null) 'pauseKind': pauseKind!.name,
@@ -388,6 +395,15 @@ class TripTrackingSessionRecord {
         profile: safeProfile,
         startedAt: safeStartedAt,
       ),
+      tripEvents: _tripEventsFromMapValue(
+        map['tripEvents'],
+        sessionId: safeId,
+        vehicleId: safeVehicleId,
+        profileId: _safeIdentifier(map['profileId']).isEmpty
+            ? safeProfile.name
+            : _safeIdentifier(map['profileId']),
+        startedAt: safeStartedAt,
+      ),
       lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
         (value) => value.name == map['lifecycleState'],
         orElse: () => TripTrackingSessionLifecycleState.ready,
@@ -455,7 +471,40 @@ int _safeRecoveryCount(Object? value) {
 }
 
 const _maxPersistedAdvisories = 24;
+const _maxPersistedTripEvents = TripManualEvent.maximumPerTrip;
 const _maxPersistedTransitionAudits = 32;
+
+Iterable<TripManualEvent> _boundedTripEvents(Iterable<TripManualEvent> events) {
+  final items = events.toList(growable: false);
+  return items.takeLast(_maxPersistedTripEvents);
+}
+
+List<TripManualEvent> _tripEventsFromMapValue(
+  Object? value, {
+  required String sessionId,
+  required String vehicleId,
+  required String profileId,
+  required DateTime startedAt,
+  DateTime? finishedAt,
+}) {
+  if (value is! Iterable) return const [];
+  return value
+      .whereType<Map>()
+      .map(TripManualEvent.tryFromMap)
+      .whereType<TripManualEvent>()
+      .where(
+        (event) => event.belongsTo(
+          expectedSessionId: sessionId,
+          expectedVehicleId: vehicleId,
+          expectedProfileId: profileId,
+          tripStartedAt: startedAt,
+          tripFinishedAt: finishedAt,
+        ),
+      )
+      .toList(growable: false)
+      .takeLast(_maxPersistedTripEvents)
+      .toList(growable: false);
+}
 
 Map<String, Object?>? _samplingToMap(TripSamplingRecommendation? sampling) {
   if (sampling == null ||

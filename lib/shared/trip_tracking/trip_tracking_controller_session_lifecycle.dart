@@ -691,6 +691,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
           session.startedTimeZoneOffsetMinutes &&
       review.startedTimeZoneName == session.startedTimeZoneName &&
       _reviewAdvisoriesMatchSession(review, session) &&
+      _reviewTripEventsMatchSession(review, session) &&
       review.startingOdometer == session.startingOdometer &&
       review.startedAt == session.startedAt &&
       review.estimatedEndingOdometer >= review.startingOdometer;
@@ -707,6 +708,24 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
           saved.type != active.type ||
           saved.disposition != active.disposition ||
           saved.detectedAt != active.detectedAt) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _reviewTripEventsMatchSession(
+    TripTrackingReviewRecord review,
+    TripTrackingSessionRecord session,
+  ) {
+    if (review.tripEvents.length != session.tripEvents.length) return false;
+    for (var index = 0; index < review.tripEvents.length; index += 1) {
+      final saved = review.tripEvents[index];
+      final active = session.tripEvents[index];
+      if (saved.id != active.id ||
+          saved.type != active.type ||
+          saved.occurredAt != active.occurredAt ||
+          saved.initiatingSource != active.initiatingSource) {
         return false;
       }
     }

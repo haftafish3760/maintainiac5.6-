@@ -43,6 +43,11 @@ part 'trip_tracking_controller_odometer_review.dart';
 part 'trip_tracking_controller_review_actions.dart';
 part 'trip_tracking_controller_session_lifecycle.dart';
 
+bool _isSafeUserEventCommandId(String value) =>
+    value.isNotEmpty &&
+    value.length <= 96 &&
+    RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(value);
+
 /// Owns one active GPS-assisted trip. Platform adapters feed it samples; this
 /// controller keeps the UI, local recovery record, and live odometer aligned.
 class TripTrackingController extends ChangeNotifier {

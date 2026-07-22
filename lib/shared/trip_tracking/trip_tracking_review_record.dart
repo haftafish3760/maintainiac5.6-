@@ -18,22 +18,33 @@ enum TripManualMileageAdjustmentReason {
 enum TripManualEventType {
   pickup,
   dropoff,
+  stop,
   workStop,
   fuelStop,
   loading,
   unloading,
   customerWait,
+  jobSite,
+  breakTime,
   personalInterruption,
   note,
+  other,
 }
 
 class TripManualEvent {
+  static const maximumPerTrip = 2000;
+
   const TripManualEvent({
     required this.id,
     required this.type,
     required this.occurredAt,
     required this.userConfirmed,
     this.note,
+    this.sessionId = '',
+    this.vehicleId = '',
+    this.profileId = '',
+    this.recordedAt,
+    this.initiatingSource = '',
   });
 
   final String id;
@@ -41,17 +52,96 @@ class TripManualEvent {
   final DateTime occurredAt;
   final bool userConfirmed;
   final String? note;
+  final String sessionId;
+  final String vehicleId;
+  final String profileId;
+  final DateTime? recordedAt;
+  final String initiatingSource;
+
+  static bool allowsInitiatingSource(String source) =>
+      _isAllowedTripEventSource(source);
 
   bool get canFinalizeTrip => false;
   bool get canChangeMileage => false;
 
-  bool get isValid => _safeIdentifier(id).isNotEmpty && userConfirmed;
+  bool get hasBoundTripContext =>
+      _safeIdentifier(sessionId).isNotEmpty &&
+      _safeIdentifier(vehicleId).isNotEmpty &&
+      _safeIdentifier(profileId).isNotEmpty &&
+      recordedAt != null &&
+      _isAllowedTripEventSource(initiatingSource);
+
+  bool get isValid =>
+      _safeIdentifier(id).isNotEmpty &&
+      userConfirmed &&
+      (!hasAnyTripContext || hasBoundTripContext);
+
+  bool get hasAnyTripContext =>
+      sessionId.isNotEmpty ||
+      vehicleId.isNotEmpty ||
+      profileId.isNotEmpty ||
+      recordedAt != null ||
+      initiatingSource.isNotEmpty;
+
+  bool belongsTo({
+    required String expectedSessionId,
+    required String expectedVehicleId,
+    required String expectedProfileId,
+    required DateTime tripStartedAt,
+    DateTime? tripFinishedAt,
+  }) {
+    if (!isValid ||
+        !hasBoundTripContext ||
+        sessionId != expectedSessionId ||
+        vehicleId != expectedVehicleId ||
+        profileId != expectedProfileId ||
+        occurredAt.isBefore(tripStartedAt) ||
+        recordedAt!.isBefore(occurredAt)) {
+      return false;
+    }
+    final latest =
+        tripFinishedAt ?? tripStartedAt.add(const Duration(days: 30));
+    return !occurredAt.isAfter(latest) &&
+        !recordedAt!.isAfter(latest.add(const Duration(days: 30)));
+  }
+
+  TripManualEvent bindToReview({
+    required String sessionId,
+    required String vehicleId,
+    required String profileId,
+    required DateTime recordedAt,
+  }) {
+    if (hasAnyTripContext) return this;
+    final safeRecordedAt = recordedAt.toUtc().isBefore(occurredAt.toUtc())
+        ? occurredAt.toUtc()
+        : recordedAt.toUtc();
+    return TripManualEvent(
+      id: id,
+      type: type,
+      occurredAt: occurredAt.toUtc(),
+      userConfirmed: userConfirmed,
+      note: note,
+      sessionId: sessionId,
+      vehicleId: vehicleId,
+      profileId: profileId,
+      recordedAt: safeRecordedAt,
+      initiatingSource: 'recovery_review',
+    );
+  }
 
   Map<String, Object?> toMap() => {
     'id': _safeIdentifier(id),
     'type': type.name,
     'occurredAt': occurredAt.toUtc().toIso8601String(),
     'userConfirmed': userConfirmed,
+    if (hasBoundTripContext) 'sessionId': _safeIdentifier(sessionId),
+    if (hasBoundTripContext) 'vehicleId': _safeIdentifier(vehicleId),
+    if (hasBoundTripContext) 'profileId': _safeIdentifier(profileId),
+    if (hasBoundTripContext)
+      'recordedAt': recordedAt!.toUtc().toIso8601String(),
+    if (hasBoundTripContext) 'initiatingSource': initiatingSource,
+    'gpsInferred': false,
+    'remoteCreated': false,
     if (_optionalSafeCloudSyncError(note, maxLength: 240) != null)
       'note': _optionalSafeCloudSyncError(note, maxLength: 240),
     'canFinalizeTrip': false,
@@ -63,16 +153,39 @@ class TripManualEvent {
       (value) => value.name == map['type'],
     );
     final occurredAt = DateTime.tryParse('${map['occurredAt'] ?? ''}')?.toUtc();
+    final recordedAt = DateTime.tryParse('${map['recordedAt'] ?? ''}')?.toUtc();
+    final hasUserAuthority =
+        map['userConfirmed'] == true &&
+        map['gpsInferred'] != true &&
+        map['remoteCreated'] != true;
     if (types.isEmpty || occurredAt == null) return null;
     final result = TripManualEvent(
       id: _safeIdentifier(map['id']),
       type: types.first,
       occurredAt: occurredAt,
-      userConfirmed: map['userConfirmed'] == true,
+      userConfirmed: hasUserAuthority,
       note: _optionalSafeCloudSyncError(map['note'], maxLength: 240),
+      sessionId: _safeIdentifier(map['sessionId']),
+      vehicleId: _safeIdentifier(map['vehicleId']),
+      profileId: _safeIdentifier(map['profileId']),
+      recordedAt: recordedAt,
+      initiatingSource: _safeTripEventSource(map['initiatingSource']),
     );
     return result.isValid ? result : null;
   }
+}
+
+bool _isAllowedTripEventSource(String source) => switch (source) {
+  'dashboard' ||
+  'trip_screen' ||
+  'voice_assistant' ||
+  'recovery_review' => true,
+  _ => false,
+};
+
+String _safeTripEventSource(Object? value) {
+  if (value is! String || !_isAllowedTripEventSource(value)) return '';
+  return value;
 }
 
 class TripManualMileageAdjustment {

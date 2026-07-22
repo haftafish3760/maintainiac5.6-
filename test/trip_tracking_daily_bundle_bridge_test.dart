@@ -25,6 +25,9 @@ void main() {
     expect(bundle.payload['singleDocumentPerLocalDay'], isTrue);
     expect(bundle.payload['rawGpsIncluded'], isFalse);
     expect(bundle.payload['coordinatesIncluded'], isFalse);
+    final trips = bundle.payload['trips'] as List;
+    expect((trips.first as Map)['userEvents'], hasLength(1));
+    expect(bundle.payload['eventCount'], 2);
   });
 
   test('cross-midnight trip remains assigned to its start day', () async {
@@ -94,4 +97,17 @@ TripTrackingReviewRecord review(
     totalAcceptedMeters: miles * 1609.344,
     walkingReviewSuggested: false,
   ),
+  tripEvents: [
+    TripManualEvent(
+      id: '$id:user:pickup_1',
+      type: TripManualEventType.pickup,
+      occurredAt: startedAt.add(const Duration(minutes: 20)),
+      userConfirmed: true,
+      sessionId: id,
+      vehicleId: 'vehicle_1',
+      profileId: 'profile_1',
+      recordedAt: startedAt.add(const Duration(minutes: 20)),
+      initiatingSource: 'trip_screen',
+    ),
+  ],
 );

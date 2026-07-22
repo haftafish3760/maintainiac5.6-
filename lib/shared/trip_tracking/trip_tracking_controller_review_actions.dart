@@ -39,7 +39,17 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     if (endingOdometerDraft != null && endingOdometerDraft < 0) return false;
     final adjustments = manualAdjustments ?? review.manualAdjustments;
     if (adjustments.any((item) => !item.isValid)) return false;
-    final events = tripEvents ?? review.tripEvents;
+    final reviewRecordedAt = _clockNow().toUtc();
+    final events = (tripEvents ?? review.tripEvents)
+        .map(
+          (event) => event.bindToReview(
+            sessionId: review.id,
+            vehicleId: review.vehicleId,
+            profileId: review.effectiveProfileId,
+            recordedAt: reviewRecordedAt,
+          ),
+        )
+        .toList(growable: false);
     if (events.any(
       (item) =>
           !item.isValid ||
@@ -132,6 +142,108 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
 
   /// Backward-compatible walking stop review hook used by existing UI/tests.
   Future<void> acknowledgeWalkingReview() => acknowledgeLatestStopReview();
+
+  /// Records an explicit driver event while a trip is active. GPS and remote
+  /// systems cannot create these events, and [commandId] makes UI or voice
+  /// retries idempotent across controller rebuilds.
+  Future<bool> recordUserTripEvent({
+    required String commandId,
+    required TripManualEventType type,
+    required String initiatingSource,
+    DateTime? occurredAt,
+    String? note,
+  }) => _runExclusiveSessionOperation(
+    false,
+    () => _recordUserTripEvent(
+      commandId: commandId,
+      type: type,
+      initiatingSource: initiatingSource,
+      occurredAt: occurredAt,
+      note: note,
+    ),
+    busyStatus: 'session_operation_in_progress',
+    busyError:
+        'A trip record is already being updated. Please wait for it to finish.',
+  );
+
+  Future<bool> _recordUserTripEvent({
+    required String commandId,
+    required TripManualEventType type,
+    required String initiatingSource,
+    DateTime? occurredAt,
+    String? note,
+  }) async {
+    final session = _session;
+    if (session == null ||
+        !_canRecordUserTripEvent(session.lifecycleState) ||
+        !_isSafeUserEventCommandId(commandId) ||
+        !TripManualEvent.allowsInitiatingSource(initiatingSource)) {
+      return false;
+    }
+    final eventId = 'user:$commandId';
+    for (final existing in session.tripEvents) {
+      if (existing.id != eventId) continue;
+      return existing.type == type &&
+          existing.initiatingSource == initiatingSource;
+    }
+    if (session.tripEvents.length >= TripManualEvent.maximumPerTrip) {
+      _platformStatus = 'trip_event_limit_reached';
+      _platformError =
+          'This trip has reached the safe event limit. Existing events remain preserved.';
+      notifyListeners();
+      return false;
+    }
+    final recordedAt = _clockNow().toUtc();
+    final eventTime = (occurredAt ?? recordedAt).toUtc();
+    if (eventTime.isBefore(session.startedAt.toUtc()) ||
+        eventTime.isAfter(recordedAt.add(_policy.maximumFutureSampleSkew))) {
+      return false;
+    }
+    final event = TripManualEvent(
+      id: eventId,
+      type: type,
+      occurredAt: eventTime,
+      userConfirmed: true,
+      note: note,
+      sessionId: session.id,
+      vehicleId: session.vehicleId,
+      profileId: session.effectiveProfileId,
+      recordedAt: recordedAt.isBefore(eventTime) ? eventTime : recordedAt,
+      initiatingSource: initiatingSource,
+    );
+    final next = session.copyWith(
+      updatedAt: recordedAt.isBefore(eventTime) ? eventTime : recordedAt,
+      revision: session.revision + 1,
+      tripEvents: [...session.tripEvents, event],
+    );
+    try {
+      await _sessionStore.save(next);
+      _session = next;
+    } catch (_) {
+      _platformStatus = 'trip_event_save_failed';
+      _platformError =
+          'Could not save this trip event locally. Retry before leaving the screen.';
+      notifyListeners();
+      return false;
+    }
+    _platformStatus = null;
+    _platformError = null;
+    notifyListeners();
+    return true;
+  }
+
+  bool _canRecordUserTripEvent(TripTrackingSessionLifecycleState state) =>
+      switch (state) {
+        TripTrackingSessionLifecycleState.ready ||
+        TripTrackingSessionLifecycleState.starting ||
+        TripTrackingSessionLifecycleState.active ||
+        TripTrackingSessionLifecycleState.paused ||
+        TripTrackingSessionLifecycleState.degraded ||
+        TripTrackingSessionLifecycleState.interrupted ||
+        TripTrackingSessionLifecycleState.recovering ||
+        TripTrackingSessionLifecycleState.failedRecoverable => true,
+        _ => false,
+      };
 
   Future<bool> retryTripLogProposal(
     String tripId,
@@ -352,6 +464,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       finishedTimeZoneName: finishedContext.timeZoneName,
       engineSnapshot: engine.snapshot,
       advisories: session.advisories,
+      tripEvents: session.tripEvents,
       transitionAudits: session.transitionAudits,
       batteryStateSummary: session.batteryStateSummary,
       permissionHistory: session.permissionHistory,

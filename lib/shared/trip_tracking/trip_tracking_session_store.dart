@@ -265,7 +265,8 @@ class TripTrackingSessionStore {
         session.updatedAt.isBefore(session.startedAt) ||
         session.vehicleConfigurationRevision < 0 ||
         !_isValidTimeZoneOffset(session.startedTimeZoneOffsetMinutes) ||
-        !_isSafeTimeZoneName(session.startedTimeZoneName)) {
+        !_isSafeTimeZoneName(session.startedTimeZoneName) ||
+        !_sessionTripEventsAreValid(session)) {
       throw ArgumentError.value(
         session.id,
         'session',
@@ -302,6 +303,7 @@ class TripTrackingSessionStore {
               updatedAt: session.updatedAt,
               engineSnapshot: session.engineSnapshot,
               advisories: session.advisories,
+              tripEvents: session.tripEvents,
               lifecycleState: session.lifecycleState,
               healthState: session.healthState,
               backgroundTrackingAllowed: session.backgroundTrackingAllowed,
@@ -423,6 +425,7 @@ class TripTrackingSessionStore {
             !_isValidTimeZoneOffset(review.finishedTimeZoneOffsetMinutes) ||
             !_isSafeTimeZoneName(review.finishedTimeZoneName) ||
             !_reviewAdvisoriesAreValid(review) ||
+            !_reviewTripEventsAreValid(review) ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
@@ -520,3 +523,41 @@ bool _reviewAdvisoriesAreValid(TripTrackingReviewRecord review) =>
           !event.detectedAt.isBefore(review.startedAt) &&
           !event.detectedAt.isAfter(review.finishedAt),
     );
+
+bool _reviewTripEventsAreValid(TripTrackingReviewRecord review) =>
+    review.tripEvents.length <= TripManualEvent.maximumPerTrip &&
+    _hasUniqueTripEventIds(review.tripEvents) &&
+    review.tripEvents.every(
+      (event) =>
+          event.isValid &&
+          !event.occurredAt.isBefore(review.startedAt) &&
+          !event.occurredAt.isAfter(review.finishedAt) &&
+          (!event.hasAnyTripContext ||
+              event.belongsTo(
+                expectedSessionId: review.id,
+                expectedVehicleId: review.vehicleId,
+                expectedProfileId: review.effectiveProfileId,
+                tripStartedAt: review.startedAt,
+                tripFinishedAt: review.finishedAt,
+              )),
+    );
+
+bool _sessionTripEventsAreValid(TripTrackingSessionRecord session) =>
+    session.tripEvents.length <= TripManualEvent.maximumPerTrip &&
+    _hasUniqueTripEventIds(session.tripEvents) &&
+    session.tripEvents.every(
+      (event) => event.belongsTo(
+        expectedSessionId: session.id,
+        expectedVehicleId: session.vehicleId,
+        expectedProfileId: session.effectiveProfileId,
+        tripStartedAt: session.startedAt,
+      ),
+    );
+
+bool _hasUniqueTripEventIds(Iterable<TripManualEvent> events) {
+  final ids = <String>{};
+  for (final event in events) {
+    if (!ids.add(event.id)) return false;
+  }
+  return true;
+}

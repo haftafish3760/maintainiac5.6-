@@ -58,6 +58,9 @@ class TripTrackingSessionRecoveryValidation {
     if (_hasForeignAdvisory(session)) {
       reasons.add('foreign_advisory_in_session');
     }
+    if (_hasForeignTripEvent(session)) {
+      reasons.add('foreign_trip_event_in_session');
+    }
     if (_hasSensitiveAdvisoryText(session.advisories)) {
       reasons.add('sensitive_advisory_text');
     }
@@ -118,6 +121,9 @@ class TripTrackingSessionRecoveryValidation {
     }
     if (_containsSensitiveText(review.cloudSyncError)) {
       reasons.add('sensitive_sync_error');
+    }
+    if (_hasForeignReviewTripEvent(review)) {
+      reasons.add('foreign_trip_event_in_review');
     }
     return TripTrackingSessionRecoveryValidation._(
       status: reasons.isEmpty
@@ -198,6 +204,42 @@ bool _hasSensitiveAdvisoryText(
       _containsSensitiveText(event.suggestedAction) ||
       _containsSensitiveText(event.tripLogReference),
 );
+
+bool _hasForeignTripEvent(TripTrackingSessionRecord session) =>
+    _hasDuplicateTripEventId(session.tripEvents) ||
+    session.tripEvents.any(
+      (event) => !event.belongsTo(
+        expectedSessionId: session.id,
+        expectedVehicleId: session.vehicleId,
+        expectedProfileId: session.effectiveProfileId,
+        tripStartedAt: session.startedAt,
+      ),
+    );
+
+bool _hasForeignReviewTripEvent(TripTrackingReviewRecord review) =>
+    _hasDuplicateTripEventId(review.tripEvents) ||
+    review.tripEvents.any(
+      (event) =>
+          !event.isValid ||
+          event.occurredAt.isBefore(review.startedAt) ||
+          event.occurredAt.isAfter(review.finishedAt) ||
+          (event.hasAnyTripContext &&
+              !event.belongsTo(
+                expectedSessionId: review.id,
+                expectedVehicleId: review.vehicleId,
+                expectedProfileId: review.effectiveProfileId,
+                tripStartedAt: review.startedAt,
+                tripFinishedAt: review.finishedAt,
+              )),
+    );
+
+bool _hasDuplicateTripEventId(Iterable<TripManualEvent> events) {
+  final ids = <String>{};
+  for (final event in events) {
+    if (!ids.add(event.id)) return true;
+  }
+  return false;
+}
 
 bool _supportedSessionSchema(int value) => value == 1;
 
