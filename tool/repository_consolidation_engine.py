@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import difflib
+import gzip
 import hashlib
 import json
 import os
@@ -296,14 +297,14 @@ def scan_source(index: Index, target: Path, source: Path, apply: bool, report_ro
     slug, scope = source_slug(source), f"source:{source_slug(source)}"
     index.reset_scope(scope)
     report_root.mkdir(parents=True, exist_ok=True)
-    decision_log = report_root / f"{slug}.decisions.jsonl"
-    patch_path = report_root / f"{slug}.patch"
+    decision_log = report_root / f"{slug}.decisions.jsonl.gz"
+    patch_path = report_root / f"{slug}.patch.gz"
     counts: Counter[str] = Counter()
     features: Counter[str] = Counter()
     manual_preview: list[dict[str, object]] = []
     manual_total = 0
     source_guard_before = {"git": git_status(source), "tree": tree_guard(source)}
-    with decision_log.open("w", encoding="utf-8") as decisions_out, patch_path.open("w", encoding="utf-8") as patch_out:
+    with gzip.open(decision_log, "wt", encoding="utf-8") as decisions_out, gzip.open(patch_path, "wt", encoding="utf-8") as patch_out:
         for number, path in enumerate(walk_files(source), 1):
             facts = facts_for(source, path)
             target_matches = index.paths_for_hash(facts.sha256, "target")
@@ -344,7 +345,7 @@ def scan_source(index: Index, target: Path, source: Path, apply: bool, report_ro
             counts[action] += 1
             if action.startswith("manual"):
                 manual_total += 1
-                if len(manual_preview) < 500:
+                if len(manual_preview) < 100:
                     manual_preview.append(decision_value)
             if number % 500 == 0:
                 index.db.commit()
@@ -379,7 +380,7 @@ def write_markdown(path: Path, report: dict[str, object]) -> None:
     lines.extend(f"- {name}: {value}" for name, value in features.items())
     lines.extend(["", "## Manual review", ""])
     manual = report["manual_preview"]
-    lines.extend(f"- `{item['path']}` — {item['reason']}" for item in manual[:500])
+    lines.extend(f"- `{item['path']}` — {item['reason']}" for item in manual[:100])
     if report["manual_total"] > len(manual):
         lines.append(f"- Remaining manual items: {report['manual_total'] - len(manual)} (see JSONL)")
     path.write_text("\n".join(lines) + "\n")

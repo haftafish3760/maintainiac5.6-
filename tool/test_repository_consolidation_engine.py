@@ -1,6 +1,7 @@
 import tempfile
 import unittest
 import json
+import gzip
 from pathlib import Path
 
 import repository_consolidation_engine as engine
@@ -21,7 +22,8 @@ class ConsolidationEngineTest(unittest.TestCase):
             index = engine.Index(root / "index.sqlite3")
             index.index_root("target", target)
             report = engine.scan_source(index, target, source, True, root / "reports")
-            decisions = [json.loads(line) for line in (root / "reports" / report["decision_log"]).read_text().splitlines()]
+            with gzip.open(root / "reports" / report["decision_log"], "rt") as handle:
+                decisions = [json.loads(line) for line in handle]
             actions = {item["path"]: item["action"] for item in decisions}
             self.assertEqual("skip_duplicate", actions["lib/renamed.dart"])
             self.assertEqual("add", actions["lib/unique.dart"])
@@ -41,7 +43,8 @@ class ConsolidationEngineTest(unittest.TestCase):
             index = engine.Index(root / "index.sqlite3")
             index.index_root("target", target)
             report = engine.scan_source(index, target, source, True, root / "reports")
-            decisions = [json.loads(line) for line in (root / "reports" / report["decision_log"]).read_text().splitlines()]
+            with gzip.open(root / "reports" / report["decision_log"], "rt") as handle:
+                decisions = [json.loads(line) for line in handle]
             actions = {item["path"]: item["action"] for item in decisions}
             self.assertEqual("skip_generated", actions["build/output.bin"])
             self.assertEqual("manual_secret", actions["android/app/google-services.json"])
