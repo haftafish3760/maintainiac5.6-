@@ -30,6 +30,8 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal val lifecycleRegistry = LifecycleRegistry(this)
     internal val cameraAnalysisExecutor: ExecutorService =
         Executors.newSingleThreadExecutor()
+    internal val receiptPhotoQualityExecutor: ExecutorService =
+        Executors.newSingleThreadExecutor()
     internal var systemBackCallback: OnBackInvokedCallback? = null
     internal lateinit var cameraRootView: FrameLayout
     internal lateinit var previewView: PreviewView
@@ -317,6 +319,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
         unregisterSystemBackHandler()
         runCatching { cameraProvider?.unbindAll() }
         cameraAnalysisExecutor.shutdownNow()
+        receiptPhotoQualityExecutor.shutdownNow()
         cameraProvider = null
         camera = null
         imageCapture = null
