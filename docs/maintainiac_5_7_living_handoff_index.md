@@ -1,6 +1,8 @@
 # Maintainiac 5.7 Living Handoff Index
 
 This index routes future Codex workers to current system-specific decisions.
+Do not begin with a broad source-code scan. Open this index, then only the
+handoff for the assigned system and its listed start-here evidence.
 
 ## Standing Handoff Rule
 
@@ -16,15 +18,32 @@ not implemented during the current work:
 
 ## Current System Handoffs
 
-- Expenses, OCR, receipt camera, long receipts, receipt drafts, and duplicate
-  review: `docs/expense_ocr_camera_living_handoff.md`
-- PDF Document Engine: `docs/pdf_document_engine_handoff_from_codex_2026_07_06.md`
-- Inventory/Work Supplies trade packs:
-  `docs/inventory_trade_pack_handoff_spec.md`
-- Inventory parser QA: `docs/reusable_parsing_qa_handoff_index.md`
-- Long-receipt cross-platform stitching:
-  `docs/long_receipt_stitching_cross_platform_handoff_2026_07_15.md`
+| System | Current evidence state | Living handoff |
+| --- | --- | --- |
+| App shell, Dashboard, vehicles | Present; reconciliation required | `docs/system_handoffs/app_shell_dashboard_vehicles.md` |
+| Expenses | Verified subset; reconciliation required | `docs/system_handoffs/expenses.md` |
+| Receipt capture, OCR, long receipts | Verified subset; reconciliation required | `docs/system_handoffs/receipt_capture_ocr_long_receipt.md` |
+| Fuel and vehicle energy | Present; reconciliation required | `docs/system_handoffs/fuel_energy.md` |
+| Work Supplies / Materials / Inventory | Present; reconciliation required | `docs/system_handoffs/work_supplies_materials_inventory.md` |
+| Jobs and Estimates | Present; unverified | `docs/system_handoffs/jobs_estimates.md` |
+| Invoices and Payments | Present; unverified | `docs/system_handoffs/invoices_payments.md` |
+| PDF Document Engine | Present; reconciliation required | `docs/system_handoffs/pdf_document_engine.md` |
+| GPS Trip Tracking, Trip Log, Odometer | Verified subset; reconciliation required | `docs/system_handoffs/trip_tracking_odometer.md` |
+| Maintenance | Present; unverified | `docs/system_handoffs/maintenance.md` |
+| Calendars | Present; unverified | `docs/system_handoffs/calendars.md` |
+| Maps and Mapbox | Present; unverified | `docs/system_handoffs/maps_mapbox.md` |
+| Profiles, Employees, Permissions | Present; unverified | `docs/system_handoffs/profiles_employees_permissions.md` |
+| Local Storage, Backup, Export | Verified subset; reconciliation required | `docs/system_handoffs/local_storage_backup_export.md` |
+| Firebase, Firestore, Storage, Cloud Sync | Verified subset; reconciliation required | `docs/system_handoffs/firebase_cloud_sync.md` |
+| Device Capabilities, Settings, Policy | Verified subset; reconciliation required | `docs/system_handoffs/device_capabilities_settings.md` |
+| Localization and units | Present; unverified | `docs/system_handoffs/localization_units.md` |
+| Administration and security | Documented; partially present | `docs/system_handoffs/admin_security.md` |
+| Monetization and AI assistant | Documented; unverified | `docs/system_handoffs/monetization_ai_assistant.md` |
+| Customer portal, marketplace, website | Documented; unverified | `docs/system_handoffs/customer_portal_website.md` |
 
-Create a dedicated living handoff when a newly deferred requirement belongs to
-a system not represented above. Do not bury unrelated requirements in the
-Expenses handoff.
+The status is deliberately conservative. `PRESENT` means code evidence exists;
+it does not mean the system passed complete QA. Update the owning handoff after
+every implementation, decision, comparison, test, build, or newly found gap.
+
+Historical specialist documents remain supporting evidence and are linked from
+their current system handoff. They do not replace the living handoff.

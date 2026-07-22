@@ -12,6 +12,7 @@ maintenance, employees, and related business records.
 - Expense Codex B handoff: `docs/expense_codex_b_handoff.md`
 - Maintainiac 5.7 living handoff index:
   `docs/maintainiac_5_7_living_handoff_index.md`
+- Per-system living handoffs: `docs/system_handoffs/`
 - Current Expenses/OCR/Camera living handoff:
   `docs/expense_ocr_camera_living_handoff.md`
 - Expense receipt storage, draft, proof, and duplicate contract:

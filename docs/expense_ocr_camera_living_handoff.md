@@ -1,5 +1,11 @@
 # Expenses, OCR, And Receipt Camera Living Handoff
 
+> Routing note: this combined document is retained as historical consolidation
+> evidence. Current rolling records are split between
+> `docs/system_handoffs/expenses.md` and
+> `docs/system_handoffs/receipt_capture_ocr_long_receipt.md`. Update the owning
+> system document first; do not add unrelated systems here.
+
 This is the living handoff for the next Codex worker assigned to Maintainiac's
 Expenses, receipt OCR, receipt camera, long-receipt, or related review lane.
 Update it whenever a product decision, implementation checkpoint, validation
@@ -81,6 +87,8 @@ The product owner stated that it is not being implemented during consolidation.
 - `63e2d49c`: integrated parser-missing OCR candidates into editable review
   without overwriting parser/user values; analyzer clean and 25 focused tests
   passed.
+- `361a85e0`: reconciled Basic, Detailed Items, and Quick Classify receipt
+  amount fields; analyzer clean and 12 focused tests passed.
 
 ## Consolidation And Validation Boundary
 
@@ -99,3 +107,5 @@ final project-wide tests remain required before final consolidation completion.
 - 2026-07-22: Created after the product owner deferred configurable draft
   retention and visual duplicate review.
 - 2026-07-22: Recorded verified checkpoints through `63e2d49c`.
+- 2026-07-22: Split current routing into dedicated Expenses and Receipt System
+  handoffs and recorded checkpoint `361a85e0`.
