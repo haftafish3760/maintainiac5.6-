@@ -200,6 +200,7 @@ _ReceiptFixtureReport _scoreFixture(_ReceiptQaFixture fixture) {
       parsed.diagnostics.reconciled != fixture.expectReconciled) {
     issues.add('production_parser_reconciliation_mismatch');
   }
+  _addBarcodeScannerIssues(fixture: fixture, issues: issues);
   _addPrivacyAdminIssues(fixture: fixture, parsed: parsed, issues: issues);
 
   final checks = _buildReceiptQaChecks(

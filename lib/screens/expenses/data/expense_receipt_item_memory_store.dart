@@ -256,10 +256,7 @@ String _expenseUseNameForReceiptLine(ReceiptLineDraft line) {
 WorkSupplyItem? _catalogItemById(String? itemId) {
   final normalizedId = itemId?.trim();
   if (normalizedId == null || normalizedId.isEmpty) return null;
-  for (final item in workSupplyCatalogItems) {
-    if (item.id == normalizedId) return item;
-  }
-  return null;
+  return workSupplyCatalogItemById(normalizedId);
 }
 
 String normalizeExpenseMemoryKey(String value) {

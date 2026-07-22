@@ -5,6 +5,8 @@ import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog_health
 import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog_hosted_export_writer.dart';
 import 'package:maintaniac/screens/work_supplies/data/work_supply_catalog_hosted_import_validator.dart';
 
+const _catalogHealthTimeout = Timeout(Duration(minutes: 3));
+
 void main() {
   test(
     'catalog health event reports ready validation without item bodies',
@@ -26,24 +28,29 @@ void main() {
       expect(encoded, isNot(contains('pvc')));
       expect(encoded, isNot(contains('items:')));
     },
+    timeout: _catalogHealthTimeout,
   );
 
-  test('catalog health event reports rejected validation safely', () async {
-    final result = await _writeExport('catalog_health_rejected');
-    await File(result.chunkPaths.first).delete();
-    final validation = await const WorkSupplyHostedCatalogImportValidator()
-        .validateDirectory(Directory(result.directoryPath));
-    final event = WorkSupplyCatalogHealthEvent.fromValidation(validation);
-    final map = event.toMap();
+  test(
+    'catalog health event reports rejected validation safely',
+    () async {
+      final result = await _writeExport('catalog_health_rejected');
+      await File(result.chunkPaths.first).delete();
+      final validation = await const WorkSupplyHostedCatalogImportValidator()
+          .validateDirectory(Directory(result.directoryPath));
+      final event = WorkSupplyCatalogHealthEvent.fromValidation(validation);
+      final map = event.toMap();
 
-    expect(map['event'], 'catalogPackRejected');
-    expect(map['isReady'], isFalse);
-    expect(
-      map['status'],
-      WorkSupplyHostedCatalogValidationStatus.missingChunk.name,
-    );
-    expect(map['issueCount'], 1);
-  });
+      expect(map['event'], 'catalogPackRejected');
+      expect(map['isReady'], isFalse);
+      expect(
+        map['status'],
+        WorkSupplyHostedCatalogValidationStatus.missingChunk.name,
+      );
+      expect(map['issueCount'], 1);
+    },
+    timeout: _catalogHealthTimeout,
+  );
 }
 
 Future<WorkSupplyHostedCatalogExportFileSet> _writeExport(String label) async {

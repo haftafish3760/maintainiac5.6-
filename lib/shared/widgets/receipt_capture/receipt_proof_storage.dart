@@ -51,6 +51,13 @@ class ReceiptProofStorage {
     return saved;
   }
 
+  /// Removes only app-owned copies created by a failed persistence operation.
+  /// Imported originals and pre-existing proof paths are never touched.
+  Future<void> rollbackPersistedAttachments(
+    List<ReceiptAttachmentRecord> saved,
+    List<ReceiptAttachmentRecord> original,
+  ) => _enqueue(() => _rollbackPersistedBatch(saved, original));
+
   Future<ReceiptAttachmentRecord> persistAttachment(
     ReceiptAttachmentRecord attachment, {
     bool retainStagedSource = false,

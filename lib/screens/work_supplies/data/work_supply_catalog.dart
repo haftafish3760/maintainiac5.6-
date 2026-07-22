@@ -201,6 +201,8 @@ final workSupplyTrades = _hydrateTrades(<WorkSupplyTrade>[
   toolsSafetyCatalog,
 ]);
 
+final Map<String, WorkSupplyItem> _workSupplyCatalogItemsById = {};
+
 final workSupplyCatalogItems = _dedupeWorkSupplyCatalogItems([
   for (final trade in workSupplyTrades)
     for (final category in trade.categories)
@@ -217,8 +219,15 @@ List<WorkSupplyItem> _dedupeWorkSupplyCatalogItems(List<WorkSupplyItem> items) {
       byKey[key] = item;
     }
   }
-  return byKey.values.toList();
+  final deduped = byKey.values.toList();
+  _workSupplyCatalogItemsById
+    ..clear()
+    ..addEntries(deduped.map((item) => MapEntry(item.id, item)));
+  return deduped;
 }
+
+WorkSupplyItem? workSupplyCatalogItemById(String id) =>
+    _workSupplyCatalogItemsById[id.trim()];
 
 WorkSupplyTrade _trade(
   String name,

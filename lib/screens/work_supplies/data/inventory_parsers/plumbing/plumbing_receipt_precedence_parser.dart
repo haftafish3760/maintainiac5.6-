@@ -36,6 +36,25 @@ WorkSupplyItem? _directPlumbingReceiptPrecedenceMatch(
     return null;
   }
 
+  if (RegExp(r'\bstem\s+packing\b').hasMatch(text)) {
+    final match = findPlumbing(const [
+      'stem',
+      'packing',
+    ], (name) => name.contains('stem packing'));
+    if (match != null) return match;
+  }
+
+  if (RegExp(r'\bbackwater\s+valve\b').hasMatch(text)) {
+    final size = _nominalReceiptSize(text);
+    final match = findPlumbing(
+      const ['backwater', 'valve'],
+      (name) =>
+          name.contains('backwater valve') &&
+          (size == null || _nameMatchesReceiptSize(name, size)),
+    );
+    if (match != null) return match;
+  }
+
   final wantsPvcCement =
       RegExp(r'\bpvc\b').hasMatch(text) &&
       RegExp(r'\b(cement|glue|solvent\s+cement)\b').hasMatch(text) &&

@@ -78,6 +78,11 @@ void main() {
           'expectedLineCategories',
           'expectedLineFamilies',
           'expectedLineUses',
+          'expectedBarcodeCodeCount',
+          'expectedQrCodeCount',
+          'expectedInventoryLookupCandidateCount',
+          'expectedBarcodeFormatBuckets',
+          'expectedBarcodeWarningBuckets',
         ]),
       );
       final packSources = manifest['packSources']! as Map<String, Object?>;
@@ -120,6 +125,7 @@ void main() {
           'business_personal',
           'privacy_admin',
           'device_storage',
+          'barcode_qr_scanning',
           'capture_quality',
           'parser_readiness',
         ]),
@@ -247,6 +253,11 @@ void main() {
           'photo_quality_warning_text_matched',
           'photo_quality_guidance_text_matched',
           'photo_quality_warning_present',
+          'barcode_code_count_matched',
+          'qr_code_count_matched',
+          'inventory_lookup_candidate_count_matched',
+          'barcode_format_buckets_matched',
+          'barcode_warning_buckets_matched',
           'sensitive_line_count_matched',
           'tender_privacy_line_count_matched',
           'address_contact_line_count_matched',
@@ -276,6 +287,21 @@ void main() {
             reason:
                 'Contractor supply fixtures must protect numbered detailed '
                 'receipt lines for inventory and job proof workflows.',
+          );
+        }
+        if (fixture['name'] == 'home center material quantities and packs') {
+          expect(
+            fixtureCheckNames,
+            containsAll([
+              'barcode_code_count_matched',
+              'qr_code_count_matched',
+              'inventory_lookup_candidate_count_matched',
+              'barcode_format_buckets_matched',
+              'barcode_warning_buckets_matched',
+            ]),
+            reason:
+                'The synthetic scanner fixture must prove privacy-safe barcode '
+                'and QR summaries without requiring them on every receipt.',
           );
         }
         expect(

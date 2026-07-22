@@ -15,3 +15,7 @@ Every system handoff must keep its screen inventory, current implementation,
 verification evidence, deferred decisions, remaining reconciliation, and the
 smallest useful start-here file list current. Never use conversation history as
 the only record.
+
+Cross-system test-runner or audit repairs must be recorded in every system
+whose ownership boundary or verification evidence changed. A global QA note
+never replaces the affected system handoffs.

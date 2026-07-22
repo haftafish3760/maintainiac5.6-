@@ -71,6 +71,18 @@
         "imageArtifacts": {
           "$ref": "#/$defs/imageArtifacts"
         },
+        "photoQuality": {
+          "$ref": "#/$defs/photoQuality"
+        },
+        "barcodeCodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/barcodeCode"
+          }
+        },
+        "barcodeWarnings": {
+          "$ref": "#/$defs/stringList"
+        },
         "text": {
           "type": "string",
           "minLength": 1
@@ -160,6 +172,118 @@
         },
         "lineUses": {
           "$ref": "#/$defs/stringList"
+        },
+        "photoPrimaryIssueLabel": {
+          "type": "string"
+        },
+        "photoReviewActionCode": {
+          "type": "string"
+        },
+        "photoShouldRetakeBeforeOcr": {
+          "type": "boolean"
+        },
+        "photoCanContinueWithReview": {
+          "type": "boolean"
+        },
+        "photoNeedsReview": {
+          "type": "boolean"
+        },
+        "photoLightLabel": {
+          "type": "string"
+        },
+        "photoFocusLabel": {
+          "type": "string"
+        },
+        "photoWarningNeedles": {
+          "$ref": "#/$defs/stringList"
+        },
+        "photoGuidanceNeedles": {
+          "$ref": "#/$defs/stringList"
+        },
+        "barcodeCodeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "qrCodeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "inventoryLookupCandidateCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "barcodeFormatBuckets": {
+          "$ref": "#/$defs/countMap"
+        },
+        "barcodeWarningBuckets": {
+          "$ref": "#/$defs/stringList"
+        }
+      }
+    },
+    "photoQuality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height",
+        "focusScore",
+        "brightness",
+        "contrast",
+        "cropScore",
+        "textBandScore",
+        "isLikelyReadable"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "focusScore": {
+          "type": "number"
+        },
+        "brightness": {
+          "type": "number"
+        },
+        "contrast": {
+          "type": "number"
+        },
+        "cropScore": {
+          "type": "number"
+        },
+        "textBandScore": {
+          "type": "number"
+        },
+        "isLikelyReadable": {
+          "type": "boolean"
+        }
+      }
+    },
+    "barcodeCode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "valueType",
+        "rawValue"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "minLength": 1
+        },
+        "valueType": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rawValue": {
+          "type": "string"
+        },
+        "displayValue": {
+          "type": "string"
         }
       }
     },
@@ -167,6 +291,13 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    },
+    "countMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 0
       }
     }
   }

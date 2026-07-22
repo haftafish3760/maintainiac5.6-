@@ -232,17 +232,30 @@ WorkSupplyItem? _directMasonryConcreteAnchorReceiptMatch(
   }
 
   final size = _nominalReceiptSize(text);
+  final dimensions = _receiptSizeMatrix(text);
+  final wantsBlue = RegExp(r'\bblue\b').hasMatch(text);
   for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(const [
     'concrete',
     'screw',
-    'anchor',
   ])) {
     if (item.trade != 'Masonry and Concrete') continue;
-    if (size == null ||
-        _nameMatchesReceiptSize(item.name.toLowerCase(), size) ||
-        _nameMatchesReceiptSize(item.variant.toLowerCase(), size)) {
-      return item;
+    final itemText = _normalize('${item.name} ${item.variant}');
+    if (wantsBlue && !itemText.contains('blue concrete screw')) continue;
+    final itemWithoutInches = itemText
+        .replaceAll(' in ', ' ')
+        .replaceAll(RegExp(r'\bin\b'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (dimensions != null && !itemWithoutInches.contains(dimensions)) {
+      continue;
     }
+    if (dimensions == null &&
+        size != null &&
+        !_nameMatchesReceiptSize(item.name.toLowerCase(), size) &&
+        !_nameMatchesReceiptSize(item.variant.toLowerCase(), size)) {
+      continue;
+    }
+    return item;
   }
   return null;
 }

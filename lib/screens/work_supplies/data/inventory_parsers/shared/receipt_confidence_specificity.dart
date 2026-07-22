@@ -109,6 +109,7 @@ double _plumbingCoreReceiptEvidenceScore(
     RegExp(r'\btank lever\b'): ['tank lever'],
     RegExp(r'\baerator\b'): ['aerator'],
     RegExp(r'\b(o ring|o-ring|oring)\b'): ['o ring', 'o-ring', 'oring'],
+    RegExp(r'\bstem\s+packing\b'): ['stem packing'],
     RegExp(r'\bdisposal drain elb'): ['disposal drain elbow'],
     RegExp(r'\bcontinuous waste\b|\bcont waste\b'): ['continuous waste'],
     RegExp(r'\bdisposal install kit\b'): ['disposal install kit'],

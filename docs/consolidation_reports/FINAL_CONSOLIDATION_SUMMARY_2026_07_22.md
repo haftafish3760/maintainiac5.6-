@@ -19,7 +19,7 @@
 | `Maintainiac_5.6_ReceiptCamera` | Added the native-camera preference mapper and its focused test, then merged 82 compatible camera files. Full changed-file analysis and the 87-test batch passed. |
 | `Maintainiac_5.6_Receipt_OCR` | The rejected bulk trial was reopened. All 33 source-only commits were evaluated semantically. OCR evidence, recovery, editable candidates, review totals, explicit split ownership, and the durable Jobs/context capability were integrated; newer 5.7 owners were retained; automatic OCR-owned Fuel/Inventory routing was rejected. Jobs use one shared durable owner with non-destructive legacy migration. |
 | `Maintainiac_5.6_Trip_Tracking` | The rejected bulk trial was reopened. All 24 July 20 source-only commits were semantically merged or superseded, while the July 21 head was already an ancestor of 5.7. Source/build/targeted gates passed; field-route, replay, battery, lifecycle, and commercial-accuracy proof remain pending. |
-| PDF chat export | Added six compatible PDF utilities, three QA fixture/helper artifacts, three documents, and four tools. Eight focused decoder/formatter tests passed. Older typography and invoice code were rejected. |
+| PDF branches and exports | Added the compatible utility/QA/document batch, then reopened all 101 commits unique to `origin/codex/pdf-system-resume-20260708`. Integrated the target-absent verified ZIP export/import package, invoice export preflight, canonical Document Engine facade, source-module registry, and privacy-safe health diagnostics. Restored compatible version, appended-revision, encryption, and filename-spoofing safeguards into the newer 5.7 model. The newer July 9 removal of the parallel permanent PDF archive and the newer unified report/receipt renderer remain authoritative. Focused analysis and 99 tests passed. |
 | PDF two-folder export | Root-aware scan proved its compatible absent files duplicate the prior PDF export batch; no additional code was added. |
 | `Comand 1` | Content inspection proved it is the separate `command_one` admin product. Its code was excluded from the customer app and remains in its own GitHub repository. |
 
@@ -30,12 +30,29 @@
 - Target-absent files were accepted only after compatibility checks.
 - Existing target files were never blindly overwritten. Uncertain same-path or semantic conflicts remain in compressed decision logs and reports.
 - Work Supplies/Materials signals were scanned in every source; folder names were not used as feature boundaries.
+- The final production duplicate scan found zero exact duplicate files and no
+  increase over the untouched 5.6 baseline's 220 repeated-block groups. One
+  updated paired Android/iOS camera-settings fingerprint replaces an older
+  paired baseline fingerprint. Imported duplicate PDF gate/verifier blocks
+  were consolidated; see `DUPLICATE_CODE_AUDIT_2026_07_22.md`.
+
+## Git-history closure
+
+All remote refs not already ancestors of 5.7 were collapsed to nine maximal
+distinct tips. Every tip now has a semantic integration, already-present,
+superseded, or intentionally excluded outcome recorded in
+`GIT_HISTORY_RECONCILIATION_2026_07_22.md`. The refs remain unmerged ancestors
+by design because source histories were not merged wholesale.
 
 ## Validation boundary
 
 - Repository-engine unit tests passed.
 - Accepted source batches received formatter/static checks and focused tests as recorded in their individual reports.
-- Final full-project `flutter analyze` passed with no issues after reconciling the Receipt Camera top-bar/crop contracts.
+- Final full-project `flutter analyze` passed with no issues after the PDF,
+  receipt-barcode QA, storage-boundary, and Receipt Camera reconciliations.
+- `flutter build apk --debug` produced the Android debug APK, and
+  `flutter build ios --debug --no-codesign` produced the iOS device
+  `Runner.app`. Neither build was installed on a physical device.
 - This was consolidation validation, not exhaustive feature QA or real-device validation.
 
 ## Evidence locations

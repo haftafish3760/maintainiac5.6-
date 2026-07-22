@@ -5296,7 +5296,8 @@ bool _isUnscopedDangerousShortLine(String text, String? tradeScope) {
   if (RegExp(r'\bwire\s+connector\b').hasMatch(text) &&
       !RegExp(
         r'\b(lever|push[\s-]?in|butt|closed\s+end|inline|splice|'
-        r'waterproof|grounding|twister|electrical|electric|elec)\b',
+        r'waterproof|grounding|twister|electrical|electric|elec|'
+        r'landscape\s+lighting)\b',
       ).hasMatch(text)) {
     return true;
   }

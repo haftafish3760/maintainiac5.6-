@@ -32,6 +32,29 @@ WorkSupplyItem? _directHvacReceiptPrecedenceMatch(
     return fallback;
   }
 
+  final wantsWifiThermostat =
+      RegExp(r'\bwi[ -]?fi\b').hasMatch(text) &&
+      RegExp(r'\b(thermostat|tstat)\b').hasMatch(text);
+  if (wantsWifiThermostat) {
+    final match = findHvac(
+      (name) => name.contains('wifi thermostat'),
+      requiredNameParts: const ['wifi', 'thermostat'],
+    );
+    if (match != null) return match;
+  }
+
+  final wantsHeatPumpDefrostBoard =
+      RegExp(r'\bheat\s+pump\b').hasMatch(text) &&
+      RegExp(r'\bdefrost\b').hasMatch(text) &&
+      RegExp(r'\b(board|control)\b').hasMatch(text);
+  if (wantsHeatPumpDefrostBoard) {
+    final match = findHvac(
+      (name) => name.contains('heat pump defrost board'),
+      requiredNameParts: const ['heat', 'pump', 'defrost', 'board'],
+    );
+    if (match != null) return match;
+  }
+
   final wantsTimeDelayRelay =
       RegExp(r'\btime\s+delay\b').hasMatch(text) &&
       RegExp(r'\brelay\b').hasMatch(text);
@@ -160,16 +183,19 @@ WorkSupplyItem? _directHvacReceiptPrecedenceMatch(
   }
 
   final wantsPleatedFilter =
-      RegExp(r'\b(furnace|return|air|ac)\b').hasMatch(text) &&
+      RegExp(r'\b(furnace|return|air|ac|pleated)\b').hasMatch(text) &&
       RegExp(r'\bfilter\b').hasMatch(text) &&
       !wantsMediaCabinetFilter &&
       !RegExp(
         r'\b(filter\s*rack|return\s*(?:filter\s*)?grille)\b',
       ).hasMatch(text);
   if (wantsPleatedFilter) {
+    final merv = RegExp(r'\bmerv\s*(8|11|13|16)\b').firstMatch(text)?.group(1);
     final match = findHvac(
       (name) =>
-          name.contains('pleated air filter') &&
+          (name.contains('pleated air filter') ||
+              name.contains('pleated filter')) &&
+          (merv == null || name.contains('merv $merv')) &&
           (matrix == null || name.contains(matrix)),
     );
     if (match != null) return match;

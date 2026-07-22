@@ -85,6 +85,10 @@ bool _isBareElectricalPvcConduitShorthandLine(
 
 bool _isAmbiguousPlumbingCoreLine(String text, WorkSupplyItem item) {
   if (item.trade != 'Plumbing') return false;
+  if (RegExp(r'\bstem\s+packing\b').hasMatch(text) &&
+      _indexedReceiptTextFor(item).contains('stem packing')) {
+    return false;
+  }
   if (RegExp(
     r'\b(disposal\s+(drain\s+)?elbow|marvel\s+adapter|desanco\s+adapter)\b',
   ).hasMatch(text)) {

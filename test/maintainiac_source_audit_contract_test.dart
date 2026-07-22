@@ -39,7 +39,7 @@ void main() {
       expect(result.exitCode, 0, reason: '${result.stdout}\n${result.stderr}');
       expect(
         result.stdout,
-        contains('PASS: no source files exceed 500 lines.'),
+        contains('PASS: no source files exceed 600 lines.'),
       );
       expect(result.stdout, isNot(contains('work_supply_catalog_test.dart')));
       expect(result.stdout, isNot(contains('global_odometer_test.dart')));

@@ -61,6 +61,16 @@ long-receipt support exist. This is suggestion-only intelligence.
   for explicit create/choose/clear actions; draft saving preserves the selected
   historical job snapshot. No OCR-owned routing or parallel Expense Jobs store
   was added.
+- `VERIFIED SUBSET`: the receipt source audit now excludes Trip Tracking native
+  files and Work Supplies tests from receipt-owned limits, while retaining the
+  receipt camera runners and receipt tests. Receipt-test files use a documented
+  600-line default and the long-receipt stitch contract remains enforced.
+- `VERIFIED SUBSET`: the source-discovered barcode/QR QA lane now records only
+  privacy-safe counts, format buckets, warning buckets, and inventory-lookup
+  candidate counts. Sensitive QR payload types and oversized values are never
+  emitted as lookup candidates. Static analysis and two focused summary tests
+  passed. The all-fixture parser runner was intentionally not used as a
+  consolidation gate because it traverses the broad Work Supplies catalog.
 
 ## Rolling Log
 
@@ -77,3 +87,9 @@ long-receipt support exist. This is suggestion-only intelligence.
   owner, and passed analyzer, focused, Swift-parse, and Android compile gates.
 - 2026-07-22: Completed the source-discovered receipt-to-job chooser through the
   single shared Jobs owner; 9 focused Jobs/context tests passed.
+- 2026-07-22: Corrected receipt QA ownership boundaries so unrelated systems no
+  longer create false receipt-camera failures; audit and stitch-contract tests
+  passed.
+- 2026-07-22: Restored the unique barcode/QR QA dimension from the older camera
+  history, extracted its privacy-safe summary into a bounded pure-Dart helper,
+  and passed focused analysis/tests without running the full catalog workload.

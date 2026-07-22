@@ -23,11 +23,11 @@ not implemented during the current work:
 | App shell, Dashboard, vehicles | Present; reconciliation required | `docs/system_handoffs/app_shell_dashboard_vehicles.md` |
 | Expenses | Verified subset; reconciliation required | `docs/system_handoffs/expenses.md` |
 | Receipt capture, OCR, long receipts | Consolidated; device and final QA pending | `docs/system_handoffs/receipt_capture_ocr_long_receipt.md` |
-| Fuel and vehicle energy | Present; reconciliation required | `docs/system_handoffs/fuel_energy.md` |
-| Work Supplies / Materials / Inventory | Present; reconciliation required | `docs/system_handoffs/work_supplies_materials_inventory.md` |
+| Fuel and vehicle energy | Verified subset; reconciliation required | `docs/system_handoffs/fuel_energy.md` |
+| Work Supplies / Materials / Inventory | Verified subset; reconciliation required | `docs/system_handoffs/work_supplies_materials_inventory.md` |
 | Jobs and Estimates | Shared durable Jobs owner implemented; Estimates pending | `docs/system_handoffs/jobs_estimates.md` |
 | Invoices and Payments | Present; unverified | `docs/system_handoffs/invoices_payments.md` |
-| PDF Document Engine | Present; reconciliation required | `docs/system_handoffs/pdf_document_engine.md` |
+| PDF Document Engine | Source reconciliation and mobile compile gates complete | `docs/system_handoffs/pdf_document_engine.md` |
 | GPS Trip Tracking, Trip Log, Odometer | Consolidated; field QA pending | `docs/system_handoffs/trip_tracking_odometer.md` |
 | Maintenance | Present; unverified | `docs/system_handoffs/maintenance.md` |
 | Calendars | Present; unverified | `docs/system_handoffs/calendars.md` |

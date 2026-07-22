@@ -177,6 +177,10 @@ void main() {
       find.descendant(of: gpsRow, matching: find.byType(Switch)),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Check your tire setup'), findsOneWidget);
+    await tester.tap(find.text('Not now'));
+    await tester.pumpAndSettle();
+    expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
     await tester.ensureVisible(
       find.text('Use motion activity for walking review'),
     );

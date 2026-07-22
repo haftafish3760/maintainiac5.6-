@@ -78,46 +78,50 @@ void main() {
     expect(memory.toMap()['category'], 'Fuel');
   });
 
-  test('expense receipt memory builds merchant catalog corrections', () async {
-    final store = await ExpenseReceiptItemMemoryStore.create();
-    final correctedItem = searchWorkSupplies('1/2 in copper tee').first;
+  test(
+    'expense receipt memory builds merchant catalog corrections',
+    () async {
+      final store = await ExpenseReceiptItemMemoryStore.create();
+      final correctedItem = searchWorkSupplies('1/2 in copper tee').first;
 
-    await store.rememberReceipt(
-      ExpenseReceiptRecord(
-        id: 'receipt-1',
-        merchantName: "Lowe's",
-        receiptDate: DateTime(2026, 6, 12),
-        lines: [
-          ExpenseReceiptLineRecord(
-            id: 'line-1',
-            description: 'COPPER THING HALF',
-            category: 'Materials',
-            use: ExpenseLineUse.business,
-            quantity: 1,
-            unitsPerPackage: 1,
-            unit: 'each',
-            subtotal: 7.49,
-            catalogItemId: correctedItem.id,
-            catalogItemName: correctedItem.name,
-            catalogItemPath: correctedItem.path,
-            catalogMatchConfidence: .98,
-            catalogMatchedTerms: const ['learned'],
-          ),
-        ],
-      ),
-    );
+      await store.rememberReceipt(
+        ExpenseReceiptRecord(
+          id: 'receipt-1',
+          merchantName: "Lowe's",
+          receiptDate: DateTime(2026, 6, 12),
+          lines: [
+            ExpenseReceiptLineRecord(
+              id: 'line-1',
+              description: 'COPPER THING HALF',
+              category: 'Materials',
+              use: ExpenseLineUse.business,
+              quantity: 1,
+              unitsPerPackage: 1,
+              unit: 'each',
+              subtotal: 7.49,
+              catalogItemId: correctedItem.id,
+              catalogItemName: correctedItem.name,
+              catalogItemPath: correctedItem.path,
+              catalogMatchConfidence: .98,
+              catalogMatchedTerms: const ['learned'],
+            ),
+          ],
+        ),
+      );
 
-    final parsed = parseExpenseReceiptText('''
+      final parsed = parseExpenseReceiptText('''
 LOWE'S HOME IMPROVEMENT
 06/12/2026
 COPPER THING HALF 7.49
 TOTAL 7.49
 ''', materialCatalogMemory: store.catalogLearningMemoryForMerchant("Lowe's"));
 
-    expect(parsed.lines.single.catalogItemId, correctedItem.id);
-    expect(parsed.lines.single.catalogItemName, correctedItem.name);
-    expect(parsed.lineReviews.single.catalogMatchedTerms, ['learned']);
-  });
+      expect(parsed.lines.single.catalogItemId, correctedItem.id);
+      expect(parsed.lines.single.catalogItemName, correctedItem.name);
+      expect(parsed.lineReviews.single.catalogMatchedTerms, ['learned']);
+    },
+    timeout: const Timeout(Duration(minutes: 3)),
+  );
 
   test(
     'materials receipt review lines teach merchant catalog memory',

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -555,7 +556,24 @@ class TripTrackingFirebaseMirror implements TripTrackingBackupPort {
         );
 
   Future<void> _saveReviewState(TripTrackingReviewRecord review) async {
-    await _localStore?.saveReview(review);
+    final store = _localStore;
+    if (store == null) return;
+    final current = store.reviewForTrip(review.id);
+    if (current == null) {
+      await store.saveReview(review);
+      return;
+    }
+    if (review.revision < current.revision) {
+      throw StateError(
+        'A stale trip review cannot overwrite newer local evidence.',
+      );
+    }
+    final unchanged = jsonEncode(review.toMap()) == jsonEncode(current.toMap());
+    await store.saveReview(
+      unchanged || review.revision > current.revision
+          ? review
+          : review.copyWith(revision: current.revision + 1),
+    );
   }
 
   @override

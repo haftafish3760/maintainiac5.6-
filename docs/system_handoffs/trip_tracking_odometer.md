@@ -33,6 +33,11 @@ settings, Dashboard summary, Mapbox assistance, and global odometer exist.
   field-route, battery, lifecycle, replay, fuzzing, or commercial accuracy proof.
 - Final targeted tests, platform builds, and explicitly authorized device proof
   remain required.
+- `VERIFIED SUBSET`: cloud review-state application now rejects lower revisions,
+  preserves genuinely newer revisions, and assigns a new local revision when a
+  same-revision cloud record legitimately changes state. The full Firebase
+  bridge suite passed 61 tests; the settings suite passed 5 tests, including
+  the required tire-setup review before motion-activity settings continue.
 
 ## Rolling Log
 
@@ -40,3 +45,5 @@ settings, Dashboard summary, Mapbox assistance, and global odometer exist.
 - 2026-07-22: Verified from Git that Trip Tracking semantic consolidation was
   completed in `e25ba5ba`; changed status from reconciliation pending to field
   QA pending.
+- 2026-07-22: Repaired same-revision cloud review transitions without allowing
+  stale evidence to overwrite newer local state; 66 focused tests passed.

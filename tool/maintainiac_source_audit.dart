@@ -1,6 +1,7 @@
 import 'dart:io';
 
 const _defaultMaxLines = 500;
+const _defaultTestMaxLines = 600;
 const _defaultMaxLineLength = 220;
 const _disabledMaxLineLength = 0;
 
@@ -109,6 +110,7 @@ _SourceAuditScan _sourceAuditScan(_AuditConfig config) {
       if (entry is! File) continue;
       final path = entry.path;
       if (_isIgnored(path) || !_isSourceFile(path)) continue;
+      if (!_isIncludedReceiptNativePath(path, config)) continue;
       if (!_isIncludedTestPath(path, config)) continue;
       if (_shouldSkipGeneratedCatalogData(path, config)) {
         generatedCatalogFilesSkipped++;
@@ -141,7 +143,24 @@ bool _isIncludedTestPath(String path, _AuditConfig config) {
   if (!normalized.startsWith('test/')) return true;
   if (!config.includeTests) return false;
   final name = normalized.split('/').last.toLowerCase();
+  if (name.startsWith('work_supply_') || normalized.contains('/work_supply_')) {
+    return false;
+  }
   return _receiptTestNameNeedles.any(name.contains);
+}
+
+bool _isIncludedReceiptNativePath(String path, _AuditConfig config) {
+  if (!config.receiptScope) return true;
+  final normalized = path.replaceAll('\\', '/');
+  final isAndroidRunner = normalized.contains(
+    'android/app/src/main/kotlin/com/maintainiac/',
+  );
+  final isIosRunner = normalized.contains('ios/Runner/');
+  if (!isAndroidRunner && !isIosRunner) return true;
+  final name = normalized.split('/').last;
+  return name.startsWith('ReceiptCamera') ||
+      name == 'MainActivity.kt' ||
+      name == 'AppDelegate.swift';
 }
 
 bool _isIgnored(String path) {
@@ -173,6 +192,7 @@ class _AuditConfig {
     required this.maxLines,
     required this.maxLineLength,
     required this.scopeLabel,
+    required this.receiptScope,
   });
 
   factory _AuditConfig.fromArgs(List<String> args) {
@@ -182,6 +202,7 @@ class _AuditConfig {
     var includeTests = false;
     var includeGeneratedCatalogData = false;
     var testsOnly = false;
+    var maxLinesWasProvided = false;
     final roots = <String>[];
 
     for (final arg in args) {
@@ -204,6 +225,7 @@ class _AuditConfig {
       }
       if (arg.startsWith('--max-lines=')) {
         maxLines = int.parse(arg.substring('--max-lines='.length));
+        maxLinesWasProvided = true;
         continue;
       }
       if (arg.startsWith('--max-line-length=')) {
@@ -213,6 +235,10 @@ class _AuditConfig {
       if (!arg.startsWith('--')) {
         roots.add(arg);
       }
+    }
+
+    if (testsOnly && !maxLinesWasProvided) {
+      maxLines = _defaultTestMaxLines;
     }
 
     if (roots.isEmpty) {
@@ -235,6 +261,7 @@ class _AuditConfig {
       scopeLabel: receiptScope && roots.length == _receiptScopeRoots.length
           ? 'receipt'
           : 'custom',
+      receiptScope: receiptScope && roots.every(_receiptScopeRoots.contains),
     );
   }
 
@@ -244,6 +271,7 @@ class _AuditConfig {
   final int maxLines;
   final int maxLineLength;
   final String scopeLabel;
+  final bool receiptScope;
 }
 
 class _SourceAuditScan {

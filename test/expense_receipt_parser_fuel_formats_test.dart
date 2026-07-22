@@ -1,18 +1,18 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
 
-part 'expense_receipt_parser_fuel_formats_core_test.dart';
-part 'expense_receipt_parser_fuel_formats_core_late_test.dart';
-part 'expense_receipt_parser_fuel_formats_alternative_test.dart';
-part 'expense_receipt_parser_fuel_formats_diesel_test.dart';
-part 'expense_receipt_parser_fuel_formats_diesel_late_test.dart';
-part 'expense_receipt_parser_fuel_formats_edge_cases_test.dart';
-part 'expense_receipt_parser_fuel_formats_metered_ev_test.dart';
-part 'expense_receipt_parser_fuel_formats_hydrogen_test.dart';
-part 'expense_receipt_parser_fuel_formats_propane_test.dart';
-part 'expense_receipt_parser_fuel_formats_methanol_test.dart';
-part 'expense_receipt_parser_fuel_formats_specialty_test.dart';
-part 'expense_receipt_parser_fuel_formats_us_spanish_test.dart';
+part 'expense_receipt_parser_fuel_formats_core.dart';
+part 'expense_receipt_parser_fuel_formats_core_late.dart';
+part 'expense_receipt_parser_fuel_formats_alternative.dart';
+part 'expense_receipt_parser_fuel_formats_diesel.dart';
+part 'expense_receipt_parser_fuel_formats_diesel_late.dart';
+part 'expense_receipt_parser_fuel_formats_edge_cases.dart';
+part 'expense_receipt_parser_fuel_formats_metered_ev.dart';
+part 'expense_receipt_parser_fuel_formats_hydrogen.dart';
+part 'expense_receipt_parser_fuel_formats_propane.dart';
+part 'expense_receipt_parser_fuel_formats_methanol.dart';
+part 'expense_receipt_parser_fuel_formats_specialty.dart';
+part 'expense_receipt_parser_fuel_formats_us_spanish.dart';
 
 void main() {
   _registerFuelFormatCoreTests();

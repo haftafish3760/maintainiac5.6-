@@ -9,9 +9,7 @@ void main() {
       'receipt_image_processor_stitch_helpers.dart',
     ).readAsStringSync();
 
-    final match = RegExp(
-      r'const comparisonWidth = (\d+);',
-    ).firstMatch(source);
+    final match = RegExp(r'const comparisonWidth = (\d+);').firstMatch(source);
 
     expect(match, isNotNull);
     final comparisonWidth = int.parse(match!.group(1)!);
@@ -184,7 +182,12 @@ void main() {
     expect(
       source,
       contains(
-        "--name 'phone-window captures|mixed exposure and side crops|clipped vertical edges|tight-overlap phone windows with alternating vertical edge clips|skipped phone-window|out-of-order phone-window|dark display borders|status and nav bars|uploaded long-receipt screenshots|eleven-section|ugly seven-section|ragged phone-window|tight-overlap phone-window'",
+        "--name 'phone-window captures|mixed exposure and side crops|"
+        'clipped vertical edges|tight-overlap phone windows with alternating '
+        'vertical edge clips|skipped phone-window|out-of-order phone-window|'
+        'dark display borders|status and nav bars|uploaded long-receipt '
+        'screenshots|eleven-section|ugly seven-section|ragged phone-window|'
+        "tight-overlap phone-window'",
       ),
     );
     expect(source, contains('--concurrency=1'));
@@ -419,7 +422,12 @@ void main() {
     expect(
       source,
       contains(
-        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|passenger_seat|transformed_phone_windows|long_stack|extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|milestone|full]',
+        r'Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|'
+        'phone_windows_fast|passenger_seat|transformed_phone_windows|long_stack|'
+        'extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|'
+        'store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|'
+        'manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|'
+        'source_size|fast|core|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

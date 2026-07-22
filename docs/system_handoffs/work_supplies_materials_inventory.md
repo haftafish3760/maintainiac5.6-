@@ -32,6 +32,11 @@ settings, and add-items flows exist.
 - `VERIFIED SUBSET`: the Jobs screen now consumes the shared durable Jobs owner
   and no longer displays `_demoJobs()`. Creating a job preserves the active work
   profile and vehicle; the Jobs/context gate passed 9 tests.
+- `VERIFIED SUBSET`: receipt precedence now preserves exact HVAC Wi-Fi
+  thermostat, heat-pump defrost-board, MERV filter, masonry concrete-screw
+  dimensions/color, landscaping detail, and plumbing stem-packing/backwater
+  valve identities. Generic ambiguous connector and plumbing lines remain
+  review-only instead of being globally relaxed.
 - `UNVERIFIED`: no fresh system-wide inventory acceptance run is recorded here.
 - `NEEDS RECONCILIATION`: inspect all source repositories by content/history,
   including unexpectedly named folders, for unique inventory/material behavior.
@@ -42,3 +47,6 @@ settings, and add-items flows exist.
   presence as release QA.
 - 2026-07-22: Replaced demo Jobs data with the single shared durable directory;
   no inventory owner or parser behavior was duplicated.
+- 2026-07-22: Corrected exact catalog-item precedence for HVAC, masonry,
+  landscaping, and plumbing receipt lines. These are focused repairs, not proof
+  that every catalog item or Core Pack row has completed release QA.

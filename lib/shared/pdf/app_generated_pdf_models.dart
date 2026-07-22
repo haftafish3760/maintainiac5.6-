@@ -101,18 +101,98 @@ class AppGeneratedPdfDocument {
 class AppGeneratedPdfFileName {
   const AppGeneratedPdfFileName._();
 
+  static const Set<String> _windowsReservedNames = {
+    'con',
+    'prn',
+    'aux',
+    'nul',
+    'com1',
+    'com2',
+    'com3',
+    'com4',
+    'com5',
+    'com6',
+    'com7',
+    'com8',
+    'com9',
+    'lpt1',
+    'lpt2',
+    'lpt3',
+    'lpt4',
+    'lpt5',
+    'lpt6',
+    'lpt7',
+    'lpt8',
+    'lpt9',
+  };
+  static const Set<String> _dangerousTrailingExtensions = {
+    'apk',
+    'bat',
+    'cmd',
+    'com',
+    'dmg',
+    'exe',
+    'ipa',
+    'jar',
+    'js',
+    'msi',
+    'pkg',
+    'ps1',
+    'scr',
+    'sh',
+    'vbs',
+  };
+
   static String clean(String fileName) {
     final cleaned = fileName
+        .replaceAll(RegExp(r'[\x00-\x1F\x7F]+'), '-')
+        .replaceAll(
+          RegExp(r'[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+'),
+          '-',
+        )
         .replaceAll(RegExp(r'[\\/:*?"<>|]+'), '-')
+        .replaceAll(RegExp(r'\.{2,}'), '-')
         .replaceAll(RegExp(r'\s+'), ' ')
-        .trim();
+        .trim()
+        .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
     final normalized = cleaned.isEmpty ? 'maintaniac-document.pdf' : cleaned;
     final withExtension = normalized.toLowerCase().endsWith('.pdf')
-        ? normalized
-        : '$normalized.pdf';
+        ? '${_safeBase(normalized.substring(0, normalized.length - 4))}.pdf'
+        : '${_safeBase(normalized)}.pdf';
     if (withExtension.length <= 120) return withExtension;
     final baseName = withExtension.substring(0, withExtension.length - 4);
-    return '${baseName.substring(0, 116)}.pdf';
+    return '${_safeBase(baseName.substring(0, 116))}.pdf';
+  }
+
+  static String _safeBase(String rawBaseName) {
+    var baseName = rawBaseName.trim().replaceAll(
+      RegExp(r'^[.\s-]+|[.\s-]+$'),
+      '',
+    );
+    baseName = _stripDangerousTrailingExtensions(baseName);
+    if (baseName.toLowerCase().endsWith('.pdf')) {
+      baseName = baseName.substring(0, baseName.length - 4).trim();
+    }
+    if (baseName.isEmpty) baseName = 'maintaniac-document';
+    if (_windowsReservedNames.contains(baseName.toLowerCase())) {
+      return 'maintaniac-$baseName';
+    }
+    return baseName;
+  }
+
+  static String _stripDangerousTrailingExtensions(String value) {
+    var cleaned = value;
+    while (true) {
+      final dotIndex = cleaned.lastIndexOf('.');
+      if (dotIndex <= 0 || dotIndex == cleaned.length - 1) return cleaned;
+      final extension = cleaned.substring(dotIndex + 1).toLowerCase();
+      if (!_dangerousTrailingExtensions.contains(extension)) return cleaned;
+      cleaned = cleaned
+          .substring(0, dotIndex)
+          .trim()
+          .replaceAll(RegExp(r'^[.\s-]+|[.\s-]+$'), '');
+      if (cleaned.isEmpty) return cleaned;
+    }
   }
 }
 
@@ -133,9 +213,20 @@ class AppGeneratedPdfValidationReport {
     }
     if (!_hasPdfHeader(bytes)) {
       issues.add('missing_pdf_header');
+    } else if (!_hasSupportedPdfVersion(bytes)) {
+      issues.add('unsupported_pdf_version');
     }
     if (!_hasPdfEndMarker(bytes)) {
       issues.add('missing_pdf_end_marker');
+    }
+    if (_hasMultiplePdfEndMarkers(bytes)) {
+      issues.add('multiple_pdf_end_markers');
+    }
+    if (AppPdfSecurityPolicy.containsPdfName(
+      latin1.decode(bytes, allowInvalid: true),
+      'encrypt',
+    )) {
+      issues.add('encrypted_pdf');
     }
     issues.addAll(AppPdfSecurityPolicy.activeContentIssueCodesForBytes(bytes));
     return AppGeneratedPdfValidationReport(
@@ -162,10 +253,29 @@ class AppGeneratedPdfValidationReport {
     if (hasIssue('missing_pdf_header') || hasIssue('missing_pdf_end_marker')) {
       return 'Maintaniac could not create that PDF because the generated file was incomplete.';
     }
+    if (hasIssue('unsupported_pdf_version')) {
+      return 'Maintaniac stopped this PDF because it used an unsupported PDF version.';
+    }
+    if (hasIssue('multiple_pdf_end_markers')) {
+      return 'Maintaniac stopped this PDF because the generated file had unexpected appended PDF revisions.';
+    }
     return 'Maintaniac stopped this PDF because it contained unsupported active PDF features.';
   }
 
   static bool _hasPdfHeader(Uint8List bytes) {
+    return _pdfHeaderOffset(bytes) != null;
+  }
+
+  static bool _hasSupportedPdfVersion(Uint8List bytes) {
+    final index = _pdfHeaderOffset(bytes);
+    if (index == null || bytes.length - index < 8) return false;
+    final major = bytes[index + 5] - 0x30;
+    final minor = bytes[index + 7] - 0x30;
+    if (major == 1) return minor >= 0 && minor <= 7;
+    return major == 2 && minor == 0;
+  }
+
+  static int? _pdfHeaderOffset(Uint8List bytes) {
     var index = 0;
     while (index < bytes.length && index < 32) {
       final value = bytes[index];
@@ -178,19 +288,32 @@ class AppGeneratedPdfValidationReport {
       }
       index += 1;
     }
-    if (bytes.length - index < 5) return false;
-    return bytes[index] == 0x25 &&
-        bytes[index + 1] == 0x50 &&
-        bytes[index + 2] == 0x44 &&
-        bytes[index + 3] == 0x46 &&
-        bytes[index + 4] == 0x2D;
+    if (bytes.length - index < 8 ||
+        bytes[index] != 0x25 ||
+        bytes[index + 1] != 0x50 ||
+        bytes[index + 2] != 0x44 ||
+        bytes[index + 3] != 0x46 ||
+        bytes[index + 4] != 0x2D ||
+        !_isAsciiDigit(bytes[index + 5]) ||
+        bytes[index + 6] != 0x2E ||
+        !_isAsciiDigit(bytes[index + 7])) {
+      return null;
+    }
+    return index;
   }
 
   static bool _hasPdfEndMarker(Uint8List bytes) {
     final start = bytes.length > 2048 ? bytes.length - 2048 : 0;
     final tail = latin1.decode(bytes.sublist(start));
-    return tail.contains('%%EOF');
+    return RegExp(r'%%EOF[\s\x00]*$').hasMatch(tail);
   }
+
+  static bool _hasMultiplePdfEndMarkers(Uint8List bytes) {
+    final text = latin1.decode(bytes, allowInvalid: true);
+    return RegExp('%%EOF').allMatches(text).length > 1;
+  }
+
+  static bool _isAsciiDigit(int value) => value >= 0x30 && value <= 0x39;
 }
 
 class AppGeneratedPdfFile {

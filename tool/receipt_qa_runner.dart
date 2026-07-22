@@ -7,6 +7,8 @@ import 'package:maintaniac/shared/receipts/receipt_text_quality_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_assistance_policy.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
+import 'receipt_qa_barcode_summary.dart';
+
 part 'receipt_qa_fixtures.dart';
 part 'receipt_qa_fixtures_adjustment_retail.dart';
 part 'receipt_qa_fixtures_contractor_supply.dart';
@@ -21,6 +23,7 @@ part 'receipt_qa_report_models.dart';
 part 'receipt_qa_scoring_matchers.dart';
 part 'receipt_qa_scoring_privacy.dart';
 part 'receipt_qa_scoring_review.dart';
+part 'receipt_qa_scoring_barcode.dart';
 part 'receipt_qa_scoring_checks.dart';
 part 'receipt_qa_scoring.dart';
 
@@ -217,6 +220,13 @@ class _ReceiptQaFixture {
     this.expectedPhotoFocusLabel,
     this.expectedPhotoWarningNeedles = const [],
     this.expectedPhotoGuidanceNeedles = const [],
+    this.barcodeCodes = const [],
+    this.barcodeWarnings = const [],
+    this.expectedBarcodeCodeCount,
+    this.expectedQrCodeCount,
+    this.expectedInventoryLookupCandidateCount,
+    this.expectedBarcodeFormatBuckets = const {},
+    this.expectedBarcodeWarningBuckets = const [],
     this.expectedSensitiveLineCount,
     this.expectedTenderPrivacyLineCount,
     this.expectedAddressContactLineCount,
@@ -294,6 +304,13 @@ class _ReceiptQaFixture {
   final String? expectedPhotoFocusLabel;
   final List<String> expectedPhotoWarningNeedles;
   final List<String> expectedPhotoGuidanceNeedles;
+  final List<ReceiptQaBarcodeCode> barcodeCodes;
+  final List<String> barcodeWarnings;
+  final int? expectedBarcodeCodeCount;
+  final int? expectedQrCodeCount;
+  final int? expectedInventoryLookupCandidateCount;
+  final Map<String, int> expectedBarcodeFormatBuckets;
+  final List<String> expectedBarcodeWarningBuckets;
   final int? expectedSensitiveLineCount;
   final int? expectedTenderPrivacyLineCount;
   final int? expectedAddressContactLineCount;

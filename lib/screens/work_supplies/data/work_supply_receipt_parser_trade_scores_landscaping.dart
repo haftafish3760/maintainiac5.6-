@@ -316,6 +316,59 @@ WorkSupplyItem? _directLandscapingDrainageReceiptMatch(
       scopedTrade != 'landscaping') {
     return null;
   }
+  if (text.contains('landscape lighting wire connector')) {
+    for (final item in _activeWorkSupplyCatalogItems) {
+      if (item.trade == 'Landscaping' &&
+          item.name.toLowerCase().contains(
+            'landscape lighting wire connector',
+          )) {
+        return item;
+      }
+    }
+  }
+  final strongDetailTokens = switch (text) {
+    final value when value.contains('landscape lighting wire connector') =>
+      const ['landscape', 'lighting', 'wire', 'connector'],
+    final value when value.contains('artificial turf roll') => const [
+      'artificial',
+      'turf',
+      'roll',
+    ],
+    final value when value.contains('landscape path light') => const [
+      'landscape',
+      'path',
+      'light',
+    ],
+    final value when value.contains('low voltage transformer') => const [
+      'low',
+      'voltage',
+      'transformer',
+    ],
+    final value when value.contains('mower spark plug') => const [
+      'mower',
+      'spark',
+      'plug',
+    ],
+    final value when value.contains('tree tie') => const [
+      'tree',
+      'tie',
+      'strap',
+      'roll',
+    ],
+    final value when RegExp(r'\b(?:2|two)\s+cycle\s+oil\b').hasMatch(value) =>
+      const ['cycle', 'oil'],
+    _ => const <String>[],
+  };
+  if (strongDetailTokens.isNotEmpty) {
+    for (final item in _activeReceiptCatalogItemsForRequiredNameTokens(
+      strongDetailTokens,
+    )) {
+      if (item.trade != 'Landscaping') continue;
+      final itemText = _normalize('${item.name} ${item.variant}');
+      if (strongDetailTokens.every(itemText.contains)) return item;
+    }
+  }
+
   if (!RegExp(r'\bez\s+drain\b').hasMatch(text)) return null;
 
   final size = _nominalReceiptSize(text);

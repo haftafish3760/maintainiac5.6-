@@ -1,4 +1,4 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive/hive.dart';
 
 import '../storage/app_storage_guard.dart';
 
@@ -351,8 +351,8 @@ class MaintainiacRecordDraftStore {
     if (value is! Map) return null;
     try {
       return MaintainiacRecordDraft.fromMap(value);
-    // A malformed checkpoint cannot be allowed to prevent recovery of every
-    // other draft in the same local store.
+      // A malformed checkpoint cannot be allowed to prevent recovery of every
+      // other draft in the same local store.
     } catch (_) {
       return null;
     }

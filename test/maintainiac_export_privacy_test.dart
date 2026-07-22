@@ -31,8 +31,8 @@ void main() {
     );
 
     expect(failures, contains('record_0 account_mismatch'));
-    expect(failures, contains('record_0 private_key:rawReceiptText'));
-    expect(failures, contains('record_0 private_key:cardNumber'));
+    expect(failures, contains('record_0 sensitive_field:rawReceiptText'));
+    expect(failures, contains('record_0 sensitive_field:cardNumber'));
   });
 
   test('export privacy probe sanitizes private fields before writing', () {

@@ -1252,6 +1252,33 @@ void main() {
     expect(engine.totalAcceptedMeters, greaterThan(0));
   });
 
+  test('a GPS gap preserves an already confirmed stop review', () {
+    final engine = TripTrackingEngine();
+    final automotive = TripActivityObservation(
+      activity: TripActivity.automotive,
+      confidence: 90,
+      recordedAt: start,
+    );
+    engine.ingest(sample(-80, 0), activity: automotive);
+    engine.ingest(sample(-79.9997, 15), activity: automotive);
+    for (final seconds in [30, 45, 60]) {
+      engine.recordActivityEvidence(
+        walking(seconds),
+        observedAt: start.add(Duration(seconds: seconds)),
+      );
+    }
+    expect(engine.ingest(sample(-79.9997, 60)).walkingReviewSuggested, isTrue);
+    final acceptedBeforeGap = engine.totalAcceptedMeters;
+
+    final gap = engine.ingest(sample(-79.99, 200));
+
+    expect(gap.disposition, TripSampleDisposition.rejectedGap);
+    expect(gap.walkingReviewSuggested, isTrue);
+    expect(engine.needsWalkingReview, isTrue);
+    expect(engine.motionState, TripMotionState.unknown);
+    expect(engine.totalAcceptedMeters, acceptedBeforeGap);
+  });
+
   test(
     'buffered walking evidence survives local recovery before the next fix',
     () {

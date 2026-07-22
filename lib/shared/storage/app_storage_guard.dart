@@ -1,4 +1,5 @@
-import 'package:disk_space_plus/disk_space_plus.dart';
+import 'app_storage_free_space_stub.dart'
+    if (dart.library.ui) 'app_storage_free_space_flutter.dart';
 
 enum AppStoragePurpose {
   appStartup,
@@ -62,7 +63,7 @@ class AppStorageGuard {
     try {
       final freeMb = freeStorageReader != null
           ? await freeStorageReader()
-          : await DiskSpacePlus().getFreeDiskSpace;
+          : await readAppFreeDiskSpaceMb();
       if (freeMb == null || freeMb <= 0) {
         return AppStorageCheck.unknown(
           operationBytes: operationBytes,

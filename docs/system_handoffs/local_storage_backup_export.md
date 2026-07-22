@@ -24,6 +24,9 @@ export surfaces exist.
 
 - `VERIFIED SUBSET`: checkpoint `16ef2f82` exercised receipt recovery and
   app-private cleanup boundaries with 38 focused tests.
+- `VERIFIED SUBSET`: export privacy regression expectations now use the current
+  `sensitive_field` vocabulary and continue to reject raw receipt text and card
+  data from export output.
 - `NEEDS RECONCILIATION`: durable records, migrations, backup/restore, export,
   storage pressure, and non-receipt systems still require source comparison and
   broader validation.
@@ -31,3 +34,5 @@ export surfaces exist.
 ## Rolling Log
 
 - 2026-07-22: Created; receipt evidence must not be generalized as full storage QA.
+- 2026-07-22: Revalidated the export privacy contract against the current
+  sanitizer vocabulary; no privacy rule was weakened.
