@@ -203,3 +203,25 @@
   is made from the sample.
 - Validation: benchmark metrics, runner, provenance, release-gate, and photo
   selection tests passed 7 tests.
+
+## Recovery, classification, and ownership reconciliation
+
+- Compared source commits `92c14ffa0`, `866441ead`, `33624ceb4`, `7e62cc1e6`,
+  `7d75e5f05`, and `ca3c29504` against current 5.7.
+- Source labels, token evidence, stalled-read recovery, draft OCR metadata,
+  warning classification, saved-photo diagnostics, PDF safety, and recovery
+  copy already exist in newer 5.7 owners.
+- The source-only `ReceiptOcrDocumentClassification` was not copied because 5.7
+  has the richer `ExpenseReceiptClassification` model and visible review panel,
+  covering fuel, materials, maintenance, repair, phone, job documents, other
+  documents, ambiguous, unsupported, and not-receipt suggestions.
+- The source's automatic `routePlan`/`dispatchPlan` behavior was deliberately
+  not copied. It could run Fuel and Inventory consumers based on OCR evidence
+  before user ownership. Current 5.7 correctly keeps OCR classification as a
+  suggestion and routes a dedicated consumer only from the user's selected
+  category or explicit inventory request.
+- No source ownership-boundary test file was copied because current handoff
+  tests directly prove that OCR infers no domain when the user selected none,
+  and that dedicated consumers receive unchanged evidence only after selection.
+- Validation: classification, explicit-route handoff, reusable QA, OCR warning/
+  source recovery, native warning, and durable draft tests passed 51 tests.

@@ -97,6 +97,10 @@ The product owner stated that it is not being implemented during consolidation.
   were reconciled to newer 5.7 owners; 33 focused tests passed. Benchmark commits
   `3137cc972` through `78d78ebb1` plus the benchmark part of `8ea7fd15f` were
   also reconciled; 7 focused tests passed, without making an accuracy claim.
+- Recovery/classification/ownership commits `92c14ffa0` through `ca3c29504`
+  were reconciled. Newer 5.7 recovery and visible suggestions remain; the older
+  automatic Fuel/Inventory multi-consumer dispatch was rejected because routing
+  requires the user's selection. The focused batch passed 51 tests.
 
 ## Consolidation And Validation Boundary
 
@@ -120,3 +124,5 @@ final project-wide tests remain required before final consolidation completion.
 - 2026-07-22: Recorded explicit split ownership reconciliation from the OCR
   source history.
 - 2026-07-22: Recorded evidence/capture handoff and benchmark-history audits.
+- 2026-07-22: Recorded recovery/classification/ownership reconciliation and the
+  explicit rejection of OCR-owned domain routing.

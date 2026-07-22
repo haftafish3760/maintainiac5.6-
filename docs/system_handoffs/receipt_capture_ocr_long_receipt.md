@@ -40,6 +40,10 @@ long-receipt support exist. This is suggestion-only intelligence.
   benchmark portion of `8ea7fd15f` were compared. Current 5.7 retains the
   privacy-safe real-evidence release gates; 7 focused tests passed. The bundled
   synthetic sample is not release evidence.
+- `VERIFIED SUBSET`: recovery/classification/ownership commits `92c14ffa0`
+  through `ca3c29504` were compared. Newer 5.7 recovery and visible suggestion
+  models were retained. The older automatic multi-consumer route was rejected
+  because OCR must not choose Fuel or Inventory ownership; 51 tests passed.
 - `DEFERRED`: user-selectable retention, 90-day default, seven-day reminder,
   advance warning, similarity evidence, proof thumbnail, and Review/Save/Keep/
   Delete workflow. This is a dedicated future subsystem, not consolidation work.
@@ -55,3 +59,5 @@ long-receipt support exist. This is suggestion-only intelligence.
   visibility differences remain a separate product-flow review.
 - 2026-07-22: Recorded evidence/capture and OCR benchmark clusters as present in
   newer 5.7 equivalents after 33-test and 7-test targeted gates.
+- 2026-07-22: Closed the remaining OCR recovery/classification cluster while
+  preserving user-selected routing and rejecting automatic domain dispatch.
