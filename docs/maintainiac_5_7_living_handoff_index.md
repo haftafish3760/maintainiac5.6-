@@ -28,7 +28,7 @@ not implemented during the current work:
 | Jobs and Estimates | Durable Jobs merge required; Estimates unverified | `docs/system_handoffs/jobs_estimates.md` |
 | Invoices and Payments | Present; unverified | `docs/system_handoffs/invoices_payments.md` |
 | PDF Document Engine | Present; reconciliation required | `docs/system_handoffs/pdf_document_engine.md` |
-| GPS Trip Tracking, Trip Log, Odometer | Verified subset; reconciliation required | `docs/system_handoffs/trip_tracking_odometer.md` |
+| GPS Trip Tracking, Trip Log, Odometer | Consolidated; field QA pending | `docs/system_handoffs/trip_tracking_odometer.md` |
 | Maintenance | Present; unverified | `docs/system_handoffs/maintenance.md` |
 | Calendars | Present; unverified | `docs/system_handoffs/calendars.md` |
 | Maps and Mapbox | Present; unverified | `docs/system_handoffs/maps_mapbox.md` |

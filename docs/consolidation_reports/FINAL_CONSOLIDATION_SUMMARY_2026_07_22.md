@@ -17,8 +17,8 @@
 | `Maintainiac_5.6_Long_Receipt` | Added the unique cross-platform long-receipt handoff document. A 62-commit batch and four isolated old tests were rejected after compatibility validation. |
 | `Maintainiac_5.6_PDF_Engine` | Source history is already an ancestor of 5.7; 3,773 exact duplicates and 133 older same-path differences recorded. |
 | `Maintainiac_5.6_ReceiptCamera` | Added the native-camera preference mapper and its focused test, then merged 82 compatible camera files. Full changed-file analysis and the 87-test batch passed. |
-| `Maintainiac_5.6_Receipt_OCR` | Eight isolated candidates and the 33-commit batch were rejected after 49 and 262 analyzer issues respectively. Unique work remains preserved on GitHub and indexed for feature-level review. |
-| `Maintainiac_5.6_Trip_Tracking` | Two isolated candidates were incompatible or semantically superseded. The 24-commit batch was rejected after 731 analyzer issues. Unique work remains preserved on GitHub and indexed for feature-level review. |
+| `Maintainiac_5.6_Receipt_OCR` | The rejected bulk trial was reopened. All 33 source-only commits were evaluated semantically. OCR evidence, recovery, editable candidates, review totals, and explicit split ownership were integrated; newer 5.7 owners were retained; automatic OCR-owned Fuel/Inventory routing was rejected. A durable Jobs/context capability remains routed to the single Jobs owner for manual merge. |
+| `Maintainiac_5.6_Trip_Tracking` | The rejected bulk trial was reopened. All 24 July 20 source-only commits were semantically merged or superseded, while the July 21 head was already an ancestor of 5.7. Source/build/targeted gates passed; field-route, replay, battery, lifecycle, and commercial-accuracy proof remain pending. |
 | PDF chat export | Added six compatible PDF utilities, three QA fixture/helper artifacts, three documents, and four tools. Eight focused decoder/formatter tests passed. Older typography and invoice code were rejected. |
 | PDF two-folder export | Root-aware scan proved its compatible absent files duplicate the prior PDF export batch; no additional code was added. |
 | `Comand 1` | Content inspection proved it is the separate `command_one` admin product. Its code was excluded from the customer app and remains in its own GitHub repository. |
@@ -44,4 +44,3 @@
 - Machine summaries: `docs/consolidation_reports/*.json`
 - Compressed decisions and candidate patches: `docs/consolidation_reports/*.jsonl.gz` and `*.patch.gz`
 - Disk-backed comparison index: `.dart_tool/repository_consolidation/index.sqlite3` (local generated evidence)
-
