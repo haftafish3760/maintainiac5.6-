@@ -21,43 +21,6 @@ class ReceiptProofStorage {
 
   static const instance = ReceiptProofStorage._();
 
-  /// True only for a completed regular file inside Maintainiac's private proof
-  /// root. External, staged, missing, and symbolic-link paths are rejected.
-  Future<bool> isManagedPermanentProofPath(String filePath) async {
-    final clean = filePath.trim();
-    if (clean.isEmpty) return false;
-    final proofRoot = await _proofRoot();
-    final stagingRoot = await _stagingRoot();
-    if (!path.isWithin(proofRoot.path, clean) ||
-        path.isWithin(stagingRoot.path, clean) ||
-        await FileSystemEntity.type(clean, followLinks: false) !=
-            FileSystemEntityType.file) {
-      return false;
-    }
-    try {
-      final resolvedProofRoot = await proofRoot.resolveSymbolicLinks();
-      final resolvedFile = await File(clean).resolveSymbolicLinks();
-      return path.isWithin(resolvedProofRoot, resolvedFile);
-    } on FileSystemException {
-      return false;
-    }
-  }
-
-  /// Explicitly removes only an already-verified app-managed permanent proof.
-  /// Receipt deletion does not call this automatically.
-  Future<bool> removeManagedPermanentProof(String filePath) =>
-      _enqueue(() => _removeManagedPermanentProof(filePath));
-
-  Future<bool> _removeManagedPermanentProof(String filePath) async {
-    if (!await isManagedPermanentProofPath(filePath)) return false;
-    try {
-      await File(filePath.trim()).delete();
-      return true;
-    } on FileSystemException {
-      return false;
-    }
-  }
-
   Future<List<ReceiptAttachmentRecord>> persistAttachments(
     List<ReceiptAttachmentRecord> attachments, {
     bool retainStagedSources = false,
