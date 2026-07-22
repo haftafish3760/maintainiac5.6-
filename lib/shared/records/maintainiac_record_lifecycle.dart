@@ -217,7 +217,18 @@ class MaintainiacRecordDraftStore {
     storageCheck: storageCheck,
   );
 
-  MaintainiacRecordDraft? draftFor(String module, String id) {
+  MaintainiacRecordDraft? draftFor(
+    String module,
+    String id, {
+    bool includeDeleted = false,
+  }) {
+    final draft = _storedDraftFor(module, id);
+    return includeDeleted || (draft?.lifecycle.isActive ?? false)
+        ? draft
+        : null;
+  }
+
+  MaintainiacRecordDraft? _storedDraftFor(String module, String id) {
     if (!_hasValidDraftKey(module, id)) return null;
     final box = _box;
     final value = box == null ? _memory['$module:$id'] : box.get('$module:$id');
@@ -231,7 +242,9 @@ class MaintainiacRecordDraftStore {
     final drafts = <MaintainiacRecordDraft>[];
     for (final value in box == null ? _memory.values : box.values) {
       final draft = _decodeStoredDraft(value);
-      if (draft != null && draft.module == module) drafts.add(draft);
+      if (draft != null && draft.module == module && draft.lifecycle.isActive) {
+        drafts.add(draft);
+      }
     }
     drafts.sort(
       (a, b) => b.lifecycle.updatedAt.compareTo(a.lifecycle.updatedAt),
@@ -248,7 +261,7 @@ class MaintainiacRecordDraftStore {
     _validateDraftKey(module, id);
     await _ensureStorageForDraftSave();
     final time = now ?? DateTime.now();
-    final existing = draftFor(module, id);
+    final existing = _storedDraftFor(module, id);
     if (existing != null && time.isBefore(existing.lifecycle.updatedAt)) {
       return existing;
     }
@@ -258,6 +271,8 @@ class MaintainiacRecordDraftStore {
             updatedAt: time,
             auditEvents: ['${time.toIso8601String()} created draft'],
           )
+        : existing.lifecycle.isDeleted
+        ? existing.lifecycle.restored(time, event: 'restored and saved draft')
         : existing.lifecycle.saved(time, event: 'saved draft');
     final draft = MaintainiacRecordDraft(
       module: module,
@@ -265,12 +280,7 @@ class MaintainiacRecordDraftStore {
       payload: Map.unmodifiable(Map<String, dynamic>.from(payload)),
       lifecycle: lifecycle,
     );
-    final box = _box;
-    if (box == null) {
-      _memory[draft.storageKey] = draft;
-    } else {
-      await box.put(draft.storageKey, draft.toMap());
-    }
+    await _putDraft(draft);
     return draft;
   });
 
@@ -306,16 +316,24 @@ class MaintainiacRecordDraftStore {
       !module.contains(':') &&
       !id.contains(':');
 
-  Future<void> remove(String module, String id) => _enqueue(() async {
-    if (!_hasValidDraftKey(module, id)) return;
-    final key = '$module:$id';
-    final box = _box;
-    if (box == null) {
-      _memory.remove(key);
-    } else {
-      await box.delete(key);
-    }
-  });
+  Future<void> remove(String module, String id, {DateTime? now}) =>
+      _enqueue(() async {
+        if (!_hasValidDraftKey(module, id)) return;
+        final existing = _storedDraftFor(module, id);
+        if (existing == null || existing.lifecycle.isDeleted) return;
+        await _ensureStorageForDraftSave();
+        await _putDraft(
+          MaintainiacRecordDraft(
+            module: existing.module,
+            id: existing.id,
+            payload: existing.payload,
+            lifecycle: existing.lifecycle.deleted(
+              now ?? DateTime.now(),
+              event: 'removed draft',
+            ),
+          ),
+        );
+      });
 
   /// Removes a checkpoint only when it is still the version acknowledged by
   /// the confirmed-record save. A delayed completion must not erase edits that
@@ -326,19 +344,35 @@ class MaintainiacRecordDraftStore {
     required DateTime expectedUpdatedAt,
   }) => _enqueue(() async {
     if (!_hasValidDraftKey(module, id)) return false;
-    final existing = draftFor(module, id);
+    final existing = _storedDraftFor(module, id);
     if (existing == null ||
+        existing.lifecycle.isDeleted ||
         !existing.lifecycle.updatedAt.isAtSameMomentAs(expectedUpdatedAt)) {
       return false;
     }
-    final box = _box;
-    if (box == null) {
-      _memory.remove(existing.storageKey);
-    } else {
-      await box.delete(existing.storageKey);
-    }
+    await _ensureStorageForDraftSave();
+    await _putDraft(
+      MaintainiacRecordDraft(
+        module: existing.module,
+        id: existing.id,
+        payload: existing.payload,
+        lifecycle: existing.lifecycle.deleted(
+          expectedUpdatedAt,
+          event: 'acknowledged confirmed record',
+        ),
+      ),
+    );
     return true;
   });
+
+  Future<void> _putDraft(MaintainiacRecordDraft draft) async {
+    final box = _box;
+    if (box == null) {
+      _memory[draft.storageKey] = draft;
+    } else {
+      await box.put(draft.storageKey, draft.toMap());
+    }
+  }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
     final next = _writeTail.then((_) => operation());

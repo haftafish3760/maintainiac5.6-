@@ -58,7 +58,10 @@ class FirebaseFirestoreDocumentSink
     required String path,
     required Map<String, Object?> data,
   }) {
-    return _firestore.doc(path).set(data, SetOptions(merge: true));
+    // Module builders emit complete backup documents. Replacing the document
+    // prevents removed fields from surviving as stale cloud state and lets
+    // Firestore rules compare exact idempotent retries safely.
+    return _firestore.doc(path).set(data, SetOptions(merge: false));
   }
 }
 

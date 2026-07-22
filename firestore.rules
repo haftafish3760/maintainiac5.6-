@@ -101,6 +101,50 @@ service cloud.firestore {
       return !hasForbiddenSensitiveFields();
     }
 
+    function noRawLocalEvidenceFields() {
+      return !request.resource.data.keys().hasAny([
+        'rawReceiptText',
+        'rawOcrText',
+        'ocrText',
+        'importedText',
+        'localPath',
+        'sourceLocalPath'
+      ]);
+    }
+
+    function hasValidDurableLifecycle() {
+      return request.resource.data.localRevision is int &&
+        request.resource.data.localRevision >= 1 &&
+        request.resource.data.recordState in ['active', 'deleted'] &&
+        (
+          (
+            request.resource.data.recordState == 'active' &&
+            request.resource.data.deletedAt == null
+          ) ||
+          (
+            request.resource.data.recordState == 'deleted' &&
+            request.resource.data.deletedAt is string
+          )
+        );
+    }
+
+    function createsDurableRecord() {
+      return hasValidDurableLifecycle() && noRawLocalEvidenceFields();
+    }
+
+    function advancesDurableRecord() {
+      return hasValidDurableLifecycle() &&
+        noRawLocalEvidenceFields() &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        (
+          request.resource.data == resource.data ||
+          (
+            resource.data.localRevision is int &&
+            request.resource.data.localRevision > resource.data.localRevision
+          )
+        );
+    }
+
     function noLocationTrackingFields() {
       return !request.resource.data.keys().hasAny([
         'latitude',
@@ -1230,20 +1274,27 @@ service cloud.firestore {
           resource.data.createdByUid == request.auth.uid;
         allow create: if hasModule(orgId, 'expenses') &&
           (
+            isOwnerOrAdmin(orgId) ||
             hasPermission(orgId, 'recordExpenses') ||
             hasPermission(orgId, 'addOwnReceipts') ||
             hasPermission(orgId, 'addCompanyExpenses')
           ) &&
-          writesOwnCreate();
+          writesOwnCreate() &&
+          request.resource.data.id == expenseId &&
+          createsDurableRecord();
         allow update: if (
+            isOwnerOrAdmin(orgId) ||
             hasPermission(orgId, 'editCompanyExpenses') ||
             (
               hasPermission(orgId, 'editOwnReceipts') &&
               resource.data.createdByUid == request.auth.uid
             )
           ) &&
-          keepsCreator();
-        allow delete: if isOwnerOrAdmin(orgId);
+          keepsCreator() &&
+          request.resource.data.id == resource.data.id &&
+          request.resource.data.orgId == resource.data.orgId &&
+          advancesDurableRecord();
+        allow delete: if false;
       }
 
       match /mileageRecords/{recordId} {
@@ -1416,7 +1467,8 @@ service cloud.firestore {
         allow read: if isOwnerOrAdmin(orgId) ||
           hasPermission(orgId, 'viewFinancials') ||
           hasPermission(orgId, 'viewProfitLoss');
-        allow write: if isOwnerOrAdmin(orgId);
+        allow create, update: if isOwnerOrAdmin(orgId);
+        allow delete: if false;
       }
 
       match /records/{recordId} {

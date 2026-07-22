@@ -384,9 +384,15 @@ exports.cleanupExpiredExpenseProofUploads = onSchedule(
       const grantId = parts.length === 4 ? parts[3] : '';
       if (TOKEN.test(organizationId) && TOKEN.test(grantId) &&
           TOKEN.test(data.uid) && TOKEN.test(data.proofId)) {
-        const path = `orgs/${organizationId}/proof-uploads/${data.uid}` +
-            `/${grantId}/${data.proofId}`;
-        await getStorage().bucket().file(path).delete({ignoreNotFound: true});
+        // Expiry closes authorization only. Maintainiac never automatically
+        // deletes a user-created proof object; retention is user controlled.
+        await grant.ref.update({
+          status: 'expired',
+          expiredAt: Timestamp.now(),
+          retainedProofPath: `orgs/${organizationId}/proof-uploads/${data.uid}` +
+              `/${grantId}/${data.proofId}`,
+        });
+        return;
       }
       await grant.ref.update({status: 'expired', expiredAt: Timestamp.now()});
     }));

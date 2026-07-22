@@ -270,6 +270,42 @@ void main() {
     );
   });
 
+  test('removed drafts remain as hidden, restorable tombstones', () async {
+    final store = MaintainiacRecordDraftStore.memory();
+    final created = DateTime.utc(2026, 7, 16, 12);
+    await store.save(
+      module: 'estimates',
+      id: 'draft-retained',
+      payload: const {'title': 'Original estimate'},
+      now: created,
+    );
+
+    await store.remove(
+      'estimates',
+      'draft-retained',
+      now: created.add(const Duration(seconds: 30)),
+    );
+
+    expect(store.draftFor('estimates', 'draft-retained'), isNull);
+    final retained = store.draftFor(
+      'estimates',
+      'draft-retained',
+      includeDeleted: true,
+    );
+    expect(retained?.lifecycle.isDeleted, isTrue);
+    expect(retained?.payload['title'], 'Original estimate');
+
+    final restored = await store.save(
+      module: 'estimates',
+      id: 'draft-retained',
+      payload: const {'title': 'Resumed estimate'},
+      now: created.add(const Duration(minutes: 1)),
+    );
+    expect(restored.lifecycle.isActive, isTrue);
+    expect(restored.lifecycle.auditEvents.last, contains('restored and saved'));
+    expect(store.draftsFor('estimates'), hasLength(1));
+  });
+
   test('shared draft store rejects ambiguous durable keys', () async {
     final store = MaintainiacRecordDraftStore.memory();
     await store.save(module: 'expenses', id: 'draft-safe', payload: const {});

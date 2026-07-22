@@ -109,18 +109,56 @@ describe('Firestore rules emulator safety', () => {
     const helper = dbFor('helperUid');
 
     await assertSucceeds(
-      setDoc(doc(helper, 'orgs/orgA/expenses/expense1'), {
-        createdByUid: 'helperUid',
-        updatedByUid: 'helperUid',
-        amount: 24,
-      }),
+      setDoc(
+        doc(helper, 'orgs/orgA/expenses/expense1'),
+        expenseDocument('expense1', {createdByUid: 'helperUid'}),
+      ),
     );
     await assertFails(
-      setDoc(doc(helper, 'orgs/orgA/expenses/expense2'), {
-        createdByUid: 'ownerUid',
-        updatedByUid: 'helperUid',
-        amount: 24,
-      }),
+      setDoc(
+        doc(helper, 'orgs/orgA/expenses/expense2'),
+        expenseDocument('expense2', {
+          createdByUid: 'ownerUid',
+          updatedByUid: 'helperUid',
+        }),
+      ),
+    );
+  });
+
+  test('expense records use monotonic tombstones and never hard delete', async () => {
+    const path = 'orgs/orgA/expenses/expenseLifecycle';
+    const helper = 'helperUid';
+    const owner = 'ownerUid';
+    await assertSucceeds(
+      setDoc(
+        doc(dbFor(helper), path),
+        expenseDocument('expenseLifecycle', {createdByUid: helper}),
+      ),
+    );
+    await assertFails(
+      setDoc(
+        doc(dbFor(helper), path),
+        expenseDocument('expenseLifecycle', {
+          createdByUid: helper,
+          amount: 99,
+        }),
+      ),
+    );
+    await assertSucceeds(
+      setDoc(
+        doc(dbFor(helper), path),
+        expenseDocument('expenseLifecycle', {
+          createdByUid: helper,
+          localRevision: 2,
+          recordState: 'deleted',
+          deletedAt: '2026-07-22T12:10:00.000Z',
+          updatedAt: '2026-07-22T12:10:00.000Z',
+        }),
+      ),
+    );
+    await assertFails(deleteDoc(doc(dbFor(owner), path)));
+    await assertFails(
+      deleteDoc(doc(dbFor(owner), 'orgs/orgA/financialSummaries/day')),
     );
   });
 
@@ -657,6 +695,7 @@ async function seedOrg() {
       permissions: [
         'recordExpenses',
         'addOwnReceipts',
+        'editOwnReceipts',
         'recordMileage',
         'editOwnMileage',
       ],
@@ -667,6 +706,23 @@ async function seedOrg() {
 
 function dbFor(uid, token = {}) {
   return testEnv.authenticatedContext(uid, token).firestore();
+}
+
+function expenseDocument(id, overrides = {}) {
+  const createdByUid = overrides.createdByUid ?? 'ownerUid';
+  return {
+    id,
+    orgId: 'orgA',
+    createdByUid,
+    updatedByUid: overrides.updatedByUid ?? createdByUid,
+    createdAt: '2026-07-22T12:00:00.000Z',
+    updatedAt: '2026-07-22T12:00:00.000Z',
+    deletedAt: null,
+    recordState: 'active',
+    localRevision: 1,
+    amount: 24,
+    ...overrides,
+  };
 }
 
 function mileageSummary(overrides = {}) {
