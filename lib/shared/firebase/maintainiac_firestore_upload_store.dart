@@ -67,6 +67,7 @@ class MaintainiacFirestoreUploadQueueStore {
       lastAttemptAtUtc: retrySource?.lastAttemptAtUtc,
       nextAttemptAtUtc: retrySource?.nextAttemptAtUtc,
       lastError: retrySource?.lastError,
+      conflictedAtUtc: null,
     );
     await _box.put(record.id, record.toMap());
     await _trimOldestIfNeeded();
@@ -163,6 +164,7 @@ class MaintainiacFirestoreUploadQueueStore {
       ),
       lastError: error,
       uploadedAtUtc: current.uploadedAtUtc,
+      conflictedAtUtc: current.conflictedAtUtc,
     );
     await _box.put(attempted.id, attempted.toMap());
   });
@@ -186,10 +188,39 @@ class MaintainiacFirestoreUploadQueueStore {
             nextAttemptAtUtc: null,
             lastError: record.lastError,
             uploadedAtUtc: uploadedAt,
+            conflictedAtUtc: record.conflictedAtUtc,
           );
           await _box.put(uploaded.id, uploaded.toMap());
         }
       });
+
+  Future<void> markConflicted(
+    MaintainiacFirestoreQueuedDocument record, {
+    required String error,
+    DateTime? nowUtc,
+  }) => _enqueue(() async {
+    if (record.isEmpty) return;
+    final current = MaintainiacFirestoreQueuedDocument.fromStored(
+      _box.get(record.id),
+    );
+    if (current.isEmpty || !current.isPendingUpload) return;
+    await _ensureStorageForQueueWrite();
+    final conflictedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    await _box.put(
+      current.id,
+      MaintainiacFirestoreQueuedDocument(
+        id: current.id,
+        path: current.path,
+        data: current.data,
+        queuedAtUtc: current.queuedAtUtc,
+        attemptCount: current.attemptCount + 1,
+        lastAttemptAtUtc: conflictedAt,
+        lastError: error,
+        uploadedAtUtc: current.uploadedAtUtc,
+        conflictedAtUtc: conflictedAt,
+      ).toMap(),
+    );
+  });
 
   Future<void> clearUploaded() => _enqueue(() async {
     for (final record in records) {
@@ -394,6 +425,7 @@ class MaintainiacFirestoreUploadCoordinator {
 
     var uploadedCount = 0;
     var failedCount = 0;
+    var conflictedCount = 0;
     final uploadedIds = <String>[];
     for (final record in batch) {
       try {
@@ -409,6 +441,13 @@ class MaintainiacFirestoreUploadCoordinator {
         );
         uploadedIds.add(record.id);
         uploadedCount += 1;
+      } on MaintainiacFirestoreRevisionConflict catch (error) {
+        conflictedCount += 1;
+        await _queue.markConflicted(
+          record,
+          error: error.toString(),
+          nowUtc: nowUtc,
+        );
       } catch (error) {
         failedCount += 1;
         await _queue.markAttempted(
@@ -424,7 +463,9 @@ class MaintainiacFirestoreUploadCoordinator {
     // consumes device space and exposes stale account metadata.
     if (uploadedIds.isNotEmpty) await _queue.clearUploaded();
 
-    final status = failedCount == 0
+    final status = conflictedCount > 0 && failedCount == 0 && uploadedCount == 0
+        ? MaintainiacFirestoreUploadStatus.conflict
+        : failedCount == 0 && conflictedCount == 0
         ? MaintainiacFirestoreUploadStatus.uploaded
         : uploadedCount == 0
         ? MaintainiacFirestoreUploadStatus.failed
@@ -434,6 +475,10 @@ class MaintainiacFirestoreUploadCoordinator {
       attemptedCount: batch.length,
       uploadedCount: uploadedCount,
       failedCount: failedCount,
+      conflictedCount: conflictedCount,
+      reason: conflictedCount > 0
+          ? 'A newer cloud record needs conflict review before backup can continue.'
+          : null,
     );
   }
 

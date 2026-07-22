@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'maintainiac_firestore_documents.dart';
+import 'maintainiac_firestore_revision_policy.dart';
 import 'maintainiac_firestore_schema.dart';
 import 'hosted_usage_limits.dart';
 import '../trip_tracking/trip_tracking_firestore_contract.dart';
@@ -20,6 +21,7 @@ enum MaintainiacFirestoreUploadStatus {
   uploaded,
   partial,
   failed,
+  conflict,
 }
 
 class MaintainiacFirestoreUploadResult {
@@ -28,6 +30,7 @@ class MaintainiacFirestoreUploadResult {
     required this.attemptedCount,
     required this.uploadedCount,
     required this.failedCount,
+    this.conflictedCount = 0,
     this.reason,
   });
 
@@ -35,6 +38,7 @@ class MaintainiacFirestoreUploadResult {
   final int attemptedCount;
   final int uploadedCount;
   final int failedCount;
+  final int conflictedCount;
   final String? reason;
 }
 
@@ -57,11 +61,31 @@ class FirebaseFirestoreDocumentSink
   Future<void> writeDocument({
     required String path,
     required Map<String, Object?> data,
-  }) {
+  }) async {
     // Module builders emit complete backup documents. Replacing the document
     // prevents removed fields from surviving as stale cloud state and lets
     // Firestore rules compare exact idempotent retries safely.
-    return _firestore.doc(path).set(data, SetOptions(merge: false));
+    final reference = _firestore.doc(path);
+    if (!MaintainiacFirestoreRevisionPolicy.isRevisioned(data)) {
+      await reference.set(data, SetOptions(merge: false));
+      return;
+    }
+    await _firestore.runTransaction<void>((transaction) async {
+      final snapshot = await transaction.get(reference);
+      final decision = MaintainiacFirestoreRevisionPolicy.decide(
+        incoming: data,
+        existing: snapshot.data(),
+      );
+      if (decision.action == MaintainiacFirestoreRevisionAction.noOp) return;
+      if (decision.action == MaintainiacFirestoreRevisionAction.conflict) {
+        throw MaintainiacFirestoreRevisionConflict(
+          path: path,
+          localRevision: decision.localRevision,
+          remoteRevision: decision.remoteRevision,
+        );
+      }
+      transaction.set(reference, data, SetOptions(merge: false));
+    });
   }
 }
 
@@ -76,6 +100,7 @@ class MaintainiacFirestoreQueuedDocument {
     this.nextAttemptAtUtc,
     this.lastError,
     this.uploadedAtUtc,
+    this.conflictedAtUtc,
   });
 
   factory MaintainiacFirestoreQueuedDocument.fromStored(Object? value) {
@@ -112,6 +137,10 @@ class MaintainiacFirestoreQueuedDocument {
         value['uploadedAtUtc'],
         notBefore: queuedAt,
       ),
+      conflictedAtUtc: _safeQueueTimestamp(
+        value['conflictedAtUtc'],
+        notBefore: queuedAt,
+      ),
     );
   }
 
@@ -131,9 +160,12 @@ class MaintainiacFirestoreQueuedDocument {
   final DateTime? nextAttemptAtUtc;
   final String? lastError;
   final DateTime? uploadedAtUtc;
+  final DateTime? conflictedAtUtc;
 
   bool get isEmpty => id.isEmpty || path.isEmpty;
-  bool get isPendingUpload => !isEmpty && uploadedAtUtc == null;
+  bool get isPendingUpload =>
+      !isEmpty && uploadedAtUtc == null && conflictedAtUtc == null;
+  bool get requiresConflictReview => conflictedAtUtc != null;
   bool isReadyForAttemptAt(DateTime nowUtc) =>
       nextAttemptAtUtc == null || !nowUtc.isBefore(nextAttemptAtUtc!);
 
@@ -152,6 +184,8 @@ class MaintainiacFirestoreQueuedDocument {
         'lastError': _safeError(lastError!),
       if (uploadedAtUtc != null)
         'uploadedAtUtc': uploadedAtUtc!.toUtc().toIso8601String(),
+      if (conflictedAtUtc != null)
+        'conflictedAtUtc': conflictedAtUtc!.toUtc().toIso8601String(),
     };
   }
 }
