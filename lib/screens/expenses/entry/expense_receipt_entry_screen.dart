@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
+import '../../../shared/jobs/maintainiac_job_store.dart';
 import '../../../shared/receipts/receipt_processing_contract.dart';
 import '../../../shared/receipts/receipt_ocr_handoff.dart';
 import '../../../shared/widgets/app_back_button.dart';
@@ -118,6 +119,7 @@ part 'expense_receipt_entry_byte_bucket.dart';
 part 'expense_receipt_entry_odometer_prompt.dart';
 part 'expense_receipt_entry_odometer_panel.dart';
 part 'expense_receipt_entry_odometer_lifecycle.dart';
+part 'expense_receipt_entry_job_context_panel.dart';
 
 enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 

@@ -187,45 +187,6 @@ Map<DateTime, List<WorkSupplyCalendarMarker>> _jobMarkers(
   };
 }
 
-List<WorkSupplyJob> _demoJobs() {
-  final today = DateTime.now();
-  return [
-    WorkSupplyJob(
-      name: 'Kitchen sink leak repair',
-      number: 'JOB-001',
-      customerName: 'Residential Service',
-      address: 'Lynchburg, VA',
-      scheduledDate: today,
-      mileage: 18.4,
-      expenses: 47.25,
-      inventoryItems: 6,
-      invoiceTotal: 385,
-    ),
-    WorkSupplyJob(
-      name: 'Panel punch list',
-      number: 'JOB-002',
-      customerName: 'Light Industrial',
-      address: 'Madison Heights, VA',
-      scheduledDate: today.add(const Duration(days: 1)),
-      mileage: 31.2,
-      expenses: 118.90,
-      inventoryItems: 4,
-      invoiceTotal: 740,
-    ),
-    WorkSupplyJob(
-      name: 'Rental turnover repairs',
-      number: 'JOB-003',
-      customerName: 'Property Manager',
-      address: 'Forest, VA',
-      scheduledDate: today.add(const Duration(days: 3)),
-      mileage: 22.7,
-      expenses: 216.30,
-      inventoryItems: 14,
-      invoiceTotal: 1290,
-    ),
-  ];
-}
-
 DateTime _dayKey(DateTime day) => DateTime.utc(day.year, day.month, day.day);
 
 String _dateLabel(DateTime day) {

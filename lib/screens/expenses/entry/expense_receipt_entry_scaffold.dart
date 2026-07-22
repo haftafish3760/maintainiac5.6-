@@ -44,6 +44,8 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
             const SizedBox(height: 6),
             const GlobalOdometerHeader(section: AppSection.expenses),
             const SizedBox(height: 8),
+            _buildJobContextPanel(context),
+            const SizedBox(height: 8),
             if (_isMaterialsFlow) ...[
               _InventoryTrackingPrompt(
                 value: _trackMaterialsInInventory,

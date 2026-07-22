@@ -173,10 +173,8 @@ void main() {
     expect(reviewActions, contains('...stitch.ocrSourcePaths'));
     expect(importActions, contains('_readReviewedPhotosForReceiptForm'));
     expect(importActions, contains('markReviewedPhotosReadState'));
-    expect(
-      importActions,
-      contains('widget.onReceiptPhotoReviewAccepted?.call(result)'),
-    );
+    expect(importActions, contains('_notifyReviewedPhotoAccepted(result)'));
+    expect(importActions, contains('onAccepted(result)'));
     expect(
       receiptEntryScreen,
       contains('_recordReceiptPhotoPreparationTelemetry(result)'),
@@ -244,22 +242,10 @@ void main() {
       attachmentRisks,
       contains('ocr_source_stitch_result_contract_mismatch'),
     );
-    expect(
-      captureFlow,
-      contains('receipt_section_order_failed_pair_'),
-    );
-    expect(
-      captureRisks,
-      contains('ocr_source_section_order_failed_pair_'),
-    );
-    expect(
-      attachmentPanel,
-      contains('receipt_section_order_failed_pair_'),
-    );
-    expect(
-      attachmentRisks,
-      contains('ocr_source_section_order_failed_pair_'),
-    );
+    expect(captureFlow, contains('receipt_section_order_failed_pair_'));
+    expect(captureRisks, contains('ocr_source_section_order_failed_pair_'));
+    expect(attachmentPanel, contains('receipt_section_order_failed_pair_'));
+    expect(attachmentRisks, contains('ocr_source_section_order_failed_pair_'));
     expect(receiptEntryScreen, contains("'saved_proof_fallback'"));
     expect(receiptEntryScreen, contains('ocrSourceHandoffSignalCounts'));
     expect(receiptEntryScreen, contains('result.receiptReaderHandoffCounts'));

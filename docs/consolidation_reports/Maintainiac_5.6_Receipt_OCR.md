@@ -243,27 +243,27 @@
   operational context, work/vehicle profiles, cloud backup/proof, recaps,
   reminders, and proof ownership passed 124 focused tests.
 
-### Manual semantic merge still required
+### Durable Jobs/context semantic merge completed
 
-- Source commit `07370e351` contains a real Hive-backed `ExpenseJobStore` and a
-  receipt-to-job create/choose panel. Current 5.7 retains `jobId`/`jobLabel` in
-  receipt context and filtering, but `WorkSupplyJobsScreen` still reads demo
-  jobs and there is no authoritative durable Jobs directory.
-- The source store was not copied because that would create a second Jobs owner
-  under Expenses. Preserve its stable ID, name, work profile, vehicle, customer
-  reference, archive, and backup capabilities when building the single shared
-  Jobs owner, then connect Expenses, Work Supplies, Dashboard, Estimates,
-  Invoices, mileage, and inventory to that owner.
-- The source also offers per-receipt job, work-profile, and vehicle chooser
-  panels. Current 5.7 seeds the active context but does not expose all three
-  overrides. Their UX and centralized-owner integration remain manual review;
-  the older parallel profile stores must not be imported.
+- Source commit `07370e351`'s durable job directory and receipt create/choose
+  capability were migrated semantically into the single shared
+  `MaintainiacJobController`. The old `ExpenseJobStore` was not copied.
+- Stable identity, number/name, work profile, multiple vehicles, customer
+  reference, archive, schedule, assignment, estimate/invoice references, and
+  backup payloads are retained. Legacy `expense_jobs` data is copied without
+  deletion and remains readable if storage blocks migration.
+- `WorkSupplyJobsScreen` now reads real active jobs instead of `_demoJobs()`.
+  Receipt entry can explicitly create, choose, or clear a job and retains the
+  historical context snapshot. Analyzer and Android Kotlin compile passed;
+  9 focused Jobs/context tests and 9 adjacent receipt regressions passed.
+- Work-profile and vehicle override UX beyond the existing active context is
+  still a separate product-flow review; no parallel profile owner was imported.
 
 ## Repository processing status
 
 - All 33 source-only commits have now been evaluated in order.
 - High-confidence OCR/review improvements were integrated; newer 5.7 owners
   were retained where they supersede source code; automatic OCR-owned routing
-  was rejected; the durable Jobs/context UI capability is explicitly queued for
-  a single-owner semantic merge.
+  was rejected; the durable Jobs/context capability is now integrated through
+  the single shared owner.
 - The source repository remained unchanged.

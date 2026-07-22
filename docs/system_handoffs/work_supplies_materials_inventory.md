@@ -29,6 +29,9 @@ settings, and add-items flows exist.
 ## Verified / Deferred / Remaining
 
 - `PRESENT`: extensive trade catalogs, parsers, QA harnesses, and screen flows.
+- `VERIFIED SUBSET`: the Jobs screen now consumes the shared durable Jobs owner
+  and no longer displays `_demoJobs()`. Creating a job preserves the active work
+  profile and vehicle; the Jobs/context gate passed 9 tests.
 - `UNVERIFIED`: no fresh system-wide inventory acceptance run is recorded here.
 - `NEEDS RECONCILIATION`: inspect all source repositories by content/history,
   including unexpectedly named folders, for unique inventory/material behavior.
@@ -37,3 +40,5 @@ settings, and add-items flows exist.
 
 - 2026-07-22: Created; existing code is recorded without falsely treating file
   presence as release QA.
+- 2026-07-22: Replaced demo Jobs data with the single shared durable directory;
+  no inventory owner or parser behavior was duplicated.

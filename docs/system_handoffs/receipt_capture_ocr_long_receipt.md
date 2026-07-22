@@ -57,6 +57,10 @@ long-receipt support exist. This is suggestion-only intelligence.
 - `REMAINING`: ReceiptCamera is consolidated and Receipt_OCR and Long_Receipt
   source history have been semantically reconciled. Final project-wide gates,
   real-receipt fixtures, and physical-device proof are not complete.
+- `VERIFIED SUBSET`: the receipt entry context now uses the shared Jobs owner
+  for explicit create/choose/clear actions; draft saving preserves the selected
+  historical job snapshot. No OCR-owned routing or parallel Expense Jobs store
+  was added.
 
 ## Rolling Log
 
@@ -71,3 +75,5 @@ long-receipt support exist. This is suggestion-only intelligence.
 - 2026-07-22: Reopened all 62 Long Receipt source-only commits, integrated the
   two unique native/source-integrity safeguards, retained the newer 5.7 review
   owner, and passed analyzer, focused, Swift-parse, and Android compile gates.
+- 2026-07-22: Completed the source-discovered receipt-to-job chooser through the
+  single shared Jobs owner; 9 focused Jobs/context tests passed.

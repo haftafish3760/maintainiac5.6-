@@ -2,27 +2,34 @@
 
 ## Current Status
 
-`PRESENT / UNVERIFIED / NEEDS RECONCILIATION`. Jobs and estimate-related
-requirements and bridges exist, but no current independent release gate is
-recorded.
+`SHARED DURABLE JOBS OWNER IMPLEMENTED / ESTIMATES NEED RECONCILIATION`.
+Jobs now have one app-wide local owner; estimate conversion and the complete
+job command center remain separate unfinished work.
 
 ## Implemented Evidence
 
 - Work Supplies jobs screen: `lib/screens/work_supplies/jobs/work_supply_jobs_screen.dart`
+- Shared durable owner: `lib/shared/jobs/maintainiac_job_store.dart`
+- Receipt chooser: `lib/screens/expenses/entry/expense_receipt_entry_job_context_panel.dart`
 - Inventory/job lifecycle contract: `docs/inventory_estimate_job_lifecycle_spec.md`
 - Requirements: `screen_notes/jobs.txt` and `screen_notes/invoices_estimates.txt`
 - Search invoices and shared records before adding a new model or store.
 
-## Discovered Preserved Capability
+## Preserved Capability
 
 - Receipt OCR source commit `07370e351` contains a Hive-backed job directory
   with stable IDs, name, work profile, vehicle, customer reference, archive,
   backup, and receipt create/choose UI.
-- Current 5.7 already persists `jobId` and `jobLabel` with receipt context and
-  recap filters, but `WorkSupplyJobsScreen` still uses `_demoJobs()`.
-- Do not copy `ExpenseJobStore` as a parallel owner. Semantically migrate its
-  durable capabilities into one shared Jobs owner used by Expenses, Work
-  Supplies, Dashboard, Estimates, Invoices, mileage, and inventory.
+- 5.7 now preserves that capability through `MaintainiacJobController`, not an
+  Expense-only copy. It stores stable IDs/numbers, work profile, multiple
+  vehicles, customer identity/reference, address, member assignments,
+  estimate/invoice references, schedule, archive state, timestamps, and backup
+  payloads.
+- Legacy `expense_jobs` records are copied without deletion. If low storage
+  blocks the copy, they remain readable from the untouched legacy box.
+- `WorkSupplyJobsScreen` reads real active records and no longer seeds demo
+  jobs. Expense/material receipt drafts can choose, clear, or create a job and
+  preserve the historical `jobId` and `jobLabel` snapshot.
 
 ## Remaining
 
@@ -31,6 +38,12 @@ recorded.
 - Verify that confirmed inventory cost is reused without silent mutation and
   that no duplicate Jobs or Estimates owner is introduced.
 - Add targeted tests and update this record when implementation is changed.
+- Connect Dashboard, Estimates, Invoices, mileage, inventory transactions,
+  employees, calendars, and Firebase mirroring to this same owner as those
+  systems are implemented. Never create another Jobs store.
+- Add full create/edit/archive/schedule/customer/assignment UI and permission
+  gates; the current preservation pass intentionally implements only the source
+  capability needed to replace the demo directory and receipt chooser.
 
 ## Rolling Log
 
@@ -38,3 +51,7 @@ recorded.
   claim.
 - 2026-07-22: Recorded the unique durable job-directory and receipt-linking
   capability found in Receipt OCR history; central merge remains required.
+- 2026-07-22: Implemented the single shared durable Jobs owner, non-destructive
+  legacy migration, real Work Supplies directory, and receipt create/choose/
+  clear flow. Analyzer and Android Kotlin compile passed; 9 focused Jobs/
+  context tests plus 9 adjacent receipt regressions passed.

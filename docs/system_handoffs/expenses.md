@@ -32,9 +32,9 @@ calendar/detail, reports, reminders, settings, and work profiles exist.
   comparison; final full tests and platform builds are not complete.
 - `VERIFIED SUBSET`: the Receipt OCR repository's final Expense persistence and
   cloud batch is covered by newer 5.7 owners; 124 focused tests passed.
-- `NEEDS RECONCILIATION`: receipts retain job/work-profile/vehicle context, but
-  the source's chooser UI must be connected to centralized owners rather than
-  importing its parallel Expense-only stores.
+- `VERIFIED SUBSET`: receipts now choose, clear, or create jobs through the
+  shared durable Jobs owner and preserve `jobId`/`jobLabel` in drafts and saved
+  history. No Expense-only Jobs store was introduced; 9 focused tests passed.
 
 ## Rolling Log
 
@@ -44,3 +44,5 @@ calendar/detail, reports, reminders, settings, and work profiles exist.
   explicit split ownership and retained the newer 5.7 evidence-display model.
 - 2026-07-22: Closed the Receipt OCR repository's Expense persistence/cloud
   history; recorded centralized receipt-context chooser work still required.
+- 2026-07-22: Connected receipt job selection to the shared durable Jobs owner
+  and closed the queued Expense-only chooser/store consolidation gap.

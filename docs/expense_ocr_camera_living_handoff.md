@@ -104,13 +104,18 @@ The product owner stated that it is not being implemented during consolidation.
 - Final Expense commits `346414ff0` through `28b6893b8` were compared. Newer
   5.7 persistence, deletion history, profiles, reminders, cloud queue, proof,
   and restore owners were retained; 124 focused tests passed. The source's
-  durable job directory and receipt job/profile/vehicle chooser remain queued
-  for a single shared Jobs/context merge, never a parallel Expense store.
+  independent work-profile/vehicle override UX remains a product-flow review;
+  its durable job directory and receipt job chooser are now consolidated below.
 - All 62 source-only Long Receipt commits were compared semantically. Current
   5.7 already owned the newer review flow; native visual-orientation handling
   for previous-section ghost crops and source-integrity checks for real receipt
   probes were integrated. Analyzer, Swift parse, Android Kotlin compile, and 11
   focused tests passed; 3 opt-in real-photo probes remain fixture-dependent.
+- The source-discovered durable Jobs directory and receipt chooser are now
+  integrated through one shared app-wide owner. Legacy Expense job records are
+  preserved without deletion, the Work Supplies Jobs screen no longer uses
+  demo data, and receipt drafts can explicitly create/choose/clear a job. The
+  analyzer and 9 focused Jobs/context tests passed.
 
 ## Consolidation And Validation Boundary
 
@@ -140,3 +145,5 @@ final project-wide tests remain required before final consolidation completion.
   unresolved Jobs/context capability to its owning system handoff.
 - 2026-07-22: Finished the 62-commit Long Receipt semantic reconciliation and
   recorded the result in its dedicated receipt-system handoff.
+- 2026-07-22: Closed the queued durable Jobs/context merge through the separate
+  Jobs system handoff; no parallel Expense Jobs owner was created.
