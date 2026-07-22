@@ -171,9 +171,16 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
     TripActivityObservation? activity,
     TripSampleDisposition disposition, {
     double addedMeters = 0,
+    double rejectedMeters = 0,
+    double estimatedGapMeters = 0,
   }) {
     _updateMotionState(sample, activity, disposition);
-    return _decision(disposition, addedMeters: addedMeters);
+    return _decision(
+      disposition,
+      addedMeters: addedMeters,
+      rejectedMeters: rejectedMeters,
+      estimatedGapMeters: estimatedGapMeters,
+    );
   }
 
   void _updateMotionState(

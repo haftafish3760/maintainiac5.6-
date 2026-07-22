@@ -94,10 +94,12 @@ Map<String, Object?> _tripSummary(TripTrackingReviewRecord review) {
   final confirmedEnd = review.confirmedEndingOdometer!;
   final confirmedMiles = confirmedEnd - review.startingOdometer;
   final diagnostics = review.engineSnapshot.diagnostics;
-  final estimatedGapDistanceMeters = review.engineSnapshot.signalGaps.fold(
-    0.0,
-    (total, gap) => total + gap.estimatedDistanceMeters,
-  );
+  final estimatedGapDistanceMeters =
+      diagnostics.estimatedGapDistanceMeters +
+      review.engineSnapshot.signalGaps.fold(
+        0.0,
+        (total, gap) => total + gap.estimatedDistanceMeters,
+      );
   return {
     'tripId': review.id,
     'vehicleId': review.vehicleId,
@@ -117,7 +119,7 @@ Map<String, Object?> _tripSummary(TripTrackingReviewRecord review) {
       review.engineSnapshot.totalAcceptedMeters,
     ),
     'estimatedGapDistanceMiles': _miles(estimatedGapDistanceMeters),
-    'rejectedDistanceMiles': 0.0,
+    'rejectedDistanceMiles': _miles(diagnostics.rejectedDistanceMeters),
     'rejectedSampleCount': diagnostics.rejectedSamples,
     'events': review.advisories.map(_advisorySummary).toList(growable: false),
     'userEvents': review.tripEvents

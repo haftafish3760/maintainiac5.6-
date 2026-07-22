@@ -23,8 +23,14 @@ class TripTrackingTripLogProposal {
   int? get endingOdometerDraft => review.endingOdometerDraft;
   double get gpsAssistedDistanceMeters =>
       review.engineSnapshot.totalAcceptedMeters;
-  double get estimatedGapDistanceMeters => review.engineSnapshot.signalGaps
-      .fold(0, (total, gap) => total + gap.estimatedDistanceMeters);
+  double get estimatedGapDistanceMeters =>
+      review.engineSnapshot.diagnostics.estimatedGapDistanceMeters +
+      review.engineSnapshot.signalGaps.fold(
+        0,
+        (total, gap) => total + gap.estimatedDistanceMeters,
+      );
+  double get rejectedDistanceMeters =>
+      review.engineSnapshot.diagnostics.rejectedDistanceMeters;
   bool get requiresTripLogConfirmation => true;
   bool get canFinalizeTripLog => false;
   bool get canConfirmMileage => false;
@@ -41,6 +47,7 @@ class TripTrackingTripLogProposal {
     if (endingOdometerDraft != null) 'endingOdometerDraft': endingOdometerDraft,
     'gpsAssistedDistanceMeters': gpsAssistedDistanceMeters,
     'estimatedGapDistanceMeters': estimatedGapDistanceMeters,
+    'rejectedDistanceMeters': rejectedDistanceMeters,
     'advisories': review.advisories.map((item) => item.toMap()).toList(),
     'tripEvents': review.tripEvents.map((item) => item.toMap()).toList(),
     'manualAdjustments': review.manualAdjustments

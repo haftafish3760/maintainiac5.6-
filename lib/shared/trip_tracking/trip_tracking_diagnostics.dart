@@ -5,11 +5,15 @@ class TripTrackingDiagnostics {
     this.receivedSamples = 0,
     this.acceptedSamples = 0,
     this.dispositionCounts = const {},
+    this.rejectedDistanceMeters = 0,
+    this.estimatedGapDistanceMeters = 0,
   });
 
   final int receivedSamples;
   final int acceptedSamples;
   final Map<TripSampleDisposition, int> dispositionCounts;
+  final double rejectedDistanceMeters;
+  final double estimatedGapDistanceMeters;
 
   int get rejectedSamples {
     final received = _safeNonNegativeInt(receivedSamples);
@@ -17,7 +21,11 @@ class TripTrackingDiagnostics {
     return received - accepted;
   }
 
-  TripTrackingDiagnostics record(TripSampleDisposition disposition) {
+  TripTrackingDiagnostics record(
+    TripSampleDisposition disposition, {
+    double rejectedMeters = 0,
+    double estimatedGapMeters = 0,
+  }) {
     final counts = Map<TripSampleDisposition, int>.from(dispositionCounts);
     counts.update(disposition, (count) => count + 1, ifAbsent: () => 1);
     final accepted =
@@ -27,6 +35,14 @@ class TripTrackingDiagnostics {
       receivedSamples: receivedSamples + 1,
       acceptedSamples: accepted ? acceptedSamples + 1 : acceptedSamples,
       dispositionCounts: Map.unmodifiable(counts),
+      rejectedDistanceMeters: _sumDiagnosticMeters(
+        rejectedDistanceMeters,
+        rejectedMeters,
+      ),
+      estimatedGapDistanceMeters: _sumDiagnosticMeters(
+        estimatedGapDistanceMeters,
+        estimatedGapMeters,
+      ),
     );
   }
 
@@ -41,6 +57,10 @@ class TripTrackingDiagnostics {
       'dispositionCounts': _safeSerializedDispositionCounts(
         dispositionCounts,
         received,
+      ),
+      'rejectedDistanceMeters': _safeDiagnosticMeters(rejectedDistanceMeters),
+      'estimatedGapDistanceMeters': _safeDiagnosticMeters(
+        estimatedGapDistanceMeters,
       ),
     };
   }
@@ -71,8 +91,27 @@ class TripTrackingDiagnostics {
         safeCounts,
       ),
       dispositionCounts: Map.unmodifiable(safeCounts),
+      rejectedDistanceMeters: _safeDiagnosticMeters(
+        map['rejectedDistanceMeters'],
+      ),
+      estimatedGapDistanceMeters: _safeDiagnosticMeters(
+        map['estimatedGapDistanceMeters'],
+      ),
     );
   }
+}
+
+const double _maximumDiagnosticDistanceMeters = 1000000000;
+
+double _safeDiagnosticMeters(Object? value) {
+  if (value is! num || !value.isFinite || value < 0) return 0;
+  return value.toDouble().clamp(0, _maximumDiagnosticDistanceMeters);
+}
+
+double _sumDiagnosticMeters(double current, double added) {
+  final safeCurrent = _safeDiagnosticMeters(current);
+  final safeAdded = _safeDiagnosticMeters(added);
+  return (safeCurrent + safeAdded).clamp(0, _maximumDiagnosticDistanceMeters);
 }
 
 Map<String, Object?> _safeSerializedDispositionCounts(

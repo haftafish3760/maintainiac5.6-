@@ -46,6 +46,32 @@ void main() {
     expect(bridge.bundleForDay('2026-07-21'), isNull);
   });
 
+  test('daily bundle preserves advisory rejected and gap distances', () async {
+    final store = MaintainiacDurableRecordStore.memory();
+    final bridge = TripTrackingDailyBundleBridge(store);
+    final trip = review(
+      'distance_evidence',
+      DateTime.utc(2026, 7, 21, 2),
+      -240,
+      10,
+      diagnostics: const TripTrackingDiagnostics(
+        receivedSamples: 4,
+        acceptedSamples: 2,
+        rejectedDistanceMeters: 1609.344,
+        estimatedGapDistanceMeters: 3218.688,
+      ),
+    );
+
+    await bridge.upsertReviewedTrip(trip);
+
+    final trips = bridge.bundleForDay('2026-07-20')!.payload['trips'] as List;
+    final summary = trips.single as Map;
+    expect(summary['rejectedDistanceMiles'], closeTo(1, 0.000001));
+    expect(summary['estimatedGapDistanceMiles'], closeTo(2, 0.000001));
+    expect(summary['finalUserConfirmedMileage'], 10);
+    expect(summary['gpsDistanceIsAdvisoryOnly'], isTrue);
+  });
+
   test(
     'malformed existing bundle is preserved instead of overwritten',
     () async {
@@ -77,8 +103,9 @@ TripTrackingReviewRecord review(
   String id,
   DateTime startedAt,
   int offsetMinutes,
-  int miles,
-) => TripTrackingReviewRecord(
+  int miles, {
+  TripTrackingDiagnostics diagnostics = const TripTrackingDiagnostics(),
+}) => TripTrackingReviewRecord(
   id: id,
   vehicleId: 'vehicle_1',
   profileId: 'profile_1',
@@ -96,6 +123,7 @@ TripTrackingReviewRecord review(
   engineSnapshot: TripTrackingEngineSnapshot(
     totalAcceptedMeters: miles * 1609.344,
     walkingReviewSuggested: false,
+    diagnostics: diagnostics,
   ),
   tripEvents: [
     TripManualEvent(
