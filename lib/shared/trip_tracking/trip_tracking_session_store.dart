@@ -6,6 +6,7 @@ import '../storage/app_storage_guard.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_quarantined_session.dart';
 import 'trip_tracking_recovery_diagnostic.dart';
+import 'trip_tracking_session_snapshot.dart';
 
 part 'trip_tracking_session_record.dart';
 part 'trip_tracking_review_record.dart';
@@ -144,25 +145,55 @@ class TripTrackingSessionStore {
   }
 
   TripTrackingSessionRecord? get activeSession {
-    final value = _box == null ? _memorySession : _box.get(_activeSessionKey);
-    final active = _validSessionFromValue(value);
-    if (active != null) return active;
-    return _box == null
-        ? null
-        : _validSessionFromValue(_box.get(_previousSessionKey));
+    if (_box == null) return _memorySession;
+    return _selectedStoredSession()?.session;
   }
 
   TripTrackingPendingWriteState get pendingWriteState {
     if (_box == null) return TripTrackingPendingWriteState.none;
     final pendingValue = _box.get(_pendingSessionWriteKey);
     if (pendingValue == null) return TripTrackingPendingWriteState.none;
-    final pending = _validSessionFromValue(pendingValue);
+    final pending = _storedSessionCandidate(pendingValue, priority: 2);
     if (pending == null) return TripTrackingPendingWriteState.malformed;
-    final active = _validSessionFromValue(_box.get(_activeSessionKey));
-    return active != null && active.revision >= pending.revision
+    final active = _storedSessionCandidate(
+      _box.get(_activeSessionKey),
+      priority: 3,
+    );
+    return active != null && _candidateIsAtLeast(active, pending)
         ? TripTrackingPendingWriteState.committedCleanupPending
         : TripTrackingPendingWriteState.interrupted;
   }
+
+  /// Selects the newest valid generation and records bounded local evidence
+  /// when a corrupt latest generation required fallback.
+  Future<TripTrackingSessionRecord?> recoverActive({
+    DateTime? recordedAtUtc,
+  }) => _enqueue(() async {
+    if (_box == null) return _memorySession;
+    final selected = _selectedStoredSession();
+    final expectedGeneration = _maximumRawRecoveryGeneration;
+    final restoredGeneration = selected?.generation ?? 0;
+    final rawActive = _box.get(_activeSessionKey);
+    final active = _storedSessionCandidate(rawActive, priority: 3);
+    final usedFallback =
+        selected != null &&
+        (expectedGeneration > restoredGeneration ||
+            (rawActive != null && active == null));
+    if (usedFallback) {
+      final key =
+          '${_recoveryDiagnosticPrefix}snapshot:$expectedGeneration:$restoredGeneration';
+      if (!_box.containsKey(key)) {
+        final diagnostic = TripTrackingRecoveryDiagnostic(
+          code: 'corrupt_latest_snapshot_fallback',
+          recordedAtUtc: (recordedAtUtc ?? DateTime.now()).toUtc(),
+          expectedGeneration: expectedGeneration,
+          restoredGeneration: restoredGeneration,
+        );
+        await _box.put(key, diagnostic.toMap());
+      }
+    }
+    return selected?.session;
+  });
 
   List<TripTrackingQuarantinedSession> get quarantinedSessions {
     final records = _box == null
@@ -237,7 +268,7 @@ class TripTrackingSessionStore {
       _pendingSessionWriteKey,
     ]) {
       final value = _box.get(key);
-      final revision = value is Map ? value['revision'] : null;
+      final revision = _rawSessionPayload(value)?['revision'];
       if (revision is int && revision >= 0 && revision > maximum) {
         maximum = revision;
       }
@@ -409,7 +440,12 @@ class TripTrackingSessionStore {
               transitionAudits: boundedTransitionAudits,
             );
     } else {
-      final next = session.toMap();
+      final generation = _maximumRawRecoveryGeneration + 1;
+      final next = TripTrackingSessionSnapshotEnvelope.create(
+        generation: generation,
+        sessionId: session.id,
+        payload: session.toMap(),
+      ).toMap();
       final current = _box.get(_activeSessionKey);
       final writes = <String, Object?>{_pendingSessionWriteKey: next};
       if (current != null) writes[_previousSessionKey] = current;
@@ -599,6 +635,49 @@ class TripTrackingSessionStore {
 
   static Future<AppStorageCheck> _defaultStorageCheck() =>
       AppStorageGuard.check(AppStoragePurpose.mileageTracking);
+
+  _StoredSessionCandidate? _selectedStoredSession() {
+    final active = _storedSessionCandidate(
+      _box?.get(_activeSessionKey),
+      priority: 3,
+    );
+    final candidates =
+        <_StoredSessionCandidate?>[
+              active,
+              _storedSessionCandidate(
+                _box?.get(_pendingSessionWriteKey),
+                priority: 2,
+              ),
+              _storedSessionCandidate(
+                _box?.get(_previousSessionKey),
+                priority: 1,
+              ),
+            ]
+            .whereType<_StoredSessionCandidate>()
+            .where(
+              (candidate) =>
+                  active == null || candidate.session.id == active.session.id,
+            )
+            .toList();
+    if (candidates.isEmpty) return null;
+    candidates.sort(_compareStoredCandidates);
+    return candidates.first;
+  }
+
+  int get _maximumRawRecoveryGeneration {
+    if (_box == null) return _memorySession?.revision ?? 0;
+    var maximum = 0;
+    for (final key in [
+      _activeSessionKey,
+      _previousSessionKey,
+      _pendingSessionWriteKey,
+    ]) {
+      final raw = _box.get(key);
+      final generation = raw is Map ? raw['generation'] : null;
+      if (generation is int && generation > maximum) maximum = generation;
+    }
+    return maximum;
+  }
 }
 
 enum TripTrackingPendingWriteState {
@@ -609,10 +688,11 @@ enum TripTrackingPendingWriteState {
 }
 
 TripTrackingSessionRecord? _validSessionFromValue(Object? value) {
+  final payload = _rawSessionPayload(value);
   final session = value is TripTrackingSessionRecord
       ? value
-      : value is Map
-      ? TripTrackingSessionRecord.fromMap(value)
+      : payload != null
+      ? TripTrackingSessionRecord.fromMap(payload)
       : null;
   if (session == null ||
       !session.hasValidTimeline ||
@@ -623,6 +703,61 @@ TripTrackingSessionRecord? _validSessionFromValue(Object? value) {
     return null;
   }
   return session;
+}
+
+Map<dynamic, dynamic>? _rawSessionPayload(Object? value) {
+  if (value is! Map) return null;
+  if (value.containsKey('payload') || value.containsKey('checksum')) {
+    return TripTrackingSessionSnapshotEnvelope.tryFromMap(value)?.payload;
+  }
+  return value;
+}
+
+_StoredSessionCandidate? _storedSessionCandidate(
+  Object? value, {
+  required int priority,
+}) {
+  final session = _validSessionFromValue(value);
+  if (session == null) return null;
+  final envelope = value is Map
+      ? TripTrackingSessionSnapshotEnvelope.tryFromMap(value)
+      : null;
+  return _StoredSessionCandidate(
+    session: session,
+    generation: envelope?.generation ?? 0,
+    priority: priority,
+  );
+}
+
+bool _candidateIsAtLeast(
+  _StoredSessionCandidate left,
+  _StoredSessionCandidate right,
+) =>
+    left.generation > right.generation ||
+    (left.generation == right.generation &&
+        left.session.revision >= right.session.revision);
+
+int _compareStoredCandidates(
+  _StoredSessionCandidate left,
+  _StoredSessionCandidate right,
+) {
+  final generation = right.generation.compareTo(left.generation);
+  if (generation != 0) return generation;
+  final revision = right.session.revision.compareTo(left.session.revision);
+  if (revision != 0) return revision;
+  return right.priority.compareTo(left.priority);
+}
+
+class _StoredSessionCandidate {
+  const _StoredSessionCandidate({
+    required this.session,
+    required this.generation,
+    required this.priority,
+  });
+
+  final TripTrackingSessionRecord session;
+  final int generation;
+  final int priority;
 }
 
 bool _isSafePendingSessionId(Object? value) =>

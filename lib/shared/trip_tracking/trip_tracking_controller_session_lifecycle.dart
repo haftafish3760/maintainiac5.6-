@@ -241,7 +241,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     if (_isDisposed || isTracking) return false;
     TripTrackingSessionRecord? session;
     try {
-      session = _sessionStore.activeSession;
+      session = await _sessionStore.recoverActive(recordedAtUtc: _clockNow());
     } catch (error) {
       _platformStatus = 'storage_failed';
       _platformError = 'Could not read local trip recovery data.';

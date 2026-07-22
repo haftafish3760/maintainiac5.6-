@@ -108,35 +108,47 @@ void main() {
     expect(controller.platformStatus, 'cancelled_review_pending');
   });
 
-  test('restore cannot erase terminal trip evidence', () async {
-    final store = TripTrackingSessionStore.memory();
-    final at = DateTime.utc(2026, 7, 21, 21);
-    await store.save(
-      TripTrackingSessionRecord(
-        id: 'trip_terminal_preserved',
-        vehicleId: 'vehicle_1',
-        startingOdometer: 5000,
-        profile: TripTrackingProfile.roadVehicle,
-        startedAt: at,
-        updatedAt: at.add(const Duration(minutes: 1)),
-        lifecycleState: TripTrackingSessionLifecycleState.failedTerminal,
-        engineSnapshot: const TripTrackingEngineSnapshot(
-          totalAcceptedMeters: 100,
-          walkingReviewSuggested: false,
+  test(
+    'restore quarantines terminal trip evidence without erasing it',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final at = DateTime.utc(2026, 7, 21, 21);
+      await store.save(
+        TripTrackingSessionRecord(
+          id: 'trip_terminal_preserved',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 5000,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: at,
+          updatedAt: at.add(const Duration(minutes: 1)),
+          lifecycleState: TripTrackingSessionLifecycleState.failedTerminal,
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 100,
+            walkingReviewSuggested: false,
+          ),
         ),
-      ),
-    );
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: GlobalOdometerController(
-        vehicleId: 'vehicle_1',
-        initialReading: 5000,
-      ),
-    );
-    addTearDown(controller.dispose);
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 5000,
+        ),
+      );
+      addTearDown(controller.dispose);
 
-    expect(await controller.restore(), isFalse);
-    expect(store.activeSession?.id, 'trip_terminal_preserved');
-    expect(controller.platformStatus, 'stored_session_requires_review');
-  });
+      expect(await controller.restore(), isFalse);
+      expect(store.activeSession, isNull);
+      expect(store.quarantinedSessions, hasLength(1));
+      expect(
+        store.quarantinedSessions.single.sessionId,
+        'trip_terminal_preserved',
+      );
+      expect(
+        store.quarantinedSessions.single.sessionPayload['lifecycleState'],
+        TripTrackingSessionLifecycleState.failedTerminal.name,
+      );
+      expect(controller.platformStatus, 'session_quarantined');
+    },
+  );
 }
