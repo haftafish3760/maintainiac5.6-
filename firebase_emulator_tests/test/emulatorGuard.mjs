@@ -9,6 +9,8 @@ export const storageHost = '127.0.0.1';
 export const storagePort = 9199;
 export const authHost = '127.0.0.1';
 export const authPort = 9099;
+export const functionsHost = '127.0.0.1';
+export const functionsPort = 5001;
 
 export function assertEmulatorOnly() {
   const firebaseRc = JSON.parse(

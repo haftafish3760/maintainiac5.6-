@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 HARNESS_DIR="$ROOT_DIR/firebase_emulator_tests"
+FUNCTIONS_DIR="$ROOT_DIR/functions"
 PROJECT_ID="demo-maintainiac-rules-test"
 JDK_CANDIDATES=(
   "${JAVA_HOME:-}"
@@ -23,6 +24,11 @@ if [[ ! -d node_modules ]]; then
   npm install
 fi
 
+if [[ ! -d "$FUNCTIONS_DIR/node_modules" ]]; then
+  echo "Installing Cloud Functions dependencies locally..."
+  npm ci --prefix "$FUNCTIONS_DIR"
+fi
+
 JAVA_READY=false
 for candidate in "${JDK_CANDIDATES[@]}"; do
   if [[ -n "$candidate" && -x "$candidate/bin/java" ]]; then
@@ -41,5 +47,5 @@ export GCLOUD_PROJECT="$PROJECT_ID"
 
 npx firebase emulators:exec \
   --project "$PROJECT_ID" \
-  --only auth,firestore,storage \
+  --only auth,firestore,functions,storage \
   "npm test"

@@ -67,6 +67,7 @@ config/firebase_dart_defines.local.json
 *.env
 token.env
 *.token.env
+!functions/.env.demo-maintainiac-rules-test
 *.pem
 *.p8
 *.key
