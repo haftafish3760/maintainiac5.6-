@@ -410,6 +410,10 @@ class TripTrackingReviewRecord {
       map,
       'schemaVersion',
     );
+    final hasValidVehicleConfigurationRevision =
+        !map.containsKey('vehicleConfigurationRevision') ||
+        (map['vehicleConfigurationRevision'] is int &&
+            (map['vehicleConfigurationRevision'] as int) >= 0);
     final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
@@ -565,6 +569,7 @@ class TripTrackingReviewRecord {
           !finishedAt.isBefore(startedAt) &&
           hasSafeIdentity &&
           hasValidProfile &&
+          hasValidVehicleConfigurationRevision &&
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(
             cloudSyncState,

@@ -325,6 +325,10 @@ class TripTrackingSessionRecord {
       map,
       'schemaVersion',
     );
+    final hasValidVehicleConfigurationRevision =
+        !map.containsKey('vehicleConfigurationRevision') ||
+        (map['vehicleConfigurationRevision'] is int &&
+            (map['vehicleConfigurationRevision'] as int) >= 0);
     final safeId = _safeIdentifier(map['id']);
     final safeVehicleId = _safeIdentifier(map['vehicleId']);
     final safeProfile = TripTrackingProfile.values.firstWhere(
@@ -399,6 +403,7 @@ class TripTrackingSessionRecord {
           hasValidProfile &&
           hasValidLifecycleState &&
           hasValidHealthState &&
+          hasValidVehicleConfigurationRevision &&
           hasSupportedSchemaVersion,
       revision: _safeTransitionRevision(map['revision']),
       recoveryCount: _safeRecoveryCount(map['recoveryCount']),

@@ -682,6 +682,9 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       review.hasValidTimeline &&
       review.id == session.id &&
       review.vehicleId == session.vehicleId &&
+      review.effectiveProfileId == session.effectiveProfileId &&
+      review.vehicleConfigurationRevision ==
+          session.vehicleConfigurationRevision &&
       review.startingOdometer == session.startingOdometer &&
       review.startedAt == session.startedAt &&
       review.estimatedEndingOdometer >= review.startingOdometer;

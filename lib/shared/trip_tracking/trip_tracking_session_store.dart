@@ -254,8 +254,16 @@ class TripTrackingSessionStore {
         'Active GPS sessions require a non-empty safe vehicle id.',
       );
     }
+    if (!_isSafeStoreIdentifier(session.effectiveProfileId)) {
+      throw ArgumentError.value(
+        session.effectiveProfileId,
+        'session.profileId',
+        'Active GPS sessions require a non-empty safe profile id.',
+      );
+    }
     if (!session.hasValidTimeline ||
-        session.updatedAt.isBefore(session.startedAt)) {
+        session.updatedAt.isBefore(session.startedAt) ||
+        session.vehicleConfigurationRevision < 0) {
       throw ArgumentError.value(
         session.id,
         'session',
@@ -280,6 +288,8 @@ class TripTrackingSessionStore {
           : TripTrackingSessionRecord(
               id: session.id,
               vehicleId: session.vehicleId,
+              vehicleConfigurationRevision:
+                  session.vehicleConfigurationRevision,
               startingOdometer: session.startingOdometer,
               profile: session.profile,
               profileId: session.effectiveProfileId,
@@ -393,8 +403,16 @@ class TripTrackingSessionStore {
             'Trip reviews require a non-empty safe vehicle id.',
           );
         }
+        if (!_isSafeStoreIdentifier(review.effectiveProfileId)) {
+          throw ArgumentError.value(
+            review.effectiveProfileId,
+            'review.profileId',
+            'Trip reviews require a non-empty safe profile id.',
+          );
+        }
         if (!review.hasValidTimeline ||
             review.finishedAt.isBefore(review.startedAt) ||
+            review.vehicleConfigurationRevision < 0 ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
