@@ -21,6 +21,19 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       );
       return;
     }
+    final invalidSplitCount = _splitLinesMissingBusinessPercentCount;
+    if (invalidSplitCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            invalidSplitCount == 1
+                ? 'Confirm the business allocation for the split line before saving.'
+                : 'Confirm the business allocation for all $invalidSplitCount split lines before saving.',
+          ),
+        ),
+      );
+      return;
+    }
     final readinessIssues = _receiptSaveReadinessIssues();
     if (readinessIssues.isNotEmpty) {
       final shouldSave = await _showReceiptSaveReadinessDialog(readinessIssues);
