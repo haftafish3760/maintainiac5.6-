@@ -9,6 +9,7 @@ class ReceiptOcrRow {
     required this.displayText,
     required this.normalizedText,
     required this.sourceLineIndexes,
+    this.sourceTokenReferences = const [],
     this.bounds,
     this.confidence,
     this.optionalInterpretation,
@@ -23,6 +24,7 @@ class ReceiptOcrRow {
   final String displayText;
   final String normalizedText;
   final List<int> sourceLineIndexes;
+  final List<ReceiptOcrTokenReference> sourceTokenReferences;
   final ReceiptOcrBounds? bounds;
   final double? confidence;
   final String? optionalInterpretation;
@@ -30,6 +32,18 @@ class ReceiptOcrRow {
   final bool needsReview;
 
   String get sourceText => sourceFragments.join('\t');
+}
+
+/// Identifies the original token that supports editable receipt evidence.
+/// Attachment and page identity remain on [ReceiptOcrRow].
+class ReceiptOcrTokenReference {
+  const ReceiptOcrTokenReference({
+    required this.sourceLineIndex,
+    required this.sourceTokenIndex,
+  });
+
+  final int sourceLineIndex;
+  final int sourceTokenIndex;
 }
 
 List<ReceiptOcrRow> reconstructReceiptOcrRows(ReceiptOcrDocument document) {
@@ -58,25 +72,23 @@ List<ReceiptOcrRow> reconstructReceiptOcrRows(ReceiptOcrDocument document) {
     }
     clusters.sort((left, right) => left.compareTo(right));
     final usedLineIndexes = <int>{};
+    final pageRows = <_ReceiptOcrRowPageEntry>[];
     for (final cluster in clusters) {
       usedLineIndexes.addAll(cluster.sourceLineIndexes);
-      rows.add(
-        cluster.toRow(
-          attachmentId: page.attachmentId,
-          pageIndex: page.pageIndex,
-          readingOrder: readingOrder++,
-        ),
-      );
+      pageRows.add(_ReceiptOcrRowPageEntry.cluster(cluster));
     }
     for (final candidate in candidates) {
       if (usedLineIndexes.contains(candidate.sourceLineIndex)) continue;
-      rows.add(
-        _rowFromUnpositionedCandidate(
-          page,
+      pageRows.add(
+        _ReceiptOcrRowPageEntry.unpositioned(
           candidate,
-          readingOrder: readingOrder++,
+          estimatedTop: _estimatedUnpositionedRowTop(candidates, candidate),
         ),
       );
+    }
+    pageRows.sort(_compareReceiptOcrRowPageEntries);
+    for (final pageRow in pageRows) {
+      rows.add(pageRow.toRow(page, readingOrder: readingOrder++));
     }
   }
   return List.unmodifiable(rows);
@@ -94,6 +106,9 @@ List<_ReceiptOcrRowCandidate> _rowCandidates(ReceiptOcrPage page) {
             text: line.sourceText,
             bounds: line.bounds,
             confidence: line.confidence,
+            sourceTokenIndexes: List.unmodifiable(
+              List.generate(line.tokens.length, (index) => index),
+            ),
           ),
         );
       }
@@ -133,9 +148,100 @@ ReceiptOcrRow _rowFromUnpositionedCandidate(
     displayText: candidate.text,
     normalizedText: _normalizeReceiptOcrEvidenceText(candidate.text),
     sourceLineIndexes: List.unmodifiable([candidate.sourceLineIndex]),
+    sourceTokenReferences: List.unmodifiable([
+      for (final tokenIndex in candidate.sourceTokenIndexes)
+        ReceiptOcrTokenReference(
+          sourceLineIndex: candidate.sourceLineIndex,
+          sourceTokenIndex: tokenIndex,
+        ),
+    ]),
     confidence: candidate.confidence,
-    needsReview: candidate.confidence == null,
+    needsReview: _receiptOcrEvidenceNeedsReview(candidate.confidence),
   );
+}
+
+class _ReceiptOcrRowPageEntry {
+  const _ReceiptOcrRowPageEntry.cluster(this.cluster)
+    : candidate = null,
+      estimatedTop = null;
+
+  _ReceiptOcrRowPageEntry.unpositioned(
+    this.candidate, {
+    required this.estimatedTop,
+  }) : cluster = null;
+
+  final _ReceiptOcrRowCluster? cluster;
+  final _ReceiptOcrRowCandidate? candidate;
+  final double? estimatedTop;
+
+  int get sourceLineIndex =>
+      cluster?.firstSourceLineIndex ?? candidate!.sourceLineIndex;
+  double? get sortTop => cluster?.bounds.top ?? estimatedTop;
+  double get sortLeft => cluster?.bounds.left ?? 0;
+
+  ReceiptOcrRow toRow(ReceiptOcrPage page, {required int readingOrder}) {
+    final positioned = cluster;
+    if (positioned != null) {
+      return positioned.toRow(
+        attachmentId: page.attachmentId,
+        pageIndex: page.pageIndex,
+        readingOrder: readingOrder,
+      );
+    }
+    return _rowFromUnpositionedCandidate(
+      page,
+      candidate!,
+      readingOrder: readingOrder,
+    );
+  }
+}
+
+int _compareReceiptOcrRowPageEntries(
+  _ReceiptOcrRowPageEntry left,
+  _ReceiptOcrRowPageEntry right,
+) {
+  final leftTop = left.sortTop;
+  final rightTop = right.sortTop;
+  if (leftTop != null && rightTop != null) {
+    final topOrder = leftTop.compareTo(rightTop);
+    if (topOrder != 0) return topOrder;
+    final leftOrder = left.sortLeft.compareTo(right.sortLeft);
+    if (leftOrder != 0) return leftOrder;
+  } else if (leftTop != null) {
+    return -1;
+  } else if (rightTop != null) {
+    return 1;
+  }
+  return left.sourceLineIndex.compareTo(right.sourceLineIndex);
+}
+
+double? _estimatedUnpositionedRowTop(
+  List<_ReceiptOcrRowCandidate> candidates,
+  _ReceiptOcrRowCandidate candidate,
+) {
+  _ReceiptOcrRowCandidate? before;
+  _ReceiptOcrRowCandidate? after;
+  for (final other in candidates) {
+    if (other.bounds == null) continue;
+    if (other.sourceLineIndex < candidate.sourceLineIndex &&
+        (before == null || other.sourceLineIndex > before.sourceLineIndex)) {
+      before = other;
+    }
+    if (other.sourceLineIndex > candidate.sourceLineIndex &&
+        (after == null || other.sourceLineIndex < after.sourceLineIndex)) {
+      after = other;
+    }
+  }
+  final beforeBounds = before?.bounds;
+  final afterBounds = after?.bounds;
+  if (beforeBounds != null && afterBounds != null) {
+    return ((beforeBounds.top + beforeBounds.bottom) +
+            (afterBounds.top + afterBounds.bottom)) /
+        4;
+  }
+  if (beforeBounds != null) return beforeBounds.bottom + 8;
+  if (afterBounds != null) return afterBounds.top - 8;
+  return null;
 }
 
 class _ReceiptOcrRowCandidate {
@@ -144,12 +250,14 @@ class _ReceiptOcrRowCandidate {
     required this.text,
     required this.bounds,
     required this.confidence,
+    required this.sourceTokenIndexes,
   });
 
   final int sourceLineIndex;
   final String text;
   final ReceiptOcrBounds? bounds;
   final double? confidence;
+  final List<int> sourceTokenIndexes;
 }
 
 class _ReceiptOcrRowCluster {
@@ -162,6 +270,9 @@ class _ReceiptOcrRowCluster {
 
   Iterable<int> get sourceLineIndexes =>
       lines.map((line) => line.sourceLineIndex);
+
+  int get firstSourceLineIndex =>
+      lines.map((line) => line.sourceLineIndex).reduce(_minInt);
 
   double verticalMatchScore(ReceiptOcrBounds candidate) {
     final overlap =
@@ -202,6 +313,8 @@ class _ReceiptOcrRowCluster {
       (left, right) => left.bounds!.left.compareTo(right.bounds!.left),
     );
     final fragments = lines.map((line) => line.text).toList(growable: false);
+    // Keep the visible review row natural while [sourceText] retains the exact
+    // fragment boundary with a tab for provenance and diagnostics.
     final displayText = fragments.join(' ');
     final confidences = lines
         .map((line) => line.confidence)
@@ -219,12 +332,21 @@ class _ReceiptOcrRowCluster {
       displayText: displayText,
       normalizedText: _normalizeReceiptOcrEvidenceText(displayText),
       sourceLineIndexes: List.unmodifiable(sourceLineIndexes),
+      sourceTokenReferences: List.unmodifiable([
+        for (final line in lines)
+          for (final tokenIndex in line.sourceTokenIndexes)
+            ReceiptOcrTokenReference(
+              sourceLineIndex: line.sourceLineIndex,
+              sourceTokenIndex: tokenIndex,
+            ),
+      ]),
       bounds: bounds,
       confidence: confidence,
-      needsReview: confidence == null,
+      needsReview: _receiptOcrEvidenceNeedsReview(confidence),
     );
   }
 }
 
 double _minDouble(double left, double right) => left < right ? left : right;
 double _maxDouble(double left, double right) => left > right ? left : right;
+int _minInt(int left, int right) => left < right ? left : right;

@@ -140,3 +140,13 @@
 - The trial changed 163 files and produced 262 analyzer issues across mutually dependent expense allocation, receipt models, storage, settings, camera guidance, and tests.
 - The trial was aborted completely; none of that incompatible batch entered 5.7.
 - These unique implementations remain preserved on GitHub and in the detailed manual-review evidence for later feature-level reconciliation.
+
+## Semantic reconciliation resumed
+
+- The whole-batch failure was not treated as proof that every source change was obsolete. The OCR history was reopened commit-by-commit against the current 5.7 contracts.
+- Integrated evidence-backed merchant, date, subtotal, tax, and total candidates without adding automatic destination routing or record creation. Competing candidates, original line indexes, token indexes, bounds, confidence, and printed evidence remain available for mandatory user review.
+- Integrated mixed positioned/unpositioned row ordering and token provenance while preserving 5.7's normal user-visible spacing.
+- Integrated device-tier photo read timeouts, stalled-recognizer recovery, quality-prioritized photo selection, ordered long-receipt segment preservation, and coordinate-only readable-text recognition.
+- Added focused candidate and photo-selection tests and extended timeout/warning tests.
+- Validation: `flutter analyze` passed with no issues. The focused OCR evidence, layout, warning, source-quality, and review suite passed 39 tests.
+- This is a verified semantic subset of the source history. Remaining source-only expense and OCR changes continue to require feature-level comparison; they are not considered rejected merely because the old batch trial failed.

@@ -21,6 +21,11 @@ class ReceiptOcrDocument {
   bool get hasLayout => pages.any((page) => page.blocks.isNotEmpty);
   int get lineCount => pages.fold(0, (sum, page) => sum + page.lines.length);
   List<ReceiptOcrRow> get reconstructedRows => reconstructReceiptOcrRows(this);
+
+  /// Evidence-backed suggestions for mandatory user review. These candidates
+  /// never choose an expense destination or create a business record.
+  ReceiptOcrFieldCandidates get fieldCandidates =>
+      extractReceiptOcrFieldCandidates(this);
 }
 
 class ReceiptOcrPage {
@@ -61,6 +66,9 @@ class ReceiptOcrBlock {
   String get sourceText => text;
   String get displayText => text;
   String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
+  String? get optionalInterpretation => null;
+  double? get interpretationConfidence => null;
+  bool get needsReview => _receiptOcrEvidenceNeedsReview(confidence);
 }
 
 class ReceiptOcrLine {
@@ -79,6 +87,9 @@ class ReceiptOcrLine {
   String get sourceText => text;
   String get displayText => text;
   String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
+  String? get optionalInterpretation => null;
+  double? get interpretationConfidence => null;
+  bool get needsReview => _receiptOcrEvidenceNeedsReview(confidence);
 }
 
 class ReceiptOcrToken {
@@ -91,10 +102,17 @@ class ReceiptOcrToken {
   String get sourceText => text;
   String get displayText => text;
   String get normalizedText => _normalizeReceiptOcrEvidenceText(text);
+  String? get optionalInterpretation => null;
+  double? get interpretationConfidence => null;
+  bool get needsReview => _receiptOcrEvidenceNeedsReview(confidence);
 }
 
 String _normalizeReceiptOcrEvidenceText(String value) {
   return value.trim().replaceAll(RegExp(r'\s+'), ' ');
+}
+
+bool _receiptOcrEvidenceNeedsReview(double? confidence) {
+  return confidence == null || confidence < .85;
 }
 
 class ReceiptOcrBounds {
