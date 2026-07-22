@@ -109,7 +109,9 @@ void main() {
     expect(source, contains('location.timestamp.timeIntervalSince1970 > 0'));
     expect(
       source,
-      contains('location.timestamp <= Date().addingTimeInterval(120)'),
+      contains(
+        'location.timestamp <= callbackReceivedAt.addingTimeInterval(120)',
+      ),
     );
     expect(source, contains('location.speedAccuracy <= 1000'));
     expect(source, contains('"bearingDegrees": reportedBearing ?? NSNull()'));
@@ -155,6 +157,8 @@ void main() {
       ios,
       contains('"speedAccuracyMetersPerSecond": reportedSpeedAccuracy'),
     );
+    expect(ios, contains('ProcessInfo.processInfo.systemUptime'));
+    expect(ios, contains('event["monotonicElapsedNanos"]'));
     expect(android, contains('trip_tracking_foreground_service_denied'));
     expect(androidBridge, contains('catch (error: IllegalStateException)'));
     expect(android, contains('trip_tracking_location_registration_failed'));
