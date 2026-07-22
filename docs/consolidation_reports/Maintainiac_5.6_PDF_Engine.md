@@ -1,0 +1,125 @@
+# Consolidation report: Maintainiac_5.6_PDF_Engine
+
+- Applied: `True`
+- Source remained unchanged: `true`
+
+## Counts
+
+- manual_merge: 133
+- skip_duplicate: 3773
+- skip_generated: 1
+
+## Protected-feature signals
+
+- expenses_payments: 1325
+- firebase_storage: 1426
+- jobs_maintenance_calendar: 557
+- mapbox_dashboard_profiles: 683
+- pdf_invoices_estimates: 703
+- receipt_ocr_camera: 2661
+- trip_tracking: 509
+- work_supplies_materials: 1334
+
+## Manual review
+
+- `android/app/src/main/kotlin/com/maintainiac/TripTrackingActivityReceiver.kt` — same target path has different content
+- `android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt` — same target path has different content
+- `android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt` — same target path has different content
+- `docs/expense_release_one_blueprint.md` — same target path has different content
+- `docs/receipt_real_device_test_script.md` — same target path has different content
+- `docs/gps_assisted_tracking/GPS_REAL_DEVICE_TEST_PROTOCOL.md` — same target path has different content
+- `docs/gps_assisted_tracking/GPS_WORK_STATE.md` — same target path has different content
+- `ios/Podfile.lock` — same target path has different content
+- `ios/Runner/TripTrackingNativeBridge.swift` — same target path has different content
+- `lib/main.dart` — same target path has different content
+- `lib/screens/dashboard/active_workday_screen.dart` — same target path has different content
+- `lib/screens/dashboard/data/dashboard_trip_tracking_summary.dart` — same target path has different content
+- `lib/screens/dashboard/data/dashboard_trip_tracking_summary_runtime_helpers.dart` — same target path has different content
+- `lib/screens/dashboard/data/dashboard_trip_tracking_summary_sanitizers.dart` — same target path has different content
+- `lib/screens/expenses/calendar/expense_calendar.dart` — same target path has different content
+- `lib/screens/expenses/calendar/expense_calendar_actions.dart` — same target path has different content
+- `lib/screens/expenses/calendar/expense_receipt_detail_screen.dart` — same target path has different content
+- `lib/screens/expenses/data/expense_ledger_summary.dart` — same target path has different content
+- `lib/screens/expenses/data/expense_receipt_record.dart` — same target path has different content
+- `lib/screens/expenses/data/expense_receipt_record_serialization.dart` — same target path has different content
+- `lib/screens/expenses/entry/expense_receipt_category_picker.dart` — same target path has different content
+- `lib/screens/expenses/entry/expense_receipt_category_picker_widgets.dart` — same target path has different content
+- `lib/screens/expenses/entry/expense_receipt_entry_core_helpers.dart` — same target path has different content
+- `lib/screens/expenses/entry/expense_receipt_line_editor_derived_fields.dart` — same target path has different content
+- `lib/screens/expenses/home/expenses_home_period.dart` — same target path has different content
+- `lib/screens/expenses/reports/expense_recap_models.dart` — same target path has different content
+- `lib/screens/expenses/settings/expense_settings_switch_panels.dart` — same target path has different content
+- `lib/screens/maintenance/maintenance_item_detail_calculations.dart` — same target path has different content
+- `lib/screens/maintenance/maintenance_item_detail_screen.dart` — same target path has different content
+- `lib/screens/maintenance/maintenance_log_service_screen.dart` — same target path has different content
+- `lib/screens/settings/trip_tracking_settings_screen.dart` — same target path has different content
+- `lib/screens/work_supplies/data/work_supply_parsed_receipt_bridge.dart` — same target path has different content
+- `lib/screens/work_supplies/data/work_supply_receipt_parser.dart` — same target path has different content
+- `lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_landscaping.dart` — same target path has different content
+- `lib/screens/work_supplies/data/work_supply_receipt_parser_trade_scores_masonry_concrete.dart` — same target path has different content
+- `lib/screens/work_supplies/data/inventory_parsers/plumbing/plumbing_receipt_precedence_parser.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_active_day_timer_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_sample_window_quality_helpers.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_sample_window_quality_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_stop_advisory_reviewer.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_stop_review_open_summary_validation.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_bluetooth.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_calibration_state.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_command_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_controller.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_device_operational_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_engine.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_models.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_native_error_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_native_sampling_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_odometer_calibration.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_odometer_reconciliation.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_odometer_usage_anomaly.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_platform.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_profile_strategy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_provider_evidence_summary.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_recovery_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_sampling_preset_policy.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_session_store.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_settings_store.dart` — same target path has different content
+- `lib/shared/trip_tracking/trip_tracking_state_machine.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_attachment_ocr_actions.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_attachment_review_read_actions.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_build.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_order_actions.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_photo_surface.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_preview_controls.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar_buttons.dart` — same target path has different content
+- `lib/shared/widgets/receipt_capture/receipt_photo_review_ui_config.dart` — same target path has different content
+- `macos/Flutter/GeneratedPluginRegistrant.swift` — same target path has different content
+- `screen_notes/expenses_receipts.txt` — same target path has different content
+- `test/active_workday_gps_contract_test.dart` — same target path has different content
+- `test/active_workday_odometer_alerts_test.dart` — same target path has different content
+- `test/dashboard_trip_tracking_summary_test.dart` — same target path has different content
+- `test/expense_ledger_store_test.dart` — same target path has different content
+- `test/expense_recap_models_test.dart` — same target path has different content
+- `test/expense_receipt_detail_ocr_review_test.dart` — same target path has different content
+- `test/maintenance_tracking_selection_test.dart` — same target path has different content
+- `test/qa_admin_report_contract_test.dart` — same target path has different content
+- `test/receipt_attachment_duplicate_detector_test.dart` — same target path has different content
+- `test/receipt_camera_ocr_source_attachment_read_test.dart` — same target path has different content
+- `test/receipt_camera_release_control_priority_test.dart` — same target path has different content
+- `test/receipt_capture_flow_handoff_order_test.dart` — same target path has different content
+- `test/receipt_ocr_source_relationship_test.dart` — same target path has different content
+- `test/receipt_photo_review_controls_layout_test.dart` — same target path has different content
+- `test/receipt_photo_review_quality_handoff_test.dart` — same target path has different content
+- `test/receipt_photo_review_save_lifecycle_test.dart` — same target path has different content
+- `test/receipt_real_device_result_gate_test.dart` — same target path has different content
+- `test/receipt_stitching_manual_overlap_test.dart` — same target path has different content
+- `test/receipt_stitching_scale_rotation_test.dart` — same target path has different content
+- `test/trip_battery_gps_continuation_policy_test.dart` — same target path has different content
+- `test/trip_low_battery_prompt_action_policy_test.dart` — same target path has different content
+- `test/trip_sample_window_quality_policy_test.dart` — same target path has different content
+- Remaining manual items: 33 (see JSONL)
