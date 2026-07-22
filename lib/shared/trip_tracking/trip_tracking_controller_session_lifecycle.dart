@@ -248,7 +248,23 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       notifyListeners();
       return false;
     }
-    if (session == null) return false;
+    if (session == null) {
+      try {
+        final diagnostic = await _sessionStore
+            .recordUnreadableRecoveryDiagnostic(recordedAtUtc: _clockNow());
+        if (diagnostic != null) {
+          _platformStatus = 'corrupt_session_recovery_required';
+          _platformError =
+              'A damaged trip checkpoint was preserved for recovery review. It was not deleted or used as mileage.';
+          notifyListeners();
+        }
+      } catch (_) {
+        _platformStatus = 'storage_failed';
+        _platformError = 'Could not preserve damaged trip recovery evidence.';
+        notifyListeners();
+      }
+      return false;
+    }
     if (session.lifecycleState == TripTrackingSessionLifecycleState.cancelled) {
       return _recoverCancelledSession(session);
     }
@@ -263,9 +279,22 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         notifyListeners();
         return false;
       }
-      _platformStatus = 'stored_session_requires_review';
-      _platformError =
-          'Stored trip evidence cannot be resumed safely and remains preserved for controlled review.';
+      try {
+        final quarantined = await _sessionStore.quarantineActiveSession(
+          sessionId: session.id,
+          reasonCode: 'unsafe_session_recovery_boundary',
+          quarantinedAtUtc: _clockNow(),
+        );
+        _platformStatus = quarantined
+            ? 'session_quarantined'
+            : 'session_quarantine_pending';
+        _platformError = quarantined
+            ? 'An unsafe trip checkpoint was isolated without deleting its evidence.'
+            : 'An unsafe trip checkpoint still needs recovery review.';
+      } catch (_) {
+        _platformStatus = 'storage_failed';
+        _platformError = 'Could not isolate invalid local trip data safely.';
+      }
       notifyListeners();
       return false;
     }

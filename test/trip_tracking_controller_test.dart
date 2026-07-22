@@ -1925,6 +1925,7 @@ void main() {
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
+        clockNow: () => start.add(const Duration(minutes: 2)),
       );
       await controller.start(
         tripId: 'trip_finish_drain',
@@ -5129,6 +5130,7 @@ void main() {
         sessionStore: store,
         odometer: odometer,
         platform: native,
+        clockNow: () => start.add(const Duration(minutes: 2)),
       );
       await controller.start(
         tripId: 'trip_finish_stop_fault',
@@ -6244,6 +6246,7 @@ void main() {
         sessionStore: store,
         odometer: odometer,
         platform: native,
+        clockNow: () => start.add(const Duration(minutes: 3)),
       );
       await controller.start(
         tripId: 'trip_cancel_requires_confirmation',
@@ -6769,7 +6772,7 @@ void main() {
     },
   );
 
-  test('corrupt local trip identity is cleared instead of restored', () async {
+  test('corrupt local trip identity is preserved but never restored', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(
       'trip_tracking_corrupt_identity_',
     );
@@ -6802,11 +6805,24 @@ void main() {
 
     expect(await controller.restore(), isFalse);
     expect(store.activeSession, isNull);
+    expect(box.get('activeSession'), isNotNull);
+    expect(store.recoveryDiagnostics, hasLength(1));
+    expect(
+      store.recoveryDiagnostics.single.code,
+      'corrupt_active_session_recovery_required',
+    );
+    expect(controller.platformStatus, 'corrupt_session_recovery_required');
+    expect(controller.platformError, contains('was preserved'));
+    final firstDiagnosticAt = store.recoveryDiagnostics.single.recordedAtUtc;
+
+    expect(await controller.restore(), isFalse);
+    expect(store.recoveryDiagnostics, hasLength(1));
+    expect(store.recoveryDiagnostics.single.recordedAtUtc, firstDiagnosticAt);
     expect(controller.isTracking, isFalse);
     expect(odometer.hasLiveTripProjection, isFalse);
   });
 
-  test('future-schema local trip is cleared instead of restored', () async {
+  test('future-schema local trip is preserved but never restored', () async {
     final hiveDirectory = await Directory.systemTemp.createTemp(
       'trip_tracking_future_schema_',
     );
@@ -6840,6 +6856,12 @@ void main() {
 
     expect(await controller.restore(), isFalse);
     expect(store.activeSession, isNull);
+    expect(box.get('activeSession'), isNotNull);
+    expect(store.recoveryDiagnostics, hasLength(1));
+    expect(
+      store.recoveryDiagnostics.single.code,
+      'corrupt_active_session_recovery_required',
+    );
     expect(controller.isTracking, isFalse);
     expect(odometer.hasLiveTripProjection, isFalse);
   });
@@ -6905,9 +6927,12 @@ void main() {
     );
 
     expect(await controller.restore(), isFalse);
-    expect(store.activeSession?.id, 'trip_terminal_restore');
+    expect(store.activeSession, isNull);
+    expect(store.quarantinedSessions, hasLength(1));
+    expect(store.quarantinedSessions.single.sessionId, 'trip_terminal_restore');
     expect(controller.isTracking, isFalse);
-    expect(controller.platformStatus, 'stored_session_requires_review');
+    expect(controller.platformStatus, 'session_quarantined');
+    expect(controller.platformError, contains('without deleting'));
   });
 
   test(
@@ -7110,57 +7135,69 @@ void main() {
     },
   );
 
-  test('a missing persisted timeline is cleared instead of restored', () async {
-    final store = await _storeWithRawTripTrackingData(
-      tempPrefix: 'trip_tracking_missing_timeline_',
-      activeSession: {
-        'id': 'trip_missing_timeline',
-        'vehicleId': 'vehicle_1',
-        'startingOdometer': 1000,
-        'profile': 'roadVehicle',
-        'engineSnapshot': {
-          'totalAcceptedMeters': 0,
-          'walkingReviewSuggested': false,
+  test(
+    'a missing persisted timeline is preserved but never restored',
+    () async {
+      final store = await _storeWithRawTripTrackingData(
+        tempPrefix: 'trip_tracking_missing_timeline_',
+        activeSession: {
+          'id': 'trip_missing_timeline',
+          'vehicleId': 'vehicle_1',
+          'startingOdometer': 1000,
+          'profile': 'roadVehicle',
+          'engineSnapshot': {
+            'totalAcceptedMeters': 0,
+            'walkingReviewSuggested': false,
+          },
         },
-      },
-    );
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: GlobalOdometerController(initialReading: 1000),
-    );
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
 
-    expect(await controller.restore(), isFalse);
-    expect(store.activeSession, isNull);
-    expect(controller.isTracking, isFalse);
-  });
+      expect(await controller.restore(), isFalse);
+      expect(store.activeSession, isNull);
+      expect(store.hasUnreadableActiveEvidence, isTrue);
+      expect(store.recoveryDiagnostics, hasLength(1));
+      expect(controller.platformStatus, 'corrupt_session_recovery_required');
+      expect(controller.isTracking, isFalse);
+    },
+  );
 
-  test('an unknown persisted profile is cleared instead of restored', () async {
-    final store = await _storeWithRawTripTrackingData(
-      tempPrefix: 'trip_tracking_unknown_profile_',
-      activeSession: {
-        'id': 'trip_unknown_profile',
-        'vehicleId': 'vehicle_1',
-        'startingOdometer': 1000,
-        'profile': 'silentTracker',
-        'startedAt': start.toIso8601String(),
-        'updatedAt': start.toIso8601String(),
-        'engineSnapshot': const TripTrackingEngineSnapshot(
-          totalAcceptedMeters: 0,
-          walkingReviewSuggested: false,
-        ).toMap(),
-      },
-    );
-    final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
-      sessionStore: store,
-      odometer: odometer,
-    );
+  test(
+    'an unknown persisted profile is preserved but never restored',
+    () async {
+      final store = await _storeWithRawTripTrackingData(
+        tempPrefix: 'trip_tracking_unknown_profile_',
+        activeSession: {
+          'id': 'trip_unknown_profile',
+          'vehicleId': 'vehicle_1',
+          'startingOdometer': 1000,
+          'profile': 'silentTracker',
+          'startedAt': start.toIso8601String(),
+          'updatedAt': start.toIso8601String(),
+          'engineSnapshot': const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ).toMap(),
+        },
+      );
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
 
-    expect(await controller.restore(), isFalse);
-    expect(store.activeSession, isNull);
-    expect(controller.isTracking, isFalse);
-    expect(odometer.hasLiveTripProjection, isFalse);
-  });
+      expect(await controller.restore(), isFalse);
+      expect(store.activeSession, isNull);
+      expect(store.hasUnreadableActiveEvidence, isTrue);
+      expect(store.recoveryDiagnostics, hasLength(1));
+      expect(controller.platformStatus, 'corrupt_session_recovery_required');
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+    },
+  );
 
   test('recovery never projects a GPS trip onto another vehicle', () async {
     final store = TripTrackingSessionStore.memory();

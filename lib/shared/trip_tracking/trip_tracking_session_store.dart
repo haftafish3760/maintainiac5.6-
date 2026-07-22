@@ -4,6 +4,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../storage/app_storage_guard.dart';
 import 'trip_tracking_models.dart';
+import 'trip_tracking_quarantined_session.dart';
+import 'trip_tracking_recovery_diagnostic.dart';
 
 part 'trip_tracking_session_record.dart';
 part 'trip_tracking_review_record.dart';
@@ -119,6 +121,8 @@ class TripTrackingSessionStore {
   static const _activeSessionKey = 'activeSession';
   static const _previousSessionKey = 'previousCommittedSession';
   static const _pendingSessionWriteKey = 'pendingSessionWrite';
+  static const _quarantinedPrefix = 'quarantinedSession:';
+  static const _recoveryDiagnosticPrefix = 'recoveryDiagnostic:';
   static const _reviewPrefix = 'review:';
   static const _pendingPrefix = 'pending:';
 
@@ -126,6 +130,9 @@ class TripTrackingSessionStore {
   TripTrackingSessionRecord? _memorySession;
   final Map<String, TripTrackingReviewRecord> _memoryReviews = {};
   final Map<String, TripTrackingPendingSample> _memoryPending = {};
+  final Map<String, TripTrackingQuarantinedSession> _memoryQuarantined = {};
+  final Map<String, TripTrackingRecoveryDiagnostic> _memoryRecoveryDiagnostics =
+      {};
   final TripTrackingSessionStorageCheck? _storageCheck;
   static Future<void> _sharedWriteTail = Future<void>.value();
 
@@ -155,6 +162,87 @@ class TripTrackingSessionStore {
     return active != null && active.revision >= pending.revision
         ? TripTrackingPendingWriteState.committedCleanupPending
         : TripTrackingPendingWriteState.interrupted;
+  }
+
+  List<TripTrackingQuarantinedSession> get quarantinedSessions {
+    final records = _box == null
+        ? _memoryQuarantined.values.toList()
+        : _box.keys
+              .whereType<String>()
+              .where((key) => key.startsWith(_quarantinedPrefix))
+              .map((key) => _box.get(key))
+              .whereType<Map>()
+              .map(TripTrackingQuarantinedSession.tryFromMap)
+              .whereType<TripTrackingQuarantinedSession>()
+              .toList();
+    records.sort((a, b) => a.quarantinedAtUtc.compareTo(b.quarantinedAtUtc));
+    return List.unmodifiable(records);
+  }
+
+  List<TripTrackingRecoveryDiagnostic> get recoveryDiagnostics {
+    final records = _box == null
+        ? _memoryRecoveryDiagnostics.values.toList()
+        : _box.keys
+              .whereType<String>()
+              .where((key) => key.startsWith(_recoveryDiagnosticPrefix))
+              .map((key) => _box.get(key))
+              .whereType<Map>()
+              .map(TripTrackingRecoveryDiagnostic.tryFromMap)
+              .whereType<TripTrackingRecoveryDiagnostic>()
+              .toList();
+    records.sort((a, b) => a.recordedAtUtc.compareTo(b.recordedAtUtc));
+    return List.unmodifiable(records);
+  }
+
+  bool get hasUnreadableActiveEvidence {
+    if (_box == null || activeSession != null) return false;
+    return _box.containsKey(_activeSessionKey) ||
+        _box.containsKey(_previousSessionKey) ||
+        _box.containsKey(_pendingSessionWriteKey);
+  }
+
+  Future<TripTrackingRecoveryDiagnostic?> recordUnreadableRecoveryDiagnostic({
+    DateTime? recordedAtUtc,
+  }) => _enqueue(() async {
+    if (!hasUnreadableActiveEvidence) return null;
+    final expectedRevision = _maximumRawRecoveryRevision;
+    final key = '${_recoveryDiagnosticPrefix}unreadable:$expectedRevision:0';
+    final existing = _box == null
+        ? _memoryRecoveryDiagnostics[key]
+        : switch (_box.get(key)) {
+            Map value => TripTrackingRecoveryDiagnostic.tryFromMap(value),
+            _ => null,
+          };
+    if (existing != null) return existing;
+    final diagnostic = TripTrackingRecoveryDiagnostic(
+      code: 'corrupt_active_session_recovery_required',
+      recordedAtUtc: (recordedAtUtc ?? DateTime.now()).toUtc(),
+      expectedGeneration: expectedRevision,
+      restoredGeneration: 0,
+    );
+    if (_box == null) {
+      _memoryRecoveryDiagnostics[key] = diagnostic;
+    } else {
+      await _box.put(key, diagnostic.toMap());
+    }
+    return diagnostic;
+  });
+
+  int get _maximumRawRecoveryRevision {
+    if (_box == null) return _memorySession?.revision ?? 0;
+    var maximum = 0;
+    for (final key in [
+      _activeSessionKey,
+      _previousSessionKey,
+      _pendingSessionWriteKey,
+    ]) {
+      final value = _box.get(key);
+      final revision = value is Map ? value['revision'] : null;
+      if (revision is int && revision >= 0 && revision > maximum) {
+        maximum = revision;
+      }
+    }
+    return maximum;
   }
 
   List<TripTrackingReviewRecord> get pendingReviews {
@@ -338,6 +426,42 @@ class TripTrackingSessionStore {
       _previousSessionKey,
       _pendingSessionWriteKey,
     ]);
+  });
+
+  /// Releases active ownership only after preserving the complete valid
+  /// checkpoint for explicit recovery or user-directed deletion.
+  Future<bool> quarantineActiveSession({
+    required String sessionId,
+    required String reasonCode,
+    DateTime? quarantinedAtUtc,
+  }) => _enqueue(() async {
+    if (!_isSafeStoreIdentifier(sessionId) ||
+        !_isSafeStoreIdentifier(reasonCode)) {
+      return false;
+    }
+    final current = activeSession;
+    if (current == null || current.id != sessionId) return false;
+    if (_storageCheck != null) await _ensureStorageForWrite();
+    final record = TripTrackingQuarantinedSession(
+      sessionId: current.id,
+      revision: current.revision,
+      sessionPayload: Map.unmodifiable(current.toMap()),
+      reasonCode: reasonCode,
+      quarantinedAtUtc: (quarantinedAtUtc ?? DateTime.now()).toUtc(),
+    );
+    final key = '$_quarantinedPrefix${current.id}:${current.revision}';
+    if (_box == null) {
+      _memoryQuarantined[key] = record;
+      _memorySession = null;
+    } else {
+      await _box.put(key, record.toMap());
+      await _box.deleteAll([
+        _activeSessionKey,
+        _previousSessionKey,
+        _pendingSessionWriteKey,
+      ]);
+    }
+    return true;
   });
 
   TripTrackingPendingSample? pendingSampleFor(String sessionId) {
