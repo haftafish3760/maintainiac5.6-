@@ -90,16 +90,10 @@ class ExpenseDraftController extends ChangeNotifier {
     Duration olderThan = const Duration(days: 7),
     DateTime? now,
   }) async {
-    final snapshot = recoverySnapshot();
-    await ReceiptProofStorage.instance.cleanOldStagedFiles(
-      retainedPaths: [
-        ...snapshot.retainedStagedProofPaths,
-        ...additionalRetainedPaths,
-      ],
-      olderThan: olderThan,
-      now: now,
-    );
-    return snapshot;
+    // Age is never permission to erase a recoverable receipt session. This
+    // startup hook now inventories recovery state only; cleanup happens after
+    // confirmed completion or an explicit user discard.
+    return recoverySnapshot();
   }
 
   Future<void> saveDraft(ExpenseReceiptDraftRecord draft) => _enqueue(() async {
@@ -130,10 +124,16 @@ class ExpenseDraftController extends ChangeNotifier {
     String id, {
     required DateTime expectedUpdatedAt,
   }) => _enqueue(() async {
-    // A confirmed record is not permission to delete the user's recoverable
-    // draft or app-owned proof copy. Retention/cleanup must be an explicit
-    // user action; this safeguard keeps save completion non-destructive.
-    return false;
+    final draft = draftById(id);
+    if (draft == null || !draft.updatedAt.isAtSameMomentAs(expectedUpdatedAt)) {
+      return false;
+    }
+    await _drafts.remove(_module, id);
+    await ReceiptProofStorage.instance.deleteStagedAttachments(
+      draft.attachments,
+    );
+    notifyListeners();
+    return true;
   });
 
   Future<void> _deleteDraft(String id, {bool notify = true}) async {

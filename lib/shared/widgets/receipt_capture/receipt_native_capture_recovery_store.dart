@@ -238,27 +238,9 @@ class ReceiptNativeCaptureRecoveryStore {
     Duration olderThan = const Duration(days: 7),
     DateTime? now,
   }) {
-    return _enqueue(() async {
-      final retained = retainedPaths
-          .map((item) => item.trim())
-          .where((item) => item.isNotEmpty)
-          .toSet();
-      final reference = now ?? DateTime.now();
-      final cutoff = reference.subtract(olderThan);
-      final keysToDelete = <dynamic>[];
-      for (final key in _box.keys) {
-        final value = _box.get(key);
-        if (value is! Map || value['schema'] != entrySchema) continue;
-        final entry = ReceiptNativeCaptureRecoveryIndexEntry.fromMap(value);
-        final hasRetainedPhoto = entry.stagedPhotoPaths.any(retained.contains);
-        if (hasRetainedPhoto) continue;
-        if (entry.capturedAt.isAfter(cutoff)) continue;
-        keysToDelete.add(key);
-      }
-      for (final key in keysToDelete) {
-        await _box.delete(key);
-      }
-    });
+    // Compatibility no-op. Age alone never authorizes deleting a recoverable
+    // capture index entry.
+    return Future<void>.value();
   }
 
   Future<void> _ensureStorageForWrite() async {

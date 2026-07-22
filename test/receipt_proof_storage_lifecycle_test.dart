@@ -310,7 +310,7 @@ void main() {
     },
   );
 
-  test('startup cleanup removes only old unreferenced staged PDFs', () async {
+  test('startup cleanup never ages out recoverable staged PDFs', () async {
     final source = File('${Directory.systemTemp.path}/cleanup_receipt.pdf');
     final pdf = pw.Document()
       ..addPage(pw.Page(build: (_) => pw.Text('Cleanup receipt')));
@@ -345,6 +345,6 @@ void main() {
     );
 
     expect(await File(retained.path).exists(), isTrue);
-    expect(await File(orphan.path).exists(), isFalse);
+    expect(await File(orphan.path).exists(), isTrue);
   });
 }

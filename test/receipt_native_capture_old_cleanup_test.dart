@@ -34,7 +34,7 @@ void main() {
     );
   });
 
-  test('old abandoned native staging cleanup keeps retained paths', () async {
+  test('old native staging remains recoverable regardless of age', () async {
     final staging = const ReceiptNativeCaptureStaging();
     final sourceA = File('${Directory.systemTemp.path}/native-old-a.jpg');
     final sourceB = File('${Directory.systemTemp.path}/native-old-b.jpg');
@@ -78,9 +78,9 @@ void main() {
     );
 
     expect(await File(retainedPath).exists(), isTrue);
-    expect(await File(abandonedPath).exists(), isFalse);
+    expect(await File(abandonedPath).exists(), isTrue);
     expect(await File(retainedManifestPath).exists(), isTrue);
-    expect(await File(abandonedManifestPath).exists(), isFalse);
+    expect(await File(abandonedManifestPath).exists(), isTrue);
     final recoveryIndex = await ReceiptNativeCaptureRecoveryStore.create();
     expect(
       recoveryIndex.entries.map((entry) => entry.manifestPath),
@@ -88,12 +88,12 @@ void main() {
     );
     expect(
       recoveryIndex.entries.map((entry) => entry.manifestPath),
-      isNot(contains(abandonedManifestPath)),
+      contains(abandonedManifestPath),
     );
   });
 
   test(
-    'old Hive-only recovery entry is removed when staged photo is gone',
+    'old Hive-only recovery entry remains while its staged photo exists',
     () async {
       final staging = const ReceiptNativeCaptureStaging();
       final source = File('${Directory.systemTemp.path}/native-hive-old.jpg');
@@ -124,10 +124,13 @@ void main() {
         now: DateTime(2026, 6, 28),
       );
 
-      expect(await File(stagedPath).exists(), isFalse);
+      expect(await File(stagedPath).exists(), isTrue);
       recoveryIndex = await ReceiptNativeCaptureRecoveryStore.create();
-      expect(recoveryIndex.entries, isEmpty);
-      expect(await staging.recoverableNativeCaptures(), isEmpty);
+      expect(recoveryIndex.entries.single.manifestPath, manifestPath);
+      expect(
+        (await staging.recoverableNativeCaptures()).single.manifestPath,
+        manifestPath,
+      );
     },
   );
 

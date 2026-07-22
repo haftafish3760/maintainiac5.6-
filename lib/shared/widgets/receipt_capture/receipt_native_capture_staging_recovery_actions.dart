@@ -12,16 +12,8 @@ extension ReceiptNativeCaptureStagingRecoveryActions
     Duration olderThan = const Duration(days: 7),
     DateTime? now,
   }) async {
-    await _storage.cleanOldStagedFiles(
-      retainedPaths: retainedPaths,
-      olderThan: olderThan,
-      now: now,
-    );
-    await _cleanOldRecoveryManifests(
-      retainedPaths: retainedPaths,
-      olderThan: olderThan,
-      now: now,
-    );
+    // Old does not mean abandoned. Captures and manifests remain recoverable
+    // until the user completes or explicitly discards the session.
     await _cleanRecoveryIndex(
       retainedPaths: retainedPaths,
       olderThan: olderThan,

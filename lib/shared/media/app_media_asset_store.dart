@@ -197,11 +197,14 @@ class AppMediaAssetStore {
           sourceHash != copiedHash) {
         throw const FileSystemException('Media asset copy did not verify.');
       }
-      await _deleteIfExists(destination);
+      if (await destination.exists()) {
+        throw const FileSystemException(
+          'Media asset destination became unavailable.',
+        );
+      }
       await temp.rename(destination.path);
     } catch (_) {
       await _deleteIfExists(temp);
-      await _deleteIfExists(destination);
       throw const AppMediaAssetException(
         'That image could not be copied into Maintaniac storage.',
       );

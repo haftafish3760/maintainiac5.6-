@@ -73,48 +73,5 @@ Future<void> _cleanRecoveryIndex({
   try {
     final store = await ReceiptNativeCaptureRecoveryStore.create();
     await store.deleteUnrecoverableEntries(retainedPaths: retainedPaths);
-    await store.deleteOldEntries(
-      retainedPaths: retainedPaths,
-      olderThan: olderThan,
-      now: now,
-    );
   } catch (_) {}
-}
-
-Future<void> _cleanOldRecoveryManifests({
-  required Iterable<String> retainedPaths,
-  Duration olderThan = const Duration(days: 7),
-  DateTime? now,
-}) async {
-  final retained = retainedPaths
-      .map((item) => path.normalize(item.trim()))
-      .where((item) => item.isNotEmpty)
-      .toSet();
-  final root = await _recoveryManifestRoot();
-  if (!await root.exists()) return;
-  final cutoff = (now ?? DateTime.now()).subtract(olderThan);
-  await for (final entity in root.list()) {
-    if (entity is! File || path.extension(entity.path) != '.json') continue;
-    try {
-      final stat = await entity.stat();
-      if (stat.modified.isAfter(cutoff)) continue;
-      final content = jsonDecode(await entity.readAsString());
-      if (_manifestReferencesRetainedPath(content, retained)) continue;
-      await _deleteRecoveryManifest(entity.path);
-    } catch (_) {
-      continue;
-    }
-  }
-}
-
-bool _manifestReferencesRetainedPath(Object? content, Set<String> retained) {
-  if (retained.isEmpty || content is! Map) return false;
-  final stagedPhotoPaths = content['stagedPhotoPaths'];
-  if (stagedPhotoPaths is! Iterable) return false;
-  for (final item in stagedPhotoPaths) {
-    if (retained.contains(path.normalize(item.toString().trim()))) {
-      return true;
-    }
-  }
-  return false;
 }

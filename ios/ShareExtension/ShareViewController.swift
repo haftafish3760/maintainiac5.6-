@@ -160,9 +160,6 @@ final class ShareViewController: UIViewController {
     }
 
     do {
-      if FileManager.default.fileExists(atPath: destination.path) {
-        try FileManager.default.removeItem(at: destination)
-      }
       try FileManager.default.copyItem(at: url, to: destination)
       append(path: destination.absoluteString, mimeType: mimeType, type: type)
     } catch {
@@ -311,7 +308,7 @@ final class ShareViewController: UIViewController {
       : sanitizedFileName(baseName)
     let safeExtension = sanitizedFileName(pathExtension)
     let suffix = safeExtension.isEmpty ? "" : ".\(safeExtension)"
-    return "\(Int(Date().timeIntervalSince1970 * 1000))-\(safeBase)\(suffix)"
+    return "\(Int(Date().timeIntervalSince1970 * 1000))-\(UUID().uuidString)-\(safeBase)\(suffix)"
   }
 
   private func sanitizedFileName(_ value: String) -> String {

@@ -6,10 +6,15 @@ extension ReceiptProofStorageCleanup on ReceiptProofStorage {
   ) async {
     if (attachment.storageState != ReceiptAttachmentStorageState.staged) return;
     final stagingRoot = await _stagingRoot();
-    if (!path.isWithin(stagingRoot.path, attachment.path)) return;
     final file = File(attachment.path);
     try {
-      if (await file.exists()) await file.delete();
+      if (!await file.exists()) return;
+      final resolvedRoot = path.normalize(
+        await stagingRoot.resolveSymbolicLinks(),
+      );
+      final resolvedFile = path.normalize(await file.resolveSymbolicLinks());
+      if (!path.isWithin(resolvedRoot, resolvedFile)) return;
+      await file.delete();
     } catch (_) {}
   }
 
@@ -35,24 +40,9 @@ extension ReceiptProofStorageCleanup on ReceiptProofStorage {
     Duration olderThan = const Duration(days: 7),
     DateTime? now,
   }) async {
-    final retained = retainedPaths
-        .map((item) => path.normalize(item.trim()))
-        .where((item) => item.isNotEmpty)
-        .toSet();
-    final root = await _stagingRoot();
-    if (!await root.exists()) return;
-    final cutoff = (now ?? DateTime.now()).subtract(olderThan);
-    await for (final entity in root.list(recursive: true)) {
-      if (entity is! File) continue;
-      final normalized = path.normalize(entity.path);
-      if (retained.contains(normalized)) continue;
-      try {
-        final stat = await entity.stat();
-        if (stat.modified.isAfter(cutoff)) continue;
-        await entity.delete();
-      } catch (_) {
-        continue;
-      }
-    }
+    // Kept as a compatibility hook for callers from older branches. Receipt
+    // staging can represent the only recovery point after an interruption, so
+    // elapsed time and an incomplete retained-path index never authorize
+    // deletion. Explicit discard/completion paths own cleanup instead.
   }
 }

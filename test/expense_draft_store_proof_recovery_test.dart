@@ -179,7 +179,7 @@ void main() {
   );
 
   test(
-    'startup cleanup keeps active draft proofs and removes old orphan staging',
+    'startup recovery scan never deletes old staged receipt evidence',
     () async {
       final drafts = await ExpenseDraftController.create();
       final retainedSource = File(
@@ -237,7 +237,7 @@ void main() {
 
       expect(snapshot.recoverableDraftIds, ['active-draft']);
       expect(await File(retained.path).exists(), isTrue);
-      expect(await File(orphan.path).exists(), isFalse);
+      expect(await File(orphan.path).exists(), isTrue);
       expect(await retainedSource.exists(), isTrue);
       expect(await orphanSource.exists(), isTrue);
     },
@@ -312,9 +312,10 @@ void main() {
           draft.id,
           expectedUpdatedAt: draft.updatedAt,
         ),
-        isFalse,
+        isTrue,
       );
-      expect(await File(staged.path).exists(), isTrue);
+      expect(drafts.draftById(draft.id), isNull);
+      expect(await File(staged.path).exists(), isFalse);
       expect(await original.exists(), isTrue);
     },
   );

@@ -35,11 +35,14 @@ class AppGeneratedPdfService {
     final partial = File('${destination.path}.partial');
     try {
       await partial.writeAsBytes(document.bytes, flush: true);
-      if (await destination.exists()) await destination.delete();
+      if (await destination.exists()) {
+        throw const FileSystemException(
+          'Generated PDF destination became unavailable.',
+        );
+      }
       await partial.rename(destination.path);
     } catch (_) {
       await _deleteIfExists(partial);
-      await _deleteIfExists(destination);
       throw const AppGeneratedPdfException(
         'Maintaniac could not create that PDF. Please free up storage and try again.',
       );

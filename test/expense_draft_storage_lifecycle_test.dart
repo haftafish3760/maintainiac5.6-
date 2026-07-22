@@ -97,6 +97,31 @@ void main() {
       expect(await sourcePdf.exists(), isTrue);
     },
   );
+
+  test(
+    'completed draft cleanup never deletes permanent receipt proof',
+    () async {
+      final drafts = ExpenseDraftController.memory();
+      final staged = await _stagedPdf('completed-proof', sourcePdf);
+      final promoted = (await ReceiptProofStorage.instance.persistAttachments([
+        staged,
+      ])).single;
+      final draft = _draft('DRAFT-completed', promoted);
+      await drafts.saveDraft(draft);
+
+      expect(
+        await drafts.deleteDraftIfUnchanged(
+          draft.id,
+          expectedUpdatedAt: draft.updatedAt,
+        ),
+        isTrue,
+      );
+
+      expect(drafts.draftById(draft.id), isNull);
+      expect(await File(promoted.path).exists(), isTrue);
+      expect(await sourcePdf.exists(), isTrue);
+    },
+  );
 }
 
 Future<ReceiptAttachmentRecord> _stagedPdf(String id, File source) {
