@@ -238,8 +238,10 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       notifyListeners();
       return false;
     }
-    _platformStatus = null;
-    _platformError = null;
+    if (_platformStatus == 'trip_event_save_failed') {
+      _platformStatus = null;
+      _platformError = null;
+    }
     notifyListeners();
     return true;
   }

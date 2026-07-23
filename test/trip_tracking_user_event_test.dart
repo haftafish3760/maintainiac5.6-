@@ -94,6 +94,64 @@ void main() {
     expect(store.pendingReviews.single.tripEvents, hasLength(1));
   });
 
+  test('driver event retry clears only its matching write failure', () async {
+    final store = _UserEventFailureStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      clockNow: () => start.add(const Duration(minutes: 10)),
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_event_retry',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      profileId: 'profile_1',
+      startedAt: start,
+    );
+
+    store.failNextSessionSave = true;
+    expect(
+      await controller.recordUserTripEvent(
+        commandId: 'pickup_retry',
+        type: TripManualEventType.pickup,
+        initiatingSource: 'trip_screen',
+      ),
+      isFalse,
+    );
+    expect(controller.platformStatus, 'trip_event_save_failed');
+
+    expect(
+      await controller.recordUserTripEvent(
+        commandId: 'pickup_retry',
+        type: TripManualEventType.pickup,
+        initiatingSource: 'trip_screen',
+      ),
+      isTrue,
+    );
+    expect(controller.platformStatus, isNull);
+    expect(store.activeSession?.tripEvents, hasLength(1));
+
+    store.failPendingReviews = true;
+    expect(controller.latestReview, isNull);
+    expect(controller.platformStatus, 'storage_failed');
+    expect(
+      await controller.recordUserTripEvent(
+        commandId: 'dropoff_after_review_failure',
+        type: TripManualEventType.dropoff,
+        initiatingSource: 'trip_screen',
+      ),
+      isTrue,
+    );
+    expect(controller.platformStatus, 'storage_failed');
+    store.failPendingReviews = false;
+    expect(controller.latestReview, isNull);
+    expect(controller.platformStatus, isNull);
+  });
+
   test(
     'GPS and remote sources cannot create driver-confirmed events',
     () async {
@@ -274,4 +332,28 @@ void main() {
       ]),
     );
   });
+}
+
+class _UserEventFailureStore extends TripTrackingSessionStore {
+  _UserEventFailureStore() : super.memory();
+
+  var failNextSessionSave = false;
+  var failPendingReviews = false;
+
+  @override
+  Future<void> save(TripTrackingSessionRecord session) {
+    if (failNextSessionSave) {
+      failNextSessionSave = false;
+      return Future<void>.error(StateError('session storage unavailable'));
+    }
+    return super.save(session);
+  }
+
+  @override
+  List<TripTrackingReviewRecord> get pendingReviews {
+    if (failPendingReviews) {
+      throw StateError('review storage unavailable');
+    }
+    return super.pendingReviews;
+  }
 }
