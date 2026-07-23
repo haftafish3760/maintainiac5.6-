@@ -195,6 +195,77 @@ void main() {
   });
 
   test(
+    'concurrent page requests download and apply a final page once',
+    () async {
+      final document = _document('settings', 'settings-1');
+      final source = _PagedSource([document]);
+      final gateway = MaintainiacDurableCloudRestoreGateway(
+        source: source,
+        identityProvider: const _Identity('user-a'),
+      );
+      final page = await gateway.fetchPage(
+        organizationId: 'org-a',
+        pageSize: 1,
+      );
+      final sessions = MaintainiacRestoreSessionStore.memory(
+        storageCheck: ({required operationBytes}) async => AppStorageCheck(
+          availableBytes: 500 * mb,
+          operationBytes: operationBytes,
+          requiredBytes: operationBytes,
+          purpose: AppStoragePurpose.restoreImport,
+        ),
+      );
+      await sessions.prepare(
+        id: 'restore-concurrent',
+        accountScopeId: 'org-a.user-a',
+        deviceId: 'device-a',
+        authorizationId: 'authorization-a',
+        mode: MaintainiacRestoreMode.recordsOnly,
+        storagePlan: MaintainiacRestoreStoragePlan(
+          structuredBytes: page.items.single.transferBytes,
+          thumbnailBytes: 0,
+          proofBytes: 0,
+          temporaryBytes: 0,
+          availableBytes: 500 * mb,
+        ),
+        totalItems: 1,
+      );
+      await sessions.start('restore-concurrent');
+      final records = MaintainiacDurableRecordStore.memory();
+      final runner = MaintainiacCloudRestoreRunner(
+        gateway: gateway,
+        sessions: sessions,
+        batches: MaintainiacRestoreBatchProcessor(
+          sessions: sessions,
+          applier: MaintainiacRestoreApplier(
+            store: records,
+            reviewStore: MaintainiacRestoreReviewStore.memory(),
+            migrations: MaintainiacRestoreMigrationRegistry(const []),
+            accountScopeId: 'org-a.user-a',
+            maximumSupportedSchemaVersion: 1,
+          ),
+        ),
+      );
+      final planReadCalls = source.calls;
+
+      final results = await Future.wait([
+        runner.processNextPage(
+          organizationId: 'org-a',
+          sessionId: 'restore-concurrent',
+        ),
+        runner.processNextPage(
+          organizationId: 'org-a',
+          sessionId: 'restore-concurrent',
+        ),
+      ]);
+
+      expect(source.calls - planReadCalls, 1);
+      expect(results.every((result) => result.completed), isTrue);
+      expect(records.recordsFor('settings'), hasLength(1));
+    },
+  );
+
+  test(
     'hosted completion can retry after local records are committed',
     () async {
       const identity = _Identity('user-a');

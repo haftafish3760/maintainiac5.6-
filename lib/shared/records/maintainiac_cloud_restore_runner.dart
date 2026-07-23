@@ -34,11 +34,27 @@ class MaintainiacCloudRestoreRunner {
   final MaintainiacRestoreBatchProcessor _batches;
   final MaintainiacRestoreSessionStore _sessions;
   final MaintainiacRestoreProgressSink? _progressSink;
+  static final Map<String, Future<void>> _sessionTails = {};
 
   Future<MaintainiacCloudRestoreStep> processNextPage({
     required String organizationId,
     required String sessionId,
     int pageSize = MaintainiacDurableCloudRestoreGateway.defaultPageSize,
+    DateTime? nowUtc,
+  }) => _serializeSession(
+    sessionId,
+    () => _processNextPage(
+      organizationId: organizationId,
+      sessionId: sessionId,
+      pageSize: pageSize,
+      nowUtc: nowUtc,
+    ),
+  );
+
+  Future<MaintainiacCloudRestoreStep> _processNextPage({
+    required String organizationId,
+    required String sessionId,
+    required int pageSize,
     DateTime? nowUtc,
   }) async {
     final session = _sessions.sessionById(sessionId);
@@ -116,5 +132,21 @@ class MaintainiacCloudRestoreRunner {
       batchStatus: batch.status,
       completed: shouldComplete,
     );
+  }
+
+  static Future<T> _serializeSession<T>(
+    String sessionId,
+    Future<T> Function() operation,
+  ) {
+    final tail = _sessionTails[sessionId] ?? Future<void>.value();
+    final next = tail.then((_) => operation());
+    final completed = next.then<void>((_) {}, onError: (Object _) {});
+    _sessionTails[sessionId] = completed;
+    completed.whenComplete(() {
+      if (identical(_sessionTails[sessionId], completed)) {
+        _sessionTails.remove(sessionId);
+      }
+    });
+    return next;
   }
 }
