@@ -188,6 +188,35 @@ class MaintainiacDurableRecordStore {
     return record;
   });
 
+  /// Applies a verified cloud version without rewriting its original
+  /// lifecycle. The expected revision closes the race between restore conflict
+  /// evaluation and the local write.
+  Future<MaintainiacDurableRecord> applyRestoredRecord(
+    MaintainiacDurableRecord remote, {
+    required int? expectedLocalRevision,
+  }) => _enqueue(() async {
+    _validateKey(remote.module, remote.id);
+    final verified = MaintainiacDurableRecord.fromMap(remote.toMap());
+    final local = recordFor(remote.module, remote.id);
+    if (local == null && _containsStoredValue(remote.module, remote.id)) {
+      throw StateError(
+        'The local record is unreadable and was preserved for recovery.',
+      );
+    }
+    if (local?.lifecycle.revision != expectedLocalRevision) {
+      throw StateError('The local record changed during restore.');
+    }
+    if (local != null &&
+        verified.lifecycle.revision <= local.lifecycle.revision) {
+      throw StateError(
+        'Restore cannot replace an equal or newer local record.',
+      );
+    }
+    await _ensureSpace();
+    await _put(verified);
+    return verified;
+  });
+
   Future<void> _put(MaintainiacDurableRecord record) async {
     final map = record.toMap();
     if (_box == null) {

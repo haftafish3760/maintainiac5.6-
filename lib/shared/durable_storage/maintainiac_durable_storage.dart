@@ -26,5 +26,6 @@ export '../sync/maintainiac_sync_orchestrator.dart';
 export '../records/maintainiac_durable_record_store.dart';
 export '../records/maintainiac_record_lifecycle.dart';
 export '../records/maintainiac_restore_contract.dart';
+export '../records/maintainiac_restore_applier.dart';
 export '../records/maintainiac_restore_session_store.dart';
 export '../storage/app_storage_guard.dart';
