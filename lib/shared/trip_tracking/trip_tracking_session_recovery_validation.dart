@@ -61,6 +61,24 @@ class TripTrackingSessionRecoveryValidation {
     if (_hasForeignTripEvent(session)) {
       reasons.add('foreign_trip_event_in_session');
     }
+    if (_hasForeignTransitionAudit(
+      session.transitionAudits,
+      sessionId: session.id,
+      vehicleId: session.vehicleId,
+      profile: session.profile,
+      profileId: session.effectiveProfileId,
+      startedAt: session.startedAt,
+      latestAt: session.updatedAt,
+    )) {
+      reasons.add('foreign_transition_audit_in_session');
+    }
+    if (_hasUnsafeRecoveryEvidence(
+      permissionHistory: session.permissionHistory,
+      batteryStateSummary: session.batteryStateSummary,
+      latestAt: session.updatedAt,
+    )) {
+      reasons.add('invalid_recovery_evidence_in_session');
+    }
     if (_hasSensitiveAdvisoryText(session.advisories)) {
       reasons.add('sensitive_advisory_text');
     }
@@ -130,6 +148,31 @@ class TripTrackingSessionRecoveryValidation {
     }
     if (_hasForeignReviewTripEvent(review)) {
       reasons.add('foreign_trip_event_in_review');
+    }
+    if (_hasUnsafeManualAdjustment(
+      review,
+      recoveredAt: recoveryClock,
+      maximumFutureSkew: maximumFutureSkew,
+    )) {
+      reasons.add('invalid_manual_adjustment_in_review');
+    }
+    if (_hasForeignTransitionAudit(
+      review.transitionAudits,
+      sessionId: review.id,
+      vehicleId: review.vehicleId,
+      profile: review.profile,
+      profileId: review.effectiveProfileId,
+      startedAt: review.startedAt,
+      latestAt: review.finishedAt,
+    )) {
+      reasons.add('foreign_transition_audit_in_review');
+    }
+    if (_hasUnsafeRecoveryEvidence(
+      permissionHistory: review.permissionHistory,
+      batteryStateSummary: review.batteryStateSummary,
+      latestAt: review.finishedAt,
+    )) {
+      reasons.add('invalid_recovery_evidence_in_review');
     }
     return TripTrackingSessionRecoveryValidation._(
       status: reasons.isEmpty
@@ -276,6 +319,84 @@ bool _hasDuplicateTripEventId(Iterable<TripManualEvent> events) {
     if (!ids.add(event.id)) return true;
   }
   return false;
+}
+
+bool _hasUnsafeManualAdjustment(
+  TripTrackingReviewRecord review, {
+  required DateTime? recoveredAt,
+  required Duration maximumFutureSkew,
+}) {
+  final ids = <String>{};
+  final latestAllowed = recoveredAt?.toUtc().add(
+    _safeFutureSkew(maximumFutureSkew),
+  );
+  return review.manualAdjustments.any(
+    (adjustment) =>
+        !adjustment.isValid ||
+        !ids.add(adjustment.id) ||
+        (adjustment.note != null &&
+            (adjustment.note!.length > 240 ||
+                _containsSensitiveText(adjustment.note))) ||
+        (review.odometerConfirmedAt != null &&
+            adjustment.createdAt.isAfter(review.odometerConfirmedAt!)) ||
+        (latestAllowed != null &&
+            adjustment.createdAt.toUtc().isAfter(latestAllowed)),
+  );
+}
+
+bool _hasForeignTransitionAudit(
+  Iterable<TripTrackingSessionTransitionAudit> audits, {
+  required String sessionId,
+  required String vehicleId,
+  required TripTrackingProfile profile,
+  required String profileId,
+  required DateTime startedAt,
+  required DateTime latestAt,
+}) {
+  final ids = <String>{};
+  final sequences = <int>{};
+  return audits.any(
+    (event) =>
+        event.schemaVersion != 1 ||
+        !_safeIdentifier(event.id) ||
+        !ids.add(event.id) ||
+        !sequences.add(event.sequenceNumber) ||
+        event.sessionId != sessionId ||
+        event.vehicleId != vehicleId ||
+        event.profile != profile ||
+        event.profileId != profileId ||
+        event.sequenceNumber < 1 ||
+        event.revision < 1 ||
+        event.eventTimestamp.isBefore(startedAt) ||
+        event.eventTimestamp.isAfter(latestAt),
+  );
+}
+
+bool _hasUnsafeRecoveryEvidence({
+  required Iterable<TripTrackingPermissionEvidence> permissionHistory,
+  required TripTrackingBatteryStateSummary? batteryStateSummary,
+  required DateTime latestAt,
+}) {
+  if (permissionHistory.any(
+    (evidence) =>
+        evidence.observedAt.isAfter(latestAt) ||
+        evidence.state.isEmpty ||
+        evidence.state.length > 32 ||
+        evidence.source.isEmpty ||
+        evidence.source.length > 48 ||
+        _containsSensitiveText(evidence.state) ||
+        _containsSensitiveText(evidence.source),
+  )) {
+    return true;
+  }
+  final battery = batteryStateSummary;
+  return battery != null &&
+      (battery.observedAt.isAfter(latestAt) ||
+          (battery.batteryPercent != null &&
+              (battery.batteryPercent! < 0 || battery.batteryPercent! > 100)) ||
+          battery.reasonCode.isEmpty ||
+          battery.reasonCode.length > 80 ||
+          _containsSensitiveText(battery.reasonCode));
 }
 
 bool _supportedSessionSchema(int value) => value == 1;

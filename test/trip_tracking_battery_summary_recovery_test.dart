@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_recovery_validation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
@@ -134,6 +135,105 @@ void main() {
     expect(record.permissionHistory, hasLength(1));
     expect(record.engineSnapshot.totalAcceptedMeters, 55);
   });
+
+  test(
+    'recovery evidence codes cannot persist private coordinates or tokens',
+    () async {
+      final at = DateTime.utc(2026, 7, 21, 18);
+      final session = TripTrackingSessionRecord(
+        id: 'trip_private_recovery_code',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 43000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: at,
+        updatedAt: at,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 55,
+          walkingReviewSuggested: false,
+        ),
+        batteryStateSummary: TripTrackingBatteryStateSummary(
+          observedAt: at,
+          batteryPercent: 70,
+          isCharging: false,
+          lowPowerModeEnabled: false,
+          allowsGps: true,
+          reasonCode: 'token=sk.private',
+        ),
+        permissionHistory: [
+          TripTrackingPermissionEvidence(
+            observedAt: at,
+            state: 'always',
+            preciseLocation: true,
+            canTrackInBackground: true,
+            source: 'lat=35.12345',
+          ),
+        ],
+      );
+
+      await expectLater(
+        TripTrackingSessionStore.memory().save(session),
+        throwsArgumentError,
+      );
+      final recovered = TripTrackingSessionRecord.fromMap(session.toMap());
+      expect(recovered.batteryStateSummary, isNull);
+      expect(recovered.permissionHistory, isEmpty);
+    },
+  );
+
+  test(
+    'future recovery evidence cannot advance a durable checkpoint',
+    () async {
+      final startedAt = DateTime.utc(2026, 7, 21, 18);
+      final updatedAt = startedAt.add(const Duration(minutes: 5));
+      final futureAt = updatedAt.add(const Duration(microseconds: 1));
+      final futureBattery = TripTrackingBatteryStateSummary(
+        observedAt: futureAt,
+        batteryPercent: 80,
+        isCharging: true,
+        lowPowerModeEnabled: false,
+        allowsGps: true,
+        reasonCode: 'charging',
+      );
+      final futurePermission = TripTrackingPermissionEvidence(
+        observedAt: futureAt,
+        state: 'always',
+        preciseLocation: true,
+        canTrackInBackground: true,
+        source: 'native_event',
+      );
+      final session = TripTrackingSessionRecord(
+        id: 'trip_future_recovery_evidence',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 43000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: startedAt,
+        updatedAt: updatedAt,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 500,
+          walkingReviewSuggested: false,
+        ),
+        batteryStateSummary: futureBattery,
+        permissionHistory: [futurePermission],
+      );
+
+      await expectLater(
+        TripTrackingSessionStore.memory().save(session),
+        throwsArgumentError,
+      );
+      final validation = TripTrackingSessionRecoveryValidation.activeSession(
+        session,
+      );
+      expect(validation.isRecoverable, isFalse);
+      expect(
+        validation.reasons,
+        contains('invalid_recovery_evidence_in_session'),
+      );
+      final recovered = TripTrackingSessionRecord.fromMap(session.toMap());
+      expect(recovered.batteryStateSummary, isNull);
+      expect(recovered.permissionHistory, isEmpty);
+      expect(recovered.engineSnapshot.totalAcceptedMeters, 500);
+    },
+  );
 
   test('system pause ownership survives session serialization', () {
     final at = DateTime.utc(2026, 7, 21, 19);

@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 375 in the current continuation
+- Current pass: 391 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -53,6 +53,17 @@
   transition audits cannot advance beyond the durable session/review
   checkpoint, preventing wall-clock anomalies or malformed records from
   rewriting newer recovery state
+- The memory adapter now crosses the same serialization and normalization
+  boundary as Hive instead of retaining a more permissive object graph. This
+  exposed and repaired completion-pending contract restoration, explicit
+  historical finish/cancel transition timing, sampling-ceiling normalization,
+  and loss of auxiliary recovery evidence when transition audits were bounded
+- Battery, permission, and transition evidence are validated at write,
+  serialization, and recovery boundaries. Future evidence cannot advance a
+  checkpoint, while genuine wall-clock rollback evidence remains preserved
+- Recovery reason/source codes and user-confirmed mileage adjustments now
+  reject duplicate identities, impossible future ordering, and token or
+  coordinate-like private text instead of silently persisting it
 - The complete trip-domain gate, Android debug build, and generic iOS
   no-codesign build pass after these changes. The current Android build is
   installed and resumed on the S25 Ultra without a Maintainiac crash

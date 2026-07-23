@@ -395,7 +395,13 @@ class TripTrackingSessionStore {
         !_isValidTimeZoneOffset(session.startedTimeZoneOffsetMinutes) ||
         !_isSafeTimeZoneName(session.startedTimeZoneName) ||
         !_sessionAdvisoriesAreValid(session) ||
-        !_sessionTripEventsAreValid(session)) {
+        !_sessionTripEventsAreValid(session) ||
+        !_sessionTransitionAuditsAreValid(session) ||
+        !_recoveryEvidenceIsValid(
+          permissionHistory: session.permissionHistory,
+          batteryStateSummary: session.batteryStateSummary,
+          latestAt: session.updatedAt,
+        )) {
       throw ArgumentError.value(
         session.id,
         'session',
@@ -411,44 +417,10 @@ class TripTrackingSessionStore {
     }
     if (_storageCheck != null) await _ensureStorageForWrite();
     if (_box == null) {
-      final boundedTransitionAudits = _boundedTransitionAudits(
-        session.transitionAudits,
-      ).toList();
-      _memorySession =
-          session.transitionAudits.length == boundedTransitionAudits.length
-          ? session
-          : TripTrackingSessionRecord(
-              id: session.id,
-              vehicleId: session.vehicleId,
-              vehicleConfigurationRevision:
-                  session.vehicleConfigurationRevision,
-              startedTimeZoneOffsetMinutes:
-                  session.startedTimeZoneOffsetMinutes,
-              startedTimeZoneName: session.startedTimeZoneName,
-              startingOdometer: session.startingOdometer,
-              profile: session.profile,
-              profileId: session.effectiveProfileId,
-              startedAt: session.startedAt,
-              updatedAt: session.updatedAt,
-              engineSnapshot: session.engineSnapshot,
-              advisories: session.advisories,
-              tripEvents: session.tripEvents,
-              lifecycleState: session.lifecycleState,
-              healthState: session.healthState,
-              backgroundTrackingAllowed: session.backgroundTrackingAllowed,
-              activityRecognitionEnabled: session.activityRecognitionEnabled,
-              nativeSampling: session.nativeSampling,
-              samplingCeiling: session.samplingCeiling,
-              adaptiveSamplingEnabled: session.adaptiveSamplingEnabled,
-              lowBatteryProtectionEnabled: session.lowBatteryProtectionEnabled,
-              lowBatteryOverrideEnabled: session.lowBatteryOverrideEnabled,
-              lowBatteryWarningDismissed: session.lowBatteryWarningDismissed,
-              hasValidTimeline: session.hasValidTimeline,
-              schemaVersion: session.schemaVersion,
-              revision: session.revision,
-              recoveryCount: session.recoveryCount,
-              transitionAudits: boundedTransitionAudits,
-            );
+      // Keep the in-memory test/runtime adapter behaviorally identical to the
+      // Hive boundary: bounded collections, UTC timestamps, and schema
+      // normalization must not depend on which local adapter is active.
+      _memorySession = TripTrackingSessionRecord.fromMap(session.toMap());
     } else {
       final generation = _maximumRawRecoveryGeneration + 1;
       final next = TripTrackingSessionSnapshotEnvelope.create(
@@ -596,6 +568,13 @@ class TripTrackingSessionStore {
             !_isSafeTimeZoneName(review.finishedTimeZoneName) ||
             !_reviewAdvisoriesAreValid(review) ||
             !_reviewTripEventsAreValid(review) ||
+            !_reviewTransitionAuditsAreValid(review) ||
+            !_reviewManualAdjustmentsAreValid(review) ||
+            !_recoveryEvidenceIsValid(
+              permissionHistory: review.permissionHistory,
+              batteryStateSummary: review.batteryStateSummary,
+              latestAt: review.finishedAt,
+            ) ||
             review.startingOdometer < 0 ||
             review.estimatedEndingOdometer < review.startingOdometer ||
             !_hasValidCloudBackupScopeBinding(
@@ -624,7 +603,9 @@ class TripTrackingSessionStore {
         }
         if (_storageCheck != null) await _ensureStorageForWrite();
         if (_box == null) {
-          _memoryReviews[review.id] = review;
+          _memoryReviews[review.id] = TripTrackingReviewRecord.fromMap(
+            review.toMap(),
+          );
         } else {
           await _box.put('$_reviewPrefix${review.id}', review.toMap());
         }
@@ -832,6 +813,24 @@ bool _reviewTripEventsAreValid(TripTrackingReviewRecord review) =>
               )),
     );
 
+bool _reviewManualAdjustmentsAreValid(TripTrackingReviewRecord review) {
+  final ids = <String>{};
+  for (final adjustment in review.manualAdjustments) {
+    final safeNote = _optionalSafeCloudSyncError(
+      adjustment.note,
+      maxLength: 240,
+    );
+    if (!adjustment.isValid ||
+        !ids.add(adjustment.id) ||
+        safeNote != adjustment.note ||
+        (review.odometerConfirmedAt != null &&
+            adjustment.createdAt.isAfter(review.odometerConfirmedAt!))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool _sessionTripEventsAreValid(TripTrackingSessionRecord session) =>
     session.tripEvents.length <= TripManualEvent.maximumPerTrip &&
     _hasUniqueTripEventIds(session.tripEvents) &&
@@ -846,6 +845,79 @@ bool _sessionTripEventsAreValid(TripTrackingSessionRecord session) =>
           ) &&
           !event.recordedAt!.isAfter(session.updatedAt),
     );
+
+bool _sessionTransitionAuditsAreValid(TripTrackingSessionRecord session) =>
+    _transitionAuditsAreValid(
+      session.transitionAudits,
+      sessionId: session.id,
+      vehicleId: session.vehicleId,
+      profile: session.profile,
+      profileId: session.effectiveProfileId,
+      startedAt: session.startedAt,
+      latestAt: session.updatedAt,
+    );
+
+bool _reviewTransitionAuditsAreValid(TripTrackingReviewRecord review) =>
+    _transitionAuditsAreValid(
+      review.transitionAudits,
+      sessionId: review.id,
+      vehicleId: review.vehicleId,
+      profile: review.profile,
+      profileId: review.effectiveProfileId,
+      startedAt: review.startedAt,
+      latestAt: review.finishedAt,
+    );
+
+bool _transitionAuditsAreValid(
+  Iterable<TripTrackingSessionTransitionAudit> audits, {
+  required String sessionId,
+  required String vehicleId,
+  required TripTrackingProfile profile,
+  required String profileId,
+  required DateTime startedAt,
+  required DateTime latestAt,
+}) {
+  final ids = <String>{};
+  final sequences = <int>{};
+  for (final event in audits) {
+    if (event.schemaVersion != 1 ||
+        !_isSafeStoreIdentifier(event.id) ||
+        !ids.add(event.id) ||
+        !sequences.add(event.sequenceNumber) ||
+        event.sessionId != sessionId ||
+        event.vehicleId != vehicleId ||
+        event.profile != profile ||
+        event.profileId != profileId ||
+        event.sequenceNumber < 1 ||
+        event.revision < 1 ||
+        event.eventTimestamp.isBefore(startedAt) ||
+        event.eventTimestamp.isAfter(latestAt)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool _recoveryEvidenceIsValid({
+  required Iterable<TripTrackingPermissionEvidence> permissionHistory,
+  required TripTrackingBatteryStateSummary? batteryStateSummary,
+  required DateTime latestAt,
+}) {
+  for (final evidence in permissionHistory) {
+    if (evidence.observedAt.isAfter(latestAt) ||
+        !_isSafeEvidenceCode(evidence.state, maxLength: 32) ||
+        !_isSafeEvidenceCode(evidence.source, maxLength: 48)) {
+      return false;
+    }
+  }
+  final battery = batteryStateSummary;
+  return battery == null ||
+      (!battery.observedAt.isAfter(latestAt) &&
+          (battery.batteryPercent == null ||
+              (battery.batteryPercent! >= 0 &&
+                  battery.batteryPercent! <= 100)) &&
+          _isSafeEvidenceCode(battery.reasonCode, maxLength: 80));
+}
 
 bool _hasUniqueTripEventIds(Iterable<TripManualEvent> events) {
   final ids = <String>{};

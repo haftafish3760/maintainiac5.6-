@@ -342,7 +342,7 @@ void main() {
     expect(odometer.confirmedReading, 1000);
     expect(find.text((odometer.reading - 1000).toString()), findsOneWidget);
     expect(
-      find.textContaining('Live odometer: ${odometer.displayValue}'),
+      find.textContaining('GPS estimate: ${odometer.displayValue}'),
       findsOneWidget,
     );
 
@@ -358,11 +358,11 @@ void main() {
     await tester.pump();
 
     expect(
-      find.textContaining('Live odometer: $priorLiveDisplay'),
+      find.textContaining('GPS estimate: $priorLiveDisplay'),
       findsNothing,
     );
     expect(
-      find.textContaining('Live odometer: ${odometer.displayValue}'),
+      find.textContaining('GPS estimate: ${odometer.displayValue}'),
       findsOneWidget,
     );
   });

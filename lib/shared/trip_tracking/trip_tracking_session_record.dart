@@ -42,8 +42,7 @@ class TripTrackingBatteryStateSummary {
         value['lowPowerModeEnabled'] is! bool ||
         value['allowsGps'] is! bool ||
         reason is! String ||
-        reason.isEmpty ||
-        reason.length > 80) {
+        !_isSafeEvidenceCode(reason, maxLength: 80)) {
       return null;
     }
     return TripTrackingBatteryStateSummary(
@@ -89,11 +88,9 @@ class TripTrackingPermissionEvidence {
     final source = value['source'];
     if (observedAt == null ||
         state is! String ||
-        state.isEmpty ||
-        state.length > 32 ||
+        !_isSafeEvidenceCode(state, maxLength: 32) ||
         source is! String ||
-        source.isEmpty ||
-        source.length > 48 ||
+        !_isSafeEvidenceCode(source, maxLength: 48) ||
         value['preciseLocation'] is! bool ||
         value['canTrackInBackground'] is! bool) {
       return null;
@@ -107,6 +104,11 @@ class TripTrackingPermissionEvidence {
     );
   }
 }
+
+bool _isSafeEvidenceCode(String value, {required int maxLength}) =>
+    value.isNotEmpty &&
+    value.length <= maxLength &&
+    RegExp(r'^[A-Za-z][A-Za-z0-9_]*$').hasMatch(value);
 
 /// Versioned, locally durable active GPS-session state.
 class TripTrackingSessionRecord {
@@ -393,7 +395,12 @@ class TripTrackingSessionRecord {
     final hasValidContractState =
         !map.containsKey('contractState') ||
         (persistedContractState != null &&
-            persistedContractState.toRuntimeState() == safeLifecycleState);
+            (persistedContractState.toRuntimeState() == safeLifecycleState ||
+                (safeLifecycleState ==
+                        TripTrackingSessionLifecycleState.stopping &&
+                    persistedContractState ==
+                        TripTrackingSessionLifecycleContractState
+                            .COMPLETION_PENDING)));
     final safeStartedAt =
         startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     final samplingCeiling = _samplingFromMap(map['samplingCeiling']);
@@ -474,10 +481,14 @@ class TripTrackingSessionRecord {
       lowBatteryProtectionEnabled: map['lowBatteryProtectionEnabled'] != false,
       lowBatteryOverrideEnabled: map['lowBatteryOverrideEnabled'] == true,
       lowBatteryWarningDismissed: map['lowBatteryWarningDismissed'] == true,
-      batteryStateSummary: TripTrackingBatteryStateSummary.tryFromMap(
+      batteryStateSummary: _batteryStateSummaryFromMap(
         map['batteryStateSummary'],
+        latestAt: updatedAt ?? safeStartedAt,
       ),
-      permissionHistory: _permissionHistoryFromMap(map['permissionHistory']),
+      permissionHistory: _permissionHistoryFromMap(
+        map['permissionHistory'],
+        latestAt: updatedAt ?? safeStartedAt,
+      ),
       hasValidTimeline:
           startedAt != null &&
           updatedAt != null &&
@@ -509,11 +520,26 @@ class TripTrackingSessionRecord {
   }
 }
 
-List<TripTrackingPermissionEvidence> _permissionHistoryFromMap(Object? value) {
+TripTrackingBatteryStateSummary? _batteryStateSummaryFromMap(
+  Object? value, {
+  required DateTime latestAt,
+}) {
+  final summary = TripTrackingBatteryStateSummary.tryFromMap(value);
+  if (summary == null || summary.observedAt.isAfter(latestAt)) {
+    return null;
+  }
+  return summary;
+}
+
+List<TripTrackingPermissionEvidence> _permissionHistoryFromMap(
+  Object? value, {
+  required DateTime latestAt,
+}) {
   if (value is! List) return const [];
   return value
       .map(TripTrackingPermissionEvidence.tryFromMap)
       .whereType<TripTrackingPermissionEvidence>()
+      .where((item) => !item.observedAt.isAfter(latestAt))
       .toList(growable: false)
       .takeLast(24)
       .toList(growable: false);

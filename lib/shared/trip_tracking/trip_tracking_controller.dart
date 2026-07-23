@@ -485,6 +485,7 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingSessionLifecycleContractState? contractState,
     String? reasonCode,
     String? source,
+    DateTime? eventTimestamp,
   }) async {
     final session = _session;
     if (session == null) return;
@@ -522,7 +523,7 @@ class TripTrackingController extends ChangeNotifier {
     final nextTransitionSequence = session.transitionAudits.isEmpty
         ? nextRevision
         : session.transitionAudits.last.sequenceNumber + 1;
-    final observedAt = _clockNow().toUtc();
+    final observedAt = (eventTimestamp ?? _clockNow()).toUtc();
     final previousUpdatedAt = session.updatedAt.toUtc();
     final now = observedAt.isBefore(previousUpdatedAt)
         ? previousUpdatedAt
@@ -578,6 +579,7 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingSessionLifecycleContractState? contractState,
     String? reasonCode,
     String? source,
+    DateTime? eventTimestamp,
   }) async {
     final session = _session;
     if (session == null) return false;
@@ -607,7 +609,7 @@ class TripTrackingController extends ChangeNotifier {
       final nextTransitionSequence = session.transitionAudits.isEmpty
           ? nextRevision
           : session.transitionAudits.last.sequenceNumber + 1;
-      final observedAt = _clockNow();
+      final observedAt = eventTimestamp ?? _clockNow();
       final eventAt = observedAt.isBefore(session.updatedAt)
           ? session.updatedAt
           : observedAt;
@@ -662,6 +664,7 @@ class TripTrackingController extends ChangeNotifier {
         contractState: nextContractState,
         reasonCode: reasonCode,
         source: source,
+        eventTimestamp: eventTimestamp,
       );
       return true;
     } catch (error) {

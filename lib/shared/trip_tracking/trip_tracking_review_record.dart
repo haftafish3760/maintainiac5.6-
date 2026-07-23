@@ -639,11 +639,19 @@ class TripTrackingReviewRecord {
           startedAt ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     ).toList(growable: false);
-    final batteryStateSummary = TripTrackingBatteryStateSummary.tryFromMap(
+    final batteryStateSummary = _batteryStateSummaryFromMap(
       map['batteryStateSummary'],
+      latestAt:
+          finishedAt ??
+          startedAt ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     );
     final permissionHistory = _permissionHistoryFromMap(
       map['permissionHistory'],
+      latestAt:
+          finishedAt ??
+          startedAt ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
     );
     final hasValidConfirmation =
         (confirmedEndingOdometer == null && odometerConfirmedAt == null) ||

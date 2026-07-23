@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_recovery_validation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
@@ -66,4 +67,41 @@ void main() {
       expect(restored.toMap().toString(), isNot(contains('latitude')));
     },
   );
+
+  test('duplicate or private manual adjustments fail closed', () async {
+    final now = DateTime.utc(2026, 7, 21, 12);
+    final adjustment = TripManualMileageAdjustment(
+      id: 'adjustment_duplicate',
+      deltaMiles: 2.5,
+      reason: TripManualMileageAdjustmentReason.gpsGap,
+      createdAt: now.add(const Duration(days: 2)),
+      userConfirmed: true,
+      note: 'token=sk.private at 35.12345,-80.98765',
+    );
+    final review = TripTrackingReviewRecord(
+      id: 'draft_private_adjustment',
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      estimatedEndingOdometer: 1010,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: now,
+      finishedAt: now.add(const Duration(hours: 1)),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 16000,
+        walkingReviewSuggested: false,
+      ),
+      manualAdjustments: [adjustment, adjustment],
+    );
+
+    await expectLater(
+      TripTrackingSessionStore.memory().saveReview(review),
+      throwsArgumentError,
+    );
+    final validation = TripTrackingSessionRecoveryValidation.review(
+      review,
+      recoveredAt: now.add(const Duration(days: 1)),
+    );
+    expect(validation.isRecoverable, isFalse);
+    expect(validation.reasons, contains('invalid_manual_adjustment_in_review'));
+  });
 }

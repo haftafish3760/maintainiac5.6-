@@ -48,7 +48,9 @@ void main() {
       expect(store.activeSession?.schemaVersion, 1);
       expect(store.activeSession?.backgroundTrackingAllowed, isTrue);
       expect(store.activeSession?.activityRecognitionEnabled, isTrue);
-      expect(store.activeSession?.nativeSampling?.interval.inSeconds, 8);
+      // The durable boundary clamps a faster recovered request to the user's
+      // persisted sampling ceiling before it can restart native collection.
+      expect(store.activeSession?.nativeSampling?.interval.inSeconds, 15);
       expect(store.activeSession?.samplingCeiling?.interval.inSeconds, 15);
       expect(store.activeSession?.adaptiveSamplingEnabled, isTrue);
       expect(store.activeSession?.lowBatteryProtectionEnabled, isFalse);
@@ -66,6 +68,7 @@ void main() {
     final session = TripTrackingSessionRecord(
       id: 'trip_transition_audit',
       vehicleId: 'vehicle_audit',
+      gpsAssistanceCalibrationMultiplier: 1.05,
       startingOdometer: 1200,
       profile: TripTrackingProfile.roadVehicle,
       startedAt: DateTime.utc(2026, 7, 12, 8),
@@ -74,6 +77,25 @@ void main() {
         totalAcceptedMeters: 100,
         walkingReviewSuggested: false,
       ),
+      lifecycleState: TripTrackingSessionLifecycleState.paused,
+      pauseKind: TripTrackingPauseKind.system,
+      batteryStateSummary: TripTrackingBatteryStateSummary(
+        observedAt: DateTime.utc(2026, 7, 12, 8, 1),
+        batteryPercent: 19,
+        isCharging: false,
+        lowPowerModeEnabled: true,
+        allowsGps: false,
+        reasonCode: 'critical_battery',
+      ),
+      permissionHistory: [
+        TripTrackingPermissionEvidence(
+          observedAt: DateTime.utc(2026, 7, 12, 8, 1),
+          state: 'always',
+          preciseLocation: true,
+          canTrackInBackground: true,
+          source: 'native_event',
+        ),
+      ],
       revision: 3,
       transitionAudits: List.generate(
         36,
@@ -106,6 +128,10 @@ void main() {
 
     final restored = store.activeSession;
     expect(restored?.revision, 3);
+    expect(restored?.gpsAssistanceCalibrationMultiplier, 1.05);
+    expect(restored?.pauseKind, TripTrackingPauseKind.system);
+    expect(restored?.batteryStateSummary?.batteryPercent, 19);
+    expect(restored?.permissionHistory.single.state, 'always');
     expect(restored?.transitionAudits, hasLength(32));
     expect(restored?.transitionAudits.first.id, 'audit_4');
     expect(restored?.transitionAudits.last.id, 'audit_35');
@@ -116,6 +142,109 @@ void main() {
       'gps_session_transition_allowed',
     );
   });
+
+  test(
+    'store rejects duplicate and out-of-checkpoint transition audits',
+    () async {
+      final startedAt = DateTime.utc(2026, 7, 20, 8);
+      final updatedAt = startedAt.add(const Duration(minutes: 1));
+      TripTrackingSessionTransitionAudit audit({
+        required String id,
+        required int sequence,
+        required DateTime eventAt,
+      }) => TripTrackingSessionTransitionAudit(
+        id: id,
+        sessionId: 'trip_transition_validation',
+        vehicleId: 'vehicle_transition_validation',
+        profile: TripTrackingProfile.roadVehicle,
+        profileId: TripTrackingProfile.roadVehicle.name,
+        fromState: TripTrackingSessionLifecycleState.ready,
+        toState: TripTrackingSessionLifecycleState.starting,
+        eventTimestamp: eventAt,
+        sequenceNumber: sequence,
+        reasonCode: 'gps_session_transition_allowed',
+        initiatingSource: 'controller',
+        revision: 2,
+        permissionState: 'permission_granted',
+        confidenceState: 'healthy',
+        trackingQualityMode: 'high_quality',
+      );
+
+      final validAudit = audit(
+        id: 'audit_valid',
+        sequence: 1,
+        eventAt: startedAt,
+      );
+      final session = TripTrackingSessionRecord(
+        id: 'trip_transition_validation',
+        vehicleId: 'vehicle_transition_validation',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        profileId: TripTrackingProfile.roadVehicle.name,
+        startedAt: startedAt,
+        updatedAt: updatedAt,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ),
+        revision: 2,
+        transitionAudits: [validAudit],
+      );
+      final store = TripTrackingSessionStore.memory();
+      await store.save(session);
+
+      await expectLater(
+        store.save(
+          session.copyWith(
+            transitionAudits: [
+              validAudit,
+              audit(
+                id: 'audit_duplicate_sequence',
+                sequence: 1,
+                eventAt: updatedAt,
+              ),
+            ],
+          ),
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.save(
+          session.copyWith(
+            transitionAudits: [
+              audit(
+                id: 'audit_after_checkpoint',
+                sequence: 2,
+                eventAt: updatedAt.add(const Duration(microseconds: 1)),
+              ),
+            ],
+          ),
+        ),
+        throwsArgumentError,
+      );
+
+      final review = TripTrackingReviewRecord(
+        id: session.id,
+        vehicleId: session.vehicleId,
+        startingOdometer: session.startingOdometer,
+        estimatedEndingOdometer: session.startingOdometer,
+        profile: session.profile,
+        profileId: session.effectiveProfileId,
+        startedAt: startedAt,
+        finishedAt: updatedAt,
+        engineSnapshot: session.engineSnapshot,
+        revision: 2,
+        transitionAudits: [
+          audit(
+            id: 'review_after_finish',
+            sequence: 2,
+            eventAt: updatedAt.add(const Duration(microseconds: 1)),
+          ),
+        ],
+      );
+      await expectLater(store.saveReview(review), throwsArgumentError);
+    },
+  );
 
   test(
     'restored transition audits prefer monotonic sequence over wall time',

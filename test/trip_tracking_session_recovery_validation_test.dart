@@ -18,6 +18,7 @@ void main() {
         ),
     List<TripTrackingAdvisoryEvent> advisories = const [],
     List<TripManualEvent> tripEvents = const [],
+    List<TripTrackingSessionTransitionAudit> transitionAudits = const [],
   }) => TripTrackingSessionRecord(
     id: id,
     vehicleId: vehicleId,
@@ -28,6 +29,7 @@ void main() {
     engineSnapshot: engineSnapshot,
     advisories: advisories,
     tripEvents: tripEvents,
+    transitionAudits: transitionAudits,
   );
 
   TripTrackingReviewRecord review({
@@ -38,6 +40,9 @@ void main() {
     DateTime? cloudSyncedAt,
     String? cloudSyncError,
     List<TripTrackingAdvisoryEvent> advisories = const [],
+    List<TripTrackingSessionTransitionAudit> transitionAudits = const [],
+    TripTrackingBatteryStateSummary? batteryStateSummary,
+    List<TripTrackingPermissionEvidence> permissionHistory = const [],
   }) => TripTrackingReviewRecord(
     id: id,
     vehicleId: vehicleId,
@@ -55,6 +60,9 @@ void main() {
     cloudSyncedAt: cloudSyncedAt,
     cloudSyncError: cloudSyncError,
     advisories: advisories,
+    transitionAudits: transitionAudits,
+    batteryStateSummary: batteryStateSummary,
+    permissionHistory: permissionHistory,
   );
 
   test('recoverable active session exposes a safe recovery summary', () {
@@ -210,6 +218,75 @@ void main() {
     },
   );
 
+  test('recovery quarantines foreign or duplicate transition evidence', () {
+    TripTrackingSessionTransitionAudit audit({
+      required String id,
+      required String sessionId,
+      required int sequence,
+      required DateTime eventAt,
+    }) => TripTrackingSessionTransitionAudit(
+      id: id,
+      sessionId: sessionId,
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      profileId: TripTrackingProfile.deliveryVehicle.name,
+      fromState: TripTrackingSessionLifecycleState.ready,
+      toState: TripTrackingSessionLifecycleState.starting,
+      eventTimestamp: eventAt,
+      sequenceNumber: sequence,
+      reasonCode: 'gps_session_transition_allowed',
+      initiatingSource: 'controller',
+      revision: 2,
+      permissionState: 'permission_granted',
+      confidenceState: 'healthy',
+      trackingQualityMode: 'high_quality',
+    );
+
+    final activeAudit = audit(
+      id: 'active_transition',
+      sessionId: 'trip_recoverable',
+      sequence: 1,
+      eventAt: startedAt,
+    );
+    final activeValidation =
+        TripTrackingSessionRecoveryValidation.activeSession(
+          activeSession(
+            transitionAudits: [
+              activeAudit,
+              audit(
+                id: 'duplicate_active_sequence',
+                sessionId: 'trip_recoverable',
+                sequence: 1,
+                eventAt: updatedAt,
+              ),
+            ],
+          ),
+        );
+    expect(activeValidation.isRecoverable, isFalse);
+    expect(
+      activeValidation.reasons,
+      contains('foreign_transition_audit_in_session'),
+    );
+
+    final reviewValidation = TripTrackingSessionRecoveryValidation.review(
+      review(
+        transitionAudits: [
+          audit(
+            id: 'review_transition_after_finish',
+            sessionId: 'trip_review_recoverable',
+            sequence: 2,
+            eventAt: updatedAt.add(const Duration(microseconds: 1)),
+          ),
+        ],
+      ),
+    );
+    expect(reviewValidation.isRecoverable, isFalse);
+    expect(
+      reviewValidation.reasons,
+      contains('foreign_transition_audit_in_review'),
+    );
+  });
+
   test('active recovery quarantines future and stale checkpoints', () {
     final recoveredAt = DateTime.utc(2026, 7, 18, 12);
     final futureSession =
@@ -331,6 +408,34 @@ void main() {
       validation.toSafeSummary()['cloudFunctionCanReviveQuarantinedSession'],
       isFalse,
     );
+  });
+
+  test('review recovery rejects evidence after its final checkpoint', () {
+    final futureAt = updatedAt.add(const Duration(microseconds: 1));
+    final validation = TripTrackingSessionRecoveryValidation.review(
+      review(
+        batteryStateSummary: TripTrackingBatteryStateSummary(
+          observedAt: futureAt,
+          batteryPercent: 70,
+          isCharging: true,
+          lowPowerModeEnabled: false,
+          allowsGps: true,
+          reasonCode: 'charging',
+        ),
+        permissionHistory: [
+          TripTrackingPermissionEvidence(
+            observedAt: futureAt,
+            state: 'always',
+            preciseLocation: true,
+            canTrackInBackground: true,
+            source: 'native_event',
+          ),
+        ],
+      ),
+    );
+
+    expect(validation.isRecoverable, isFalse);
+    expect(validation.reasons, contains('invalid_recovery_evidence_in_review'));
   });
 }
 

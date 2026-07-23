@@ -370,6 +370,65 @@ void main() {
     expect(cancelled?.finishedAt, startedAt);
   });
 
+  test(
+    'explicit historical finish and cancel own their transition timestamps',
+    () async {
+      final startedAt = DateTime.utc(2026, 7, 12, 12);
+      final observedNow = startedAt.add(const Duration(days: 1));
+
+      final finishController = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        clockNow: () => observedNow,
+      );
+      addTearDown(finishController.dispose);
+      expect(
+        await finishController.start(
+          tripId: 'trip_historical_finish_audit',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: startedAt,
+        ),
+        isTrue,
+      );
+      final finishedAt = startedAt.add(const Duration(hours: 1));
+      final review = await finishController.finishForReview(
+        finishedAt: finishedAt,
+      );
+      expect(review, isNotNull);
+      expect(review!.transitionAudits.last.eventTimestamp, finishedAt);
+
+      final cancelController = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        clockNow: () => observedNow,
+      );
+      addTearDown(cancelController.dispose);
+      expect(
+        await cancelController.start(
+          tripId: 'trip_historical_cancel_audit',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: startedAt,
+        ),
+        isTrue,
+      );
+      final canceledAt = startedAt.add(const Duration(minutes: 30));
+      final cancelled = await cancelController.cancelActiveTrip(
+        canceledAt: canceledAt,
+        userConfirmed: false,
+      );
+      expect(cancelled, isNotNull);
+      expect(cancelled!.transitionAudits.last.eventTimestamp, canceledAt);
+    },
+  );
+
   test('explicit end times cannot predate persisted trip evidence', () async {
     final startedAt = DateTime.utc(2026, 7, 12, 12);
     final evidenceAt = startedAt.add(const Duration(seconds: 30));

@@ -384,6 +384,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
         TripTrackingSessionLifecycleState.cancelled,
         reasonCode: 'trip_cancelled',
         source: 'user_cancel',
+        eventTimestamp: completedAt,
       );
       if (!transitioned) return null;
     }
@@ -573,6 +574,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
         TripTrackingSessionLifecycleState.stopping,
         source: 'user_finish_for_review',
         reasonCode: 'trip_review_requested',
+        eventTimestamp: completedAt,
       );
       if (!transitioned) {
         if (_platformStatus == 'storage_failed') {
