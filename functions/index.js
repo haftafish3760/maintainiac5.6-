@@ -11,7 +11,17 @@ const {
   validateAssistRequest,
 } = require('./receipt_ai_assist');
 
-initializeApp();
+const runningInFunctionsEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
+initializeApp(
+  runningInFunctionsEmulator
+    ? {storageBucket: process.env.GCLOUD_PROJECT}
+    : undefined,
+);
+
+// App Check remains mandatory in deployed functions. The local Functions
+// emulator cannot mint production App Check assertions, so authenticated
+// lifecycle tests explicitly bypass only that local verification boundary.
+const enforceCallableAppCheck = !runningInFunctionsEmulator;
 
 const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
   default: 20 * 1024 * 1024,
@@ -116,7 +126,7 @@ function finalizedProofResult(data, {uid, proofId, receiptId, contentSha256}) {
 }
 
 exports.issueExpenseProofUploadGrant = onCall(
-  { enforceAppCheck: true },
+  { enforceAppCheck: enforceCallableAppCheck },
   async (request) => {
     const uid = request.auth?.uid || '';
     const organizationId = String(request.data?.organizationId || '').trim();
@@ -187,17 +197,17 @@ exports.issueExpenseProofUploadGrant = onCall(
           expiresAt: existing.expiresAt,
         };
       }
-      if (openGrants.size > configuredOpenGrantLimit) {
+      if (openGrants.size >= configuredOpenGrantLimit) {
         throw new HttpsError('resource-exhausted', 'Too many proof uploads are pending.');
       }
       const quotaData = quotaValues(quota.data(), configuredQuotaBytes);
-      const reservedBytes = openGrants.docs.fold(0, (total, openGrant) => {
+      const reservedBytes = openGrants.docs.reduce((total, openGrant) => {
         const data = openGrant.data();
         return data.expiresAt?.toMillis() > Date.now() &&
             Number.isInteger(data.maxBytes) && data.maxBytes > 0
           ? total + data.maxBytes
           : total;
-      });
+      }, 0);
       if (quotaData.usedBytes + reservedBytes + maxBytes > quotaData.limitBytes) {
         throw new HttpsError('resource-exhausted', 'Proof storage quota is exhausted.');
       }
@@ -227,7 +237,7 @@ exports.issueExpenseProofUploadGrant = onCall(
 );
 
 exports.finalizeExpenseProofUpload = onCall(
-  { enforceAppCheck: true },
+  { enforceAppCheck: enforceCallableAppCheck },
   async (request) => {
     const uid = request.auth?.uid || '';
     const organizationId = String(request.data?.organizationId || '').trim();
@@ -315,7 +325,7 @@ exports.finalizeExpenseProofUpload = onCall(
 );
 
 exports.requestReceiptAiAssist = onCall(
-  { enforceAppCheck: true, secrets: [openAiApiKey] },
+  { enforceAppCheck: enforceCallableAppCheck, secrets: [openAiApiKey] },
   async (request) => {
     const uid = request.auth?.uid || '';
     if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
