@@ -32,31 +32,51 @@ class MaintainiacStoredRecordIntegrityIssue {
 /// Immutable, local-first lifecycle metadata shared by record modules.
 class MaintainiacRecordLifecycle {
   MaintainiacRecordLifecycle({
-    required this.createdAt,
-    required this.updatedAt,
+    required DateTime createdAt,
+    required DateTime updatedAt,
     this.revision = 1,
     this.state = MaintainiacRecordState.active,
-    this.deletedAt,
+    DateTime? deletedAt,
     List<String> auditEvents = const [],
-  }) : auditEvents = List.unmodifiable(List<String>.from(auditEvents));
+  }) : createdAt = createdAt.toUtc(),
+       updatedAt = updatedAt.toUtc(),
+       deletedAt = deletedAt?.toUtc(),
+       auditEvents = List.unmodifiable(List<String>.from(auditEvents)) {
+    _validate();
+  }
 
-  factory MaintainiacRecordLifecycle.fromMap(
-    Map<dynamic, dynamic>? map, {
-    required DateTime fallbackTime,
-  }) {
-    final createdAt = _date(map?['createdAt']) ?? fallbackTime;
-    return MaintainiacRecordLifecycle(
-      createdAt: createdAt,
-      updatedAt: _date(map?['updatedAt']) ?? createdAt,
-      revision: _int(map?['revision']) ?? 1,
-      state: MaintainiacRecordState.fromName(map?['state'] as String?),
-      deletedAt: _date(map?['deletedAt']),
-      auditEvents:
-          (map?['auditEvents'] as List?)?.whereType<String>().toList(
-            growable: false,
-          ) ??
-          const [],
+  factory MaintainiacRecordLifecycle.fromMap(Map<dynamic, dynamic> map) {
+    final createdAt = _date(map['createdAt']);
+    final updatedAt = _date(map['updatedAt']);
+    final revision = map['revision'];
+    final stateName = map['state'];
+    final states = MaintainiacRecordState.values.where(
+      (state) => state.name == stateName,
     );
+    final deletedValue = map['deletedAt'];
+    final deletedAt = _date(deletedValue);
+    final auditValues = map['auditEvents'];
+    if (createdAt == null ||
+        updatedAt == null ||
+        revision is! int ||
+        states.length != 1 ||
+        (deletedValue != null && deletedAt == null) ||
+        auditValues is! List ||
+        auditValues.any((event) => event is! String)) {
+      throw const FormatException('Record lifecycle is corrupt.');
+    }
+    try {
+      return MaintainiacRecordLifecycle(
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        revision: revision,
+        state: states.single,
+        deletedAt: deletedAt,
+        auditEvents: auditValues.cast<String>(),
+      );
+    } on ArgumentError {
+      throw const FormatException('Record lifecycle is inconsistent.');
+    }
   }
 
   final DateTime createdAt;
@@ -137,6 +157,22 @@ class MaintainiacRecordLifecycle {
 
   static String _event(DateTime time, String event) =>
       '${time.toIso8601String()} ${event.trim()}';
+
+  void _validate() {
+    if (revision < 1 || updatedAt.isBefore(createdAt)) {
+      throw ArgumentError('Record lifecycle ordering is invalid.');
+    }
+    if ((state == MaintainiacRecordState.deleted && deletedAt == null) ||
+        (state == MaintainiacRecordState.active && deletedAt != null) ||
+        (deletedAt != null &&
+            (deletedAt!.isBefore(createdAt) ||
+                deletedAt!.isAfter(updatedAt)))) {
+      throw ArgumentError('Record deletion lifecycle is invalid.');
+    }
+    if (auditEvents.any((event) => event.trim().isEmpty)) {
+      throw ArgumentError('Record audit events cannot be empty.');
+    }
+  }
 }
 
 /// A shared local checkpoint for work that is not yet a confirmed record.

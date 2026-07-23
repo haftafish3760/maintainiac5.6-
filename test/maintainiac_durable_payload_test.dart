@@ -113,4 +113,49 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('record recovery rejects malformed lifecycle metadata', () {
+    Map<String, Object?> recordWith(Map<String, Object?> lifecycle) => {
+      'module': 'settings',
+      'id': 'account',
+      'payload': const <String, Object?>{},
+      'lifecycle': lifecycle,
+    };
+    final valid = <String, Object?>{
+      'createdAt': '2026-07-22T00:00:00.000Z',
+      'updatedAt': '2026-07-22T00:00:00.000Z',
+      'revision': 1,
+      'state': 'active',
+      'deletedAt': null,
+      'auditEvents': const <String>[],
+    };
+
+    expect(
+      () => MaintainiacDurableRecord.fromMap(
+        recordWith({...valid, 'state': 'mystery'}),
+      ),
+      throwsFormatException,
+    );
+    expect(
+      () => MaintainiacDurableRecord.fromMap(
+        recordWith({...valid, 'revision': '1'}),
+      ),
+      throwsFormatException,
+    );
+    expect(
+      () => MaintainiacDurableRecord.fromMap(
+        recordWith({
+          ...valid,
+          'auditEvents': <Object?>['created', 2],
+        }),
+      ),
+      throwsFormatException,
+    );
+    expect(
+      () => MaintainiacDurableRecord.fromMap(
+        recordWith({...valid, 'createdAt': '2026-07-23T00:00:00.000Z'}),
+      ),
+      throwsFormatException,
+    );
+  });
 }

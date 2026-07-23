@@ -303,17 +303,8 @@ class MaintainiacDurableRecord {
         !MaintainiacDurableRecordStore._validKey(module, id)) {
       throw const FormatException('Durable record is corrupt.');
     }
-    final metadata = MaintainiacRecordLifecycle.fromMap(
-      lifecycle,
-      fallbackTime: DateTime.fromMillisecondsSinceEpoch(0),
-    );
-    if (metadata.updatedAt.isBefore(metadata.createdAt) ||
-        metadata.revision < 1 ||
-        (metadata.isDeleted && metadata.deletedAt == null) ||
-        (metadata.isActive && metadata.deletedAt != null)) {
-      throw const FormatException('Durable record lifecycle is corrupt.');
-    }
     try {
+      final metadata = MaintainiacRecordLifecycle.fromMap(lifecycle);
       return MaintainiacDurableRecord(
         module: module,
         id: id,
@@ -321,7 +312,7 @@ class MaintainiacDurableRecord {
         lifecycle: metadata,
       );
     } on ArgumentError {
-      throw const FormatException('Durable record payload is corrupt.');
+      throw const FormatException('Durable record is corrupt.');
     }
   }
 
