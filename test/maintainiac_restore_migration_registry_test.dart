@@ -92,6 +92,19 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test('migration modules must remain portable to the cloud record path', () {
+    expect(
+      () => MaintainiacRestoreMigrationRegistry([
+        MaintainiacRestoreMigrationStep(
+          module: 'm' * (MaintainiacDurableRecordStore.maximumModuleLength + 1),
+          fromVersion: 1,
+          migrate: (record) => record,
+        ),
+      ]),
+      throwsArgumentError,
+    );
+  });
 }
 
 MaintainiacRestoreEnvelope _envelope({required int schemaVersion}) {

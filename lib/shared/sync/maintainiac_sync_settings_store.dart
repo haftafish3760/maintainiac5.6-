@@ -60,8 +60,9 @@ class MaintainiacSyncSettingsStore {
   }) : _box = null,
        _storageCheck = storageCheck ?? _defaultStorageCheck;
 
-  static Future<MaintainiacSyncSettingsStore> create(
-    String boxName, {
+  static const boxName = 'maintainiac_sync_settings';
+
+  static Future<MaintainiacSyncSettingsStore> create({
     MaintainiacSyncSettingsStorageCheck? storageCheck,
   }) async => MaintainiacSyncSettingsStore._(
     await Hive.openBox<dynamic>(boxName),

@@ -7,6 +7,9 @@ import 'maintainiac_record_ordering.dart';
 
 part 'maintainiac_record_draft_store.dart';
 
+const int maintainiacMaximumRecordModuleLength = 80;
+const int maintainiacMaximumRecordIdLength = 160;
+
 /// The one lifecycle vocabulary used by durable Maintainiac records.
 enum MaintainiacRecordState {
   active,
@@ -201,48 +204,14 @@ class MaintainiacRecordDraft {
         lifecycleMap is! Map) {
       throw const FormatException('Draft record is corrupt.');
     }
-    final createdAt = _date(lifecycleMap['createdAt']);
-    final updatedAt = _date(lifecycleMap['updatedAt']);
-    final revision = _int(lifecycleMap['revision']);
-    final stateName = lifecycleMap['state'];
-    final deletedAt = _date(lifecycleMap['deletedAt']);
-    final state = MaintainiacRecordState.values.where(
-      (state) => state.name == stateName,
-    );
-    if (createdAt == null ||
-        updatedAt == null ||
-        updatedAt.isBefore(createdAt) ||
-        revision == null ||
-        revision < 1 ||
-        state.length != 1) {
-      throw const FormatException('Draft lifecycle is corrupt.');
-    }
-    final recordState = state.single;
-    if ((recordState == MaintainiacRecordState.deleted && deletedAt == null) ||
-        (recordState == MaintainiacRecordState.active && deletedAt != null) ||
-        (deletedAt != null &&
-            (deletedAt.isBefore(createdAt) || deletedAt.isAfter(updatedAt)))) {
-      throw const FormatException('Draft lifecycle is inconsistent.');
-    }
     try {
       return MaintainiacRecordDraft(
         module: module,
         id: id,
         payload: Map<String, dynamic>.from(payload),
-        lifecycle: MaintainiacRecordLifecycle(
-          createdAt: createdAt,
-          updatedAt: updatedAt,
-          revision: revision,
-          state: recordState,
-          deletedAt: deletedAt,
-          auditEvents:
-              (lifecycleMap['auditEvents'] as List?)
-                  ?.whereType<String>()
-                  .toList(growable: false) ??
-              const [],
-        ),
+        lifecycle: MaintainiacRecordLifecycle.fromMap(lifecycleMap),
       );
-    } on ArgumentError {
+    } catch (_) {
       throw const FormatException('Draft payload is corrupt.');
     }
   }
@@ -268,13 +237,12 @@ DateTime? _date(Object? value) =>
 bool _hasValidDurableDraftKey(String module, String id) =>
     module.trim().isNotEmpty &&
     id.trim().isNotEmpty &&
+    module.length <= maintainiacMaximumRecordModuleLength &&
+    id.length <= maintainiacMaximumRecordIdLength &&
     module == module.trim() &&
     id == id.trim() &&
     !module.contains(':') &&
     !id.contains(':');
-
-int? _int(Object? value) =>
-    value is int ? value : int.tryParse(value?.toString() ?? '');
 
 Map<String, dynamic> _freezeDraftPayload(Map<String, dynamic> payload) {
   return MaintainiacDurablePayload.freeze(payload);

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../records/maintainiac_restore_applier.dart';
+import '../records/maintainiac_restore_batch_processor.dart';
 import 'maintainiac_cloud_identity.dart';
 import 'maintainiac_firestore_durable_record_codec.dart';
 
@@ -95,11 +96,21 @@ class MaintainiacDurableCloudRestoreGateway {
         )) {
       throw const FormatException('Cloud restore page identity is invalid.');
     }
-    final hasMore = sorted.length > pageSize;
-    final page = sorted.take(pageSize).toList(growable: false);
     final accountScopeId = '$organizationId.$uid';
-    final items = [
-      for (final document in page)
+    final items = <MaintainiacDurableCloudRestoreItem>[];
+    var pageBytes = 0;
+    for (final document in sorted) {
+      if (items.length >= pageSize) break;
+      final transferBytes = utf8.encode(jsonEncode(document.data)).length;
+      if (transferBytes > MaintainiacRestoreBatchProcessor.maximumBatchBytes) {
+        throw const FormatException('Cloud restore record exceeds its limit.');
+      }
+      if (items.isNotEmpty &&
+          pageBytes + transferBytes >
+              MaintainiacRestoreBatchProcessor.maximumBatchBytes) {
+        break;
+      }
+      items.add(
         MaintainiacDurableCloudRestoreItem(
           recordKey: document.id,
           envelope: MaintainiacFirestoreDurableRecordCodec.decode(
@@ -109,13 +120,16 @@ class MaintainiacDurableCloudRestoreGateway {
             documentId: document.id,
             data: document.data,
           ),
-          transferBytes: utf8.encode(jsonEncode(document.data)).length,
+          transferBytes: transferBytes,
         ),
-    ];
+      );
+      pageBytes += transferBytes;
+    }
+    final hasMore = items.length < sorted.length;
     return MaintainiacDurableCloudRestorePage(
       items: List.unmodifiable(items),
       hasMore: hasMore,
-      nextCursor: hasMore && page.isNotEmpty ? page.last.id : null,
+      nextCursor: hasMore && items.isNotEmpty ? items.last.recordKey : null,
     );
   }
 

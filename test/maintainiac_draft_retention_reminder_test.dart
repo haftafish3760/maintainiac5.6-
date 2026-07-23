@@ -151,4 +151,12 @@ void main() {
     expect(saved.localRevision, 1);
     expect(policies.policyFor('calendar').retentionDays, 90);
   });
+
+  test('invalid screen scopes fail before reminder state can be stored', () {
+    final policies = MaintainiacDraftRetentionPolicyStore(
+      MaintainiacDurableRecordStore.memory(),
+    );
+
+    expect(() => policies.policyFor('../expenses'), throwsArgumentError);
+  });
 }

@@ -113,6 +113,34 @@ void main() {
     expect(retry.single.decision.playAudio, isTrue);
     expect(gateway.inAppCalls, 1);
   });
+
+  test('concurrent dispatchers cannot duplicate one in-app reminder', () async {
+    final fixture = await _fixture();
+    final gateway = _Gateway();
+    MaintainiacDraftNotificationDispatcher dispatcher() =>
+        MaintainiacDraftNotificationDispatcher(
+          reminders: fixture.reminders,
+          gateway: gateway,
+          permissionProvider: () async =>
+              const MaintainiacDraftNotificationPermission.denied(),
+        );
+
+    final results = await Future.wait([
+      dispatcher().deliverDue(
+        scopeId: 'expenses',
+        draftModules: const ['expenseForms'],
+        nowUtc: fixture.dueAt,
+      ),
+      dispatcher().deliverDue(
+        scopeId: 'expenses',
+        draftModules: const ['expenseForms'],
+        nowUtc: fixture.dueAt,
+      ),
+    ]);
+
+    expect(results.expand((result) => result), hasLength(1));
+    expect(gateway.inAppCalls, 1);
+  });
 }
 
 Future<_Fixture> _fixture({bool enableExternalChannels = false}) async {

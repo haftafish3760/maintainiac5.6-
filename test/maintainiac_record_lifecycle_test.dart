@@ -88,6 +88,43 @@ void main() {
       }),
       throwsFormatException,
     );
+    expect(
+      () => MaintainiacRecordDraft.fromMap({
+        'module': 'expenses',
+        'id': 'corrupt-audit',
+        'payload': const {},
+        'lifecycle': {
+          'createdAt': '2026-07-15T12:00:00.000Z',
+          'updatedAt': '2026-07-15T12:00:00.000Z',
+          'revision': 1,
+          'state': 'active',
+          'deletedAt': null,
+          'auditEvents': ['valid', 7],
+        },
+      }),
+      throwsFormatException,
+    );
+  });
+
+  test('shared record and draft keys stay cloud-portable', () async {
+    final store = MaintainiacRecordDraftStore.memory();
+
+    await expectLater(
+      store.save(
+        module: 'm' * (maintainiacMaximumRecordModuleLength + 1),
+        id: 'draft-1',
+        payload: const {},
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.save(
+        module: 'expenses',
+        id: 'i' * (maintainiacMaximumRecordIdLength + 1),
+        payload: const {},
+      ),
+      throwsArgumentError,
+    );
   });
 
   test('shared lifecycle and draft snapshots cannot be mutated after save', () {

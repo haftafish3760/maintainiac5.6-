@@ -91,6 +91,29 @@ void main() {
       expect(reviews.pendingFor('account-a'), hasLength(1));
     },
   );
+
+  test('concurrent identical resolutions are idempotent', () async {
+    await records.applyRestoredRecord(
+      _record(2, 40),
+      expectedLocalRevision: null,
+    );
+    await applier.apply(_envelope(_record(2, 99)));
+    final issue = reviews.pendingFor('account-a').single;
+
+    final resolved = await Future.wait([
+      resolver.resolve(
+        issueId: issue.id,
+        resolution: MaintainiacRestoreResolution.keepLocal,
+      ),
+      resolver.resolve(
+        issueId: issue.id,
+        resolution: MaintainiacRestoreResolution.keepLocal,
+      ),
+    ]);
+
+    expect(resolved.first.revision, resolved.last.revision);
+    expect(records.recordFor('expenses', 'expense-1')?.lifecycle.revision, 3);
+  });
 }
 
 MaintainiacRestoreEnvelope _envelope(MaintainiacDurableRecord record) =>

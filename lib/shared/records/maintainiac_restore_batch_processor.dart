@@ -35,6 +35,8 @@ class MaintainiacRestoreBatchProcessor {
 
   final MaintainiacRestoreSessionStore _sessions;
   final MaintainiacRestoreApplier _applier;
+  static const int maximumBatchItems = 9;
+  static const int maximumBatchBytes = 768 * 1024;
 
   Future<MaintainiacRestoreBatchResult> process({
     required String sessionId,
@@ -44,11 +46,20 @@ class MaintainiacRestoreBatchProcessor {
     DateTime? nowUtc,
   }) async {
     final session = _sessions.sessionById(sessionId);
+    final recordIdentities = items
+        .map(
+          (item) =>
+              '${item.envelope.record.module}\u0000'
+              '${item.envelope.record.id}',
+        )
+        .toSet();
     if (session == null ||
         session.state != MaintainiacRestoreSessionState.running ||
         session.revision != expectedSessionRevision ||
-        nextCursor.trim().isEmpty ||
+        !RegExp(r'^[a-f0-9]{64}$').hasMatch(nextCursor) ||
         items.isEmpty ||
+        items.length > maximumBatchItems ||
+        recordIdentities.length != items.length ||
         items.any(
           (item) =>
               item.transferBytes <= 0 ||
@@ -60,7 +71,8 @@ class MaintainiacRestoreBatchProcessor {
       0,
       (total, item) => total + item.transferBytes,
     );
-    if (session.completedItems + items.length > session.totalItems ||
+    if (pageBytes > maximumBatchBytes ||
+        session.completedItems + items.length > session.totalItems ||
         session.completedBytes + pageBytes > session.transferBytes) {
       throw StateError('Restore batch exceeds the authorized session plan.');
     }

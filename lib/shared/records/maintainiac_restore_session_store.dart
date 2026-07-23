@@ -35,10 +35,14 @@ class MaintainiacRestoreSession {
     );
     final created = DateTime.tryParse(map['createdAtUtc']?.toString() ?? '');
     final updated = DateTime.tryParse(map['updatedAtUtc']?.toString() ?? '');
+    final cursor = map['cursor'];
+    final failureReason = map['failureReason'];
     if (mode.length != 1 ||
         state.length != 1 ||
         created == null ||
-        updated == null) {
+        updated == null ||
+        (cursor != null && cursor is! String) ||
+        (failureReason != null && failureReason is! String)) {
       throw const FormatException('Restore session lifecycle is corrupt.');
     }
     final session = MaintainiacRestoreSession(
@@ -57,8 +61,8 @@ class MaintainiacRestoreSession {
       createdAtUtc: created.toUtc(),
       updatedAtUtc: updated.toUtc(),
       revision: _requiredPositiveInt(map, 'revision'),
-      cursor: map['cursor'] as String?,
-      failureReason: map['failureReason'] as String?,
+      cursor: cursor as String?,
+      failureReason: failureReason as String?,
     );
     session.validate();
     return session;
@@ -91,8 +95,11 @@ class MaintainiacRestoreSession {
         completedBytes > transferBytes ||
         updatedAtUtc.isBefore(createdAtUtc) ||
         revision < 1 ||
-        (cursor != null && cursor!.trim().isEmpty) ||
-        (failureReason != null && failureReason!.trim().isEmpty)) {
+        (cursor != null && !_validToken(cursor!)) ||
+        (failureReason != null &&
+            (failureReason!.trim().isEmpty ||
+                failureReason != failureReason!.trim() ||
+                failureReason!.length > 512))) {
       throw const FormatException('Restore session is corrupt.');
     }
   }
@@ -160,8 +167,9 @@ class MaintainiacRestoreSessionStore {
   }) : _box = null,
        _storageCheck = storageCheck ?? _defaultStorageCheck;
 
-  static Future<MaintainiacRestoreSessionStore> create(
-    String boxName, {
+  static const boxName = 'maintainiac_restore_sessions';
+
+  static Future<MaintainiacRestoreSessionStore> create({
     MaintainiacRestoreStorageCheck? storageCheck,
   }) async => MaintainiacRestoreSessionStore._(
     await Hive.openBox<dynamic>(boxName),
@@ -176,19 +184,29 @@ class MaintainiacRestoreSessionStore {
   MaintainiacRestoreSession? sessionById(String id) {
     if (!_validToken(id)) return null;
     final value = _box?.get(id) ?? _memory[id];
-    return value is Map ? MaintainiacRestoreSession.fromMap(value) : null;
+    return value is Map ? _decodeSession(value) : null;
   }
 
   List<MaintainiacRestoreSession> sessionsForAccount(String accountScopeId) {
-    if (!_validToken(accountScopeId)) return const [];
+    if (!_validAccountScope(accountScopeId)) return const [];
     final values = _box?.values ?? _memory.values;
     final sessions = values
         .whereType<Map>()
-        .map(MaintainiacRestoreSession.fromMap)
+        .map(_decodeSession)
+        .whereType<MaintainiacRestoreSession>()
         .where((session) => session.accountScopeId == accountScopeId)
         .toList();
     sessions.sort((a, b) => b.updatedAtUtc.compareTo(a.updatedAtUtc));
     return List.unmodifiable(sessions);
+  }
+
+  List<String> get corruptSessionIds {
+    final entries = _box?.toMap().entries ?? _memory.entries;
+    return List.unmodifiable([
+      for (final entry in entries)
+        if (entry.value is! Map || _decodeSession(entry.value as Map?) == null)
+          entry.key.toString(),
+    ]);
   }
 
   Future<MaintainiacRestoreSession> prepare({
@@ -201,8 +219,14 @@ class MaintainiacRestoreSessionStore {
     required int totalItems,
     DateTime? nowUtc,
   }) => _enqueue(() async {
-    if (sessionById(id) != null) {
+    final existing = sessionById(id);
+    if (existing != null) {
       throw StateError('Restore session already exists.');
+    }
+    if (_containsSession(id)) {
+      throw StateError(
+        'The existing restore session is unreadable and was preserved.',
+      );
     }
     final check = await _storageCheck(
       operationBytes: storagePlan.operationBytesFor(mode),
@@ -378,6 +402,18 @@ class MaintainiacRestoreSessionStore {
     final result = _writeTail.then((_) => operation());
     _writeTail = result.then<void>((_) {}, onError: (_) {});
     return result;
+  }
+
+  bool _containsSession(String id) =>
+      _box?.containsKey(id) ?? _memory.containsKey(id);
+
+  static MaintainiacRestoreSession? _decodeSession(Map? value) {
+    if (value == null) return null;
+    try {
+      return MaintainiacRestoreSession.fromMap(value);
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<AppStorageCheck> _defaultStorageCheck({

@@ -41,6 +41,43 @@ void main() {
     },
   );
 
+  test('central runtime never enables cloud backup implicitly', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    await queue.enqueue(_draft());
+    final functions = _Functions();
+    final runtime = await MaintainiacFirebaseDurableStorageRuntime.create(
+      queue: queue,
+      revisions: MaintainiacDurableCloudRevisionStore.memory(),
+      identity: const _Identity('user-a'),
+      functions: functions,
+    );
+
+    final result = await runtime.uploads.uploadPending(attemptId: 'attempt-a');
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.disabled);
+    expect(functions.names, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+  });
+
+  test('enabled runtime still requires an explicit network policy', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    await queue.enqueue(_draft());
+    final functions = _Functions();
+    final runtime = await MaintainiacFirebaseDurableStorageRuntime.create(
+      queue: queue,
+      revisions: MaintainiacDurableCloudRevisionStore.memory(),
+      identity: const _Identity('user-a'),
+      functions: functions,
+      uploadEnabled: true,
+    );
+
+    final result = await runtime.uploads.uploadPending(attemptId: 'attempt-a');
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.networkUnavailable);
+    expect(functions.names, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+  });
+
   test(
     'central runtime reserves, writes, and checkpoints one shared batch',
     () async {
@@ -60,6 +97,8 @@ void main() {
         revisions: revisions,
         identity: const _Identity('user-a'),
         functions: functions,
+        uploadEnabled: true,
+        uploadNetworkAllowed: () => true,
       );
 
       final result = await runtime.uploads.uploadPending(
@@ -90,6 +129,8 @@ void main() {
             message: 'limit reached',
           ),
         ),
+        uploadEnabled: true,
+        uploadNetworkAllowed: () => true,
       );
 
       final result = await runtime.uploads.uploadPending(
@@ -122,6 +163,8 @@ void main() {
           },
         ),
       ),
+      uploadEnabled: true,
+      uploadNetworkAllowed: () => true,
     );
 
     final result = await runtime.uploads.uploadPending(

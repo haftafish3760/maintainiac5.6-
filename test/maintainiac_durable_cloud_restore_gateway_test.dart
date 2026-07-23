@@ -106,17 +106,49 @@ void main() {
       );
     },
   );
+
+  test('restore pages stay within the local apply byte limit', () async {
+    final largePayload = {'value': 'x' * (430 * 1024)};
+    final gateway = MaintainiacDurableCloudRestoreGateway(
+      source: _Source([
+        _document(
+          'settings',
+          'settings-large-1',
+          revision: 1,
+          payload: largePayload,
+        ),
+        _document(
+          'settings',
+          'settings-large-2',
+          revision: 1,
+          payload: largePayload,
+        ),
+      ]),
+      identityProvider: const _Identity('user-a'),
+    );
+
+    final page = await gateway.fetchPage(organizationId: 'org-a');
+
+    expect(page.items, hasLength(1));
+    expect(page.hasMore, isTrue);
+    expect(page.nextCursor, page.items.single.recordKey);
+    expect(
+      page.items.single.transferBytes,
+      lessThanOrEqualTo(MaintainiacRestoreBatchProcessor.maximumBatchBytes),
+    );
+  });
 }
 
 MaintainiacDurableCloudDocument _document(
   String module,
   String id, {
   required int revision,
+  Map<String, Object?>? payload,
 }) {
   final record = MaintainiacDurableRecord(
     module: module,
     id: id,
-    payload: {'value': revision},
+    payload: payload ?? {'value': revision},
     lifecycle: MaintainiacRecordLifecycle(
       createdAt: DateTime.utc(2026, 7, 22),
       updatedAt: DateTime.utc(2026, 7, 22, 0, revision),

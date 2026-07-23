@@ -107,4 +107,7 @@ class MaintainiacRestoreMigrationRegistry {
 }
 
 bool _token(String value) =>
-    value.isNotEmpty && value == value.trim() && !value.contains(':');
+    value.isNotEmpty &&
+    value.length <= MaintainiacDurableRecordStore.maximumModuleLength &&
+    value == value.trim() &&
+    !value.contains(':');

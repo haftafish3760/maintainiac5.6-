@@ -15,6 +15,7 @@ class MaintainiacDraftAutosaveCoordinator {
   final MaintainiacRecordDraftStore _store;
   final Duration debounce;
   final _pending = <String, _PendingDraft>{};
+  final _inFlight = <Future<MaintainiacRecordDraft>>{};
   bool _disposed = false;
 
   /// Coalesces rapid typing into a local checkpoint. Discrete selections and
@@ -76,9 +77,14 @@ class MaintainiacDraftAutosaveCoordinator {
 
   Future<void> flushAll() async {
     _ensureActive();
-    final entries = _pending.entries.toList(growable: false);
-    for (final entry in entries) {
-      await _write(entry.key, entry.value);
+    while (_pending.isNotEmpty || _inFlight.isNotEmpty) {
+      final entries = _pending.entries.toList(growable: false);
+      for (final entry in entries) {
+        await _write(entry.key, entry.value);
+      }
+      if (_inFlight.isNotEmpty) {
+        await Future.wait(_inFlight.toList(growable: false));
+      }
     }
   }
 
@@ -98,6 +104,11 @@ class MaintainiacDraftAutosaveCoordinator {
     }
     final write = _performWrite(key, pending);
     pending.writeFuture = write;
+    _inFlight.add(write);
+    write.then<void>(
+      (_) => _inFlight.remove(write),
+      onError: (Object _, StackTrace _) => _inFlight.remove(write),
+    );
     return write;
   }
 
@@ -162,9 +173,12 @@ Map<String, dynamic> _copyPayload(Map<String, dynamic> payload) => {
 
 Object? _copyValue(Object? value) {
   if (value is Map) {
+    if (value.keys.any((key) => key is! String)) {
+      throw ArgumentError('Draft payload object keys must be text values.');
+    }
     return {
       for (final entry in value.entries)
-        entry.key.toString(): _copyValue(entry.value),
+        entry.key as String: _copyValue(entry.value),
     };
   }
   if (value is List) return value.map(_copyValue).toList(growable: false);

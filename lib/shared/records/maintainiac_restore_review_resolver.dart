@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'maintainiac_durable_record_store.dart';
 import 'maintainiac_restore_applier.dart';
 import 'maintainiac_restore_review_store.dart';
@@ -11,8 +13,19 @@ class MaintainiacRestoreReviewResolver {
 
   final MaintainiacDurableRecordStore _records;
   final MaintainiacRestoreReviewStore _reviews;
+  static Future<void> _resolutionTail = Future<void>.value();
 
   Future<MaintainiacRestoreReviewIssue> resolve({
+    required String issueId,
+    required MaintainiacRestoreResolution resolution,
+    DateTime? nowUtc,
+  }) {
+    return _serializeResolution(
+      () => _resolve(issueId: issueId, resolution: resolution, nowUtc: nowUtc),
+    );
+  }
+
+  Future<MaintainiacRestoreReviewIssue> _resolve({
     required String issueId,
     required MaintainiacRestoreResolution resolution,
     DateTime? nowUtc,
@@ -63,6 +76,20 @@ class MaintainiacRestoreReviewResolver {
         break;
     }
     return _reviews.resolve(issue.id, resolution, nowUtc: nowUtc);
+  }
+
+  static Future<T> _serializeResolution<T>(
+    Future<T> Function() operation,
+  ) async {
+    final previous = _resolutionTail;
+    final release = Completer<void>();
+    _resolutionTail = release.future;
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release.complete();
+    }
   }
 
   bool _matches(

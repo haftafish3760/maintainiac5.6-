@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -37,6 +38,7 @@ class MaintainiacDraftReminderCoordinator {
   final MaintainiacRecordDraftStore _drafts;
   final MaintainiacDurableRecordStore _records;
   final MaintainiacDraftRetentionPolicyStore _policies;
+  static Future<void> _receiptWriteTail = Future<void>.value();
 
   List<MaintainiacDraftReminderDecision> dueForScope({
     required String scopeId,
@@ -83,6 +85,24 @@ class MaintainiacDraftReminderCoordinator {
     bool pushDelivered = false,
     bool audioDelivered = false,
     DateTime? nowUtc,
+  }) {
+    return _serializeReceiptWrite(
+      () => _recordDelivery(
+        decision,
+        inAppDelivered: inAppDelivered,
+        pushDelivered: pushDelivered,
+        audioDelivered: audioDelivered,
+        nowUtc: nowUtc,
+      ),
+    );
+  }
+
+  Future<void> _recordDelivery(
+    MaintainiacDraftReminderDecision decision, {
+    required bool inAppDelivered,
+    required bool pushDelivered,
+    required bool audioDelivered,
+    DateTime? nowUtc,
   }) async {
     if (!inAppDelivered && !pushDelivered && !audioDelivered) return;
     final id = _receiptId(decision.scopeId, decision.draft);
@@ -117,6 +137,20 @@ class MaintainiacDraftReminderCoordinator {
             (sameRevision && existing?.payload['audioDelivered'] == true),
       },
     );
+  }
+
+  static Future<T> _serializeReceiptWrite<T>(
+    Future<T> Function() operation,
+  ) async {
+    final previous = _receiptWriteTail;
+    final release = Completer<void>();
+    _receiptWriteTail = release.future;
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release.complete();
+    }
   }
 
   Map<String, dynamic>? _receiptFor(

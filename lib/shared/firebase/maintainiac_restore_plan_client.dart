@@ -13,11 +13,19 @@ class MaintainiacCloudRestorePlan {
   final int mediaBytes;
   final int manifestRevision;
 
-  int get totalDownloadBytes => structuredBytes + mediaBytes;
+  int get totalDownloadBytes {
+    final total = structuredBytes + mediaBytes;
+    if (total > MaintainiacRestorePlanClient.maxSafeInteger) {
+      throw const FormatException('Restore plan is malformed.');
+    }
+    return total;
+  }
 }
 
 class MaintainiacRestorePlanClient {
   const MaintainiacRestorePlanClient(this._functions);
+
+  static const int maxSafeInteger = 9007199254740991;
 
   final MaintainiacCallableFunctionClient _functions;
 
@@ -51,7 +59,7 @@ class MaintainiacRestorePlanClient {
 
   int _nonNegativeInt(Map<String, Object?> result, String key) {
     final value = result[key];
-    if (value is! int || value < 0) {
+    if (value is! int || value < 0 || value > maxSafeInteger) {
       throw const FormatException('Restore plan is malformed.');
     }
     return value;

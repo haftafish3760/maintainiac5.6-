@@ -53,7 +53,7 @@ class MaintainiacDurableCloudRevision {
         segments[2] != 'records' ||
         !RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(organizationId) ||
         !RegExp(r'^[a-f0-9]{64}$').hasMatch(segments.last) ||
-        !RegExp(r'^[A-Za-z0-9_.-]{3,321}$').hasMatch(accountScopeId) ||
+        !RegExp(r'^[A-Za-z0-9_.-]{3,160}$').hasMatch(accountScopeId) ||
         !accountScopeId.startsWith('$organizationId.') ||
         localRevision < 1 ||
         !RegExp(r'^[a-f0-9]{64}$').hasMatch(contentSha256) ||

@@ -20,9 +20,12 @@ class MaintainiacFirestoreUploadQueueStore {
 
   List<MaintainiacFirestoreQueuedDocument> get records {
     final loaded = <MaintainiacFirestoreQueuedDocument>[];
-    for (final value in _box.values) {
-      final record = MaintainiacFirestoreQueuedDocument.fromStored(value);
-      if (_isRecoverableQueuedDocument(record)) loaded.add(record);
+    for (final entry in _box.toMap().entries) {
+      final record = MaintainiacFirestoreQueuedDocument.fromStored(entry.value);
+      if (_hasValidStoredEnvelope(entry.key, entry.value, record) &&
+          _isRecoverableQueuedDocument(record)) {
+        loaded.add(record);
+      }
     }
     loaded.sort((a, b) => a.queuedAtUtc.compareTo(b.queuedAtUtc));
     return List.unmodifiable(loaded);
@@ -48,7 +51,7 @@ class MaintainiacFirestoreUploadQueueStore {
     final issues = <MaintainiacFirestoreQueueIntegrityIssue>[];
     for (final entry in _box.toMap().entries) {
       final record = MaintainiacFirestoreQueuedDocument.fromStored(entry.value);
-      if (record.isEmpty) {
+      if (!_hasValidStoredEnvelope(entry.key, entry.value, record)) {
         issues.add(
           MaintainiacFirestoreQueueIntegrityIssue(
             entryId: entry.key.toString(),
@@ -67,6 +70,56 @@ class MaintainiacFirestoreUploadQueueStore {
     return List.unmodifiable(issues);
   }
 
+  bool _hasValidStoredEnvelope(
+    Object key,
+    Object? value,
+    MaintainiacFirestoreQueuedDocument record,
+  ) {
+    final queuedAt = value is Map
+        ? DateTime.tryParse(value['queuedAtUtc']?.toString() ?? '')
+        : null;
+    if (value is! Map ||
+        record.isEmpty ||
+        key.toString() != record.id ||
+        queuedAt == null) {
+      return false;
+    }
+    final attemptCount = value['attemptCount'];
+    if (attemptCount != null && (attemptCount is! int || attemptCount < 0)) {
+      return false;
+    }
+    final timestamps = <String, DateTime?>{};
+    for (final field in const [
+      'lastAttemptAtUtc',
+      'nextAttemptAtUtc',
+      'uploadedAtUtc',
+      'conflictedAtUtc',
+    ]) {
+      final timestamp = value[field];
+      final parsed = timestamp == null
+          ? null
+          : DateTime.tryParse(timestamp.toString());
+      if (timestamp != null && parsed == null) return false;
+      timestamps[field] = parsed;
+    }
+    final lastAttemptAt = timestamps['lastAttemptAtUtc'];
+    final nextAttemptAt = timestamps['nextAttemptAtUtc'];
+    final uploadedAt = timestamps['uploadedAtUtc'];
+    final conflictedAt = timestamps['conflictedAtUtc'];
+    if (lastAttemptAt != null && lastAttemptAt.isBefore(queuedAt) ||
+        nextAttemptAt != null &&
+            (lastAttemptAt == null || nextAttemptAt.isBefore(lastAttemptAt)) ||
+        uploadedAt != null && uploadedAt.isBefore(lastAttemptAt ?? queuedAt) ||
+        conflictedAt != null &&
+            conflictedAt.isBefore(lastAttemptAt ?? queuedAt) ||
+        uploadedAt != null && conflictedAt != null ||
+        attemptCount == 0 && (lastAttemptAt != null || nextAttemptAt != null) ||
+        attemptCount is int && attemptCount > 0 && lastAttemptAt == null) {
+      return false;
+    }
+    return true;
+  }
+
   Future<MaintainiacFirestoreQueuedDocument> enqueue(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
@@ -79,13 +132,14 @@ class MaintainiacFirestoreUploadQueueStore {
     DateTime? queuedAtUtc,
     MaintainiacFirestoreQueuedDocument? retrySource,
     bool deduplicate = false,
+    bool storagePrechecked = false,
   }) async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
     if (deduplicate) {
       final duplicate = _latestMatchingPending(draft);
       if (duplicate != null) return duplicate;
     }
-    await _ensureStorageForQueueWrite();
+    if (!storagePrechecked) await _ensureStorageForQueueWrite();
     final queuedAt = (queuedAtUtc ?? DateTime.now().toUtc()).toUtc();
     final record = MaintainiacFirestoreQueuedDocument(
       id: _recordIdFor(draft.path, queuedAt),
@@ -130,6 +184,7 @@ class MaintainiacFirestoreUploadQueueStore {
       draft,
       queuedAtUtc: queuedAtUtc,
       retrySource: preserveAttemptMetadata ? _latestAttempt(replaced) : null,
+      storagePrechecked: true,
     );
     for (final record in replaced) {
       await _box.delete(record.id);
@@ -141,14 +196,22 @@ class MaintainiacFirestoreUploadQueueStore {
     Iterable<MaintainiacFirestoreDocumentDraft> drafts, {
     DateTime? queuedAtUtc,
   }) => _enqueue(() async {
+    final validated = drafts.toList(growable: false);
+    if (validated.isEmpty) {
+      return const <MaintainiacFirestoreQueuedDocument>[];
+    }
+    for (final draft in validated) {
+      MaintainiacFirestoreUploadPolicy.validateDraft(draft);
+    }
     await _ensureStorageForQueueWrite();
     final queued = <MaintainiacFirestoreQueuedDocument>[];
-    for (final draft in drafts) {
+    for (final draft in validated) {
       queued.add(
         await _enqueueDocument(
           draft,
           queuedAtUtc: queuedAtUtc,
           deduplicate: true,
+          storagePrechecked: true,
         ),
       );
     }
@@ -206,7 +269,9 @@ class MaintainiacFirestoreUploadQueueStore {
     await _ensureStorageForQueueWrite();
     final requestedAttemptAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     final attemptAt = current.lastAttemptAtUtc == null
-        ? requestedAttemptAt
+        ? (requestedAttemptAt.isBefore(current.queuedAtUtc)
+              ? current.queuedAtUtc
+              : requestedAttemptAt)
         : _nextQueueTimestamp(
             current.lastAttemptAtUtc!,
             requested: requestedAttemptAt,
@@ -269,7 +334,10 @@ class MaintainiacFirestoreUploadQueueStore {
     );
     if (current.isEmpty || !current.isPendingUpload) return;
     await _ensureStorageForQueueWrite();
-    final conflictedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final requestedConflictedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final conflictedAt = requestedConflictedAt.isBefore(current.queuedAtUtc)
+        ? current.queuedAtUtc
+        : requestedConflictedAt;
     await _box.put(
       current.id,
       MaintainiacFirestoreQueuedDocument(

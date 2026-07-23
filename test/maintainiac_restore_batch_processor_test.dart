@@ -52,7 +52,7 @@ void main() {
       final result = await processor.process(
         sessionId: session.id,
         expectedSessionRevision: session.revision,
-        nextCursor: 'page-1',
+        nextCursor: 'a' * 64,
         items: [_item('one', 1, 100), _item('two', 1, 100)],
       );
       expect(result.status, MaintainiacRestoreBatchStatus.applied);
@@ -72,7 +72,7 @@ void main() {
       processor.process(
         sessionId: session.id,
         expectedSessionRevision: session.revision,
-        nextCursor: 'page-1',
+        nextCursor: 'a' * 64,
         items: [_item('one', 1, 100, accountScopeId: 'account-b')],
       ),
       throwsStateError,
@@ -95,7 +95,7 @@ void main() {
     final result = await processor.process(
       sessionId: session.id,
       expectedSessionRevision: session.revision,
-      nextCursor: 'page-1',
+      nextCursor: 'a' * 64,
       items: [_item('one', 1, 100), corrupt],
     );
     expect(result.status, MaintainiacRestoreBatchStatus.blocked);
@@ -103,6 +103,56 @@ void main() {
     expect(result.session.completedItems, 0);
     expect(result.session.cursor, isNull);
     expect(records.recordFor('expenses', 'one'), isNotNull);
+  });
+
+  test(
+    'duplicate records and malformed cursors fail before any write',
+    () async {
+      final session = sessions.sessionById('restore-1')!;
+      for (final input
+          in <({String cursor, List<MaintainiacRestoreBatchItem> items})>[
+            (cursor: 'bad-cursor', items: [_item('one', 1, 100)]),
+            (
+              cursor: 'a' * 64,
+              items: [_item('one', 1, 100), _item('one', 1, 100)],
+            ),
+          ]) {
+        await expectLater(
+          processor.process(
+            sessionId: session.id,
+            expectedSessionRevision: session.revision,
+            nextCursor: input.cursor,
+            items: input.items,
+          ),
+          throwsStateError,
+        );
+      }
+
+      expect(records.recordsFor('expenses'), isEmpty);
+      expect(sessions.sessionById('restore-1')?.completedItems, 0);
+    },
+  );
+
+  test('oversized restore pages fail before any record write', () async {
+    final session = sessions.sessionById('restore-1')!;
+
+    await expectLater(
+      processor.process(
+        sessionId: session.id,
+        expectedSessionRevision: session.revision,
+        nextCursor: 'a' * 64,
+        items: [
+          _item(
+            'one',
+            1,
+            MaintainiacRestoreBatchProcessor.maximumBatchBytes + 1,
+          ),
+        ],
+      ),
+      throwsStateError,
+    );
+
+    expect(records.recordsFor('expenses'), isEmpty);
   });
 }
 

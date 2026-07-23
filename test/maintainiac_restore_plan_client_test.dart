@@ -40,6 +40,35 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('restore plan rejects integers unsafe for cloud transport', () async {
+    final client = MaintainiacRestorePlanClient(
+      _Functions(const {
+        'recordCount': 1,
+        'structuredBytes': MaintainiacRestorePlanClient.maxSafeInteger + 1,
+        'mediaBytes': 0,
+        'manifestRevision': 1,
+      }),
+    );
+
+    await expectLater(
+      client.fetch(organizationId: 'org-a', deviceId: 'device-a'),
+      throwsFormatException,
+    );
+  });
+
+  test('restore plan rejects an unsafe combined download total', () async {
+    final plan = await MaintainiacRestorePlanClient(
+      _Functions(const {
+        'recordCount': 1,
+        'structuredBytes': MaintainiacRestorePlanClient.maxSafeInteger,
+        'mediaBytes': 1,
+        'manifestRevision': 1,
+      }),
+    ).fetch(organizationId: 'org-a', deviceId: 'device-a');
+
+    expect(() => plan.totalDownloadBytes, throwsFormatException);
+  });
 }
 
 class _Functions implements MaintainiacCallableFunctionClient {

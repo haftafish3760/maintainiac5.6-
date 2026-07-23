@@ -194,7 +194,13 @@ class MaintainiacSyncSettings {
 }
 
 List<int> _normalizeTimes(Iterable<int> values) {
-  final times = values.where((value) => value >= 0 && value < 24 * 60).toSet();
+  final supplied = values.toList(growable: false);
+  if (supplied.any((value) => value < 0 || value >= 24 * 60)) {
+    throw const FormatException(
+      'A sync schedule contains an invalid local time.',
+    );
+  }
+  final times = supplied.toSet();
   if (times.length > 24) {
     throw const FormatException(
       'A sync schedule may contain at most 24 times.',

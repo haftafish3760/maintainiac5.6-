@@ -14,7 +14,7 @@ typedef MaintainiacPendingSyncUploader =
 enum MaintainiacDurableSyncOutcome { blocked, inProgress, succeeded, failed }
 
 class MaintainiacDurableSyncRequest {
-  const MaintainiacDurableSyncRequest({
+  MaintainiacDurableSyncRequest({
     required this.module,
     required this.attemptId,
     required this.trigger,
@@ -26,7 +26,23 @@ class MaintainiacDurableSyncRequest {
     this.limit,
     this.path,
     this.maximumBatches = 20,
-  }) : assert(maximumBatches > 0 && maximumBatches <= 100);
+  }) {
+    if (!RegExp(r'^[A-Za-z0-9_-]{1,80}$').hasMatch(module)) {
+      throw ArgumentError.value(module, 'module');
+    }
+    if (!RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(attemptId)) {
+      throw ArgumentError.value(attemptId, 'attemptId');
+    }
+    if (maximumBatches < 1 || maximumBatches > 100) {
+      throw ArgumentError.value(maximumBatches, 'maximumBatches');
+    }
+    if (limit != null &&
+        (limit! < 1 ||
+            limit! > MaintainiacFirestoreUploadPolicy.maxBatchSize)) {
+      throw ArgumentError.value(limit, 'limit');
+    }
+    if (path != null) MaintainiacFirestoreUploadPolicy.validatePath(path!);
+  }
 
   final String module;
   final String attemptId;

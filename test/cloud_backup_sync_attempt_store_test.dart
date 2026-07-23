@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/backup/cloud_backup_sync_attempt_store.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
@@ -77,16 +80,47 @@ void main() {
       store.recordAttempt('org:user:device', at: now),
       throwsArgumentError,
     );
+    await expectLater(
+      store.recordAttempt('org user device', at: now),
+      throwsArgumentError,
+    );
+    await expectLater(
+      store.recordAttempt('x' * 257, at: now),
+      throwsArgumentError,
+    );
 
     expect(store.attemptsFor('org-user-device', now: now), isEmpty);
   });
 
-  test('ignores malformed stored attempt payloads instead of crashing', () {
+  test('a missing local attempt ledger remains empty', () {
     final store = CloudBackupSyncAttemptStore.memory();
 
     expect(
       store.attemptsFor('missing-scope', now: DateTime.utc(2026, 7, 16, 12)),
       isEmpty,
+    );
+  });
+
+  test('corrupt stored attempt evidence fails closed', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'cloud_backup_sync_attempt_corrupt_',
+    );
+    addTearDown(() async {
+      await Hive.close();
+      await directory.delete(recursive: true);
+    });
+    Hive.init(directory.path);
+    final store = await CloudBackupSyncAttemptStore.create();
+    await Hive.box<dynamic>(
+      CloudBackupSyncAttemptStore.boxName,
+    ).put('org-user-device', ['not-a-date']);
+
+    expect(
+      () => store.attemptsFor(
+        'org-user-device',
+        now: DateTime.utc(2026, 7, 16, 12),
+      ),
+      throwsStateError,
     );
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'maintainiac_draft_reminder_coordinator.dart';
 
 class MaintainiacDraftNotificationPermission {
@@ -50,8 +52,23 @@ class MaintainiacDraftNotificationDispatcher {
   final MaintainiacDraftNotificationGateway _gateway;
   final Future<MaintainiacDraftNotificationPermission> Function()
   _permissionProvider;
+  static Future<void> _deliveryTail = Future<void>.value();
 
   Future<List<MaintainiacDraftNotificationDelivery>> deliverDue({
+    required String scopeId,
+    required Iterable<String> draftModules,
+    DateTime? nowUtc,
+  }) {
+    return _serializeDelivery(
+      () => _deliverDue(
+        scopeId: scopeId,
+        draftModules: draftModules,
+        nowUtc: nowUtc,
+      ),
+    );
+  }
+
+  Future<List<MaintainiacDraftNotificationDelivery>> _deliverDue({
     required String scopeId,
     required Iterable<String> draftModules,
     DateTime? nowUtc,
@@ -92,6 +109,18 @@ class MaintainiacDraftNotificationDispatcher {
       );
     }
     return List.unmodifiable(deliveries);
+  }
+
+  static Future<T> _serializeDelivery<T>(Future<T> Function() delivery) async {
+    final previous = _deliveryTail;
+    final release = Completer<void>();
+    _deliveryTail = release.future;
+    await previous;
+    try {
+      return await delivery();
+    } finally {
+      release.complete();
+    }
   }
 
   Future<MaintainiacDraftNotificationPermission> _safePermissions() async {

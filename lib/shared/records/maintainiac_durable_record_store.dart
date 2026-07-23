@@ -14,6 +14,9 @@ typedef MaintainiacDurableSizedStorageCheck =
 /// module. Modules keep their own payload schema while lifecycle, ordering,
 /// storage safety, and conflict behavior remain identical across the app.
 class MaintainiacDurableRecordStore {
+  static const int maximumModuleLength = maintainiacMaximumRecordModuleLength;
+  static const int maximumRecordIdLength = maintainiacMaximumRecordIdLength;
+
   MaintainiacDurableRecordStore._(
     this._box, {
     MaintainiacDurableStorageCheck? storageCheck,
@@ -334,6 +337,8 @@ class MaintainiacDurableRecordStore {
   static bool _validKey(String module, String id) =>
       module.trim().isNotEmpty &&
       id.trim().isNotEmpty &&
+      module.length <= maximumModuleLength &&
+      id.length <= maximumRecordIdLength &&
       module == module.trim() &&
       id == id.trim() &&
       !module.contains(':') &&
@@ -385,7 +390,7 @@ class MaintainiacDurableRecord {
         payload: Map<String, dynamic>.from(payload),
         lifecycle: metadata,
       );
-    } on ArgumentError {
+    } catch (_) {
       throw const FormatException('Durable record is corrupt.');
     }
   }

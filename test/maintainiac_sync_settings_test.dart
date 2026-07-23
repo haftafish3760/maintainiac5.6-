@@ -87,6 +87,19 @@ void main() {
     },
   );
 
+  test('invalid local sync times are rejected instead of dropped', () {
+    expect(
+      () => MaintainiacSyncSettings(
+        mode: MaintainiacSyncMode.scheduled,
+        transport: MaintainiacSyncTransport.wifiOnly,
+        localTimesMinutesAfterMidnight: const [480, 24 * 60],
+        allowRoaming: false,
+        pauseOnBatterySaver: true,
+      ),
+      throwsFormatException,
+    );
+  });
+
   test('unknown network, roaming, and battery saver all fail closed', () {
     final settings = MaintainiacSyncSettings(
       mode: MaintainiacSyncMode.automaticProtection,
@@ -128,7 +141,7 @@ void main() {
   test(
     'module-specific settings save immediately and survive Hive restart',
     () async {
-      final store = await MaintainiacSyncSettingsStore.create('sync_settings');
+      final store = await MaintainiacSyncSettingsStore.create();
       final settings = MaintainiacSyncSettings(
         mode: MaintainiacSyncMode.scheduled,
         transport: MaintainiacSyncTransport.wifiOnly,
@@ -140,9 +153,7 @@ void main() {
       expect(store.settingsFor('dashboard').mode, MaintainiacSyncMode.disabled);
       await Hive.close();
       Hive.init(directory.path);
-      final reopened = await MaintainiacSyncSettingsStore.create(
-        'sync_settings',
-      );
+      final reopened = await MaintainiacSyncSettingsStore.create();
       expect(reopened.settingsFor('expenses').toMap(), settings.toMap());
       expect(reopened.snapshotFor('expenses').revision, 1);
     },
@@ -181,7 +192,9 @@ void main() {
   );
 
   test('legacy sync settings remain readable and migrate on save', () async {
-    final box = await Hive.openBox<dynamic>('sync_settings');
+    final box = await Hive.openBox<dynamic>(
+      MaintainiacSyncSettingsStore.boxName,
+    );
     final legacy = MaintainiacSyncSettings(
       mode: MaintainiacSyncMode.manualOnly,
       transport: MaintainiacSyncTransport.wifiOnly,
@@ -190,7 +203,7 @@ void main() {
       pauseOnBatterySaver: true,
     );
     await box.put('expenses', legacy.toMap());
-    final store = await MaintainiacSyncSettingsStore.create('sync_settings');
+    final store = await MaintainiacSyncSettingsStore.create();
     expect(store.settingsFor('expenses').toMap(), legacy.toMap());
     expect(store.snapshotFor('expenses').revision, 0);
     await store.save('expenses', legacy);
@@ -198,16 +211,16 @@ void main() {
   });
 
   test('corrupt sync settings fail closed to disabled', () async {
-    final box = await Hive.openBox<dynamic>('sync_settings');
+    final box = await Hive.openBox<dynamic>(
+      MaintainiacSyncSettingsStore.boxName,
+    );
     await box.put('expenses', {'settings': 'invalid', 'revision': 9});
-    final store = await MaintainiacSyncSettingsStore.create('sync_settings');
+    final store = await MaintainiacSyncSettingsStore.create();
     expect(store.settingsFor('expenses').mode, MaintainiacSyncMode.disabled);
   });
 
   test('sync checkpoint survives restart and recovers interruption', () async {
-    final store = await MaintainiacSyncCheckpointStore.create(
-      'sync_checkpoints',
-    );
+    final store = await MaintainiacSyncCheckpointStore.create();
     final started = await store.begin(
       module: 'expenses',
       attemptId: 'attempt-1',
@@ -226,9 +239,7 @@ void main() {
 
     await Hive.close();
     Hive.init(directory.path);
-    final reopened = await MaintainiacSyncCheckpointStore.create(
-      'sync_checkpoints',
-    );
+    final reopened = await MaintainiacSyncCheckpointStore.create();
     expect(reopened.checkpointFor('expenses').activeAttemptId, 'attempt-1');
     final recovered = await reopened.recoverInterrupted(
       'expenses',
@@ -279,7 +290,6 @@ void main() {
       final releaseFirst = Completer<void>();
       var secondEntered = false;
       final first = await MaintainiacSyncCheckpointStore.create(
-        'shared_sync_checkpoints',
         storageCheck: () async {
           firstEntered.complete();
           await releaseFirst.future;
@@ -287,7 +297,6 @@ void main() {
         },
       );
       final second = await MaintainiacSyncCheckpointStore.create(
-        'shared_sync_checkpoints',
         storageCheck: () async {
           secondEntered = true;
           return _healthyStorage;
@@ -318,11 +327,11 @@ void main() {
   test(
     'corrupt checkpoint blocks sync instead of repeating an upload',
     () async {
-      final box = await Hive.openBox<dynamic>('sync_checkpoints');
-      await box.put('expenses', {'state': 'running'});
-      final store = await MaintainiacSyncCheckpointStore.create(
-        'sync_checkpoints',
+      final box = await Hive.openBox<dynamic>(
+        MaintainiacSyncCheckpointStore.boxName,
       );
+      await box.put('expenses', {'state': 'running'});
+      final store = await MaintainiacSyncCheckpointStore.create();
       expect(() => store.checkpointFor('expenses'), throwsStateError);
     },
   );

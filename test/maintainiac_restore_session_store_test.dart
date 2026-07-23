@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive/hive.dart';
 import 'package:maintaniac/shared/durable_storage/maintainiac_durable_storage.dart';
 
 void main() {
@@ -130,6 +133,21 @@ void main() {
     },
   );
 
+  test('dotted account scopes retain their resumable sessions', () async {
+    final store = MaintainiacRestoreSessionStore.memory(storageCheck: enough);
+    await store.prepare(
+      id: 'restoreDotted',
+      accountScopeId: 'orgA.userA',
+      deviceId: 'deviceA',
+      authorizationId: 'authorizationDotted',
+      mode: MaintainiacRestoreMode.recordsOnly,
+      storagePlan: plan(),
+      totalItems: 1,
+    );
+
+    expect(store.sessionsForAccount('orgA.userA'), hasLength(1));
+  });
+
   test(
     'progress cannot move backward, exceed plan, or complete early',
     () async {
@@ -228,4 +246,34 @@ void main() {
       );
     },
   );
+
+  test('one corrupt stored session cannot hide another recovery', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'maintainiac_restore_sessions_corrupt_',
+    );
+    addTearDown(() async {
+      await Hive.close();
+      await directory.delete(recursive: true);
+    });
+    Hive.init(directory.path);
+    final store = await MaintainiacRestoreSessionStore.create(
+      storageCheck: enough,
+    );
+    await store.prepare(
+      id: 'restoreValid',
+      accountScopeId: 'orgA.userA',
+      deviceId: 'deviceA',
+      authorizationId: 'authorizationValid',
+      mode: MaintainiacRestoreMode.recordsOnly,
+      storagePlan: plan(),
+      totalItems: 1,
+    );
+    await Hive.box<dynamic>(
+      MaintainiacRestoreSessionStore.boxName,
+    ).put('restoreCorrupt', {'state': 'broken'});
+
+    expect(store.sessionsForAccount('orgA.userA'), hasLength(1));
+    expect(store.sessionById('restoreCorrupt'), isNull);
+    expect(store.corruptSessionIds, ['restoreCorrupt']);
+  });
 }

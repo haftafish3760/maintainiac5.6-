@@ -411,6 +411,8 @@ class MaintainiacFirestoreUploadPolicy {
     _validateCatalogReadShape(draft);
   }
 
+  static void validatePath(String path) => _validatePath(path);
+
   static void _validatePath(String path) {
     final clean = path.trim();
     if (clean.isEmpty ||

@@ -159,22 +159,16 @@ class MaintainiacRecordDraftStore {
   }
 
   void _validateDraftKey(String module, String id) {
-    if (module.trim().isEmpty || id.trim().isEmpty) {
-      throw ArgumentError('A draft needs both a module and a stable ID.');
-    }
-    if (module != module.trim() || id != id.trim()) {
-      throw ArgumentError(
-        'Draft module and ID values cannot begin or end with spaces.',
-      );
-    }
-    if (module.contains(':') || id.contains(':')) {
-      throw ArgumentError('Draft module and ID values cannot contain a colon.');
+    if (!_hasValidDraftKey(module, id)) {
+      throw ArgumentError('A draft needs a safe module and stable ID.');
     }
   }
 
   bool _hasValidDraftKey(String module, String id) =>
       module.trim().isNotEmpty &&
       id.trim().isNotEmpty &&
+      module.length <= maintainiacMaximumRecordModuleLength &&
+      id.length <= maintainiacMaximumRecordIdLength &&
       module == module.trim() &&
       id == id.trim() &&
       !module.contains(':') &&

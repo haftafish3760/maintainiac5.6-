@@ -53,8 +53,9 @@ class CloudBackupSyncAttemptStore {
       final existing = _storedAttempts(key);
       final latest = existing.isEmpty
           ? null
-          : existing.reduce((current, value) =>
-              value.isAfter(current) ? value : current);
+          : existing.reduce(
+              (current, value) => value.isAfter(current) ? value : current,
+            );
       final requested = at.toUtc();
       final effective = latest != null && !requested.isAfter(latest)
           ? latest.add(const Duration(microseconds: 1))
@@ -77,23 +78,31 @@ class CloudBackupSyncAttemptStore {
   }
 
   static String _validatedScope(String scope) {
-    final clean = scope.trim();
-    if (clean.isEmpty || clean != scope || clean.contains(':')) {
+    if (!RegExp(r'^[A-Za-z0-9_.-]{1,256}$').hasMatch(scope)) {
       throw ArgumentError.value(scope, 'scope', 'requires a stable safe scope');
     }
-    return clean;
+    return scope;
   }
 
   List<DateTime> _storedAttempts(String key) {
     final values = _box?.get(key) ?? _memory[key] ?? const <DateTime>[];
-    if (values is! Iterable) return const <DateTime>[];
-    return values
-        .map((value) {
-          if (value is DateTime) return value.toUtc();
-          return DateTime.tryParse(value.toString())?.toUtc();
-        })
-        .whereType<DateTime>()
-        .toList();
+    if (values is! Iterable) {
+      throw StateError('Stored sync-attempt evidence is corrupt.');
+    }
+    final parsed = <DateTime>[];
+    for (final value in values) {
+      final timestamp = value is DateTime
+          ? value.toUtc()
+          : DateTime.tryParse(value.toString())?.toUtc();
+      if (timestamp == null) {
+        throw StateError('Stored sync-attempt evidence is corrupt.');
+      }
+      parsed.add(timestamp);
+    }
+    if (parsed.length > 100 || parsed.toSet().length != parsed.length) {
+      throw StateError('Stored sync-attempt evidence is corrupt.');
+    }
+    return parsed;
   }
 
   Future<void> _ensureStorage() async {

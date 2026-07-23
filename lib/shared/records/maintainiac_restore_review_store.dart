@@ -163,8 +163,9 @@ class MaintainiacRestoreReviewStore {
   }) : _box = null,
        _storageCheck = storageCheck ?? _defaultStorageCheck;
 
-  static Future<MaintainiacRestoreReviewStore> create(
-    String boxName, {
+  static const boxName = 'maintainiac_restore_reviews';
+
+  static Future<MaintainiacRestoreReviewStore> create({
     MaintainiacRestoreReviewStorageCheck? storageCheck,
   }) async => MaintainiacRestoreReviewStore._(
     await Hive.openBox<dynamic>(boxName),
@@ -179,7 +180,7 @@ class MaintainiacRestoreReviewStore {
   MaintainiacRestoreReviewIssue? issueById(String id) {
     if (!_hash(id)) return null;
     final value = _box?.get(id) ?? _memory[id];
-    return value is Map ? MaintainiacRestoreReviewIssue.fromMap(value) : null;
+    return value is Map ? _decodeIssue(value) : null;
   }
 
   List<MaintainiacRestoreReviewIssue> pendingFor(String accountScopeId) {
@@ -188,7 +189,8 @@ class MaintainiacRestoreReviewStore {
     final issues =
         values
             .whereType<Map>()
-            .map(MaintainiacRestoreReviewIssue.fromMap)
+            .map(_decodeIssue)
+            .whereType<MaintainiacRestoreReviewIssue>()
             .where(
               (issue) =>
                   issue.accountScopeId == accountScopeId &&
@@ -201,6 +203,15 @@ class MaintainiacRestoreReviewStore {
     return List.unmodifiable(issues);
   }
 
+  List<String> get corruptIssueIds {
+    final entries = _box?.toMap().entries ?? _memory.entries;
+    return List.unmodifiable([
+      for (final entry in entries)
+        if (entry.value is! Map || _decodeIssue(entry.value as Map?) == null)
+          entry.key.toString(),
+    ]);
+  }
+
   Future<MaintainiacRestoreReviewIssue> record({
     required MaintainiacRestoreReviewType type,
     required MaintainiacRestoreReviewRecord remote,
@@ -210,6 +221,11 @@ class MaintainiacRestoreReviewStore {
     final now = (nowUtc ?? DateTime.now()).toUtc();
     final id = _issueId(type, remote, local);
     final existing = issueById(id);
+    if (existing == null && _containsIssue(id)) {
+      throw StateError(
+        'The existing restore review is unreadable and was preserved.',
+      );
+    }
     if (existing?.state == MaintainiacRestoreReviewState.pending) {
       return existing!;
     }
@@ -279,6 +295,18 @@ class MaintainiacRestoreReviewStore {
     final result = _writeTail.then((_) => operation());
     _writeTail = result.then<void>((_) {}, onError: (_) {});
     return result;
+  }
+
+  bool _containsIssue(String id) =>
+      _box?.containsKey(id) ?? _memory.containsKey(id);
+
+  static MaintainiacRestoreReviewIssue? _decodeIssue(Map? value) {
+    if (value == null) return null;
+    try {
+      return MaintainiacRestoreReviewIssue.fromMap(value);
+    } catch (_) {
+      return null;
+    }
   }
 
   static Future<AppStorageCheck> _defaultStorageCheck({

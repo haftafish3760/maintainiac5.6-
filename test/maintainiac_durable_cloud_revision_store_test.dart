@@ -69,6 +69,13 @@ void main() {
       }),
       throwsFormatException,
     );
+    expect(
+      () => MaintainiacDurableCloudRevision.fromMap({
+        ...valid,
+        'accountScopeId': 'org-a.${List.filled(155, 'u').join()}',
+      }),
+      throwsFormatException,
+    );
   });
 }
 

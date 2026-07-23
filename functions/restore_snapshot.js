@@ -9,7 +9,10 @@ const SNAPSHOT_SCHEMA = 'maintainiac_restore_snapshot_v1';
 const MAX_RECORDS = 100000;
 const QUERY_PAGE_SIZE = 500;
 const MAX_STRUCTURED_BYTES = 64 * 1024 * 1024;
-const MAX_CHUNK_BYTES = 700 * 1024;
+// A valid durable record may use up to 768 KiB before snapshot wrapper
+// metadata. Keep the snapshot chunk below Firestore's 1 MiB document limit
+// while still allowing every record accepted by the commit boundary.
+const MAX_CHUNK_BYTES = 900 * 1024;
 const MAX_CHUNKS = 400;
 const MAX_BATCH_BYTES = 8 * 1024 * 1024;
 const MAX_BATCH_WRITES = 450;
@@ -256,21 +259,29 @@ async function fetchRestoreSnapshotPage({
   query = afterRecordKey
     ? query.where('lastRecordKey', '>', afterRecordKey)
       .orderBy('lastRecordKey')
-      .limit(1)
-    : query.orderBy('chunkIndex').limit(1);
+      .limit(limit)
+    : query.orderBy('chunkIndex').limit(limit);
   const snapshot = await query.get();
   if (snapshot.empty) return [];
-  const chunk = snapshot.docs[0].data();
-  if (chunk.schema !== SNAPSHOT_SCHEMA ||
-      chunk.uid !== session.uid ||
-      chunk.orgId !== session.orgId ||
-      chunk.sessionId !== sessionRef.id ||
-      !Array.isArray(chunk.documents)) {
-    throw new HttpsError('data-loss', 'Restore snapshot is corrupt.');
+  const documents = [];
+  for (const snapshotDocument of snapshot.docs) {
+    const chunk = snapshotDocument.data();
+    if (chunk.schema !== SNAPSHOT_SCHEMA ||
+        chunk.uid !== session.uid ||
+        chunk.orgId !== session.orgId ||
+        chunk.sessionId !== sessionRef.id ||
+        !Array.isArray(chunk.documents)) {
+      throw new HttpsError('data-loss', 'Restore snapshot is corrupt.');
+    }
+    for (const document of chunk.documents) {
+      if ((!afterRecordKey || document.id > afterRecordKey) &&
+          documents.length < limit) {
+        documents.push(document);
+      }
+    }
+    if (documents.length >= limit) break;
   }
-  return chunk.documents
-    .filter((document) => !afterRecordKey || document.id > afterRecordKey)
-    .slice(0, limit);
+  return documents;
 }
 
 async function deleteRestoreSnapshot({db, sessionRef}) {

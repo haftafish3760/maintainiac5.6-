@@ -243,6 +243,31 @@ void main() {
     expect(maximumActive, 1);
     expect(checkpoints.checkpointFor('expenses').revision, 4);
   });
+
+  test('unsafe local batch bounds are rejected before sync begins', () {
+    expect(() => _request('attempt-1', maximumBatches: 0), throwsArgumentError);
+    expect(
+      () => _request('attempt-1', maximumBatches: 101),
+      throwsArgumentError,
+    );
+    expect(() => _request('attempt-1', limit: 0), throwsArgumentError);
+    expect(
+      () => _request(
+        'attempt-1',
+        limit: MaintainiacFirestoreUploadPolicy.maxBatchSize + 1,
+      ),
+      throwsArgumentError,
+    );
+    expect(() => _request('bad attempt'), throwsArgumentError);
+    expect(
+      () => _request('attempt-1', module: 'bad/module'),
+      throwsArgumentError,
+    );
+    expect(
+      () => _request('attempt-1', path: 'unknown/path'),
+      throwsArgumentError,
+    );
+  });
 }
 
 Future<void> _enable(MaintainiacSyncSettingsStore store) => store.save(
@@ -256,17 +281,25 @@ Future<void> _enable(MaintainiacSyncSettingsStore store) => store.save(
   ),
 );
 
-MaintainiacDurableSyncRequest _request(String attemptId) =>
-    MaintainiacDurableSyncRequest(
-      module: 'expenses',
-      attemptId: attemptId,
-      trigger: MaintainiacSyncTrigger.manual,
-      network: MaintainiacSyncNetwork.wifi,
-      isRoaming: false,
-      batterySaverEnabled: false,
-      immediateSyncAllowed: true,
-      localNow: DateTime(2026, 7, 22, 12),
-    );
+MaintainiacDurableSyncRequest _request(
+  String attemptId, {
+  String module = 'expenses',
+  int? limit,
+  String? path,
+  int maximumBatches = 20,
+}) => MaintainiacDurableSyncRequest(
+  module: module,
+  attemptId: attemptId,
+  trigger: MaintainiacSyncTrigger.manual,
+  network: MaintainiacSyncNetwork.wifi,
+  isRoaming: false,
+  batterySaverEnabled: false,
+  immediateSyncAllowed: true,
+  localNow: DateTime(2026, 7, 22, 12),
+  limit: limit,
+  path: path,
+  maximumBatches: maximumBatches,
+);
 
 MaintainiacFirestoreUploadResult _upload(
   MaintainiacFirestoreUploadStatus status, {

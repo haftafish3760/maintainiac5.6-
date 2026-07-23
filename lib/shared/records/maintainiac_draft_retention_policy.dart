@@ -99,9 +99,11 @@ class MaintainiacDraftRetentionPolicyStore {
 
   MaintainiacDraftRetentionPolicy policyFor(String scopeId) {
     final stored = _records.recordFor(recordModule, scopeId);
-    return stored == null
+    final policy = stored == null
         ? MaintainiacDraftRetentionPolicy(scopeId: scopeId)
         : MaintainiacDraftRetentionPolicy.fromRecord(stored);
+    policy._validate();
+    return policy;
   }
 
   List<MaintainiacDraftRetentionPolicy> get savedPolicies => List.unmodifiable(

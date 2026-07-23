@@ -379,6 +379,46 @@ void main() {
       expect(draft.payload['text'], 'edit-999');
     },
   );
+
+  test(
+    'confirmed records reject nonportable keys and corrupt payload maps',
+    () async {
+      final records = MaintainiacDurableRecordStore.memory();
+
+      await expectLater(
+        records.save(
+          module: 'm' * (MaintainiacDurableRecordStore.maximumModuleLength + 1),
+          id: 'record-1',
+          payload: const {},
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        records.save(
+          module: 'settings',
+          id: 'i' * (MaintainiacDurableRecordStore.maximumRecordIdLength + 1),
+          payload: const {},
+        ),
+        throwsArgumentError,
+      );
+      expect(
+        () => MaintainiacDurableRecord.fromMap({
+          'module': 'settings',
+          'id': 'record-1',
+          'payload': {7: 'non-text-key'},
+          'lifecycle': {
+            'createdAt': '2026-07-15T12:00:00.000Z',
+            'updatedAt': '2026-07-15T12:00:00.000Z',
+            'revision': 1,
+            'state': 'active',
+            'deletedAt': null,
+            'auditEvents': const <String>[],
+          },
+        }),
+        throwsFormatException,
+      );
+    },
+  );
 }
 
 const _healthyStorage = AppStorageCheck(

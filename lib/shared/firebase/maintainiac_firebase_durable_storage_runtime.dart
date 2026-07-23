@@ -31,7 +31,7 @@ class MaintainiacFirebaseDurableStorageRuntime {
     MaintainiacCloudIdentityProvider? identity,
     MaintainiacCallableFunctionClient? functions,
     MaintainiacFirestoreDocumentSink? sink,
-    bool uploadEnabled = true,
+    bool uploadEnabled = false,
     bool Function()? uploadNetworkAllowed,
   }) async {
     final resolvedQueue =
@@ -54,7 +54,7 @@ class MaintainiacFirebaseDurableStorageRuntime {
       sink: resolvedSink,
       uploadEnabled: uploadEnabled,
       identityProvider: resolvedIdentity,
-      uploadNetworkAllowed: uploadNetworkAllowed,
+      uploadNetworkAllowed: uploadNetworkAllowed ?? () => false,
       hostedSyncReservationProvider: serverCommitted
           ? null
           : (attemptId, batchSha256, batchBytes) => hostedPlan.reserveSync(

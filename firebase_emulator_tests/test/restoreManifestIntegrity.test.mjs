@@ -140,6 +140,33 @@ describe('restore manifest integrity', () => {
     );
     assert.equal(authorization.recordCount, 16);
     assert.equal(authorization.structuredBytes, structuredBytes);
+    const sessionInput = {
+      organizationId,
+      deviceId: 'restoreDevice',
+      sessionId: authorization.sessionId,
+      authorizationToken: authorization.authorizationToken,
+    };
+    await callFunction(
+      'beginRestoreSession',
+      identity.token,
+      sessionInput,
+    );
+    const firstPage = await callFunction(
+      'fetchRestoreRecordPage',
+      identity.token,
+      {...sessionInput, limit: 10},
+    );
+    assert.equal(firstPage.documents.length, 10);
+    const secondPage = await callFunction(
+      'fetchRestoreRecordPage',
+      identity.token,
+      {
+        ...sessionInput,
+        limit: 10,
+        afterRecordKey: firstPage.documents.at(-1).id,
+      },
+    );
+    assert.equal(secondPage.documents.length, 6);
     await testEnv.withSecurityRulesDisabled(async (context) => {
       const chunks = await getDocs(collection(
         context.firestore(),
@@ -292,7 +319,7 @@ async function seedLargeRecordSet(uid, organizationId) {
       const data = durableRecord(
         uid,
         `large-${index}`,
-        String.fromCharCode(65 + index).repeat(600 * 1024),
+        String.fromCharCode(65 + index).repeat(740 * 1024),
         organizationId,
       );
       structuredBytes += Buffer.byteLength(JSON.stringify(data), 'utf8');

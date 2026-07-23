@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/durable_storage/maintainiac_durable_storage.dart';
 
@@ -101,5 +103,62 @@ void main() {
       () => autosave.schedule(module: 'jobs', id: 'job-2', payload: const {}),
       throwsStateError,
     );
+  });
+
+  test(
+    'dispose waits for a checkpoint already writing to device storage',
+    () async {
+      final entered = Completer<void>();
+      final release = Completer<void>();
+      final store = MaintainiacRecordDraftStore.memory(
+        storageCheck: () async {
+          entered.complete();
+          await release.future;
+          return const AppStorageCheck(
+            availableBytes: 100,
+            operationBytes: 1,
+            requiredBytes: 1,
+            purpose: AppStoragePurpose.smallRecordWrite,
+          );
+        },
+      );
+      final autosave = MaintainiacDraftAutosaveCoordinator(
+        store: store,
+        debounce: Duration.zero,
+      );
+      final pending = autosave.schedule(
+        module: 'invoices',
+        id: 'invoice-in-flight',
+        payload: const {'amount': 42},
+      );
+      await entered.future;
+      var disposed = false;
+      final disposal = autosave.dispose().then((_) => disposed = true);
+
+      await Future<void>.delayed(Duration.zero);
+      expect(disposed, isFalse);
+      release.complete();
+      await Future.wait([pending, disposal]);
+
+      expect(disposed, isTrue);
+      expect(store.draftFor('invoices', 'invoice-in-flight'), isNotNull);
+    },
+  );
+
+  test('autosave rejects non-text payload keys instead of rewriting them', () {
+    final store = MaintainiacRecordDraftStore.memory();
+    final autosave = MaintainiacDraftAutosaveCoordinator(store: store);
+
+    expect(
+      () => autosave.schedule(
+        module: 'invoices',
+        id: 'invoice-bad-key',
+        payload: <String, dynamic>{
+          'nested': <Object, Object?>{7: 'unsafe'},
+        },
+      ),
+      throwsArgumentError,
+    );
+    expect(store.draftFor('invoices', 'invoice-bad-key'), isNull);
   });
 }
