@@ -1186,6 +1186,11 @@ service cloud.firestore {
         allow read: if isSelf(uid);
         allow write: if false;
       }
+
+      match /restoreUsage/{windowId} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
     }
 
     match /usage/{uid}/months/{monthId} {

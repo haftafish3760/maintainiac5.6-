@@ -17,6 +17,7 @@ const {
   sha256,
   validAuthorizationLifetime,
 } = require('./restore_session_contract');
+const {reserveRestoreAdmission} = require('./restore_admission');
 
 const RESTORE_MODES = new Set(['full', 'smart', 'recordsOnly']);
 const snapshotRetentionSeconds = defineInt(
@@ -144,6 +145,20 @@ async function issueRestoreAuthorization(request) {
       authorizationToken,
       lifetimeSeconds,
     });
+  }
+  const admission = await reserveRestoreAdmission({
+    uid,
+    organizationId,
+    deviceId,
+    requestId,
+    sessionId,
+    estimatedBytes: Number(manifest.data()?.structuredBytes || 0),
+  });
+  if (!admission.mayBuild) {
+    throw new HttpsError(
+      'aborted',
+      'This restore is already being prepared. Retry shortly.',
+    );
   }
   const authorizationTokenHash = sha256(authorizationToken);
   const now = Timestamp.now();
