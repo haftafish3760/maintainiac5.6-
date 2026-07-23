@@ -111,4 +111,43 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('decode rejects cloud boundary drift before restore', () {
+    final draft = MaintainiacFirestoreDurableRecordCodec.encode(
+      organizationId: 'org-a',
+      uid: 'user-a',
+      accountScopeId: 'org-a.user-a',
+      schemaVersion: 1,
+      record: MaintainiacDurableRecord(
+        module: 'settings',
+        id: 'settings-1',
+        payload: const {'theme': 'dark'},
+        lifecycle: MaintainiacRecordLifecycle(
+          createdAt: DateTime.utc(2026, 7, 22),
+          updatedAt: DateTime.utc(2026, 7, 22),
+        ),
+      ),
+    );
+    final documentId = draft.path.split('/').last;
+    final unsafe = <Map<String, Object?>>[
+      {...draft.data, 'updatedByUid': 'user-b'},
+      {...draft.data, 'privateToOwner': false},
+      {...draft.data, 'recordSchemaVersion': 0},
+      {...draft.data, 'contentSha256': 'f' * 64},
+      {...draft.data, 'unexpectedField': true},
+      {...draft.data}..remove('auditEvents'),
+    ];
+    for (final data in unsafe) {
+      expect(
+        () => MaintainiacFirestoreDurableRecordCodec.decode(
+          expectedOrganizationId: 'org-a',
+          expectedUid: 'user-a',
+          expectedAccountScopeId: 'org-a.user-a',
+          documentId: documentId,
+          data: data,
+        ),
+        throwsFormatException,
+      );
+    }
+  });
 }

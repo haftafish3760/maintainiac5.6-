@@ -13,6 +13,27 @@ import 'maintainiac_firestore_upload_queue.dart';
 class MaintainiacFirestoreDurableRecordCodec {
   const MaintainiacFirestoreDurableRecordCodec._();
 
+  static const _keys = {
+    'schema',
+    'recordKey',
+    'module',
+    'localRecordId',
+    'accountScopeId',
+    'recordSchemaVersion',
+    'contentSha256',
+    'privateToOwner',
+    'orgId',
+    'createdByUid',
+    'updatedByUid',
+    'localRevision',
+    'recordState',
+    'createdAt',
+    'updatedAt',
+    'deletedAt',
+    'auditEvents',
+    'recordPayload',
+  };
+
   static MaintainiacFirestoreDocumentDraft encode({
     required String organizationId,
     required String uid,
@@ -77,17 +98,28 @@ class MaintainiacFirestoreDurableRecordCodec {
     if (expectedAccountScopeId != '$expectedOrganizationId.$expectedUid') {
       throw const FormatException('Cloud durable record scope is invalid.');
     }
-    if (data['schema'] != 'maintainiac_durable_record_v1' ||
+    if (data.keys.any((key) => key is! String) ||
+        data.keys.toSet().difference(_keys).isNotEmpty ||
+        _keys.difference(data.keys.toSet()).isNotEmpty ||
+        data['schema'] != 'maintainiac_durable_record_v1' ||
         data['recordKey'] != documentId ||
         data['orgId'] != expectedOrganizationId ||
         data['createdByUid'] != expectedUid ||
+        data['updatedByUid'] != expectedUid ||
         data['accountScopeId'] != expectedAccountScopeId ||
+        data['privateToOwner'] != true ||
         data['module'] is! String ||
         data['localRecordId'] is! String ||
         data['recordSchemaVersion'] is! int ||
+        (data['recordSchemaVersion'] as int? ?? 0) < 1 ||
         data['recordPayload'] is! Map ||
         data['auditEvents'] is! List ||
-        data['contentSha256'] is! String) {
+        (data['auditEvents'] as List?)?.any((event) => event is! String) ==
+            true ||
+        data['contentSha256'] is! String ||
+        !RegExp(
+          r'^[a-f0-9]{64}$',
+        ).hasMatch(data['contentSha256']?.toString() ?? '')) {
       throw const FormatException('Cloud durable record is malformed.');
     }
     final module = data['module'] as String;
@@ -95,25 +127,38 @@ class MaintainiacFirestoreDurableRecordCodec {
     if (_recordKey(module, localRecordId) != documentId) {
       throw const FormatException('Cloud durable record identity is invalid.');
     }
-    final record = MaintainiacDurableRecord.fromMap({
-      'module': module,
-      'id': localRecordId,
-      'payload': data['recordPayload'],
-      'lifecycle': {
-        'createdAt': data['createdAt'],
-        'updatedAt': data['updatedAt'],
-        'revision': data['localRevision'],
-        'state': data['recordState'],
-        'deletedAt': data['deletedAt'],
-        'auditEvents': data['auditEvents'],
-      },
-    });
-    return MaintainiacRestoreEnvelope(
+    late final MaintainiacDurableRecord record;
+    try {
+      record = MaintainiacDurableRecord.fromMap({
+        'module': module,
+        'id': localRecordId,
+        'payload': data['recordPayload'],
+        'lifecycle': {
+          'createdAt': data['createdAt'],
+          'updatedAt': data['updatedAt'],
+          'revision': data['localRevision'],
+          'state': data['recordState'],
+          'deletedAt': data['deletedAt'],
+          'auditEvents': data['auditEvents'],
+        },
+      });
+    } catch (_) {
+      throw const FormatException('Cloud durable record is malformed.');
+    }
+    final envelope = MaintainiacRestoreEnvelope(
       accountScopeId: expectedAccountScopeId,
       record: record,
       schemaVersion: data['recordSchemaVersion'] as int,
       contentSha256: data['contentSha256'] as String,
     );
+    if (MaintainiacRestoreApplier.contentSha256For(
+          record,
+          accountScopeId: expectedAccountScopeId,
+        ) !=
+        envelope.contentSha256) {
+      throw const FormatException('Cloud durable record hash is invalid.');
+    }
+    return envelope;
   }
 
   static String _recordKey(String module, String id) =>
