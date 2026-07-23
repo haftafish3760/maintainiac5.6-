@@ -114,7 +114,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     final latestAllowed = _clockNow().toUtc().add(
       _policy.maximumFutureSampleSkew,
     );
-    for (final review in _sessionStore.pendingReviews) {
+    for (final review in _readPendingReviewsSafely()) {
       final confirmedAt = review.odometerConfirmedAt;
       if (review.vehicleId != _odometer.vehicleId || confirmedAt == null) {
         continue;
@@ -150,7 +150,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     DateTime? nowUtc,
   }) => TripOdometerUsageAnomalySignal.evaluate(
     currentOdometerMiles: currentOdometerMiles,
-    history: _sessionStore.pendingReviews,
+    history: _readPendingReviewsSafely(),
     vehicleId: vehicleId ?? _odometer.vehicleId,
     nowUtc: nowUtc,
   );
@@ -171,7 +171,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     // hiding a genuinely unusual odometer entry for a new user.
     final weekdaySignal = TripOdometerUsageAnomalySignal.evaluate(
       currentOdometerMiles: miles,
-      history: _sessionStore.pendingReviews,
+      history: _readPendingReviewsSafely(),
       vehicleId: _odometer.vehicleId,
       nowUtc: referenceTime,
       weekday: referenceTime.weekday,

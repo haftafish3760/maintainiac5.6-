@@ -19,6 +19,18 @@ void main() {
     expect(controller.latestUnconfirmedReview, isNull);
     expect(() => controller.odometerCalibrationSignal(), returnsNormally);
     expect(
+      () => controller.odometerUsageAnomalySignal(currentOdometerMiles: 10),
+      returnsNormally,
+    );
+    expect(
+      () => controller.odometerUsageAnomalySignalForCurrentDay(),
+      returnsNormally,
+    );
+    expect(
+      () => controller.refreshGpsAssistanceCalibration(enabled: true),
+      returnsNormally,
+    );
+    expect(
       () => controller.driverPatternDecision(profileId: 'profile-1'),
       returnsNormally,
     );
