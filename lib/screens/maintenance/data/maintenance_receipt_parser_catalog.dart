@@ -225,7 +225,7 @@ final _purchaseSignal = RegExp(
   r'\b(?:amount paid|cashier|register|change due|retail sale|sku|part no|item price)\b',
 );
 final _serviceSignal = RegExp(
-  r'\b(?:service performed|repair order|work order|technician|labor|vehicle mileage|customer vehicle|installed|replaced|replacement|oil change|tire rotation|flush service|registration renewed|renewal completed|inspection passed|inspection completed)\b',
+  r'\b(?:service performed|work completed|completed services?|repair order|work order|technician|labor|vehicle mileage|customer vehicle|installed|replaced|replacement|oil change|tire rotation|flush service|registration renewed|renewal completed|inspection passed|inspection completed)\b',
 );
 final _strongServiceSignal = RegExp(
   r'\b(?:service performed|work completed|repair order|work order|technician|labor|vehicle mileage|customer vehicle|installed|replaced|registration renewed|renewal completed|inspection passed|inspection completed)\b',

@@ -64,8 +64,8 @@ Canonical checkout: `/Users/rbbie/Documents/Maintainiac_5.7_Active`
   an isolated test file. The ordered maintenance UI and isolated draft-resume
   files now pass together without removing assertions.
 - Verified 2026-07-23 evidence: 30 maintenance persistence/draft/UI/history
-  tests, 69 selected vehicle/global-odometer tests, and the 182-check maintenance
-  receipt gate passed. The receipt gate includes 176 parser/review/draft/UI/
+  tests, 69 selected vehicle/global-odometer tests, and the 184-check maintenance
+  receipt gate passed. The receipt gate includes 178 parser/review/draft/UI/
   application tests, one manual-prefill check, four shared adapter-contract
   checks, and the legacy expense-to-maintenance non-mutation regression.
   Focused maintenance analysis reported no issues. This is source/test
@@ -293,8 +293,10 @@ reviewable and editable.
 Current status: partial. Explicit performed/completed and
 declined/recommended headings now scope following maintenance candidates until
 another explicit status heading resets the section. Ambiguous document-level
-estimates remain manual-review only. Real multi-operation invoice validation,
-labor/part grouping, and broader warranty/comeback coverage remain open.
+estimates remain manual-review only. Explicit completed sections also support
+terse zero-dollar warranty/comeback item rows without inventing completion from
+`NO CHARGE` alone. Real multi-operation invoice validation, labor/part grouping,
+and broader warranty/comeback coverage remain open.
 
 ### Phase 5 - Review and manual-flow integration
 
@@ -368,8 +370,8 @@ field, and recognized-text damage class.
    stronger model before expanding the corpus.
 
 Pass numbering and accepted-pass evidence live in
-`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 50;
-the next bundled app-work pass is 51. Duplicate-line cleanup remains OCR-owned,
+`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 51;
+the next bundled app-work pass is 52. Duplicate-line cleanup remains OCR-owned,
 not parser-owned.
 
 ## Handoff instructions for another Codex model

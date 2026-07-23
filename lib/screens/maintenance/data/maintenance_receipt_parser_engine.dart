@@ -127,6 +127,7 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
         !itemNotCompleted &&
         !returnOrExchange &&
         (definition.servicePattern.hasMatch(lower) ||
+            matchingRows.any((row) => _rowFollowsCompletedSection(rows, row)) ||
             matchingRows.any(
               (row) =>
                   _performedOnLine.hasMatch(row.comparisonText) &&
@@ -367,6 +368,19 @@ bool _rowFollowsNotCompletedSection(
     final text = rows[index].comparisonText;
     if (_notCompletedSectionHeading.hasMatch(text)) return true;
     if (_completedSectionHeading.hasMatch(text)) return false;
+  }
+  return false;
+}
+
+bool _rowFollowsCompletedSection(
+  List<_SourceRow> rows,
+  _SourceRow matchingRow,
+) {
+  final rowIndex = rows.indexOf(matchingRow);
+  for (var index = rowIndex - 1; index >= 0; index--) {
+    final text = rows[index].comparisonText;
+    if (_notCompletedSectionHeading.hasMatch(text)) return false;
+    if (_completedSectionHeading.hasMatch(text)) return true;
   }
   return false;
 }

@@ -73,4 +73,49 @@ PAID IN FULL 89.98
     );
     expect(candidates['Tire Rotation']!.notCompletedIndicated, isFalse);
   });
+
+  test('completed section proves terse no-charge warranty work', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+AUTOMOTIVE BATTERY WARRANTY 0.00
+NO CHARGE 0.00
+''',
+      ),
+    );
+
+    expect(result.kind, MaintenanceReceiptKind.serviceInvoice);
+    final battery = result.candidates.single;
+    expect(battery.itemName, 'Battery');
+    expect(battery.action, MaintenanceReceiptAction.reviewCompletedService);
+    expect(battery.completedServiceIndicated, isTrue);
+    expect(battery.productPurchased, isFalse);
+  });
+
+  test('completed section proves terse comeback work', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+REPAIR ORDER 222
+COMEBACK - NO CHARGE
+WORK COMPLETED
+FRONT BRAKE PADS 0.00
+PAID IN FULL 0.00
+''',
+      ),
+    );
+
+    final brakes = result.candidates.single;
+    expect(brakes.itemName, 'Brake Pads');
+    expect(brakes.action, MaintenanceReceiptAction.reviewCompletedService);
+    expect(brakes.completedServiceIndicated, isTrue);
+    expect(brakes.notCompletedIndicated, isFalse);
+  });
 }

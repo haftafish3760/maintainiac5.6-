@@ -160,11 +160,19 @@ required checks pass.
     Ambiguous document-level estimates remain receipt-wide manual review.
     Focused analysis and 32 parser/service-safety checks passed, followed by the
     182-check full maintenance gate.
+51. Completed-section warranty and comeback evidence. Terse maintenance item
+    rows beneath an explicit performed/completed heading can now use that
+    section as performed-work evidence even when the row is zero-dollar,
+    `NO CHARGE`, or does not repeat an operation verb. Added exact automotive-
+    battery warranty and brake-pad comeback contracts, including a completed
+    invoice without a work-order phrase. Declined/recommended sections still
+    override completion for their rows. Focused analysis and 34 service/parser
+    safety checks passed, followed by the 184-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **50**
-- Next pass: **51**
+- Last accepted pass: **51**
+- Next pass: **52**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 
