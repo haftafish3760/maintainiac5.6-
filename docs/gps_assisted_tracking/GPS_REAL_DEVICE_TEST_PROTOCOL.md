@@ -89,7 +89,9 @@ outcomes.
    presents a recoverable error, and a later retry is possible after consent.
    Test precise-location and background-location withdrawal separately on
    Android and iOS; the native collector must identify the correct permission
-   loss even while Flutter is background-suspended.
+   loss even while Flutter is background-suspended. Relaunch before retrying
+   and confirm recovery still identifies background permission separately from
+   base location or foreground-service restrictions.
 
 ### 5. Profiles, battery, and odometer reconciliation
 
@@ -99,6 +101,8 @@ outcomes.
 2. Run at least two hours of locked-background tracking with each battery
    preset on representative hardware. Record battery delta and any sampling
    tier changes; do not claim a universal battery result from one phone.
+   After a critical-battery pause, relaunch once and confirm the battery cause
+   remains visible instead of becoming a generic recovery message.
 3. Compare every reviewed run with the physical odometer. Investigate a result
    outside the documented route-specific tolerance; never silently rewrite GPS
    or confirmed odometer truth to make a report look better.

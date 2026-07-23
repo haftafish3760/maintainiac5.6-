@@ -500,6 +500,50 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         }
         final providerRunning = await platform.isTracking;
         final recoveredContractState = session.effectiveContractState;
+        final latestPermission = session.permissionHistory.isEmpty
+            ? null
+            : session.permissionHistory.last;
+        final lastTransitionReason = session.transitionAudits.isEmpty
+            ? ''
+            : session.transitionAudits.last.reasonCode;
+        final permissionResumeRequired =
+            recoveredContractState ==
+                TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION ||
+            (recoveredContractState ==
+                    TripTrackingSessionLifecycleContractState
+                        .PAUSED_BY_SYSTEM &&
+                (lastTransitionReason.contains('permission_revoked') ||
+                    lastTransitionReason.contains('permission_failed')));
+        final locationServicesResumeRequired =
+            recoveredContractState ==
+                TripTrackingSessionLifecycleContractState
+                    .AWAITING_LOCATION_SERVICES ||
+            (recoveredContractState ==
+                    TripTrackingSessionLifecycleContractState
+                        .PAUSED_BY_SYSTEM &&
+                lastTransitionReason.contains('location_services'));
+        final criticalBatteryResumeRequired =
+            lastTransitionReason.contains('critical_battery') ||
+            lastTransitionReason.contains('battery_critical');
+        final backgroundPermissionResumeRequired =
+            permissionResumeRequired &&
+            session.backgroundTrackingAllowed &&
+            ((latestPermission?.preciseLocation == true &&
+                    latestPermission?.canTrackInBackground == false) ||
+                lastTransitionReason.contains('background_permission'));
+        final foregroundServicePermissionResumeRequired =
+            permissionResumeRequired &&
+            lastTransitionReason.contains('foreground_service_permission');
+        final permissionRecoveryStatus = backgroundPermissionResumeRequired
+            ? 'background_location_settings_required'
+            : 'permission_required';
+        final permissionRecoveryError = backgroundPermissionResumeRequired
+            ? 'Background GPS permission must be restored in device settings before you resume this trip.'
+            : foregroundServicePermissionResumeRequired
+            ? TripTrackingNativeErrorPolicy.safeMessage(
+                'trip_tracking_foreground_service_denied',
+              )
+            : 'GPS permission must be restored before you resume this trip.';
         final explicitResumeRequired =
             recoveredContractState ==
                 TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION ||
@@ -509,27 +553,57 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
             recoveredContractState ==
                 TripTrackingSessionLifecycleContractState.PAUSED_BY_USER ||
             recoveredContractState ==
-                TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM;
+                TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM ||
+            recoveredContractState ==
+                TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE;
         if (providerRunning && explicitResumeRequired) {
           try {
             await platform.stop();
             _platformStatus = switch (recoveredContractState) {
               TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
-                'permission_required',
+                permissionRecoveryStatus,
               TripTrackingSessionLifecycleContractState
                   .AWAITING_LOCATION_SERVICES =>
                 'location_services_required',
               TripTrackingSessionLifecycleContractState.PAUSED_BY_USER =>
                 'recovery_paused_by_user',
+              TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM =>
+                permissionResumeRequired
+                    ? permissionRecoveryStatus
+                    : locationServicesResumeRequired
+                    ? 'location_services_required'
+                    : criticalBatteryResumeRequired
+                    ? 'battery_critical_gps_blocked'
+                    : 'recovery_paused_native_missing',
+              TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE =>
+                criticalBatteryResumeRequired
+                    ? 'battery_critical_gps_blocked'
+                    : 'recoverable',
               _ => 'recovery_paused_native_missing',
             };
             _platformError = switch (recoveredContractState) {
               TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
-                'GPS permission must be restored before you resume this trip.',
+                permissionRecoveryError,
               TripTrackingSessionLifecycleContractState
                   .AWAITING_LOCATION_SERVICES =>
                 'Device location must be turned on before you resume this trip.',
               TripTrackingSessionLifecycleContractState.PAUSED_BY_USER => null,
+              TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM =>
+                permissionResumeRequired
+                    ? permissionRecoveryError
+                    : locationServicesResumeRequired
+                    ? 'Device location must be turned on before you resume this trip.'
+                    : criticalBatteryResumeRequired
+                    ? TripTrackingNativeErrorPolicy.safeMessage(
+                        'trip_tracking_battery_critical',
+                      )
+                    : 'GPS assistance remains paused until you explicitly resume this trip.',
+              TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE =>
+                criticalBatteryResumeRequired
+                    ? TripTrackingNativeErrorPolicy.safeMessage(
+                        'trip_tracking_battery_critical',
+                      )
+                    : 'GPS assistance could not continue and needs an explicit retry.',
               _ =>
                 'GPS assistance remains paused until you explicitly resume this trip.',
             };
@@ -646,7 +720,13 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
                       : TripTrackingHealthState.unavailable,
                   interruptionSource: 'session_recovery',
                   interruptionReasonCode: authorizationLost
-                      ? 'recovery_permission_revoked_system_pause'
+                      ? reapplyErrorCode ==
+                                'trip_tracking_background_location_denied'
+                            ? 'recovery_background_permission_revoked_system_pause'
+                            : reapplyErrorCode ==
+                                  'trip_tracking_foreground_service_denied'
+                            ? 'recovery_foreground_service_permission_failed_system_pause'
+                            : 'recovery_permission_revoked_system_pause'
                       : locationServicesLost
                       ? 'recovery_location_services_lost_system_pause'
                       : 'recovery_native_reconfiguration_system_pause',
@@ -690,21 +770,49 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         } else if (explicitResumeRequired) {
           _platformStatus = switch (recoveredContractState) {
             TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
-              'permission_required',
+              permissionRecoveryStatus,
             TripTrackingSessionLifecycleContractState
                 .AWAITING_LOCATION_SERVICES =>
               'location_services_required',
             TripTrackingSessionLifecycleContractState.PAUSED_BY_USER =>
               'recovery_paused_by_user',
+            TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM =>
+              permissionResumeRequired
+                  ? permissionRecoveryStatus
+                  : locationServicesResumeRequired
+                  ? 'location_services_required'
+                  : criticalBatteryResumeRequired
+                  ? 'battery_critical_gps_blocked'
+                  : 'recovery_paused_native_missing',
+            TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE =>
+              criticalBatteryResumeRequired
+                  ? 'battery_critical_gps_blocked'
+                  : 'recoverable',
             _ => 'recovery_paused_native_missing',
           };
           _platformError = switch (recoveredContractState) {
             TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
-              'GPS permission must be restored before you resume this trip.',
+              permissionRecoveryError,
             TripTrackingSessionLifecycleContractState
                 .AWAITING_LOCATION_SERVICES =>
               'Device location must be turned on before you resume this trip.',
             TripTrackingSessionLifecycleContractState.PAUSED_BY_USER => null,
+            TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM =>
+              permissionResumeRequired
+                  ? permissionRecoveryError
+                  : locationServicesResumeRequired
+                  ? 'Device location must be turned on before you resume this trip.'
+                  : criticalBatteryResumeRequired
+                  ? TripTrackingNativeErrorPolicy.safeMessage(
+                      'trip_tracking_battery_critical',
+                    )
+                  : 'GPS assistance remains paused until you explicitly resume this trip.',
+            TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE =>
+              criticalBatteryResumeRequired
+                  ? TripTrackingNativeErrorPolicy.safeMessage(
+                      'trip_tracking_battery_critical',
+                    )
+                  : 'GPS assistance could not continue and needs an explicit retry.',
             _ =>
               'GPS assistance remains paused until you explicitly resume this trip.',
           };

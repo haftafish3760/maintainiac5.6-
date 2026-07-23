@@ -286,7 +286,9 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                 health: TripTrackingHealthState.permissionBlocked,
                 platformStatus: pendingStatus,
                 source: 'native_authorization_event',
-                reasonCode: 'native_permission_revoked_system_pause',
+                reasonCode: backgroundOnlyLoss
+                    ? 'native_background_permission_revoked_system_pause'
+                    : 'native_permission_revoked_system_pause',
               ),
             );
           } else if (event.type == TripTrackingPlatformEventType.status) {
@@ -475,7 +477,14 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                   health: TripTrackingHealthState.permissionBlocked,
                   platformStatus: pendingStatus,
                   source: 'native_authorization_error',
-                  reasonCode: 'native_permission_revoked_system_pause',
+                  reasonCode:
+                      event.errorCode ==
+                          'trip_tracking_background_location_denied'
+                      ? 'native_background_permission_revoked_system_pause'
+                      : event.errorCode ==
+                            'trip_tracking_foreground_service_denied'
+                      ? 'native_foreground_service_permission_failed_system_pause'
+                      : 'native_permission_revoked_system_pause',
                 ),
               );
             } else if (_nativeTracking &&
@@ -816,7 +825,11 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             health: TripTrackingHealthState.permissionBlocked,
             platformStatus: pendingStatus,
             source: 'native_sampling_update',
-            reasonCode: 'native_sampling_update_permission_revoked',
+            reasonCode: errorCode == 'trip_tracking_background_location_denied'
+                ? 'native_sampling_update_background_permission_revoked'
+                : errorCode == 'trip_tracking_foreground_service_denied'
+                ? 'native_sampling_update_foreground_service_permission_failed'
+                : 'native_sampling_update_permission_revoked',
           ),
         );
         return;

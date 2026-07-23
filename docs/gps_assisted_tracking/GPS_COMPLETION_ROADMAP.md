@@ -129,8 +129,9 @@
    live-odometer projection failures fail safely and retain actionable,
    privacy-safe diagnostics.
 9. Targeted tests, analyzer checks, Android debug compilation, and iOS device
-   compilation have passed. The most recent non-simulation GPS suite passed
-   960 tests.
+   compilation have passed. The current bundled GPS gate passes more than
+   1,700 tests; this remains source/build evidence rather than a real-route
+   accuracy claim.
 10. A coordinate-minimized field-evidence schema and real-device protocol have
     been prepared. They record mileage, walking-stop counts, conditions, and
     health without routinely exporting raw route coordinates.

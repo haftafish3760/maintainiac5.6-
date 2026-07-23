@@ -90,7 +90,11 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
           : TripTrackingHealthState.unavailable,
       interruptionSource: 'motion_assistance_withdrawal',
       interruptionReasonCode: authorizationLost
-          ? 'motion_withdrawal_permission_revoked_system_pause'
+          ? updateErrorCode == 'trip_tracking_background_location_denied'
+                ? 'motion_withdrawal_background_permission_revoked_system_pause'
+                : updateErrorCode == 'trip_tracking_foreground_service_denied'
+                ? 'motion_withdrawal_foreground_service_permission_failed_system_pause'
+                : 'motion_withdrawal_permission_revoked_system_pause'
           : locationServicesLost
           ? 'motion_withdrawal_location_services_system_pause'
           : 'motion_withdrawal_native_system_pause',

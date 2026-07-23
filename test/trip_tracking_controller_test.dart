@@ -1723,15 +1723,15 @@ void main() {
     () async {
       final startGate = Completer<void>();
       final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
+      final store = TripTrackingSessionStore.memory();
       final controller = TestTripTrackingController(
-        sessionStore: TripTrackingSessionStore.memory(),
+        sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
           initialReading: 1000,
         ),
         platform: native,
       );
-      addTearDown(controller.dispose);
 
       await controller.start(
         tripId: 'trip_startup_critical_battery',
@@ -1758,6 +1758,23 @@ void main() {
       );
       expect(controller.platformStatus, 'battery_critical_gps_blocked');
       expect(controller.platformError, contains('critically low'));
+      controller.dispose();
+
+      final restored = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: _FakeTripTrackingPlatform(),
+      );
+      addTearDown(restored.dispose);
+      expect(await restored.restore(), isTrue);
+      expect(restored.platformStatus, 'battery_critical_gps_blocked');
+      expect(
+        restored.platformError,
+        'Battery is critically low. GPS-assisted tracking is paused below 10%.',
+      );
     },
   );
 
@@ -1798,6 +1815,61 @@ void main() {
       expect(controller.nativeTracking, isFalse);
       expect(controller.platformStatus, 'battery_critical_gps_blocked');
       expect(controller.platformError, contains('critically low'));
+    },
+  );
+
+  test(
+    'generic native start failure remains explicitly retryable after recovery',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: _FakeTripTrackingPlatform(startSucceeds: false),
+      );
+      await controller.start(
+        tripId: 'trip_native_start_false_recovery',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isFalse,
+      );
+      controller.dispose();
+
+      final restored = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: _FakeTripTrackingPlatform(),
+      );
+      addTearDown(restored.dispose);
+
+      expect(await restored.restore(), isTrue);
+      expect(restored.isTracking, isTrue);
+      expect(restored.nativeTracking, isFalse);
+      expect(restored.platformStatus, 'recoverable');
+      expect(
+        restored.platformError,
+        'GPS assistance could not continue and needs an explicit retry.',
+      );
+      expect(
+        restored.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      );
+      expect(
+        await restored.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      expect(restored.nativeTracking, isTrue);
+      expect(
+        restored.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      );
     },
   );
 
@@ -3899,7 +3971,7 @@ void main() {
       );
       expect(
         controller.activeSession?.transitionAudits.last.reasonCode,
-        'native_permission_revoked_during_start',
+        'native_background_permission_revoked_during_start',
       );
     },
   );
@@ -4030,7 +4102,58 @@ void main() {
       );
       expect(
         controller.activeSession?.transitionAudits.last.reasonCode,
-        'native_permission_revoked_system_pause',
+        'native_background_permission_revoked_system_pause',
+      );
+    },
+  );
+
+  test(
+    'active foreground-service denial remains actionable after recovery',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final native = _FakeTripTrackingPlatform();
+      final initial = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await initial.start(
+        tripId: 'trip_active_foreground_service_denied',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(await initial.startNativeTracking(allowBackground: true), isTrue);
+      native.addPlatformError(
+        code: 'trip_tracking_foreground_service_denied',
+        message: 'raw provider detail',
+      );
+      await drainNativeTripEventsUntil(
+        () => !initial.nativeTracking,
+        maxPumps: 48,
+      );
+
+      expect(
+        initial.activeSession?.transitionAudits.last.reasonCode,
+        'native_foreground_service_permission_failed_system_pause',
+      );
+      initial.dispose();
+
+      final restored = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: _FakeTripTrackingPlatform(),
+      );
+      addTearDown(restored.dispose);
+
+      expect(await restored.restore(), isTrue);
+      expect(restored.platformStatus, 'permission_required');
+      expect(
+        restored.platformError,
+        'GPS foreground service permission is required for this tracking mode.',
       );
     },
   );
@@ -4121,10 +4244,161 @@ void main() {
       );
       expect(
         controller.activeSession?.transitionAudits.last.reasonCode,
-        'native_permission_revoked_system_pause',
+        'native_background_permission_revoked_system_pause',
       );
     },
   );
+
+  test('recovery preserves the background-permission settings handoff', () async {
+    final store = TripTrackingSessionStore.memory();
+    final native = _FakeTripTrackingPlatform();
+    final initial = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await initial.start(
+      tripId: 'trip_recover_background_permission_handoff',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(await initial.startNativeTracking(allowBackground: true), isTrue);
+    native.addAuthorization(
+      const TripTrackingAuthorization(
+        state: TripTrackingAuthorizationState.whileInUse,
+        preciseLocation: true,
+      ),
+    );
+    await drainNativeTripEventsUntil(
+      () => !initial.nativeTracking,
+      maxPumps: 48,
+    );
+    initial.dispose();
+
+    final restored = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: _FakeTripTrackingPlatform(),
+    );
+    addTearDown(restored.dispose);
+
+    expect(await restored.restore(), isTrue);
+    expect(restored.isTracking, isTrue);
+    expect(restored.nativeTracking, isFalse);
+    expect(restored.platformStatus, 'background_location_settings_required');
+    expect(
+      restored.platformError,
+      'Background GPS permission must be restored in device settings before you resume this trip.',
+    );
+    expect(
+      restored.activeSession?.effectiveContractState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+    );
+  });
+
+  test('recovery preserves the location-services handoff', () async {
+    final store = TripTrackingSessionStore.memory();
+    final native = _FakeTripTrackingPlatform();
+    final initial = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await initial.start(
+      tripId: 'trip_recover_location_services_handoff',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(await initial.startNativeTracking(allowBackground: false), isTrue);
+    native.addPlatformError(
+      code: 'trip_tracking_gps_disabled',
+      message: 'raw provider detail',
+    );
+    native.addStatus('stopped');
+    await drainNativeTripEventsUntil(
+      () => !initial.nativeTracking,
+      maxPumps: 48,
+    );
+    initial.dispose();
+
+    final restored = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: _FakeTripTrackingPlatform(),
+    );
+    addTearDown(restored.dispose);
+
+    expect(await restored.restore(), isTrue);
+    expect(restored.isTracking, isTrue);
+    expect(restored.nativeTracking, isFalse);
+    expect(restored.platformStatus, 'location_services_required');
+    expect(
+      restored.platformError,
+      'Device location must be turned on before you resume this trip.',
+    );
+    expect(
+      restored.activeSession?.effectiveContractState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+    );
+  });
+
+  test('recovery preserves the critical-battery explanation', () async {
+    final store = TripTrackingSessionStore.memory();
+    final native = _FakeTripTrackingPlatform();
+    final initial = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await initial.start(
+      tripId: 'trip_recover_critical_battery',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(await initial.startNativeTracking(allowBackground: true), isTrue);
+    native.addPlatformError(
+      code: 'trip_tracking_battery_critical',
+      message: 'raw provider detail',
+    );
+    native.addStatus('stopped');
+    await drainNativeTripEventsUntil(
+      () => !initial.nativeTracking,
+      maxPumps: 48,
+    );
+    initial.dispose();
+
+    final restored = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: _FakeTripTrackingPlatform(),
+    );
+    addTearDown(restored.dispose);
+
+    expect(await restored.restore(), isTrue);
+    expect(restored.isTracking, isTrue);
+    expect(restored.nativeTracking, isFalse);
+    expect(restored.platformStatus, 'battery_critical_gps_blocked');
+    expect(
+      restored.platformError,
+      'Battery is critically low. GPS-assisted tracking is paused below 10%.',
+    );
+    expect(
+      restored.activeSession?.effectiveContractState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+    );
+  });
 
   test(
     'failed permission evidence stops GPS with a recoverable system pause',
@@ -5562,7 +5836,77 @@ void main() {
       );
       expect(
         restored.activeSession?.transitionAudits.last.reasonCode,
-        'recovery_permission_revoked_system_pause',
+        'recovery_background_permission_revoked_system_pause',
+      );
+    },
+  );
+
+  test(
+    'recovery classifies foreground service loss while reapplying settings',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final initial = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      addTearDown(initial.dispose);
+      await initial.start(
+        tripId: 'trip_restore_foreground_service_loss',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      const sampling = TripSamplingRecommendation(
+        mode: TripSamplingMode.balanced,
+        interval: Duration(seconds: 15),
+        minimumDisplacementMeters: 8,
+      );
+      await store.save(
+        store.activeSession!.copyWith(
+          backgroundTrackingAllowed: true,
+          nativeSampling: sampling,
+        ),
+      );
+      final native = _ThrowingUpdateTripTrackingPlatform(
+        PlatformException(
+          code: 'trip_tracking_foreground_service_denied',
+          message: 'raw provider detail',
+        ),
+      );
+      await native.start(
+        const TripTrackingNativeRequest(
+          profile: TripTrackingProfile.roadVehicle,
+          sampling: sampling,
+          allowBackground: true,
+        ),
+      );
+      final restored = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+      );
+      addTearDown(restored.dispose);
+
+      expect(await restored.restore(), isTrue);
+      expect(native.updateCalls, 1);
+      expect(native.stopCalls, 1);
+      expect(restored.nativeTracking, isFalse);
+      expect(restored.platformStatus, 'permission_required');
+      expect(
+        restored.platformError,
+        'GPS foreground service permission is required for this tracking mode.',
+      );
+      expect(restored.isTracking, isTrue);
+      expect(
+        restored.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+      expect(
+        restored.activeSession?.transitionAudits.last.reasonCode,
+        'recovery_foreground_service_permission_failed_system_pause',
       );
     },
   );
@@ -6172,7 +6516,58 @@ void main() {
       );
       expect(
         controller.activeSession?.transitionAudits.last.reasonCode,
-        'motion_withdrawal_permission_revoked_system_pause',
+        'motion_withdrawal_background_permission_revoked_system_pause',
+      );
+    },
+  );
+
+  test(
+    'foreground service loss while withdrawing motion assistance stays actionable',
+    () async {
+      final native = _ThrowingUpdateTripTrackingPlatform(
+        PlatformException(
+          code: 'trip_tracking_foreground_service_denied',
+          message: 'raw provider detail',
+        ),
+        activityRecognitionAvailable: true,
+      );
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_motion_withdrawal_foreground_service_loss',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: true,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      await controller.disableActivityRecognition();
+
+      expect(native.updateCalls, 1);
+      expect(native.stopCalls, 1);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'permission_required');
+      expect(
+        controller.platformError,
+        'GPS foreground service permission is required for this tracking mode.',
+      );
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.reasonCode,
+        'motion_withdrawal_foreground_service_permission_failed_system_pause',
       );
     },
   );
@@ -6633,12 +7028,12 @@ void main() {
           message: 'raw native provider failure',
         ),
       );
+      final store = TripTrackingSessionStore.memory();
       final controller = TestTripTrackingController(
-        sessionStore: TripTrackingSessionStore.memory(),
+        sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
       );
-      addTearDown(controller.dispose);
       await controller.start(
         tripId: 'trip_background_permission_start_race',
         vehicleId: 'vehicle_1',
@@ -6663,8 +7058,73 @@ void main() {
         TripTrackingSessionLifecycleState.permissionRequired,
       );
       expect(controller.healthState, TripTrackingHealthState.permissionBlocked);
+      controller.dispose();
+
+      final restored = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: _FakeTripTrackingPlatform(),
+      );
+      addTearDown(restored.dispose);
+      expect(await restored.restore(), isTrue);
+      expect(restored.platformStatus, 'background_location_settings_required');
+      expect(
+        restored.platformError,
+        'Background GPS permission must be restored in device settings before you resume this trip.',
+      );
     },
   );
+
+  test('foreground-service denial remains actionable after recovery', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: _FakeTripTrackingPlatform(
+        startException: PlatformException(
+          code: 'trip_tracking_foreground_service_denied',
+          message: 'raw provider detail',
+        ),
+      ),
+    );
+    await controller.start(
+      tripId: 'trip_foreground_service_denied',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+
+    expect(
+      await controller.startNativeTracking(allowBackground: true),
+      isFalse,
+    );
+    expect(controller.platformStatus, 'permission_required');
+    expect(
+      controller.platformError,
+      'GPS foreground service permission is required for this tracking mode.',
+    );
+    controller.dispose();
+
+    final restored = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: _FakeTripTrackingPlatform(),
+    );
+    addTearDown(restored.dispose);
+
+    expect(await restored.restore(), isTrue);
+    expect(restored.platformStatus, 'permission_required');
+    expect(
+      restored.platformError,
+      'GPS foreground service permission is required for this tracking mode.',
+    );
+  });
 
   test(
     'future-dated walking evidence is not applied to an earlier location',
@@ -7362,7 +7822,7 @@ void main() {
       );
       expect(
         controller.activeSession?.transitionAudits.last.reasonCode,
-        'native_sampling_update_permission_revoked',
+        'native_sampling_update_background_permission_revoked',
       );
       expect(
         controller.activeSession?.engineSnapshot.lastAccepted?.longitude,

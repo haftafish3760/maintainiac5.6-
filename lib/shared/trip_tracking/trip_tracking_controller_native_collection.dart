@@ -299,7 +299,11 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
             : TripTrackingHealthState.unavailable,
         source: 'native_start',
         reasonCode: authorizationFailure
-            ? 'native_platform_start_authorization_failed'
+            ? errorCode == 'trip_tracking_background_location_denied'
+                  ? 'native_platform_start_background_permission_failed'
+                  : errorCode == 'trip_tracking_foreground_service_denied'
+                  ? 'native_platform_start_foreground_service_permission_failed'
+                  : 'native_platform_start_authorization_failed'
             : locationServicesFailure
             ? 'native_platform_start_location_services_failed'
             : 'native_platform_start_failed',
@@ -381,7 +385,12 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
           ? 'location_services_required'
           : _platformStatus;
       final startFailureReason = authorizationFailedDuringStart
-          ? 'native_permission_revoked_during_start'
+          ? nativeErrorDuringStart == 'trip_tracking_background_location_denied'
+                ? 'native_background_permission_revoked_during_start'
+                : nativeErrorDuringStart ==
+                      'trip_tracking_foreground_service_denied'
+                ? 'native_foreground_service_permission_failed_during_start'
+                : 'native_permission_revoked_during_start'
           : locationServicesFailedDuringStart
           ? 'native_location_services_lost_during_start'
           : nativeErrorDuringStart != null
