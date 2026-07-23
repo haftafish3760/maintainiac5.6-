@@ -10,6 +10,9 @@ Usage:
 
   No args       Run every trip-domain test (test/trip_*_test.dart)
   --all         Same as no args
+  --simulations [iterations]
+                Run deterministic simulation/fuzz tests and the safe benchmark
+                runner (default 100, maximum 1000 iterations)
   --analyze     flutter analyze with explicit files/folders
   --android-debug  flutter build apk --debug
   -h, --help    Show this help
@@ -43,6 +46,36 @@ elif [ "$1" = "--all" ]; then
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   usage
   exit 64
+elif [ "$1" = "--simulations" ]; then
+  shift
+  simulation_iterations="${1:-100}"
+  if [ "$#" -gt 1 ] ||
+    ! [[ "$simulation_iterations" =~ ^[0-9]+$ ]] ||
+    [ "$simulation_iterations" -lt 1 ] ||
+    [ "$simulation_iterations" -gt 1000 ]; then
+    echo "TRIP_QA_FAIL simulations_require_iterations_1_to_1000"
+    exit 64
+  fi
+  simulation_tests=(
+    test/trip_*simulation*_test.dart
+    test/trip_*fuzz_test.dart
+  )
+  if [ ${#simulation_tests[@]} -eq 0 ]; then
+    echo "TRIP_QA_FAIL no_simulation_tests_found"
+    exit 1
+  fi
+  if ! flutter test "${simulation_tests[@]}" --reporter compact \
+    >"$log_file" 2>&1; then
+    echo "TRIP_QA_FAIL log=$log_file"
+    exit 1
+  fi
+  if ! dart run tool/trip_tracking_simulation_runner.dart \
+    "--iterations=$simulation_iterations" >>"$log_file" 2>&1; then
+    echo "TRIP_QA_FAIL log=$log_file"
+    exit 1
+  fi
+  echo "TRIP_QA_PASS"
+  exit 0
 elif [ "$1" = "--android-debug" ]; then
   command=(flutter build apk --debug)
 elif [ "$1" = "--analyze" ]; then

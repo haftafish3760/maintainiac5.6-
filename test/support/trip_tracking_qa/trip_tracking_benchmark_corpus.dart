@@ -16,6 +16,32 @@ class TripTrackingBenchmarkCorpus {
 
   List<TripTrackingBenchmarkCase> build() => [
     _case(
+      id: 'normal_known_distance',
+      category: TripTrackingBenchmarkCategory.normalOpenSky,
+      profile: TripTrackingProfile.roadVehicle,
+      expectedDistanceMeters: 910.86,
+      expectedStopReview: false,
+      points: _knownDistanceRoute(
+        latitude: 35,
+        longitudeStep: .001,
+        secondsPerSample: 10,
+        speedMetersPerSecond: 9.1,
+      ),
+    ),
+    _case(
+      id: 'rural_known_distance',
+      category: TripTrackingBenchmarkCategory.rural,
+      profile: TripTrackingProfile.roadVehicle,
+      expectedDistanceMeters: 1703.61,
+      expectedStopReview: false,
+      points: _knownDistanceRoute(
+        latitude: 40,
+        longitudeStep: .002,
+        secondsPerSample: 20,
+        speedMetersPerSecond: 8.52,
+      ),
+    ),
+    _case(
       id: 'normal_delivery_walk',
       category: TripTrackingBenchmarkCategory.normalOpenSky,
       profile: TripTrackingProfile.deliveryVehicle,
@@ -101,4 +127,21 @@ class TripTrackingBenchmarkCorpus {
           _scenarios.roadPoint(-80 + jitter, index * 5, speed: 0),
         );
       });
+
+  List<SimulatedTripPoint> _knownDistanceRoute({
+    required double latitude,
+    required double longitudeStep,
+    required int secondsPerSample,
+    required double speedMetersPerSecond,
+  }) => List.generate(
+    11,
+    (index) => SimulatedTripPoint(
+      _scenarios.roadPoint(
+        -80 + (longitudeStep * index),
+        secondsPerSample * index,
+        latitude: latitude,
+        speed: speedMetersPerSecond,
+      ),
+    ),
+  );
 }

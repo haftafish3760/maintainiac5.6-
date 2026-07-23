@@ -9,8 +9,8 @@ void main() {
       TripTrackingBenchmarkCorpus(start: DateTime.utc(2026, 7, 13, 12)).build(),
     );
 
-    expect(report.distanceCaseCount, 1);
-    expect(report.eventCaseCount, 8);
+    expect(report.distanceCaseCount, 3);
+    expect(report.eventCaseCount, 10);
     expect(
       report.categoryCaseCounts.values.every((count) => count > 0),
       isTrue,
@@ -30,6 +30,7 @@ void main() {
     expect(report.falseNegatives, 0);
     expect(report.stopDetectionPrecision, 1);
     expect(report.stopDetectionRecall, 1);
+    expect(report.p95DistancePercentageError, lessThanOrEqualTo(.05));
     expect(report.maximumStationaryDriftMeters, lessThanOrEqualTo(15));
     expect(report.toSafeSummary()['realDeviceAccuracyProven'], isFalse);
   });

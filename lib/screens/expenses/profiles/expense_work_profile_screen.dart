@@ -87,53 +87,14 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
     BuildContext context, {
     ExpenseWorkProfile? existing,
   }) async {
-    final controller = TextEditingController(text: existing?.name ?? '');
     final name = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      builder: (sheetContext) => Padding(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          20,
-          20,
-          20 + MediaQuery.viewInsetsOf(sheetContext).bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              existing == null ? 'New work profile' : 'Rename work profile',
-              style: Theme.of(
-                sheetContext,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Use profiles only when you want expenses separated by job, contract, or work line. The default works without any setup.',
-            ),
-            const SizedBox(height: 14),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              maxLength: 80,
-              textInputAction: TextInputAction.done,
-              decoration: const InputDecoration(
-                labelText: 'Profile name',
-                hintText: 'Example: Evening delivery',
-              ),
-              onSubmitted: (value) => Navigator.of(sheetContext).pop(value),
-            ),
-            const SizedBox(height: 8),
-            FilledButton(
-              onPressed: () => Navigator.of(sheetContext).pop(controller.text),
-              child: const Text('Save profile'),
-            ),
-          ],
-        ),
+      builder: (sheetContext) => _WorkProfileEditorSheet(
+        initialName: existing?.name ?? '',
+        isEditing: existing != null,
       ),
     );
-    controller.dispose();
     final trimmed = name?.trim() ?? '';
     if (trimmed.isEmpty || !context.mounted) return;
     final profiles = ExpenseWorkProfileScope.of(context);
@@ -184,6 +145,82 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('“${profile.name}” is available for new expenses.'),
+      ),
+    );
+  }
+}
+
+class _WorkProfileEditorSheet extends StatefulWidget {
+  const _WorkProfileEditorSheet({
+    required this.initialName,
+    required this.isEditing,
+  });
+
+  final String initialName;
+  final bool isEditing;
+
+  @override
+  State<_WorkProfileEditorSheet> createState() =>
+      _WorkProfileEditorSheetState();
+}
+
+class _WorkProfileEditorSheetState extends State<_WorkProfileEditorSheet> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit([String? value]) {
+    Navigator.of(context).pop(value ?? _controller.text);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        20 + MediaQuery.viewInsetsOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.isEditing ? 'Rename work profile' : 'New work profile',
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Use profiles only when you want expenses separated by job, contract, or work line. The default works without any setup.',
+          ),
+          const SizedBox(height: 14),
+          TextField(
+            controller: _controller,
+            autofocus: true,
+            maxLength: 80,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              labelText: 'Profile name',
+              hintText: 'Example: Evening delivery',
+            ),
+            onSubmitted: _submit,
+          ),
+          const SizedBox(height: 8),
+          FilledButton(onPressed: _submit, child: const Text('Save profile')),
+        ],
       ),
     );
   }
