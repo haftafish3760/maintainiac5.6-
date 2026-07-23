@@ -7,20 +7,27 @@ import 'maintainiac_restore_contract.dart';
 
 class MaintainiacRestoreEnvelope {
   MaintainiacRestoreEnvelope({
+    required this.accountScopeId,
     required this.record,
     required this.schemaVersion,
     required this.contentSha256,
   });
 
   factory MaintainiacRestoreEnvelope.forRecord({
+    required String accountScopeId,
     required MaintainiacDurableRecord record,
     required int schemaVersion,
   }) => MaintainiacRestoreEnvelope(
+    accountScopeId: accountScopeId,
     record: record,
     schemaVersion: schemaVersion,
-    contentSha256: MaintainiacRestoreApplier.contentSha256For(record),
+    contentSha256: MaintainiacRestoreApplier.contentSha256For(
+      record,
+      accountScopeId: accountScopeId,
+    ),
   );
 
+  final String accountScopeId;
   final MaintainiacDurableRecord record;
   final int schemaVersion;
   final String contentSha256;
@@ -44,11 +51,14 @@ class MaintainiacRestoreApplyResult {
 class MaintainiacRestoreApplier {
   const MaintainiacRestoreApplier({
     required MaintainiacDurableRecordStore store,
+    required String accountScopeId,
     required int maximumSupportedSchemaVersion,
   }) : _store = store,
+       _accountScopeId = accountScopeId,
        _maximumSupportedSchemaVersion = maximumSupportedSchemaVersion;
 
   final MaintainiacDurableRecordStore _store;
+  final String _accountScopeId;
   final int _maximumSupportedSchemaVersion;
 
   Future<MaintainiacRestoreApplyResult> apply(
@@ -65,7 +75,10 @@ class MaintainiacRestoreApplier {
         : MaintainiacRestoreRecordVersion(
             revision: local.lifecycle.revision,
             schemaVersion: remote.schemaVersion,
-            contentSha256: contentSha256For(local),
+            contentSha256: contentSha256For(
+              local,
+              accountScopeId: _accountScopeId,
+            ),
             isDeleted: local.lifecycle.isDeleted,
           );
     final disposition = MaintainiacRestoreConflictPolicy.decide(
@@ -97,23 +110,43 @@ class MaintainiacRestoreApplier {
   }
 
   bool _verified(MaintainiacRestoreEnvelope remote) {
-    if (!remote.version.isValid ||
+    if (remote.accountScopeId != _accountScopeId ||
+        !_validToken(remote.accountScopeId) ||
+        !remote.version.isValid ||
         remote.schemaVersion > _maximumSupportedSchemaVersion) {
       return false;
     }
     try {
       MaintainiacDurableRecord.fromMap(remote.record.toMap());
-      return contentSha256For(remote.record) == remote.contentSha256;
+      return contentSha256For(
+            remote.record,
+            accountScopeId: remote.accountScopeId,
+          ) ==
+          remote.contentSha256;
     } catch (_) {
       return false;
     }
   }
 
-  static String contentSha256For(MaintainiacDurableRecord record) {
-    final canonical = jsonEncode(_canonicalValue(record.toMap()));
+  static String contentSha256For(
+    MaintainiacDurableRecord record, {
+    required String accountScopeId,
+  }) {
+    if (!_validToken(accountScopeId)) {
+      throw const FormatException('Restore account scope is invalid.');
+    }
+    final canonical = jsonEncode(
+      _canonicalValue({
+        'accountScopeId': accountScopeId,
+        'record': record.toMap(),
+      }),
+    );
     return sha256.convert(utf8.encode(canonical)).toString();
   }
 }
+
+bool _validToken(String value) =>
+    RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(value);
 
 Object? _canonicalValue(Object? value) {
   if (value == null || value is bool || value is String || value is int) {

@@ -248,10 +248,12 @@ class MaintainiacRestoreSessionStore {
     required int completedItems,
     required int completedBytes,
     required String cursor,
+    int? expectedRevision,
     DateTime? nowUtc,
   }) => _enqueue(() async {
     final current = _requiredSession(id);
     if (current.state != MaintainiacRestoreSessionState.running ||
+        (expectedRevision != null && current.revision != expectedRevision) ||
         completedItems < current.completedItems ||
         completedItems > current.totalItems ||
         completedBytes < current.completedBytes ||
@@ -281,6 +283,7 @@ class MaintainiacRestoreSessionStore {
   Future<MaintainiacRestoreSession> fail(
     String id,
     String reason, {
+    int? expectedRevision,
     DateTime? nowUtc,
   }) => _transition(
     id,
@@ -292,6 +295,7 @@ class MaintainiacRestoreSessionStore {
     },
     next: MaintainiacRestoreSessionState.failed,
     nowUtc: nowUtc,
+    expectedRevision: expectedRevision,
     failureReason: reason.trim(),
   );
 
@@ -330,11 +334,13 @@ class MaintainiacRestoreSessionStore {
     required Set<MaintainiacRestoreSessionState> allowed,
     required MaintainiacRestoreSessionState next,
     DateTime? nowUtc,
+    int? expectedRevision,
     String? failureReason,
     bool clearFailure = false,
   }) => _enqueue(() async {
     final current = _requiredSession(id);
     if (!allowed.contains(current.state) ||
+        (expectedRevision != null && current.revision != expectedRevision) ||
         (failureReason != null && failureReason.isEmpty)) {
       throw StateError('Restore session transition is invalid.');
     }

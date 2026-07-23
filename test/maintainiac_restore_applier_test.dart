@@ -9,6 +9,7 @@ void main() {
     store = MaintainiacDurableRecordStore.memory();
     applier = MaintainiacRestoreApplier(
       store: store,
+      accountScopeId: 'account-a',
       maximumSupportedSchemaVersion: 2,
     );
   });
@@ -16,6 +17,7 @@ void main() {
   test('newer cloud record applies and exact retry is idempotent', () async {
     final remote = _record(revision: 2, amount: 25);
     final envelope = MaintainiacRestoreEnvelope.forRecord(
+      accountScopeId: 'account-a',
       record: remote,
       schemaVersion: 2,
     );
@@ -36,12 +38,14 @@ void main() {
       );
       final older = await applier.apply(
         MaintainiacRestoreEnvelope.forRecord(
+          accountScopeId: 'account-a',
           record: _record(revision: 3, amount: 30),
           schemaVersion: 2,
         ),
       );
       final divergent = await applier.apply(
         MaintainiacRestoreEnvelope.forRecord(
+          accountScopeId: 'account-a',
           record: _record(revision: 4, amount: 99),
           schemaVersion: 2,
         ),
@@ -58,13 +62,18 @@ void main() {
       final record = _record(revision: 1, amount: 10);
       final badHash = await applier.apply(
         MaintainiacRestoreEnvelope(
+          accountScopeId: 'account-a',
           record: record,
           schemaVersion: 2,
           contentSha256: 'a' * 64,
         ),
       );
       final unsupported = await applier.apply(
-        MaintainiacRestoreEnvelope.forRecord(record: record, schemaVersion: 3),
+        MaintainiacRestoreEnvelope.forRecord(
+          accountScopeId: 'account-a',
+          record: record,
+          schemaVersion: 3,
+        ),
       );
       expect(badHash.disposition, MaintainiacRestoreDisposition.rejectCorrupt);
       expect(
@@ -79,8 +88,14 @@ void main() {
     final left = _record(revision: 1, amount: 10, reversed: false);
     final right = _record(revision: 1, amount: 10, reversed: true);
     expect(
-      MaintainiacRestoreApplier.contentSha256For(left),
-      MaintainiacRestoreApplier.contentSha256For(right),
+      MaintainiacRestoreApplier.contentSha256For(
+        left,
+        accountScopeId: 'account-a',
+      ),
+      MaintainiacRestoreApplier.contentSha256For(
+        right,
+        accountScopeId: 'account-a',
+      ),
     );
   });
 
