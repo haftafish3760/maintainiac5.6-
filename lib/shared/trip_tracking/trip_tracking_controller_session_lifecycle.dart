@@ -469,7 +469,16 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         // Restore already owns the exclusive session boundary and has drained
         // the public ingestion queue, so replay the durable pending sample
         // directly without allowing a competing native callback.
-        await _ingest(pending.sample, activity: pending.activity);
+        final replayDecision = await _ingest(
+          pending.sample,
+          activity: pending.activity,
+        );
+        if (replayDecision == null && _platformStatus == 'storage_failed') {
+          _platformStatus = 'pending_replay_failed';
+          _platformError = 'Could not replay the last pending GPS sample.';
+          notifyListeners();
+          return true;
+        }
         await _sessionStore.clearPending(session.id);
       } catch (error) {
         // The active checkpoint and live odometer projection are already

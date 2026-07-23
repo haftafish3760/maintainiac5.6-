@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 466 in the current continuation
+- Current pass: 471 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -87,6 +87,13 @@
 - A successful local-review read now clears only its own matching transient
   storage warning, preventing a recovered device from displaying a stale error
   while leaving unrelated failures intact
+- Incoming GPS samples now stop before engine or odometer mutation when their
+  pending or accepted checkpoint cannot be saved. Native collection enters a
+  recoverable system pause, direct ingestion returns a controlled result, and
+  a later successful durable sample clears only the matching transient warning
+- Failure to clear an already-durable pending sample no longer loses the
+  accepted decision or throws through the event stream. The checkpoint remains
+  authoritative, cleanup stays explicit, and recovery cannot double-count it
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair

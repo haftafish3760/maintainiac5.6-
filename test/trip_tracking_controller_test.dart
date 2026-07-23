@@ -4064,7 +4064,7 @@ void main() {
   });
 
   test(
-    'native GPS event processing failures do not expose raw errors',
+    'native GPS storage failures stop safely without exposing raw errors',
     () async {
       var storageAvailable = true;
       final native = _FakeTripTrackingPlatform();
@@ -4100,10 +4100,10 @@ void main() {
 
       expect(
         controller.platformError,
-        'GPS event could not be processed safely.',
+        'Could not preserve the incoming GPS sample locally. Trusted distance is paused.',
       );
       expect(controller.platformError, isNot(contains('available')));
-      expect(controller.platformStatus, 'native_event_processing_failed');
+      expect(controller.platformStatus, 'storage_failed');
       expect(controller.isTracking, isTrue);
       expect(controller.nativeTracking, isFalse);
       expect(native.stopCalls, 1);
@@ -8381,10 +8381,8 @@ void main() {
       expect(await controller.ingest(sample(-80, 0)), isNotNull);
       store.failNextSessionSave = true;
 
-      await expectLater(
-        controller.ingest(sample(-79.985, 60)),
-        throwsStateError,
-      );
+      expect(await controller.ingest(sample(-79.985, 60)), isNull);
+      expect(controller.platformStatus, 'storage_failed');
 
       expect(odometer.reading, 1000);
       expect(odometer.confirmedReading, 1000);
@@ -8394,6 +8392,7 @@ void main() {
       expected.ingest(sample(-80, 0));
       expected.ingest(sample(-79.97, 120));
       expect(await controller.ingest(sample(-79.97, 120)), isNotNull);
+      expect(controller.platformStatus, isNull);
       expect(
         controller.acceptedMeters,
         closeTo(expected.totalAcceptedMeters, .001),

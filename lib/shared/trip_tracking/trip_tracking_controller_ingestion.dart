@@ -80,13 +80,22 @@ extension TripTrackingControllerIngestion on TripTrackingController {
 
     final safeActivity = _activitySafeForSample(sample, activity);
     if (sample.mockedLocation != true) {
-      await _sessionStore.savePending(
-        TripTrackingPendingSample(
-          sessionId: session.id,
-          sample: sample,
-          activity: safeActivity,
-        ),
-      );
+      try {
+        await _sessionStore.savePending(
+          TripTrackingPendingSample(
+            sessionId: session.id,
+            sample: sample,
+            activity: safeActivity,
+          ),
+        );
+      } catch (_) {
+        _handleIngestionStorageFailure(
+          message:
+              'Could not preserve the incoming GPS sample locally. Trusted distance is paused.',
+          reasonCode: 'pending_sample_write_storage_system_pause',
+        );
+        return null;
+      }
     }
 
     // The filter is mutable. Keep a recoverable in-memory checkpoint until
@@ -198,7 +207,12 @@ extension TripTrackingControllerIngestion on TripTrackingController {
           policy: engine.policy,
           profile: engine.profile,
         );
-        rethrow;
+        _handleIngestionStorageFailure(
+          message:
+              'Could not save accepted GPS evidence locally. Trusted distance is paused.',
+          reasonCode: 'accepted_sample_write_storage_system_pause',
+        );
+        return null;
       }
       final estimatedOdometer = projection.updateAcceptedMeters(
         decision.totalAcceptedMeters,
@@ -232,8 +246,53 @@ extension TripTrackingControllerIngestion on TripTrackingController {
       }
       notifyListeners();
     }
-    await _sessionStore.clearPending(session.id);
+    try {
+      await _sessionStore.clearPending(session.id);
+    } catch (_) {
+      _platformStatus = 'pending_cleanup_failed';
+      _platformError =
+          'Accepted GPS evidence is saved, but transient recovery cleanup is pending.';
+      notifyListeners();
+      return decision;
+    }
+    _clearRecoveredIngestionStorageFailure();
     return decision;
+  }
+
+  void _handleIngestionStorageFailure({
+    required String message,
+    required String reasonCode,
+  }) {
+    _platformStatus = 'storage_failed';
+    _platformError = message;
+    if (!_nativeTracking) {
+      notifyListeners();
+      return;
+    }
+    _deferPlatformCleanup(() async {
+      await _stopNativeTracking(
+        interrupted: true,
+        interruptionHealth: TripTrackingHealthState.unavailable,
+        interruptionSource: 'gps_sample_ingestion_storage',
+        interruptionReasonCode: reasonCode,
+      );
+      _platformStatus = 'storage_failed';
+      _platformError = message;
+      notifyListeners();
+    });
+  }
+
+  void _clearRecoveredIngestionStorageFailure() {
+    if (_platformStatus != 'storage_failed') return;
+    if (_platformError !=
+            'Could not preserve the incoming GPS sample locally. Trusted distance is paused.' &&
+        _platformError !=
+            'Could not save accepted GPS evidence locally. Trusted distance is paused.') {
+      return;
+    }
+    _platformStatus = null;
+    _platformError = null;
+    notifyListeners();
   }
 
   TripActivityObservation? _activitySafeForSample(
