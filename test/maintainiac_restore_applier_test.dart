@@ -30,12 +30,15 @@ void main() {
   });
 
   late MaintainiacDurableRecordStore store;
+  late MaintainiacRestoreReviewStore reviews;
   late MaintainiacRestoreApplier applier;
 
   setUp(() {
     store = MaintainiacDurableRecordStore.memory();
+    reviews = MaintainiacRestoreReviewStore.memory();
     applier = MaintainiacRestoreApplier(
       store: store,
+      reviewStore: reviews,
       accountScopeId: 'account-a',
       maximumSupportedSchemaVersion: 2,
     );
@@ -80,6 +83,11 @@ void main() {
       expect(older.disposition, MaintainiacRestoreDisposition.keepNewerLocal);
       expect(divergent.disposition, MaintainiacRestoreDisposition.conflict);
       expect(store.recordFor('expenses', 'expense-1')?.payload['amount'], 40);
+      final pending = reviews.pendingFor('account-a');
+      expect(pending, hasLength(1));
+      expect(pending.single.type, MaintainiacRestoreReviewType.conflict);
+      expect(pending.single.local?.record.payload['amount'], 40);
+      expect(pending.single.remote.record.payload['amount'], 99);
     },
   );
 
@@ -108,6 +116,11 @@ void main() {
         MaintainiacRestoreDisposition.rejectCorrupt,
       );
       expect(store.recordFor('expenses', 'expense-1'), isNull);
+      expect(reviews.pendingFor('account-a'), hasLength(2));
+      expect(
+        reviews.pendingFor('account-a').map((issue) => issue.type).toSet(),
+        {MaintainiacRestoreReviewType.corrupt},
+      );
     },
   );
 

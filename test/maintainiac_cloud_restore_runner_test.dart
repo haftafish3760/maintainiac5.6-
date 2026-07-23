@@ -56,6 +56,7 @@ void main() {
           sessions: sessions,
           applier: MaintainiacRestoreApplier(
             store: records,
+            reviewStore: MaintainiacRestoreReviewStore.memory(),
             accountScopeId: 'org-a.user-a',
             maximumSupportedSchemaVersion: 1,
           ),
@@ -120,6 +121,7 @@ void main() {
           sessions: sessions,
           applier: MaintainiacRestoreApplier(
             store: records,
+            reviewStore: MaintainiacRestoreReviewStore.memory(),
             accountScopeId: 'org-a.user-a',
             maximumSupportedSchemaVersion: 1,
           ),
@@ -174,6 +176,7 @@ void main() {
         sessions: sessions,
         applier: MaintainiacRestoreApplier(
           store: MaintainiacDurableRecordStore.memory(),
+          reviewStore: MaintainiacRestoreReviewStore.memory(),
           accountScopeId: 'org-a.user-a',
           maximumSupportedSchemaVersion: 1,
         ),
@@ -236,6 +239,7 @@ void main() {
           sessions: sessions,
           applier: MaintainiacRestoreApplier(
             store: records,
+            reviewStore: MaintainiacRestoreReviewStore.memory(),
             accountScopeId: 'org-a.user-a',
             maximumSupportedSchemaVersion: 1,
           ),

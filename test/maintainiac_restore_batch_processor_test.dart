@@ -37,6 +37,7 @@ void main() {
       sessions: sessions,
       applier: MaintainiacRestoreApplier(
         store: records,
+        reviewStore: MaintainiacRestoreReviewStore.memory(),
         accountScopeId: 'account-a',
         maximumSupportedSchemaVersion: 1,
       ),

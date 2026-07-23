@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 
 import 'maintainiac_durable_record_store.dart';
 import 'maintainiac_restore_contract.dart';
+import 'maintainiac_restore_review_store.dart';
 
 class MaintainiacRestoreEnvelope {
   MaintainiacRestoreEnvelope({
@@ -51,13 +52,16 @@ class MaintainiacRestoreApplyResult {
 class MaintainiacRestoreApplier {
   const MaintainiacRestoreApplier({
     required MaintainiacDurableRecordStore store,
+    required MaintainiacRestoreReviewStore reviewStore,
     required String accountScopeId,
     required int maximumSupportedSchemaVersion,
   }) : _store = store,
+       _reviewStore = reviewStore,
        _accountScopeId = accountScopeId,
        _maximumSupportedSchemaVersion = maximumSupportedSchemaVersion;
 
   final MaintainiacDurableRecordStore _store;
+  final MaintainiacRestoreReviewStore _reviewStore;
   final String _accountScopeId;
   final int _maximumSupportedSchemaVersion;
 
@@ -65,6 +69,12 @@ class MaintainiacRestoreApplier {
     MaintainiacRestoreEnvelope remote,
   ) async {
     if (!_verified(remote)) {
+      if (_reviewable(remote)) {
+        await _reviewStore.record(
+          type: MaintainiacRestoreReviewType.corrupt,
+          remote: _reviewRecord(remote),
+        );
+      }
       return const MaintainiacRestoreApplyResult(
         disposition: MaintainiacRestoreDisposition.rejectCorrupt,
       );
@@ -87,6 +97,19 @@ class MaintainiacRestoreApplier {
       maximumSupportedSchemaVersion: _maximumSupportedSchemaVersion,
     );
     if (disposition != MaintainiacRestoreDisposition.applyRemote) {
+      if (disposition == MaintainiacRestoreDisposition.conflict) {
+        await _reviewStore.record(
+          type: MaintainiacRestoreReviewType.conflict,
+          remote: _reviewRecord(remote),
+          local: _reviewRecord(
+            MaintainiacRestoreEnvelope.forRecord(
+              accountScopeId: _accountScopeId,
+              record: local!,
+              schemaVersion: remote.schemaVersion,
+            ),
+          ),
+        );
+      }
       return MaintainiacRestoreApplyResult(
         disposition: disposition,
         record: local,
@@ -108,6 +131,28 @@ class MaintainiacRestoreApplier {
       );
     }
   }
+
+  bool _reviewable(MaintainiacRestoreEnvelope remote) {
+    if (remote.accountScopeId != _accountScopeId ||
+        !_validToken(remote.accountScopeId)) {
+      return false;
+    }
+    try {
+      MaintainiacDurableRecord.fromMap(remote.record.toMap());
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  MaintainiacRestoreReviewRecord _reviewRecord(
+    MaintainiacRestoreEnvelope envelope,
+  ) => MaintainiacRestoreReviewRecord(
+    accountScopeId: envelope.accountScopeId,
+    record: envelope.record,
+    schemaVersion: envelope.schemaVersion,
+    contentSha256: envelope.contentSha256,
+  );
 
   bool _verified(MaintainiacRestoreEnvelope remote) {
     if (remote.accountScopeId != _accountScopeId ||
