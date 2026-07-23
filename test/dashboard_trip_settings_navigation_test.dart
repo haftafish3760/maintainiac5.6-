@@ -20,6 +20,21 @@ void main() {
     );
   });
 
+  test('dashboard settings exposes the complete GPS settings surface', () {
+    final source = File(
+      'lib/screens/settings/dashboard_settings.dart',
+    ).readAsStringSync();
+
+    expect(source, contains("title: 'GPS-Assisted Trip Tracking'"));
+    expect(source, contains('const TripTrackingSettingsScreen()'));
+    expect(
+      source,
+      contains(
+        'Location permission, battery profile, low-speed equipment mode, and walking-review preferences.',
+      ),
+    );
+  });
+
   test('trip settings retain separate GPS and motion consent switches', () {
     final source = File(
       'lib/screens/settings/trip_tracking_settings_screen.dart',
@@ -31,5 +46,7 @@ void main() {
       source,
       contains('settings.copyWith(activityRecognitionEnabled: value)'),
     );
+    expect(source, contains("title: 'GPS update preset'"));
+    expect(source, contains("'High accuracy (3 sec)'"));
   });
 }

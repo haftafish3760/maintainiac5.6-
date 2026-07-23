@@ -183,6 +183,16 @@ void main() {
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
     expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
+    await tester.ensureVisible(find.text('GPS update preset'));
+    await tester.pump();
+    await tester.tap(find.text('Enhanced (8 sec)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('High accuracy (3 sec)').last);
+    await tester.pumpAndSettle();
+    expect(
+      settings.settings.samplingPreset,
+      TripTrackingSamplingPreset.highAccuracy,
+    );
     await tester.ensureVisible(
       find.text('Use motion activity for walking review'),
     );
