@@ -78,6 +78,31 @@ void main() {
     );
   });
 
+  test('concurrent recovery callbacks rotate an expired token once', () async {
+    final values = _SecureValues();
+    final vault = MaintainiacRestoreCredentialVault(values: values);
+    await vault.save(
+      'credential-a',
+      _issued(now, expiresAt: now.subtract(const Duration(seconds: 1))),
+    );
+    final functions = _Functions();
+    final progress = MaintainiacHostedRestoreProgress(
+      client: MaintainiacRestoreSessionClient(functions),
+      credentials: vault,
+      nowUtc: () => now,
+    );
+
+    await Future.wait([
+      progress.reconcile(_session(MaintainiacRestoreSessionState.running)),
+      progress.reconcile(_session(MaintainiacRestoreSessionState.running)),
+    ]);
+
+    expect(
+      functions.names.where((name) => name == 'refreshRestoreAuthorization'),
+      hasLength(1),
+    );
+  });
+
   test(
     'unexpected hosted lifecycle response keeps recovery credential',
     () async {

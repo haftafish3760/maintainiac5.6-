@@ -17,9 +17,16 @@ class MaintainiacHostedRestoreProgress
   final MaintainiacRestoreSessionClient _client;
   final MaintainiacRestoreCredentialStore _credentials;
   final DateTime Function() _nowUtc;
+  Future<void> _reconcileTail = Future<void>.value();
 
   @override
-  Future<void> reconcile(MaintainiacRestoreSession session) async {
+  Future<void> reconcile(MaintainiacRestoreSession session) {
+    final next = _reconcileTail.then((_) => _reconcile(session));
+    _reconcileTail = next.then<void>((_) {}, onError: (Object _) {});
+    return next;
+  }
+
+  Future<void> _reconcile(MaintainiacRestoreSession session) async {
     var issued = await _credentials.load(session.authorizationId);
     if (issued == null) {
       if (session.state.isTerminal) return;
