@@ -238,7 +238,14 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingSessionRecord? storedSession;
     try {
       storedSession = _sessionStore.activeSession;
+      if (_platformStatus == 'bluetooth_session_storage_state_unknown') {
+        _platformStatus = null;
+        _platformError = null;
+      }
     } catch (_) {
+      _platformStatus = 'bluetooth_session_storage_state_unknown';
+      _platformError =
+          'Could not verify unfinished trip state. Bluetooth vehicle switching is paused.';
       return const BluetoothVehicleMatchDecision(
         disposition:
             BluetoothVehicleMatchDisposition.blockedByUnfinishedSession,

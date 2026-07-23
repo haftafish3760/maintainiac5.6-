@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 498 in the current continuation
+- Current pass: 502 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -114,6 +114,9 @@
   from ordinary movement evidence. It suppresses the suggestion, surfaces a
   controlled local-storage warning, and becomes eligible again only after the
   unfinished-session check succeeds
+- Bluetooth vehicle switching now surfaces the same explicit safe fallback
+  when unfinished-trip storage cannot be read. It remains blocked until that
+  session boundary recovers rather than guessing that a vehicle switch is safe
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair

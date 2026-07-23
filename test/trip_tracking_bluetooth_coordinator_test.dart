@@ -279,6 +279,47 @@ void main() {
       expect(controller.platformError, isNull);
     },
   );
+
+  test('Bluetooth switching pauses while trip storage state is unknown', () {
+    final sessions = _RecoveringBluetoothSessionStore();
+    final controller = TripTrackingController(
+      sessionStore: sessions,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+    addTearDown(controller.dispose);
+    final links = TripTrackingBluetoothVehicleLinkStore.memory();
+    const settings = TripTrackingSettings(
+      bluetoothVehicleRecognitionEnabled: true,
+      automaticVehicleSwitchEnabled: true,
+    );
+
+    final failed = controller.evaluateBluetoothVehicleIdentity(
+      deviceId: 'head-unit-1',
+      settings: settings,
+      linkStore: links,
+    );
+    expect(
+      failed.disposition,
+      BluetoothVehicleMatchDisposition.blockedByUnfinishedSession,
+    );
+    expect(
+      controller.platformStatus,
+      'bluetooth_session_storage_state_unknown',
+    );
+
+    sessions.fail = false;
+    final recovered = controller.evaluateBluetoothVehicleIdentity(
+      deviceId: 'head-unit-1',
+      settings: settings,
+      linkStore: links,
+    );
+    expect(recovered.disposition, BluetoothVehicleMatchDisposition.noMatch);
+    expect(controller.platformStatus, isNull);
+    expect(controller.platformError, isNull);
+  });
 }
 
 class _RecoveringBluetoothLinkStore
@@ -291,5 +332,17 @@ class _RecoveringBluetoothLinkStore
   TripTrackingBluetoothVehicleLink? linkForDevice(String deviceId) {
     if (fail) throw StateError('Bluetooth link storage unavailable');
     return super.linkForDevice(deviceId);
+  }
+}
+
+class _RecoveringBluetoothSessionStore extends TripTrackingSessionStore {
+  _RecoveringBluetoothSessionStore() : super.memory();
+
+  var fail = true;
+
+  @override
+  TripTrackingSessionRecord? get activeSession {
+    if (fail) throw StateError('trip storage unavailable');
+    return super.activeSession;
   }
 }
