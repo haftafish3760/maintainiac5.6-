@@ -26,6 +26,28 @@ describe('restore device registration limits', () => {
     assert.equal(blocked.status, 429);
     assert.equal(blocked.body?.error?.status, 'RESOURCE_EXHAUSTED');
   });
+
+  test('concurrent registrations cannot race beyond the device cap', async () => {
+    assertEmulatorOnly();
+    const identity = await createEmulatorIdentity();
+    const outcomes = await Promise.all(
+      Array.from({length: 6}, async (_, index) => {
+        try {
+          await callFunction(
+            'registerRestoreDevice',
+            identity.token,
+            registration(index + 20),
+          );
+          return 'registered';
+        } catch (_) {
+          return 'blocked';
+        }
+      }),
+    );
+
+    assert.equal(outcomes.filter((value) => value === 'registered').length, 5);
+    assert.equal(outcomes.filter((value) => value === 'blocked').length, 1);
+  });
 });
 
 function registration(index) {
