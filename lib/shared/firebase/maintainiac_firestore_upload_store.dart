@@ -109,6 +109,15 @@ class MaintainiacFirestoreUploadQueueStore {
     bool preserveAttemptMetadata = false,
   }) => _enqueue(() async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
+    final duplicate = _latestMatchingPending(draft);
+    if (duplicate != null) {
+      for (final record in pendingRecords) {
+        if (record.path == draft.path && record.id != duplicate.id) {
+          await _box.delete(record.id);
+        }
+      }
+      return duplicate;
+    }
     await _ensureStorageForQueueWrite();
     final replaced = [
       for (final record in pendingRecords)

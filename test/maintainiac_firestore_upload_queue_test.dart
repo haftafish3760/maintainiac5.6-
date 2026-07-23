@@ -79,9 +79,16 @@ void main() {
       final first = _safeDraft('parserHealth/replace_storage_guard');
       await queue.enqueueReplacingPendingForPath(first);
       allowWrites = false;
+      final changed = MaintainiacFirestoreDocumentDraft(
+        path: first.path,
+        data: const {
+          'schema': 'qa_safe_document_v1',
+          'event': 'changed queuecheck',
+        },
+      );
 
       await expectLater(
-        () => queue.enqueueReplacingPendingForPath(first),
+        () => queue.enqueueReplacingPendingForPath(changed),
         throwsStateError,
       );
       expect(queue.pendingRecords, hasLength(1));
@@ -341,26 +348,29 @@ void main() {
     expect(queue.pendingRecords, isEmpty);
   });
 
-  test('replaces pending documents for the same path', () async {
-    final queue = await MaintainiacFirestoreUploadQueueStore.create();
-    final draft = _safeDraft('parserHealth/receipt_parser_v1');
+  test(
+    'deduplicates an unchanged pending document without resetting it',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final draft = _safeDraft('parserHealth/receipt_parser_v1');
 
-    await queue.enqueueReplacingPendingForPath(
-      draft,
-      queuedAtUtc: DateTime.utc(2026, 6, 23, 13),
-    );
-    await queue.enqueueReplacingPendingForPath(
-      draft,
-      queuedAtUtc: DateTime.utc(2026, 6, 23, 13, 5),
-    );
+      await queue.enqueueReplacingPendingForPath(
+        draft,
+        queuedAtUtc: DateTime.utc(2026, 6, 23, 13),
+      );
+      await queue.enqueueReplacingPendingForPath(
+        draft,
+        queuedAtUtc: DateTime.utc(2026, 6, 23, 13, 5),
+      );
 
-    expect(queue.pendingRecords, hasLength(1));
-    expect(queue.pendingRecords.single.path, draft.path);
-    expect(
-      queue.pendingRecords.single.queuedAtUtc,
-      DateTime.utc(2026, 6, 23, 13, 5),
-    );
-  });
+      expect(queue.pendingRecords, hasLength(1));
+      expect(queue.pendingRecords.single.path, draft.path);
+      expect(
+        queue.pendingRecords.single.queuedAtUtc,
+        DateTime.utc(2026, 6, 23, 13),
+      );
+    },
+  );
 
   test(
     'replacement queues the newer document before removing retry evidence',
@@ -382,7 +392,7 @@ void main() {
 
       expect(
         replacement.indexOf('await _enqueueDocument'),
-        lessThan(replacement.indexOf('await _box.delete')),
+        lessThan(replacement.lastIndexOf('await _box.delete')),
       );
     },
   );
@@ -407,7 +417,7 @@ void main() {
       expect(queue.pendingRecords, hasLength(1));
       expect(
         queue.pendingRecords.single.queuedAtUtc,
-        DateTime.utc(2026, 7, 15, 12, 1),
+        DateTime.utc(2026, 7, 15, 12),
       );
     },
   );
@@ -422,7 +432,13 @@ void main() {
         queuedAtUtc: DateTime.utc(2026, 7, 16, 12),
       );
       await queue.enqueueReplacingPendingForPath(
-        first,
+        MaintainiacFirestoreDocumentDraft(
+          path: first.path,
+          data: const {
+            'schema': 'qa_safe_document_v1',
+            'event': 'newer queuecheck',
+          },
+        ),
         queuedAtUtc: DateTime.utc(2026, 7, 16, 12, 1),
       );
 
@@ -619,6 +635,15 @@ void main() {
         sink: _RecordingFirestoreSink(failPathsContaining: 'catalogHealth'),
         uploadEnabled: true,
       ).uploadPending(nowUtc: startedAt);
+      final delayed = queue.pendingRecords.single;
+      final duplicate = await queue.enqueueReplacingPendingForPath(
+        draft,
+        queuedAtUtc: startedAt.add(const Duration(seconds: 10)),
+      );
+
+      expect(duplicate.id, delayed.id);
+      expect(duplicate.attemptCount, 1);
+      expect(duplicate.nextAttemptAtUtc, delayed.nextAttemptAtUtc);
 
       final recoverySink = _RecordingFirestoreSink();
       final early = await MaintainiacFirestoreUploadCoordinator(
