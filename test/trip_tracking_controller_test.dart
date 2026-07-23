@@ -3249,7 +3249,11 @@ void main() {
     expect(native.stopCalls, 1);
     expect(
       controller.lifecycleState,
-      TripTrackingSessionLifecycleState.failedRecoverable,
+      TripTrackingSessionLifecycleState.permissionRequired,
+    );
+    expect(
+      controller.activeSession?.effectiveContractState,
+      TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION,
     );
     expect(controller.platformError, contains('permission was removed'));
   });
@@ -3258,9 +3262,10 @@ void main() {
     'location permission revocation interrupts an active native trip',
     () async {
       final native = _FakeTripTrackingPlatform();
+      final odometer = GlobalOdometerController(initialReading: 1000);
       final controller = TripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
-        odometer: GlobalOdometerController(initialReading: 1000),
+        odometer: odometer,
         platform: native,
       );
       await controller.start(
@@ -3294,11 +3299,37 @@ void main() {
       expect(controller.isTracking, isTrue);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.paused,
       );
-      expect(controller.healthState, TripTrackingHealthState.interrupted);
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+      expect(controller.healthState, TripTrackingHealthState.permissionBlocked);
+      expect(
+        controller.activeSession?.transitionAudits.last.reasonCode,
+        'native_permission_revoked_system_pause',
+      );
+      expect(controller.signalGaps, hasLength(1));
+      expect(
+        controller.signalGaps.single.reason,
+        TripTrackingSignalGapReason.systemPause,
+      );
       expect(native.stopCalls, 1);
       expect(controller.platformError, contains('permission was removed'));
+
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      expect(controller.activeSession?.id, 'trip_active_permission_loss');
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      );
+      expect(controller.signalGaps.single.isOpen, isTrue);
+      expect(odometer.confirmedReading, 1000);
+      expect(native.startCalls, 2);
     },
   );
 
@@ -3374,9 +3405,13 @@ void main() {
       expect(controller.isTracking, isTrue);
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.paused,
       );
-      expect(controller.healthState, TripTrackingHealthState.interrupted);
+      expect(controller.healthState, TripTrackingHealthState.permissionBlocked);
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
       expect(native.stopCalls, 1);
       expect(
         controller.platformError,
@@ -4633,6 +4668,16 @@ void main() {
       expect(controller.motionState, TripMotionState.stopped);
       expect(controller.isTracking, isTrue);
       expect(controller.nativeTracking, isTrue);
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.toContractState,
+        TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED,
+      );
+      final stoppedSequence =
+          controller.activeSession!.transitionAudits.last.sequenceNumber;
 
       native.addActivity(
         TripActivityObservation(
@@ -4649,6 +4694,18 @@ void main() {
 
       expect(controller.motionState, TripMotionState.moving);
       expect(controller.isTracking, isTrue);
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.toContractState,
+        TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      );
+      expect(
+        controller.activeSession!.transitionAudits.last.sequenceNumber,
+        greaterThan(stoppedSequence),
+      );
     },
   );
 
@@ -7942,6 +7999,67 @@ void main() {
       expect(controller.activeSession?.revision, revisionBeforeFix);
     },
   );
+
+  test(
+    'unavailable location services preserve manual trip and exact wait state',
+    () async {
+      final native = _FakeTripTrackingPlatform(locationAvailable: false);
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = production.TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+        clockNow: () => start,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_location_services_unavailable',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isTrue,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isFalse,
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(
+        controller.activeSession?.lifecycleState,
+        TripTrackingSessionLifecycleState.permissionRequired,
+      );
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.AWAITING_LOCATION_SERVICES,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.toContractState,
+        TripTrackingSessionLifecycleContractState.AWAITING_LOCATION_SERVICES,
+      );
+      expect(odometer.confirmedReading, 1000);
+      expect(native.startCalls, 0);
+
+      native.locationAvailable = true;
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      expect(
+        controller.activeSession?.id,
+        'trip_location_services_unavailable',
+      );
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      );
+      expect(odometer.confirmedReading, 1000);
+      expect(native.startCalls, 1);
+    },
+  );
 }
 
 class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
@@ -7961,6 +8079,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.batteryStateAvailable = true,
     this.lowPowerModeAvailable = true,
     this.activityRecognitionAvailable = false,
+    this.locationAvailable = true,
     this.updateSucceeds = true,
     this.startSucceeds = true,
     this.startFailureMessage = 'native start fault',
@@ -7991,6 +8110,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final bool batteryStateAvailable;
   final bool lowPowerModeAvailable;
   final bool activityRecognitionAvailable;
+  bool locationAvailable;
   final bool updateSucceeds;
   final bool startSucceeds;
   final String startFailureMessage;
@@ -8072,7 +8192,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
       throw StateError('capability probe failed');
     }
     return TripTrackingPlatformCapabilities(
-      locationAvailable: true,
+      locationAvailable: locationAvailable,
       backgroundTrackingAvailable: true,
       activityRecognitionAvailable: activityRecognitionAvailable,
       batteryStateAvailable: batteryStateAvailable,

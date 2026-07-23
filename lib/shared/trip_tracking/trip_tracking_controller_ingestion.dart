@@ -125,22 +125,69 @@ extension TripTrackingControllerIngestion on TripTrackingController {
         session.lifecycleState,
         decision,
       );
+      final naturalContractState =
+          naturalLifecycleState == TripTrackingSessionLifecycleState.active &&
+              (engine.motionState == TripMotionState.stopCandidate ||
+                  engine.motionState == TripMotionState.stopped)
+          ? TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED
+          : _contractStateForTransition(naturalLifecycleState);
       if (naturalLifecycleState != session.lifecycleState) {
         TripTrackingSessionStateMachine.requireTransition(
           session.lifecycleState,
           naturalLifecycleState,
         );
       }
+      if (naturalContractState != session.effectiveContractState) {
+        TripTrackingSessionContractStateMachine.requireTransition(
+          session.effectiveContractState,
+          naturalContractState,
+        );
+      }
+      final lifecycleChanged =
+          naturalLifecycleState != session.lifecycleState ||
+          naturalContractState != session.effectiveContractState;
+      final nextRevision = session.revision + 1;
+      final nextHealth = _healthAfterDecision(session.healthState, decision);
+      final nextTransitionSequence = session.transitionAudits.isEmpty
+          ? nextRevision
+          : session.transitionAudits.last.sequenceNumber + 1;
       _session = session.copyWith(
         // The raw sample time remains in the engine snapshot for evidence,
         // while the durable revision clock must never move backwards when a
         // monotonic device clock proves ordering across a wall-clock rollback.
         updatedAt: durableSampleTime,
-        revision: session.revision + 1,
+        revision: nextRevision,
         engineSnapshot: engine.snapshot,
         advisories: advisories,
         lifecycleState: naturalLifecycleState,
-        healthState: _healthAfterDecision(session.healthState, decision),
+        persistedContractState: naturalContractState,
+        healthState: nextHealth,
+        transitionAudits: lifecycleChanged
+            ? [
+                ...session.transitionAudits,
+                TripTrackingSessionTransitionAudit(
+                  id: '${session.id}:$nextRevision',
+                  sessionId: session.id,
+                  vehicleId: session.vehicleId,
+                  profile: session.profile,
+                  profileId: session.effectiveProfileId,
+                  fromState: session.lifecycleState,
+                  toState: naturalLifecycleState,
+                  fromContractState: session.effectiveContractState,
+                  toContractState: naturalContractState,
+                  eventTimestamp: durableSampleTime,
+                  sequenceNumber: nextTransitionSequence,
+                  reasonCode: 'gps_session_transition_allowed',
+                  initiatingSource: 'gps_sample_ingestion',
+                  revision: nextRevision,
+                  permissionState: _permissionStateForHealth(nextHealth),
+                  confidenceState: _confidenceStateForHealth(nextHealth),
+                  trackingQualityMode: _trackingQualityModeForHealth(
+                    nextHealth,
+                  ),
+                ),
+              ]
+            : session.transitionAudits,
       );
       try {
         await _sessionStore.save(_session!);

@@ -48,6 +48,7 @@ class TripTrackingTripLogProposal {
     'schemaVersion': 3,
     'proposalId': proposalId,
     'sourceReviewSchemaVersion': review.schemaVersion,
+    if (review.ancestry != null) 'ancestry': review.ancestry!.toMap(),
     'reviewRevision': reviewRevision,
     'vehicleId': vehicleId,
     'profileId': profileId,

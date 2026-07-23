@@ -178,7 +178,12 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     return decision;
   }
 
-  Future<void> _stopNativeTracking({bool interrupted = false}) async {
+  Future<void> _stopNativeTracking({
+    bool interrupted = false,
+    TripTrackingHealthState? interruptionHealth,
+    String? interruptionSource,
+    String? interruptionReasonCode,
+  }) async {
     final platform = _platform;
     final wasNativeTracking = _nativeTracking;
     final engine = _engine;
@@ -229,10 +234,13 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
         pauseKind: interrupted
             ? TripTrackingPauseKind.system
             : TripTrackingPauseKind.user,
-        source: 'native_stop_tracking',
-        reasonCode: interrupted
-            ? 'native_tracking_interrupted_stop'
-            : 'native_tracking_stopped',
+        health: interrupted ? interruptionHealth : null,
+        source: interruptionSource ?? 'native_stop_tracking',
+        reasonCode:
+            interruptionReasonCode ??
+            (interrupted
+                ? 'native_tracking_interrupted_stop'
+                : 'native_tracking_stopped'),
       );
       if (!transitioned && engineBeforeGap != null) {
         _engine = TripTrackingEngine.fromSnapshot(

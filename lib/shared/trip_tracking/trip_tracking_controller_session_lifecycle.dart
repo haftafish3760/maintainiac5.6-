@@ -10,6 +10,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     required TripTrackingProfile profile,
     String? profileId,
     DateTime? startedAt,
+    TripTrackingSessionAncestry? ancestry,
   }) => _runExclusiveSessionOperation(
     false,
     () => _start(
@@ -18,6 +19,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       profile: profile,
       profileId: profileId,
       startedAt: startedAt,
+      ancestry: ancestry,
     ),
     busyStatus: 'session_operation_in_progress',
     busyError:
@@ -30,6 +32,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     required TripTrackingProfile profile,
     String? profileId,
     DateTime? startedAt,
+    TripTrackingSessionAncestry? ancestry,
   }) async {
     if (_isDisposed) {
       return false;
@@ -41,6 +44,15 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       _platformStatus = 'profile_identity_invalid';
       _platformError =
           'Select a valid work profile before starting trip tracking.';
+      notifyListeners();
+      return false;
+    }
+    if (ancestry != null &&
+        (!ancestry.isValidFor(tripId) ||
+            ancestry.kind == TripTrackingSessionAncestryKind.mergeResult)) {
+      _platformStatus = 'session_ancestry_invalid';
+      _platformError =
+          'This split or merge reference is invalid. No tracking session was started.';
       notifyListeners();
       return false;
     }
@@ -164,6 +176,29 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       notifyListeners();
       return false;
     }
+    if (ancestry?.kind == TripTrackingSessionAncestryKind.splitChild) {
+      final parent = _sessionStore.reviewForTrip(ancestry!.parentSessionId!);
+      final parentAlreadySplit = _sessionStore.pendingReviews.any(
+        (review) =>
+            review.ancestry?.kind ==
+                TripTrackingSessionAncestryKind.splitChild &&
+            review.ancestry?.parentSessionId == ancestry.parentSessionId,
+      );
+      final odometerBoundaryMatches =
+          parent?.vehicleId != vehicleId ||
+          parent?.confirmedEndingOdometer == _odometer.confirmedReading;
+      if (parent == null ||
+          !parent.isOdometerConfirmed ||
+          !odometerBoundaryMatches ||
+          parentAlreadySplit ||
+          started.toUtc().isBefore(parent.finishedAt.toUtc())) {
+        _platformStatus = 'split_parent_unavailable';
+        _platformError =
+            'The preserved parent trip needs an unused confirmed odometer and time boundary.';
+        notifyListeners();
+        return false;
+      }
+    }
     final startingOdometer = _odometer.confirmedReading;
     if (!_odometer.beginLiveTripProjection(
       tripId: tripId,
@@ -187,6 +222,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       vehicleId: vehicleId,
       vehicleConfigurationRevision: _currentVehicleConfigurationRevision,
       gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
+      ancestry: ancestry,
       startingOdometer: startingOdometer,
       profile: profile,
       profileId: effectiveProfileId,

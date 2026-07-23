@@ -36,6 +36,7 @@ void main() {
 const Map<State, Set<State>> _approved = {
   State.disabled: {State.permissionRequired, State.ready},
   State.permissionRequired: {
+    State.starting,
     State.ready,
     State.stopping,
     State.failedTerminal,

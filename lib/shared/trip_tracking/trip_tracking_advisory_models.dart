@@ -254,7 +254,7 @@ extension TripTrackingSessionLifecycleStateContractMapper
     TripTrackingSessionLifecycleState.awaitingReview =>
       TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
     TripTrackingSessionLifecycleState.stopping =>
-      TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
     TripTrackingSessionLifecycleState.completed =>
       TripTrackingSessionLifecycleContractState.COMPLETED,
     TripTrackingSessionLifecycleState.cancelled =>
@@ -284,7 +284,7 @@ extension TripTrackingSessionLifecycleContractStateRuntimeMapper
     TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING =>
       TripTrackingSessionLifecycleState.active,
     TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED =>
-      TripTrackingSessionLifecycleState.stopping,
+      TripTrackingSessionLifecycleState.active,
     TripTrackingSessionLifecycleContractState.PAUSED_BY_USER =>
       TripTrackingSessionLifecycleState.paused,
     TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM =>

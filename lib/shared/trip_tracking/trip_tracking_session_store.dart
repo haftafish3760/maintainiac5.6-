@@ -10,6 +10,7 @@ import 'trip_tracking_session_snapshot.dart';
 
 part 'trip_tracking_session_record.dart';
 part 'trip_tracking_review_record.dart';
+part 'trip_tracking_session_ancestry.dart';
 
 typedef TripTrackingSessionStorageCheck = Future<AppStorageCheck> Function();
 

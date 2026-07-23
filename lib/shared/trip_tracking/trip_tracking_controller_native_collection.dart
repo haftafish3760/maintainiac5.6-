@@ -78,7 +78,9 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     if (!capabilities.locationAvailable) {
       _platformError = 'Device location is unavailable.';
       await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.failedRecoverable,
+        TripTrackingSessionLifecycleState.permissionRequired,
+        contractState: TripTrackingSessionLifecycleContractState
+            .AWAITING_LOCATION_SERVICES,
         health: TripTrackingHealthState.unavailable,
         source: 'native_start',
         reasonCode: 'native_location_unavailable',
@@ -315,7 +317,12 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
           ? 'native_collection_preference_failed'
           : 'native_tracking_stopped_during_start';
       await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.failedRecoverable,
+        authorizationRevokedDuringStart
+            ? TripTrackingSessionLifecycleState.permissionRequired
+            : TripTrackingSessionLifecycleState.failedRecoverable,
+        contractState: authorizationRevokedDuringStart
+            ? TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION
+            : null,
         health: authorizationRevokedDuringStart
             ? TripTrackingHealthState.permissionBlocked
             : TripTrackingHealthState.unavailable,

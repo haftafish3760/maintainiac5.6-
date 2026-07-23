@@ -291,6 +291,7 @@ class TripTrackingReviewRecord {
     this.revision = 0,
     this.schemaVersion = 2,
     this.hasValidTimeline = true,
+    this.ancestry,
   });
 
   final String id;
@@ -336,6 +337,7 @@ class TripTrackingReviewRecord {
   final TripOdometerUsageDayClassification usageDayClassification;
   final int revision;
   final int schemaVersion;
+  final TripTrackingSessionAncestry? ancestry;
 
   /// False only for a persisted record whose required timeline could not be
   /// parsed. Directly-created records are presumed valid.
@@ -428,6 +430,7 @@ class TripTrackingReviewRecord {
         permissionHistory ?? this.permissionHistory,
       ),
       recoveryCount: recoveryCount ?? this.recoveryCount,
+      ancestry: ancestry,
       tripLogProposalState: tripLogProposalState ?? this.tripLogProposalState,
       tripLogProposalAttemptCount:
           tripLogProposalAttemptCount ?? this.tripLogProposalAttemptCount,
@@ -516,6 +519,7 @@ class TripTrackingReviewRecord {
           .toUtc()
           .toIso8601String(),
     'usageDayClassification': usageDayClassification.name,
+    if (ancestry != null) 'ancestry': ancestry!.toMap(),
     'revision': revision < 0 ? 0 : revision,
     'schemaVersion': 2,
   };
@@ -529,6 +533,13 @@ class TripTrackingReviewRecord {
     final hasSafeIdentity =
         _isSafeStoreIdentifierValue(map['id']) &&
         _isSafeStoreIdentifierValue(map['vehicleId']);
+    final rawAncestry = map['ancestry'];
+    final ancestry = rawAncestry is Map
+        ? TripTrackingSessionAncestry.tryFromMap(rawAncestry, sessionId: id)
+        : null;
+    final hasValidAncestry =
+        !map.containsKey('ancestry') ||
+        (rawAncestry is Map && ancestry != null);
     final hasValidProfile = _hasKnownEnumName(
       map['profile'],
       TripTrackingProfile.values.map((value) => value.name),
@@ -702,6 +713,7 @@ class TripTrackingReviewRecord {
       batteryStateSummary: batteryStateSummary,
       permissionHistory: permissionHistory,
       recoveryCount: _safeRecoveryCount(map['recoveryCount']),
+      ancestry: ancestry,
       tripLogProposalState: TripTrackingTripLogProposalState.values.firstWhere(
         (value) => value.name == map['tripLogProposalState'],
         orElse: () => TripTrackingTripLogProposalState.pending,
@@ -739,6 +751,7 @@ class TripTrackingReviewRecord {
           hasValidCalibrationMultiplier &&
           hasValidTimeZoneContext &&
           hasValidCloudSyncState &&
+          hasValidAncestry &&
           _hasValidCloudSyncTimeline(
             cloudSyncState,
             syncedAt: cloudSyncedAt,

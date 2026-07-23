@@ -68,6 +68,26 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
     }
   }
 
+  Future<void> _handleNativePermissionRevoked(String message) async {
+    if (_isDisposed || _nativeInterruptionPending) return;
+    _nativeInterruptionPending = true;
+    try {
+      _platformError = message;
+      _platformStatus = 'permission_required';
+      notifyListeners();
+      await _stopNativeTracking(
+        interrupted: true,
+        interruptionHealth: TripTrackingHealthState.permissionBlocked,
+        interruptionSource: 'native_authorization_event',
+        interruptionReasonCode: 'native_permission_revoked_system_pause',
+      );
+      _platformStatus = 'permission_required';
+      notifyListeners();
+    } finally {
+      _nativeInterruptionPending = false;
+    }
+  }
+
   void _enqueuePlatformEvent(TripTrackingPlatformEvent event) {
     _platformEventQueue = _platformEventQueue
         .then((_) async {
@@ -203,7 +223,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             // Schedule interruption cleanup after it returns so its final
             // queue drain cannot wait on the event currently being processed.
             _deferPlatformCleanup(
-              () => _handleNativeInterruption(
+              () => _handleNativePermissionRevoked(
                 _backgroundTrackingAllowed
                     ? 'Background location permission was removed while tracking.'
                     : 'Precise location permission was removed while tracking.',

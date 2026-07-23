@@ -101,6 +101,18 @@ void main() {
       expect(proposal.toMap()['initialFixHistory'], isA<List>());
       expect(proposal.toMap()['signalGaps'], isA<List>());
       expect(jsonEncode(proposal.toMap()), isNotEmpty);
+      final splitReview = TripTrackingReviewRecord.fromMap({
+        ...review.toMap(),
+        'id': 'split-child',
+        'ancestry': const TripTrackingSessionAncestry.splitChild(
+          parentSessionId: 'split-parent',
+        ).toMap(),
+      });
+      expect(splitReview.hasValidTimeline, isTrue);
+      expect(
+        TripTrackingTripLogProposal.fromReview(splitReview).toMap()['ancestry'],
+        containsPair('kind', 'splitChild'),
+      );
       final serializedProposal = proposal.toMap().toString().toLowerCase();
       expect(serializedProposal, isNot(matches(RegExp(r'\blatitude:'))));
       expect(serializedProposal, isNot(matches(RegExp(r'\blongitude:'))));

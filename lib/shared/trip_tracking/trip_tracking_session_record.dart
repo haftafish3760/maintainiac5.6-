@@ -143,6 +143,8 @@ class TripTrackingSessionRecord {
     this.revision = 1,
     this.recoveryCount = 0,
     this.transitionAudits = const [],
+    this.ancestry,
+    this.persistedContractState,
   });
 
   final String id;
@@ -165,8 +167,11 @@ class TripTrackingSessionRecord {
   final TripTrackingSessionLifecycleState lifecycleState;
   final TripTrackingHealthState healthState;
   final TripTrackingPauseKind? pauseKind;
+  final TripTrackingSessionLifecycleContractState? persistedContractState;
   TripTrackingSessionLifecycleContractState get effectiveContractState =>
-      lifecycleState == TripTrackingSessionLifecycleState.paused
+      persistedContractState?.toRuntimeState() == lifecycleState
+      ? persistedContractState!
+      : lifecycleState == TripTrackingSessionLifecycleState.paused
       ? pauseKind == TripTrackingPauseKind.system
             ? TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM
             : TripTrackingSessionLifecycleContractState.PAUSED_BY_USER
@@ -196,6 +201,7 @@ class TripTrackingSessionRecord {
   final int revision;
   final int recoveryCount;
   final List<TripTrackingSessionTransitionAudit> transitionAudits;
+  final TripTrackingSessionAncestry? ancestry;
 
   TripTrackingSessionRecord copyWith({
     DateTime? updatedAt,
@@ -223,6 +229,7 @@ class TripTrackingSessionRecord {
     int? revision,
     int? recoveryCount,
     List<TripTrackingSessionTransitionAudit>? transitionAudits,
+    TripTrackingSessionLifecycleContractState? persistedContractState,
   }) {
     final nextSamplingCeiling = clearSamplingCeiling
         ? null
@@ -272,6 +279,10 @@ class TripTrackingSessionRecord {
       revision: revision ?? this.revision,
       recoveryCount: recoveryCount ?? this.recoveryCount,
       transitionAudits: transitionAudits ?? this.transitionAudits,
+      ancestry: ancestry,
+      persistedContractState:
+          persistedContractState ??
+          (lifecycleState == null ? this.persistedContractState : null),
     );
   }
 
@@ -321,6 +332,8 @@ class TripTrackingSessionRecord {
     'transitionAudits': _boundedTransitionAudits(
       transitionAudits,
     ).map((item) => item.toMap()).toList(),
+    if (ancestry != null) 'ancestry': ancestry!.toMap(),
+    'contractState': effectiveContractState.name,
   };
 
   factory TripTrackingSessionRecord.fromMap(Map<dynamic, dynamic> map) {
@@ -366,6 +379,21 @@ class TripTrackingSessionRecord {
       (value) => value.name == map['profile'],
       orElse: () => TripTrackingProfile.roadVehicle,
     );
+    final safeLifecycleState = TripTrackingSessionLifecycleState.values
+        .firstWhere(
+          (value) => value.name == map['lifecycleState'],
+          orElse: () => TripTrackingSessionLifecycleState.ready,
+        );
+    final rawContractState = map['contractState'];
+    final persistedContractState = rawContractState is String
+        ? TripTrackingSessionLifecycleContractState.values
+              .where((value) => value.name == rawContractState)
+              .firstOrNull
+        : null;
+    final hasValidContractState =
+        !map.containsKey('contractState') ||
+        (persistedContractState != null &&
+            persistedContractState.toRuntimeState() == safeLifecycleState);
     final safeStartedAt =
         startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
     final samplingCeiling = _samplingFromMap(map['samplingCeiling']);
@@ -373,6 +401,13 @@ class TripTrackingSessionRecord {
       nativeSampling: _samplingFromMap(map['nativeSampling']),
       samplingCeiling: samplingCeiling,
     );
+    final rawAncestry = map['ancestry'];
+    final ancestry = rawAncestry is Map
+        ? TripTrackingSessionAncestry.tryFromMap(rawAncestry, sessionId: safeId)
+        : null;
+    final hasValidAncestry =
+        !map.containsKey('ancestry') ||
+        (rawAncestry is Map && ancestry != null);
     return TripTrackingSessionRecord(
       id: safeId,
       vehicleId: safeVehicleId,
@@ -420,10 +455,7 @@ class TripTrackingSessionRecord {
             : _safeIdentifier(map['profileId']),
         startedAt: safeStartedAt,
       ),
-      lifecycleState: TripTrackingSessionLifecycleState.values.firstWhere(
-        (value) => value.name == map['lifecycleState'],
-        orElse: () => TripTrackingSessionLifecycleState.ready,
-      ),
+      lifecycleState: safeLifecycleState,
       healthState: TripTrackingHealthState.values.firstWhere(
         (value) => value.name == map['healthState'],
         orElse: () => TripTrackingHealthState.healthy,
@@ -453,10 +485,12 @@ class TripTrackingSessionRecord {
           hasSafeIdentity &&
           hasValidProfile &&
           hasValidLifecycleState &&
+          hasValidContractState &&
           hasValidHealthState &&
           hasValidVehicleConfigurationRevision &&
           hasValidCalibrationMultiplier &&
           hasValidStartedTimeZone &&
+          hasValidAncestry &&
           hasSupportedSchemaVersion,
       revision: _safeTransitionRevision(map['revision']),
       recoveryCount: _safeRecoveryCount(map['recoveryCount']),
@@ -468,6 +502,8 @@ class TripTrackingSessionRecord {
         profile: safeProfile,
         startedAt: safeStartedAt,
       ),
+      ancestry: ancestry,
+      persistedContractState: persistedContractState,
     );
   }
 }

@@ -467,21 +467,42 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingSessionLifecycleState next, {
     TripTrackingHealthState? health,
     TripTrackingPauseKind? pauseKind,
+    TripTrackingSessionLifecycleContractState? contractState,
     String? reasonCode,
     String? source,
   }) async {
     final session = _session;
-    if (session == null || session.lifecycleState == next) return;
+    if (session == null) return;
+    final nextContractState =
+        contractState ??
+        _contractStateForTransition(next, pauseKind: pauseKind);
+    if (session.lifecycleState == next &&
+        session.effectiveContractState == nextContractState) {
+      return;
+    }
     final evaluatedReason =
         reasonCode ??
-        TripTrackingSessionStateMachine.evaluateTransition(
-          session.lifecycleState,
-          next,
-        ).reasonCode;
-    TripTrackingSessionStateMachine.requireTransition(
-      session.lifecycleState,
-      next,
-    );
+        (session.lifecycleState == next
+            ? TripTrackingSessionContractStateMachine.evaluateTransition(
+                session.effectiveContractState,
+                nextContractState,
+              ).reasonCode
+            : TripTrackingSessionStateMachine.evaluateTransition(
+                session.lifecycleState,
+                next,
+              ).reasonCode);
+    if (session.lifecycleState != next) {
+      TripTrackingSessionStateMachine.requireTransition(
+        session.lifecycleState,
+        next,
+      );
+    }
+    if (session.effectiveContractState != nextContractState) {
+      TripTrackingSessionContractStateMachine.requireTransition(
+        session.effectiveContractState,
+        nextContractState,
+      );
+    }
     final nextRevision = session.revision + 1;
     final nextTransitionSequence = session.transitionAudits.isEmpty
         ? nextRevision
@@ -495,6 +516,7 @@ class TripTrackingController extends ChangeNotifier {
       updatedAt: now,
       engineSnapshot: _engine?.snapshot ?? session.engineSnapshot,
       lifecycleState: next,
+      persistedContractState: nextContractState,
       healthState: health,
       pauseKind: next == TripTrackingSessionLifecycleState.paused
           ? pauseKind ?? TripTrackingPauseKind.system
@@ -512,10 +534,7 @@ class TripTrackingController extends ChangeNotifier {
           fromState: session.lifecycleState,
           toState: next,
           fromContractState: session.effectiveContractState,
-          toContractState: _contractStateForTransition(
-            next,
-            pauseKind: pauseKind,
-          ),
+          toContractState: nextContractState,
           eventTimestamp: now.toUtc(),
           sequenceNumber: nextTransitionSequence,
           reasonCode: evaluatedReason,
@@ -541,18 +560,34 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingSessionLifecycleState next, {
     TripTrackingHealthState? health,
     TripTrackingPauseKind? pauseKind,
+    TripTrackingSessionLifecycleContractState? contractState,
     String? reasonCode,
     String? source,
   }) async {
     final session = _session;
     if (session == null) return false;
-    if (session.lifecycleState == next) return true;
-    final transitionDecision =
-        TripTrackingSessionStateMachine.evaluateTransition(
-          session.lifecycleState,
-          next,
+    final nextContractState =
+        contractState ??
+        _contractStateForTransition(next, pauseKind: pauseKind);
+    if (session.lifecycleState == next &&
+        session.effectiveContractState == nextContractState) {
+      return true;
+    }
+    final runtimeDecision = TripTrackingSessionStateMachine.evaluateTransition(
+      session.lifecycleState,
+      next,
+    );
+    final contractDecision =
+        TripTrackingSessionContractStateMachine.evaluateTransition(
+          session.effectiveContractState,
+          nextContractState,
         );
-    if (!transitionDecision.allowed) {
+    final runtimeAllowed =
+        session.lifecycleState == next || runtimeDecision.allowed;
+    final contractAllowed =
+        session.effectiveContractState == nextContractState ||
+        contractDecision.allowed;
+    if (!runtimeAllowed || !contractAllowed) {
       final nextRevision = session.revision + 1;
       final nextTransitionSequence = session.transitionAudits.isEmpty
           ? nextRevision
@@ -570,13 +605,12 @@ class TripTrackingController extends ChangeNotifier {
         fromState: session.lifecycleState,
         toState: next,
         fromContractState: session.effectiveContractState,
-        toContractState: _contractStateForTransition(
-          next,
-          pauseKind: pauseKind,
-        ),
+        toContractState: nextContractState,
         eventTimestamp: eventAt.toUtc(),
         sequenceNumber: nextTransitionSequence,
-        reasonCode: transitionDecision.reasonCode,
+        reasonCode: !runtimeAllowed
+            ? runtimeDecision.reasonCode
+            : contractDecision.reasonCode,
         initiatingSource: _safeTransitionSource(source),
         revision: nextRevision,
         permissionState: _permissionStateForHealth(session.healthState),
@@ -610,6 +644,7 @@ class TripTrackingController extends ChangeNotifier {
         next,
         health: health,
         pauseKind: pauseKind,
+        contractState: nextContractState,
         reasonCode: reasonCode,
         source: source,
       );

@@ -60,6 +60,9 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.ready,
         },
         TripTrackingSessionLifecycleState.permissionRequired: {
+          // Permission or location services can be restored without replacing
+          // the preserved local session.
+          TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.ready,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedTerminal,
@@ -144,13 +147,178 @@ class TripTrackingSessionStateMachine {
 class TripTrackingSessionContractStateMachine {
   const TripTrackingSessionContractStateMachine._();
 
+  static const Map<
+    TripTrackingSessionLifecycleContractState,
+    Set<TripTrackingSessionLifecycleContractState>
+  >
+  _allowedTransitions = {
+    TripTrackingSessionLifecycleContractState.IDLE: {
+      TripTrackingSessionLifecycleContractState.PREPARING,
+      TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION,
+      TripTrackingSessionLifecycleContractState.AWAITING_LOCATION_SERVICES,
+      TripTrackingSessionLifecycleContractState.CANDIDATE_MOVEMENT,
+    },
+    TripTrackingSessionLifecycleContractState.PREPARING: {
+      TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION,
+      TripTrackingSessionLifecycleContractState.AWAITING_LOCATION_SERVICES,
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.IDLE,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+    },
+    TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION: {
+      TripTrackingSessionLifecycleContractState.PREPARING,
+      TripTrackingSessionLifecycleContractState.AWAITING_LOCATION_SERVICES,
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+    },
+    TripTrackingSessionLifecycleContractState.AWAITING_LOCATION_SERVICES: {
+      TripTrackingSessionLifecycleContractState.PREPARING,
+      TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION,
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+    },
+    TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX: {
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      TripTrackingSessionLifecycleContractState.AWAITING_LOCATION_SERVICES,
+      TripTrackingSessionLifecycleContractState.SIGNAL_DEGRADED,
+      TripTrackingSessionLifecycleContractState.SIGNAL_LOST,
+      TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.CANDIDATE_MOVEMENT: {
+      TripTrackingSessionLifecycleContractState.IDLE,
+      TripTrackingSessionLifecycleContractState.PREPARING,
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING: {
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.SIGNAL_DEGRADED,
+      TripTrackingSessionLifecycleContractState.SIGNAL_LOST,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED: {
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.SIGNAL_DEGRADED,
+      TripTrackingSessionLifecycleContractState.SIGNAL_LOST,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.PAUSED_BY_USER: {
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.RECOVERING,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM: {
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.RECOVERING,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.SIGNAL_DEGRADED: {
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.SIGNAL_LOST,
+      TripTrackingSessionLifecycleContractState.RECOVERING,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.SIGNAL_LOST: {
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.RECOVERING,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.RECOVERING: {
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.SIGNAL_DEGRADED,
+      TripTrackingSessionLifecycleContractState.SIGNAL_LOST,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.COMPLETION_PENDING: {
+      TripTrackingSessionLifecycleContractState.COMPLETED,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.COMPLETED: {
+      TripTrackingSessionLifecycleContractState.IDLE,
+    },
+    TripTrackingSessionLifecycleContractState.CANCELLED: {
+      TripTrackingSessionLifecycleContractState.IDLE,
+    },
+    TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE: {
+      TripTrackingSessionLifecycleContractState.AWAITING_INITIAL_FIX,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      TripTrackingSessionLifecycleContractState.RECOVERING,
+      TripTrackingSessionLifecycleContractState.COMPLETION_PENDING,
+      TripTrackingSessionLifecycleContractState.CANCELLED,
+      TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE,
+    },
+    TripTrackingSessionLifecycleContractState.FAILED_UNRECOVERABLE: {
+      TripTrackingSessionLifecycleContractState.IDLE,
+    },
+  };
+
+  static Set<TripTrackingSessionLifecycleContractState> allowedNextStates(
+    TripTrackingSessionLifecycleContractState from,
+  ) => Set.unmodifiable(_allowedTransitions[from] ?? const {});
+
   static bool canTransition(
     TripTrackingSessionLifecycleContractState from,
     TripTrackingSessionLifecycleContractState to,
-  ) => TripTrackingSessionStateMachine.canTransition(
-    from.toRuntimeState(),
-    to.toRuntimeState(),
-  );
+  ) => _allowedTransitions[from]?.contains(to) ?? false;
 
   static void requireTransition(
     TripTrackingSessionLifecycleContractState from,
@@ -167,17 +335,21 @@ class TripTrackingSessionContractStateMachine {
     TripTrackingSessionLifecycleContractState from,
     TripTrackingSessionLifecycleContractState to,
   ) {
-    final runtimeDecision = TripTrackingSessionStateMachine.evaluateTransition(
-      from.toRuntimeState(),
-      to.toRuntimeState(),
-    );
+    final allowed = canTransition(from, to);
 
     return TripTrackingLifecycleContractTransitionDecision(
       from: from,
       to: to,
-      allowed: runtimeDecision.allowed,
-      reasonCode: runtimeDecision.reasonCode,
-      requiresUserReview: runtimeDecision.requiresUserReview,
+      allowed: allowed,
+      reasonCode: allowed
+          ? 'gps_session_transition_allowed'
+          : from == TripTrackingSessionLifecycleContractState.COMPLETION_PENDING
+          ? 'review_required_before_transition'
+          : 'illegal_gps_session_transition',
+      requiresUserReview:
+          !allowed ||
+          to == TripTrackingSessionLifecycleContractState.COMPLETION_PENDING ||
+          to == TripTrackingSessionLifecycleContractState.CANCELLED,
     );
   }
 }

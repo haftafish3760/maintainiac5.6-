@@ -571,11 +571,15 @@ void main() {
 
       expect(
         controller.lifecycleState,
-        TripTrackingSessionLifecycleState.interrupted,
+        TripTrackingSessionLifecycleState.paused,
       );
-      expect(controller.healthState, TripTrackingHealthState.interrupted);
+      expect(controller.healthState, TripTrackingHealthState.permissionBlocked);
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
       expect(controller.nativeTracking, isFalse);
-      expect(controller.platformStatus, 'interrupted');
+      expect(controller.platformStatus, 'permission_required');
       expect(
         controller.platformError,
         contains('Background location permission'),
