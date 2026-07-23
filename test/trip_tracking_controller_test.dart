@@ -5513,6 +5513,64 @@ void main() {
     );
   });
 
+  test(
+    'explicit resume replays deferred paused evidence before GPS starts',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      await store.save(
+        TripTrackingSessionRecord(
+          id: 'trip_paused_pending_resume',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+          updatedAt: start.add(const Duration(minutes: 1)),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ),
+          lifecycleState: TripTrackingSessionLifecycleState.paused,
+          pauseKind: TripTrackingPauseKind.user,
+          persistedContractState:
+              TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+        ),
+      );
+      await store.savePending(
+        TripTrackingPendingSample(
+          sessionId: 'trip_paused_pending_resume',
+          sample: sample(-80, 30),
+        ),
+      );
+      final native = _FakeTripTrackingPlatform();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final recovered = TestTripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        platform: native,
+      );
+      addTearDown(recovered.dispose);
+
+      expect(await recovered.restore(), isTrue);
+      expect(store.pendingSampleFor('trip_paused_pending_resume'), isNotNull);
+
+      expect(
+        await recovered.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      expect(store.pendingSampleFor('trip_paused_pending_resume'), isNull);
+      expect(
+        recovered.lifecycleState,
+        TripTrackingSessionLifecycleState.active,
+      );
+      expect(native.startCalls, 1);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
   test('recovery clears stale pending samples that cannot replay', () async {
     final store = TripTrackingSessionStore.memory();
     final original = TestTripTrackingController(

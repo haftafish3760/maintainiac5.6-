@@ -8,6 +8,8 @@ import '../state/global_odometer.dart';
 import '../trip_tracking/trip_tracking_odometer_reconciliation.dart';
 import '../trip_tracking/trip_tracking_session_store.dart';
 
+part 'odometer_correction_review_panel.dart';
+
 class OdometerEntrySheet extends StatefulWidget {
   const OdometerEntrySheet({
     super.key,
@@ -87,7 +89,8 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
   Widget build(BuildContext context) {
     final tripReconciliation = _tripReconciliation;
     return SafeArea(
-      child: Padding(
+      child: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: EdgeInsets.fromLTRB(
           16,
           14,
@@ -153,6 +156,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                 ),
                 hintText: '298150',
                 errorText: _errorText,
+                errorMaxLines: 3,
                 filled: true,
                 fillColor: const Color(0xFFAAB4B9),
                 border: OutlineInputBorder(
@@ -197,14 +201,15 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
               ),
             ],
             const SizedBox(height: 14),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(false),
                   child: const Text('Cancel'),
                 ),
-                const SizedBox(width: 8),
                 FilledButton(
                   onPressed: _saveReading,
                   style: FilledButton.styleFrom(
@@ -261,7 +266,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
           _pendingCurrentReading = result.currentReading;
           _pendingCandidateReading = result.candidateReading;
         }
-        _errorText = result.message;
+        _errorText = result.requiresCorrectionReview ? null : result.message;
       });
       return;
     }
@@ -358,81 +363,6 @@ class _TripGpsReconciliationPanel extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CorrectionReviewPanel extends StatelessWidget {
-  const _CorrectionReviewPanel({
-    required this.currentReading,
-    required this.candidateReading,
-    required this.selectedReason,
-    required this.onReasonChanged,
-  });
-
-  final int currentReading;
-  final int candidateReading;
-  final OdometerCorrectionReason? selectedReason;
-  final ValueChanged<OdometerCorrectionReason> onReasonChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final difference = currentReading - candidateReading;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF101719),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF5A3838)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'This is ${_comma(difference)} miles lower.',
-              style: const TextStyle(
-                color: Color(0xFFF0F4F2),
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Current odometer is ${_comma(currentReading)}. What happened?',
-              style: const TextStyle(color: Color(0xFFC8D0D3), fontSize: 13),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: OdometerCorrectionReason.values.map((reason) {
-                final selected = selectedReason == reason;
-                return ChoiceChip(
-                  label: Text(reason.label),
-                  selected: selected,
-                  onSelected: (_) => onReasonChanged(reason),
-                  selectedColor: const Color(0xFFFFC857),
-                  labelStyle: TextStyle(
-                    color: selected ? Colors.black : const Color(0xFFE3E8EA),
-                    fontWeight: FontWeight.w800,
-                  ),
-                  backgroundColor: const Color(0xFF1B2427),
-                  side: const BorderSide(color: Color(0xFF344247)),
-                );
-              }).toList(),
-            ),
-            if (selectedReason?.requiresDedicatedCorrectionFlow == true)
-              const Padding(
-                padding: EdgeInsets.only(top: 10),
-                child: Text(
-                  'This will need the full correction flow so the audit trail stays clean.',
-                  style: TextStyle(color: Color(0xFFFFD27A), fontSize: 12),
-                ),
-              ),
           ],
         ),
       ),

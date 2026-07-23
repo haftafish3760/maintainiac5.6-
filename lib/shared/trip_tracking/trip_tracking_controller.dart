@@ -40,6 +40,7 @@ import 'trip_tracking_trip_log_proposal.dart';
 
 part 'trip_tracking_controller_native_events.dart';
 part 'trip_tracking_controller_ingestion.dart';
+part 'trip_tracking_controller_pending_recovery.dart';
 part 'trip_tracking_controller_native_collection.dart';
 part 'trip_tracking_controller_native_lifecycle.dart';
 part 'trip_tracking_controller_odometer_review.dart';

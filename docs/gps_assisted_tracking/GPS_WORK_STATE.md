@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 504 in the current continuation
+- Current pass: 515 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -95,6 +95,19 @@
   pending storage, engine mutation, or live odometer projection. Direct system
   pause and recovered user-pause regressions preserve the exact durable
   revision and confirmed odometer until an explicit resume
+- Recovery now defers rather than clears an in-flight GPS sample when the
+  durable lifecycle cannot accept trusted location. Paused evidence survives
+  restart without becoming distance, and a null replay result can no longer
+  silently discard the pending checkpoint
+- An explicit resume now validates and replays that deferred checkpoint before
+  native collection begins. Unsafe or unavailable evidence returns the session
+  to its prior user/system pause, while a successful replay clears only the
+  transient sample and leaves the confirmed odometer unchanged
+- GPS-derived lifecycle changes now evaluate both runtime and contract state
+  machines before committing. An unexpected illegal transition rolls the
+  mutable engine back, records the controlled rejection through the existing
+  diagnostic boundary, preserves the pending sample, and cannot reach the
+  odometer projection as an uncaught assertion
 - Failure to clear an already-durable pending sample no longer loses the
   accepted decision or throws through the event stream. The checkpoint remains
   authoritative, cleanup stays explicit, and recovery cannot double-count it
@@ -159,6 +172,11 @@
 - The complete 1,800-plus-test trip-domain gate, Android debug build, and
   generic iOS no-codesign build pass after these changes. The current Android
   build is installed and resumed on the S25 Ultra without a Maintainiac crash
+- The lower-odometer review now leads with the mileage difference and prior
+  reading, uses neutral professional wording, wraps every meaningful sentence
+  without ellipses, and remains scrollable at enlarged text sizes. Focused
+  widget coverage passes at 1.0x and 2.0x text, and the S25 Ultra renders the
+  complete review without overflow or rendering exceptions
 - Unresolved blockers: real Android/iOS route, battery, lifecycle, background,
   and long-session runs remain required before any real-world accuracy claim
 - Next action: continue lifecycle/recovery replay expansion, then convert

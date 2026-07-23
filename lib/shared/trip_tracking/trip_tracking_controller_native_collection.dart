@@ -64,12 +64,24 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     if (_isDisposed || platform == null || session == null || _nativeTracking) {
       return false;
     }
+    final resumingFromPause =
+        session.lifecycleState == TripTrackingSessionLifecycleState.paused;
+    final priorPauseKind = session.pauseKind;
     if (!await _tryTransitionSession(
       TripTrackingSessionLifecycleState.starting,
       health: TripTrackingHealthState.healthy,
       source: 'native_start',
       reasonCode: 'native_start_request',
     )) {
+      return false;
+    }
+    if (resumingFromPause && !await _replayDeferredPendingSample()) {
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.paused,
+        pauseKind: priorPauseKind ?? TripTrackingPauseKind.system,
+        source: 'native_resume',
+        reasonCode: 'pending_sample_resume_replay_failed',
+      );
       return false;
     }
     session = _session;

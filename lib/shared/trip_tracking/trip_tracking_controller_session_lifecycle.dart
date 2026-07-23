@@ -476,30 +476,41 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     if (pendingRecovery.status ==
             TripTrackingRecoveryStatus.pendingReplayReady &&
         pending != null) {
-      try {
-        // Restore already owns the exclusive session boundary and has drained
-        // the public ingestion queue, so replay the durable pending sample
-        // directly without allowing a competing native callback.
-        final replayDecision = await _ingest(
-          pending.sample,
-          activity: pending.activity,
-        );
-        if (replayDecision == null && _platformStatus == 'storage_failed') {
+      if (!_canAcceptTrustedGpsSample(session.lifecycleState)) {
+        // Paused and otherwise non-collecting sessions must retain the exact
+        // in-flight evidence without treating it as trusted distance. Replay
+        // is deferred until an explicit lifecycle transition permits GPS
+        // ingestion; clearing it here would silently lose crash evidence.
+        _platformStatus = 'pending_replay_deferred';
+        _platformError =
+            'Pending GPS evidence is preserved until tracking can safely resume.';
+        notifyListeners();
+      } else {
+        try {
+          // Restore already owns the exclusive session boundary and has drained
+          // the public ingestion queue, so replay the durable pending sample
+          // directly without allowing a competing native callback.
+          final replayDecision = await _ingest(
+            pending.sample,
+            activity: pending.activity,
+          );
+          if (replayDecision == null) {
+            _platformStatus = 'pending_replay_failed';
+            _platformError = 'Could not replay the last pending GPS sample.';
+            notifyListeners();
+            return true;
+          }
+          await _sessionStore.clearPending(session.id);
+        } catch (error) {
+          // The active checkpoint and live odometer projection are already
+          // restored. If replaying the optional in-flight sample cannot be
+          // persisted, keep the trip recoverable and let the next sample move it
+          // forward instead of failing the whole restore.
           _platformStatus = 'pending_replay_failed';
           _platformError = 'Could not replay the last pending GPS sample.';
           notifyListeners();
           return true;
         }
-        await _sessionStore.clearPending(session.id);
-      } catch (error) {
-        // The active checkpoint and live odometer projection are already
-        // restored. If replaying the optional in-flight sample cannot be
-        // persisted, keep the trip recoverable and let the next sample move it
-        // forward instead of failing the whole restore.
-        _platformStatus = 'pending_replay_failed';
-        _platformError = 'Could not replay the last pending GPS sample.';
-        notifyListeners();
-        return true;
       }
     } else if (pending != null && pending.sessionId == session.id) {
       try {

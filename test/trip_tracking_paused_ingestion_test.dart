@@ -117,4 +117,65 @@ void main() {
     expect(controller.acceptedMeters, 0);
     expect(odometer.reading, 12000);
   });
+
+  test(
+    'paused recovery preserves pending GPS evidence without replay',
+    () async {
+      final startedAt = DateTime.utc(2026, 7, 23, 10);
+      final store = TripTrackingSessionStore.memory();
+      await store.save(
+        TripTrackingSessionRecord(
+          id: 'paused-pending-trip',
+          vehicleId: 'vehicle-1',
+          startingOdometer: 12000,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: startedAt,
+          updatedAt: startedAt.add(const Duration(minutes: 1)),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 0,
+            walkingReviewSuggested: false,
+          ),
+          lifecycleState: TripTrackingSessionLifecycleState.paused,
+          pauseKind: TripTrackingPauseKind.user,
+          persistedContractState:
+              TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+        ),
+      );
+      await store.savePending(
+        TripTrackingPendingSample(
+          sessionId: 'paused-pending-trip',
+          sample: TripLocationSample(
+            latitude: 35,
+            longitude: -80,
+            recordedAt: startedAt.add(const Duration(seconds: 30)),
+            horizontalAccuracyMeters: 5,
+            speedMetersPerSecond: 8,
+            speedAccuracyMetersPerSecond: 1,
+          ),
+        ),
+      );
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle-1',
+        initialReading: 12000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        clockNow: () => startedAt.add(const Duration(minutes: 2)),
+      );
+      addTearDown(controller.dispose);
+
+      expect(await controller.restore(), isTrue);
+
+      expect(
+        store.pendingSampleFor('paused-pending-trip'),
+        isNotNull,
+        reason: 'a pause must preserve the in-flight sample for later review',
+      );
+      expect(controller.platformStatus, 'pending_replay_deferred');
+      expect(controller.acceptedMeters, 0);
+      expect(odometer.confirmedReading, 12000);
+      expect(odometer.reading, 12000);
+    },
+  );
 }

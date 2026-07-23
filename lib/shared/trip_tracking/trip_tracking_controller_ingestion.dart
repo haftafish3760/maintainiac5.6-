@@ -141,17 +141,35 @@ extension TripTrackingControllerIngestion on TripTrackingController {
                   engine.motionState == TripMotionState.stopped)
           ? TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED
           : _contractStateForTransition(naturalLifecycleState);
-      if (naturalLifecycleState != session.lifecycleState) {
-        TripTrackingSessionStateMachine.requireTransition(
-          session.lifecycleState,
+      final runtimeTransition =
+          TripTrackingSessionStateMachine.evaluateTransition(
+            session.lifecycleState,
+            naturalLifecycleState,
+          );
+      final contractTransition =
+          TripTrackingSessionContractStateMachine.evaluateTransition(
+            session.effectiveContractState,
+            naturalContractState,
+          );
+      final runtimeAllowed =
+          naturalLifecycleState == session.lifecycleState ||
+          runtimeTransition.allowed;
+      final contractAllowed =
+          naturalContractState == session.effectiveContractState ||
+          contractTransition.allowed;
+      if (!runtimeAllowed || !contractAllowed) {
+        _engine = TripTrackingEngine.fromSnapshot(
+          previousEngineSnapshot,
+          policy: engine.policy,
+          profile: engine.profile,
+        );
+        await _tryTransitionSession(
           naturalLifecycleState,
+          contractState: naturalContractState,
+          source: 'gps_sample_ingestion',
+          eventTimestamp: sample.recordedAt,
         );
-      }
-      if (naturalContractState != session.effectiveContractState) {
-        TripTrackingSessionContractStateMachine.requireTransition(
-          session.effectiveContractState,
-          naturalContractState,
-        );
+        return null;
       }
       final lifecycleChanged =
           naturalLifecycleState != session.lifecycleState ||

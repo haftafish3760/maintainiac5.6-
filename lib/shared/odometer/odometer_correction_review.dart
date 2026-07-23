@@ -1,12 +1,12 @@
 enum OdometerCorrectionReason {
-  typedWrong('Typed the wrong number'),
-  wrongVehicle('Wrong vehicle selected'),
-  backdatedEntry('Backdated receipt or trip'),
-  previousEntryWrong('Previous odometer entry was wrong'),
-  odometerReplaced('Odometer repaired or replaced'),
-  odometerRolledOver('Odometer rolled over'),
-  unitsChanged('Miles/kilometers setting changed'),
-  unresolved('Not sure yet');
+  typedWrong('Correct the entered reading'),
+  wrongVehicle('Choose a different vehicle'),
+  backdatedEntry('This is a backdated receipt or trip'),
+  previousEntryWrong('Review the previous odometer entry'),
+  odometerReplaced('The odometer was repaired or replaced'),
+  odometerRolledOver('The odometer completed a rollover'),
+  unitsChanged('The distance unit setting changed'),
+  unresolved('I’m not sure yet');
 
   const OdometerCorrectionReason(this.label);
 
@@ -56,16 +56,16 @@ String? validateOdometerCorrectionReview({
   required OdometerCorrectionReview review,
 }) {
   if (candidateReading >= currentReading) {
-    return 'Correction review is only needed when the new reading is lower than the current odometer.';
+    return 'This review is only needed when the entered reading is lower than the saved odometer.';
   }
   if (review.reason == OdometerCorrectionReason.unresolved) {
     return null;
   }
   if (review.shouldStopAndLetUserRetry) {
-    return 'Review the vehicle and odometer number before saving.';
+    return 'Please verify the selected vehicle and odometer reading before continuing.';
   }
   if (review.requiresDedicatedCorrectionFlow) {
-    return 'This needs the odometer correction flow so the app can keep the audit trail clean.';
+    return 'Please continue through the odometer correction review so the vehicle record remains accurate.';
   }
   return null;
 }
@@ -85,7 +85,7 @@ String odometerCorrectionReviewPrompt({
   required int candidateReading,
 }) {
   final difference = currentReading - candidateReading;
-  return 'This reading is ${_comma(difference)} miles lower than the current odometer ${_comma(currentReading)}. What happened?';
+  return 'This reading is ${_comma(difference)} miles below your previous entry of ${_comma(currentReading)} miles.';
 }
 
 String _comma(int value) {

@@ -248,7 +248,7 @@ void main() {
       expect(result.ok, isFalse);
       expect(
         result.message,
-        contains('Review the vehicle and odometer number'),
+        contains('verify the selected vehicle and odometer reading'),
       );
       expect(controller.reading, 1000);
       expect(controller.history.length, 1);
@@ -265,7 +265,7 @@ void main() {
     );
 
     expect(result.ok, isFalse);
-    expect(result.message, contains('odometer correction flow'));
+    expect(result.message, contains('odometer correction review'));
     expect(controller.reading, 1000);
     expect(controller.history.length, 1);
   });
