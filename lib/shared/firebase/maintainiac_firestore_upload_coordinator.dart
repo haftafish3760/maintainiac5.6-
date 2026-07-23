@@ -13,6 +13,10 @@ abstract interface class MaintainiacFirestoreBatchDocumentSink {
   );
 }
 
+/// Marker for real hosted sinks that must never write without a server-issued
+/// sync reservation. Test and local-only sinks remain usable without Firebase.
+abstract interface class MaintainiacHostedReservationRequiredSink {}
+
 Future<void> _firestoreUploadTail = Future<void>.value();
 
 class MaintainiacFirestoreUploadCoordinator {
@@ -136,6 +140,16 @@ class MaintainiacFirestoreUploadCoordinator {
     }
     MaintainiacHostedSyncReservation? hostedReservation;
     final hostedReservationProvider = _hostedSyncReservationProvider;
+    if (_sink is MaintainiacHostedReservationRequiredSink &&
+        hostedReservationProvider == null) {
+      return const MaintainiacFirestoreUploadResult(
+        status: MaintainiacFirestoreUploadStatus.quotaExceeded,
+        attemptedCount: 0,
+        uploadedCount: 0,
+        failedCount: 0,
+        reason: 'Hosted backup authorization is not configured.',
+      );
+    }
     if (hostedReservationProvider != null) {
       if (attemptId == null ||
           !RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(attemptId)) {

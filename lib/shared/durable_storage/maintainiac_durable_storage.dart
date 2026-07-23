@@ -22,6 +22,7 @@ export '../firebase/maintainiac_firestore_durable_record_codec.dart';
 export '../firebase/maintainiac_firestore_revision_policy.dart';
 export '../firebase/maintainiac_firestore_scope_policy.dart';
 export '../firebase/maintainiac_firestore_upload_queue.dart';
+export '../firebase/maintainiac_firebase_durable_storage_runtime.dart';
 export '../firebase/maintainiac_hosted_plan_client.dart';
 export '../firebase/maintainiac_hosted_restore_progress.dart';
 export '../firebase/maintainiac_restore_credential_vault.dart';

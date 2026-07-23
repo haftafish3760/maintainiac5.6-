@@ -28,6 +28,7 @@ CORE_TESTS=(
   test/maintainiac_firestore_revision_policy_test.dart
   test/maintainiac_firestore_scope_policy_test.dart
   test/maintainiac_firestore_upload_free_sync_test.dart
+  test/maintainiac_firebase_durable_storage_runtime_test.dart
   test/maintainiac_firestore_upload_queue_test.dart
   test/maintainiac_restore_applier_test.dart
   test/maintainiac_restore_batch_processor_test.dart
