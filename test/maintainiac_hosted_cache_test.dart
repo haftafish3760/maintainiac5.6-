@@ -239,6 +239,47 @@ void main() {
     expect(restored.data, {'schema': 'catalog_health_event_v1'});
     expect(restored.isTrusted, isFalse);
   });
+
+  test('concurrent stores preserve the global cache record bound', () async {
+    final stores = await Future.wait([
+      MaintainiacHostedCacheStore.create(),
+      MaintainiacHostedCacheStore.create(),
+    ]);
+    final total = MaintainiacHostedCachePolicy.maxCachedRecords + 25;
+
+    await Future.wait(
+      List<Future<MaintainiacHostedCacheRecord>>.generate(total, (index) {
+        return stores[index.isEven ? 0 : 1].put(
+          path: 'catalogHealth/concurrent_$index',
+          data: {'schema': 'catalog_health_event_v1', 'sequence': index},
+          cachedAtUtc: DateTime.utc(2026, 7, 1).add(Duration(seconds: index)),
+        );
+      }),
+    );
+
+    expect(
+      stores.first.records,
+      hasLength(MaintainiacHostedCachePolicy.maxCachedRecords),
+    );
+    expect(
+      stores.first
+          .lookup(
+            path: 'catalogHealth/concurrent_0',
+            nowUtc: DateTime.utc(2026, 7, 1, 0, 10),
+          )
+          .status,
+      MaintainiacHostedCacheStatus.miss,
+    );
+    expect(
+      stores.first
+          .lookup(
+            path: 'catalogHealth/concurrent_${total - 1}',
+            nowUtc: DateTime.utc(2026, 7, 1, 0, 10),
+          )
+          .status,
+      MaintainiacHostedCacheStatus.hit,
+    );
+  });
 }
 
 Map<String, Object?> _safeCatalogPackData() {

@@ -46,9 +46,15 @@ class MaintainiacDurableCloudRevision {
   final DateTime acknowledgedAtUtc;
 
   void validate() {
-    if (!path.startsWith('orgs/') ||
-        path.split('/').length != 4 ||
-        accountScopeId.isEmpty ||
+    final segments = path.split('/');
+    final organizationId = segments.length == 4 ? segments[1] : '';
+    if (segments.length != 4 ||
+        segments.first != 'orgs' ||
+        segments[2] != 'records' ||
+        !RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(organizationId) ||
+        !RegExp(r'^[a-f0-9]{64}$').hasMatch(segments.last) ||
+        !RegExp(r'^[A-Za-z0-9_.-]{3,321}$').hasMatch(accountScopeId) ||
+        !accountScopeId.startsWith('$organizationId.') ||
         localRevision < 1 ||
         !RegExp(r'^[a-f0-9]{64}$').hasMatch(contentSha256) ||
         acknowledgedAtUtc.millisecondsSinceEpoch <= 0) {

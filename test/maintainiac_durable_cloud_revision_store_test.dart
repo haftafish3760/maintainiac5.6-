@@ -45,6 +45,31 @@ void main() {
 
     expect(store.isAcknowledged(changed), isFalse);
   });
+
+  test('corrupt checkpoint paths and account scopes fail closed', () {
+    final valid = {
+      'path': _draft().path,
+      'accountScopeId': 'org-a.user-a',
+      'localRevision': 2,
+      'contentSha256': List.filled(64, 'b').join(),
+      'acknowledgedAtUtc': DateTime.utc(2026, 7, 22).toIso8601String(),
+    };
+
+    expect(
+      () => MaintainiacDurableCloudRevision.fromMap({
+        ...valid,
+        'path': 'orgs/org-a/records/not-a-record-hash',
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => MaintainiacDurableCloudRevision.fromMap({
+        ...valid,
+        'accountScopeId': 'other-org.user-a',
+      }),
+      throwsFormatException,
+    );
+  });
 }
 
 MaintainiacFirestoreDocumentDraft _draft() => MaintainiacFirestoreDocumentDraft(

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
@@ -215,6 +216,7 @@ class MaintainiacHostedCacheStore {
   MaintainiacHostedCacheStore._(this._box);
 
   static const boxName = 'maintainiac_hosted_metadata_cache';
+  static Future<void> _mutationTail = Future<void>.value();
 
   final Box<dynamic> _box;
 
@@ -234,6 +236,24 @@ class MaintainiacHostedCacheStore {
   }
 
   Future<MaintainiacHostedCacheRecord> put({
+    required String path,
+    required Map<String, Object?> data,
+    DateTime? cachedAtUtc,
+    Duration? ttl,
+    String? version,
+  }) {
+    return _serializeMutation(
+      () => _put(
+        path: path,
+        data: data,
+        cachedAtUtc: cachedAtUtc,
+        ttl: ttl,
+        version: version,
+      ),
+    );
+  }
+
+  Future<MaintainiacHostedCacheRecord> _put({
     required String path,
     required Map<String, Object?> data,
     DateTime? cachedAtUtc,
@@ -269,7 +289,9 @@ class MaintainiacHostedCacheStore {
     final record = MaintainiacHostedCacheRecord.fromStored(
       _box.get(_keyFor(path)),
     );
-    if (record.isEmpty || !record.isTrusted || !record.matchesVersion(version)) {
+    if (record.isEmpty ||
+        !record.isTrusted ||
+        !record.matchesVersion(version)) {
       return const MaintainiacHostedCacheLookup(
         status: MaintainiacHostedCacheStatus.miss,
       );
@@ -289,9 +311,15 @@ class MaintainiacHostedCacheStore {
     );
   }
 
-  Future<void> invalidate(String path) => _box.delete(_keyFor(path));
+  Future<void> invalidate(String path) {
+    return _serializeMutation(() => _box.delete(_keyFor(path)));
+  }
 
-  Future<void> clearExpired({DateTime? nowUtc}) async {
+  Future<void> clearExpired({DateTime? nowUtc}) {
+    return _serializeMutation(() => _clearExpired(nowUtc: nowUtc));
+  }
+
+  Future<void> _clearExpired({DateTime? nowUtc}) async {
     final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
     for (final record in records) {
       if (!record.isFreshAt(now)) {
@@ -300,7 +328,9 @@ class MaintainiacHostedCacheStore {
     }
   }
 
-  Future<void> clearAll() => _box.clear();
+  Future<void> clearAll() => _serializeMutation(() async {
+    await _box.clear();
+  });
 
   Future<void> _trimOldestIfNeeded() async {
     final extraCount =
@@ -308,6 +338,18 @@ class MaintainiacHostedCacheStore {
     if (extraCount <= 0) return;
     for (final record in records.take(extraCount)) {
       await _box.delete(_keyFor(record.path));
+    }
+  }
+
+  static Future<T> _serializeMutation<T>(Future<T> Function() mutation) async {
+    final previous = _mutationTail;
+    final release = Completer<void>();
+    _mutationTail = release.future;
+    await previous;
+    try {
+      return await mutation();
+    } finally {
+      release.complete();
     }
   }
 }
