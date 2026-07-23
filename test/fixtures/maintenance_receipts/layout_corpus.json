@@ -402,5 +402,36 @@
       }
     },
     "forbiddenItems": []
+  },
+  {
+    "id": "oil_purchase_with_return_policy_footer",
+    "layoutClass": "policy_disclosure",
+    "damageClass": "none",
+    "merchant": "Advance Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "ADVANCE AUTO PARTS\n07/23/2026\nFULL SYNTHETIC MOTOR OIL 5W-30 34.99\nTOTAL 34.99\nRETURN POLICY: 90 DAYS WITH RECEIPT",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "battery_purchase_with_exchange_policy_footer",
+    "layoutClass": "policy_disclosure",
+    "damageClass": "none",
+    "merchant": "NAPA Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "NAPA AUTO PARTS\n07/23/2026\nAUTOMOTIVE BATTERY GROUP 24F 179.99\nTOTAL 179.99\nEXCHANGE POLICY: SEE REVERSE",
+    "items": {
+      "Battery": {
+        "action": "reviewTrackingSetup",
+        "detailB": "24F"
+      }
+    },
+    "forbiddenItems": []
   }
 ]

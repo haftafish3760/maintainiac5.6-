@@ -347,5 +347,6 @@ String _detailTextFor(
 
 bool _isReturnOrExchangeText(String text) {
   return _returnOrExchangeLine.hasMatch(text) &&
-      !_coreAdjustmentLine.hasMatch(text);
+      !_coreAdjustmentLine.hasMatch(text) &&
+      !_transactionPolicyLine.hasMatch(text);
 }

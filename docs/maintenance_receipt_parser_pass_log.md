@@ -130,11 +130,17 @@ required checks pass.
     full gate exposed vehicle-Battery leakage from `KEY FOB BATTERY REPLACED`
     and was not counted. The corrected specific-family boundary, 24-case layout
     corpus, and 172-check full maintenance gate passed.
+47. Transaction-policy disclosure separation. Printed `RETURN POLICY` and
+    `EXCHANGE POLICY` footers no longer turn an otherwise valid maintenance
+    purchase into a returned-product event. Two exact oil and battery purchase
+    cases protect that boundary while the true-return and true-exchange cases
+    from Pass 46 remain manual-review regressions. Focused analysis, the
+    layout/return safety suite, and the 174-check full maintenance gate passed.
 
 ## Current counter
 
-- Last accepted pass: **46**
-- Next pass: **47**
+- Last accepted pass: **47**
+- Next pass: **48**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 
