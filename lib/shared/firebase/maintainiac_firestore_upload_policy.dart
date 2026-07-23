@@ -4,6 +4,7 @@ class MaintainiacFirestoreUploadPolicy {
   const MaintainiacFirestoreUploadPolicy._();
 
   static const maxBatchSize = 20;
+  static const maxBatchBytes = 2 * 1024 * 1024;
   static const maxQueuedRecords = 500;
   static const maxDocumentBytes = 768 * 1024;
   static const retryInitialDelay = Duration(seconds: 30);

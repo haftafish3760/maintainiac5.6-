@@ -160,12 +160,26 @@ class MaintainiacFirestoreUploadQueueStore {
         ? pendingRecords
         : pendingRecords.where((record) => record.path == path);
     final now = (nowUtc ?? DateTime.now().toUtc()).toUtc();
-    return List.unmodifiable(
-      candidates
-          .where((record) => record.isReadyForAttemptAt(now))
-          .where((record) => isEligible?.call(record) ?? true)
-          .take(cappedLimit),
-    );
+    final selected = <MaintainiacFirestoreQueuedDocument>[];
+    var selectedBytes = 0;
+    for (final record in candidates) {
+      if (selected.length >= cappedLimit ||
+          !record.isReadyForAttemptAt(now) ||
+          !(isEligible?.call(record) ?? true)) {
+        continue;
+      }
+      final recordBytes = utf8
+          .encode(jsonEncode({'path': record.path, 'data': record.data}))
+          .length;
+      if (selected.isNotEmpty &&
+          selectedBytes + recordBytes >
+              MaintainiacFirestoreUploadPolicy.maxBatchBytes) {
+        break;
+      }
+      selected.add(record);
+      selectedBytes += recordBytes;
+    }
+    return List.unmodifiable(selected);
   }
 
   Future<void> markAttempted(

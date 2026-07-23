@@ -22,6 +22,7 @@ CORE_TESTS=(
   test/maintainiac_durable_storage_facade_test.dart
   test/maintainiac_firestore_account_isolation_test.dart
   test/maintainiac_firestore_atomic_batch_test.dart
+  test/maintainiac_firestore_batch_bounds_test.dart
   test/maintainiac_firestore_durable_record_codec_test.dart
   test/maintainiac_firestore_queue_deduplication_test.dart
   test/maintainiac_firestore_queue_integrity_test.dart
