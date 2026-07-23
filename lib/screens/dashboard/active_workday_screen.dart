@@ -4,8 +4,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../shared/device_capabilities/device_capability_scope.dart';
+import '../../shared/context/operational_context_store.dart';
 import '../../shared/navigation/app_page_routes.dart';
+import '../../shared/odometer/odometer_vehicle_snapshot.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
+import '../../shared/state/app_state.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
@@ -13,6 +16,7 @@ import '../../shared/trip_tracking/trip_tracking_dashboard_live_status_policy.da
 import '../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_field_trial_summary.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
+import '../../shared/trip_tracking/trip_tracking_session_store.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
@@ -51,6 +55,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   late var _activeVehicle = widget.activeVehicle;
   var _gpsStartInFlight = false;
   var _gpsStopInFlight = false;
+  var _gpsCancelInFlight = false;
 
   @override
   void initState() {
@@ -94,9 +99,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                 _WorkdayContextBar(
                   activeVehicle: _activeVehicle,
                   workProfileName: widget.workProfileName,
-                  onVehicleChanged: (vehicle) {
-                    setState(() => _activeVehicle = vehicle);
-                  },
+                  onVehicleChanged: _handleVehicleChanged,
+                  onOpenWorkProfiles: _openWorkProfiles,
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -127,6 +131,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                 _GpsTripPanel(
                   onStart: _startGpsTrip,
                   onStop: _stopGpsTrip,
+                  onCancel: _cancelGpsTrip,
                   onReviewLatest: _reviewLatestGpsTrip,
                   onReviewWalkingStop: _reviewWalkingStop,
                   onViewFieldSummary: _showLatestGpsFieldSummary,
@@ -138,6 +143,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   ),
                   startInFlight: _gpsStartInFlight,
                   stopInFlight: _gpsStopInFlight,
+                  cancelInFlight: _gpsCancelInFlight,
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -225,6 +231,88 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     ];
   }
 
+  Future<void> _handleVehicleChanged(VehicleProfilePreview vehicle) async {
+    final appState = AppStateScope.of(context);
+    final odometer = GlobalOdometerScope.of(context);
+    final operationalContext = OperationalContextScope.maybeOf(context);
+    final targetOdometerVehicleId = odometerVehicleIdForVehicleId(
+      vehicle.id,
+      fallbackLabel: vehicle.nickname,
+    );
+    final workday = ActiveWorkdayScope.of(context).activeSession;
+    if (workday != null && workday.vehicleId != targetOdometerVehicleId) {
+      await _restoreAppStateVehicle(appState, _activeVehicle.id);
+      if (!mounted) return;
+      _showGpsMessage(
+        'End the current workday before switching vehicles. Its odometer and trip history remain preserved.',
+      );
+      return;
+    }
+    if (odometer.vehicleId != targetOdometerVehicleId) {
+      final switched = await odometer.switchVehicleById(
+        targetOdometerVehicleId,
+      );
+      if (!mounted) return;
+      if (!switched) {
+        await _restoreAppStateVehicle(appState, _activeVehicle.id);
+        if (!mounted) return;
+        _showGpsMessage(
+          'End or review the active GPS trip before switching vehicles.',
+        );
+        return;
+      }
+    }
+    VehicleProfile? selectedVehicle;
+    for (final candidate in appState.vehicles) {
+      if (candidate.id == vehicle.id) {
+        selectedVehicle = candidate;
+        break;
+      }
+    }
+    if (selectedVehicle == null) {
+      await _restoreAppStateVehicle(appState, _activeVehicle.id);
+      if (!mounted) return;
+      _showGpsMessage('The selected vehicle is no longer available.');
+      return;
+    }
+    await appState.selectVehicle(selectedVehicle);
+    if (operationalContext != null) {
+      await operationalContext.setActiveVehicle(
+        vehicleId: odometer.vehicleId,
+        vehicleLabel: selectedVehicle.nickname,
+        usage: selectedVehicle.usage,
+      );
+    }
+    if (!mounted) return;
+    setState(() => _activeVehicle = vehicle);
+  }
+
+  Future<void> _openWorkProfiles() async {
+    final workday = ActiveWorkdayScope.of(context).activeSession;
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    if (workday != null || tripTracking?.isTracking == true) {
+      _showGpsMessage(
+        'End the current workday before switching work profiles. Its trip, odometer, and profile history remain preserved.',
+      );
+      return;
+    }
+    await Navigator.of(
+      context,
+    ).push(appNativeRoute<void>(context, const ExpenseWorkProfileScreen()));
+  }
+
+  Future<void> _restoreAppStateVehicle(
+    AppStateController appState,
+    String vehicleId,
+  ) async {
+    for (final candidate in appState.vehicles) {
+      if (candidate.id == vehicleId) {
+        await appState.selectVehicle(candidate);
+        return;
+      }
+    }
+  }
+
   Future<void> _handleQuickAction(WorkdayQuickActionSpec action) async {
     switch (action.kind) {
       case WorkdayQuickActionKind.pauseDay:
@@ -245,12 +333,22 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         return;
       case WorkdayQuickActionKind.endDay:
         final tripTracking = TripTrackingScope.maybeOf(context);
+        int? confirmedTripEndingOdometer;
         if (tripTracking?.isTracking == true) {
-          await _finishAndReviewGpsTrip(
+          confirmedTripEndingOdometer = await _finishAndReviewGpsTrip(
             tripTracking!,
             missingTripMessage: 'GPS trip could not be reviewed before ending.',
           );
           if (!mounted) return;
+          if (tripTracking.isTracking) return;
+        }
+        if (confirmedTripEndingOdometer != null) {
+          final ended = await ActiveWorkdayScope.of(context).addEvent(
+            type: ActiveWorkdayEventType.ended,
+            odometerReading: confirmedTripEndingOdometer,
+          );
+          if (ended != null && mounted) Navigator.of(context).pop();
+          return;
         }
         final saved = await _recordOdometerEvent(
           title: 'Ending Odometer',
@@ -322,7 +420,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     if (!mounted) return;
     final activeWorkday = ActiveWorkdayScope.of(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
-    await activeWorkday.addEvent(
+    final updatedWorkday = await activeWorkday.addEvent(
       type: type,
       odometerReading: GlobalOdometerScope.of(context).reading,
       note: note,
@@ -330,12 +428,40 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     if (type == ActiveWorkdayEventType.stop ||
         type == ActiveWorkdayEventType.pickup ||
         type == ActiveWorkdayEventType.dropOff) {
+      final tripEventType = switch (type) {
+        ActiveWorkdayEventType.stop => TripManualEventType.stop,
+        ActiveWorkdayEventType.pickup => TripManualEventType.pickup,
+        ActiveWorkdayEventType.dropOff => TripManualEventType.dropoff,
+        _ => null,
+      };
+      final newWorkdayEvent =
+          updatedWorkday == null || updatedWorkday.events.isEmpty
+          ? null
+          : updatedWorkday.events.last;
+      if (tripTracking?.isTracking == true &&
+          tripEventType != null &&
+          newWorkdayEvent != null) {
+        final recorded = await tripTracking!.recordUserTripEvent(
+          commandId: 'workday.${newWorkdayEvent.id}',
+          type: tripEventType,
+          initiatingSource: 'dashboard',
+          occurredAt: newWorkdayEvent.occurredAt,
+          note: note,
+        );
+        if (!recorded) {
+          if (!mounted) return;
+          _showGpsMessage(
+            'The stop was saved to your day, but could not be attached to the active GPS trip. The stop review remains available for retry.',
+          );
+          return;
+        }
+      }
       await tripTracking?.acknowledgeWalkingReview();
     }
   }
 
   Future<void> _openStopDialog(String kind, ActiveWorkdayEventType type) async {
-    final noteController = TextEditingController();
+    var note = '';
     final saved = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -362,7 +488,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             const _LiveOdometerDialogLine(),
             const SizedBox(height: 12),
             TextField(
-              controller: noteController,
+              onChanged: (value) => note = value,
               decoration: const InputDecoration(
                 labelText: 'Stop note',
                 hintText: 'Customer, store, pickup, delivery, or break',
@@ -385,11 +511,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         ],
       ),
     );
-    final note = noteController.text.trim();
-    noteController.dispose();
     if (!mounted) return;
     if (saved == true) {
-      await _recordStoredEvent(type, note: note);
+      await _recordStoredEvent(type, note: note.trim());
     }
   }
 
@@ -503,6 +627,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             'gps-trip-${DateTime.now().microsecondsSinceEpoch}-${_tripIdRandom.nextInt(0x100000000).toRadixString(16)}',
         vehicleId: odometer.vehicleId,
         profile: settings.defaultProfile,
+        profileId: activeSession.workProfileId,
       );
       if (!startedNewTrip) {
         _showGpsMessage(
@@ -669,6 +794,65 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     }
   }
 
+  Future<void> _cancelGpsTrip() async {
+    if (_gpsCancelInFlight || _gpsStopInFlight || _gpsStartInFlight) return;
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    if (tripTracking == null || !tripTracking.isTracking) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF101719),
+        title: const Text(
+          'Cancel GPS Trip?',
+          style: TextStyle(
+            color: Color(0xFFF0F4F2),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: const Text(
+          'GPS collection will stop. Existing locations, distance evidence, '
+          'stops, and diagnostics will be preserved as a cancelled trip for '
+          'review. Your workday and odometer will not be changed.',
+          style: TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Keep Tracking'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF8D2D2D),
+            ),
+            child: const Text('Cancel GPS Trip'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || confirmed != true) return;
+    setState(() => _gpsCancelInFlight = true);
+    try {
+      final review = await tripTracking.cancelActiveTrip(userConfirmed: true);
+      if (!mounted) return;
+      _showGpsMessage(
+        review == null
+            ? (tripTracking.platformError ??
+                  'The GPS trip could not be cancelled safely.')
+            : 'GPS trip cancelled and preserved for review. Your workday remains active.',
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _gpsCancelInFlight = false);
+      } else {
+        _gpsCancelInFlight = false;
+      }
+    }
+  }
+
   Future<void> _stopGpsTripImpl() async {
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (tripTracking == null || !tripTracking.isTracking) return;
@@ -678,12 +862,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
   }
 
-  Future<void> _finishAndReviewGpsTrip(
+  Future<int?> _finishAndReviewGpsTrip(
     TripTrackingController tripTracking, {
     required String missingTripMessage,
   }) async {
     final review = await tripTracking.finishForReview();
-    if (!mounted) return;
+    if (!mounted) return null;
     final confirmedEndingOdometer = review == null
         ? null
         : await openOdometerEntryResult(
@@ -692,14 +876,14 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             saveLabel: 'Confirm Odometer',
             tripReview: review,
           );
-    if (!mounted) return;
+    if (!mounted) return null;
     final reviewConfirmed =
         confirmedEndingOdometer != null &&
         await tripTracking.confirmOdometerReview(
           reviewId: review!.id,
           confirmedEndingOdometer: confirmedEndingOdometer,
         );
-    if (!mounted) return;
+    if (!mounted) return null;
     final confirmationError = confirmedEndingOdometer == null
         ? null
         : tripTracking.platformError;
@@ -717,6 +901,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                     ? 'GPS trip ended and is ready for review.'
                     : 'GPS trip saved locally; cloud backup will retry.'),
     );
+    return reviewConfirmed ? confirmedEndingOdometer : null;
   }
 
   Future<void> _reviewLatestGpsTrip() async {
@@ -761,7 +946,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   }
 
   Future<void> _showLatestGpsFieldSummary() async {
-    final review = TripTrackingScope.maybeOf(context)?.latestReview;
+    final review = TripTrackingScope.maybeOf(
+      context,
+    )?.latestReviewForVehicle(GlobalOdometerScope.of(context).vehicleId);
     if (review == null) {
       _showGpsMessage('No completed GPS trip summary is available.');
       return;
@@ -893,22 +1080,26 @@ class _GpsTripPanel extends StatelessWidget {
   const _GpsTripPanel({
     required this.onStart,
     required this.onStop,
+    required this.onCancel,
     required this.onReviewLatest,
     required this.onReviewWalkingStop,
     required this.onViewFieldSummary,
     required this.onOpenSettings,
     required this.startInFlight,
     required this.stopInFlight,
+    required this.cancelInFlight,
   });
 
   final Future<void> Function() onStart;
   final Future<void> Function() onStop;
+  final Future<void> Function() onCancel;
   final Future<void> Function() onReviewLatest;
   final Future<void> Function() onReviewWalkingStop;
   final Future<void> Function() onViewFieldSummary;
   final VoidCallback onOpenSettings;
   final bool startInFlight;
   final bool stopInFlight;
+  final bool cancelInFlight;
 
   @override
   Widget build(BuildContext context) {
@@ -937,8 +1128,17 @@ class _GpsTripPanel extends StatelessWidget {
     final calibrationSignal = odometerAlertEnabled && controller != null
         ? controller.odometerCalibrationSignal()
         : null;
+    final driverPattern =
+        settings != null && controller != null && activeWorkday != null
+        ? controller.driverPatternDecision(
+            profileId: activeWorkday.workProfileId,
+          )
+        : null;
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
+    final latestVehicleReview = controller?.latestReviewForVehicle(
+      GlobalOdometerScope.of(context).vehicleId,
+    );
     final liveTrackingWarning = TripTrackingDashboardLiveStatusPolicy.warning(
       tracking: tracking,
       platformStatus: controller?.platformStatus,
@@ -1098,6 +1298,17 @@ class _GpsTripPanel extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (driverPattern?.dashboardSuggestion != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    driverPattern!.dashboardSuggestion!,
+                    style: const TextStyle(
+                      color: Color(0xFF9CC7E8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
                 if (controller?.needsWalkingReview == true) ...[
                   const SizedBox(height: 3),
                   const Text(
@@ -1157,7 +1368,7 @@ class _GpsTripPanel extends StatelessWidget {
                       child: const Text('REVIEW LATEST GPS TRIP'),
                     ),
                   ),
-                if (controller?.latestReview != null)
+                if (latestVehicleReview != null)
                   Align(
                     alignment: Alignment.centerLeft,
                     child: TextButton(
@@ -1168,6 +1379,24 @@ class _GpsTripPanel extends StatelessWidget {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: const Text('VIEW GPS FIELD SUMMARY'),
+                    ),
+                  ),
+                if (tracking)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: startInFlight || stopInFlight || cancelInFlight
+                          ? null
+                          : onCancel,
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.only(top: 3, right: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        foregroundColor: const Color(0xFFFF9F9F),
+                      ),
+                      child: Text(
+                        cancelInFlight ? 'CANCELLING TRIP' : 'CANCEL GPS TRIP',
+                      ),
                     ),
                   ),
                 Align(
@@ -1187,7 +1416,7 @@ class _GpsTripPanel extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           FilledButton(
-            onPressed: startInFlight || stopInFlight
+            onPressed: startInFlight || stopInFlight || cancelInFlight
                 ? null
                 : nativeTracking
                 ? onStop

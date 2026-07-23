@@ -36,6 +36,8 @@ void main() {
       decision.toSafeSummary(),
       containsPair('canClassifyBusinessUse', false),
     );
+    expect(decision.dashboardSuggestion, contains('Review only'));
+    expect(decision.dashboardSuggestion, contains('no changes were applied'));
   });
 
   test('midnight start pattern uses circular time instead of midday', () {

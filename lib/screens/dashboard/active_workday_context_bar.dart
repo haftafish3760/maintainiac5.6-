@@ -5,17 +5,24 @@ class _WorkdayContextBar extends StatelessWidget {
     required this.activeVehicle,
     required this.workProfileName,
     required this.onVehicleChanged,
+    required this.onOpenWorkProfiles,
   });
 
   final VehicleProfilePreview activeVehicle;
   final String workProfileName;
   final ValueChanged<VehicleProfilePreview> onVehicleChanged;
+  final VoidCallback onOpenWorkProfiles;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: _WorkProfilePanel(workProfileName: workProfileName)),
+        Expanded(
+          child: _WorkProfilePanel(
+            workProfileName: workProfileName,
+            onOpen: onOpenWorkProfiles,
+          ),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: ActiveVehicleDrawer(
@@ -30,16 +37,20 @@ class _WorkdayContextBar extends StatelessWidget {
 }
 
 class _WorkProfilePanel extends StatelessWidget {
-  const _WorkProfilePanel({required this.workProfileName});
+  const _WorkProfilePanel({
+    required this.workProfileName,
+    required this.onOpen,
+  });
 
   final String workProfileName;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
     return VehicleProfilePanel(
       label: 'WORK PROFILE',
       child: InkWell(
-        onTap: () => _openWorkProfiles(context),
+        onTap: onOpen,
         borderRadius: BorderRadius.circular(4),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 8, 7, 8),
@@ -65,11 +76,5 @@ class _WorkProfilePanel extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _openWorkProfiles(BuildContext context) {
-    Navigator.of(
-      context,
-    ).push(appNativeRoute<void>(context, const ExpenseWorkProfileScreen()));
   }
 }

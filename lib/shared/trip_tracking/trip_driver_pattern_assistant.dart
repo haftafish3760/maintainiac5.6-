@@ -61,6 +61,25 @@ class TripDriverPatternDecision {
 
   bool get hasSuggestion => suggestions.isNotEmpty;
 
+  String? get dashboardSuggestion {
+    if (!hasSuggestion) return null;
+    final messages = <String>[];
+    if (suggestions.contains(
+      TripDriverPatternSuggestion.regularStartReminder,
+    )) {
+      messages.add('reviewed trips often begin around a similar time');
+    }
+    if (suggestions.contains(TripDriverPatternSuggestion.multiStopWorkflow)) {
+      messages.add('reviewed history commonly contains multiple stops');
+    }
+    if (suggestions.contains(
+      TripDriverPatternSuggestion.extendedStopReviewTiming,
+    )) {
+      messages.add('longer reviewed stops are common');
+    }
+    return 'Pattern suggestion: ${messages.join('; ')}. Review only; no changes were applied.';
+  }
+
   Map<String, Object?> toSafeSummary() => {
     'schemaVersion': 1,
     'confidence': confidence.name,

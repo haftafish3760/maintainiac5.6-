@@ -5,6 +5,8 @@ import 'package:flutter/widgets.dart';
 import '../odometer/odometer_mileage_review.dart';
 import '../state/global_odometer.dart';
 import 'trip_live_odometer_projection.dart';
+import 'trip_driver_pattern_assistant.dart';
+import 'trip_driver_pattern_review_adapter.dart';
 import 'trip_odometer_end_review_policy.dart';
 import 'trip_odometer_calibration_prompt_policy.dart';
 import 'trip_tracking_bluetooth.dart';
@@ -297,6 +299,15 @@ class TripTrackingController extends ChangeNotifier {
       _sessionStore.pendingReviews.isEmpty
       ? null
       : _sessionStore.pendingReviews.first;
+  TripTrackingReviewRecord? latestReviewForVehicle(String vehicleId) {
+    final safeVehicleId = vehicleId.trim();
+    if (safeVehicleId.isEmpty) return null;
+    for (final review in _sessionStore.pendingReviews) {
+      if (review.vehicleId == safeVehicleId) return review;
+    }
+    return null;
+  }
+
   TripTrackingReviewRecord? get latestUnconfirmedReview => _sessionStore
       .pendingReviews
       .where((review) => !review.isOdometerConfirmed)
@@ -314,6 +325,18 @@ class TripTrackingController extends ChangeNotifier {
     // influence advisory GPS calibration.
     nowUtc: nowUtc ?? _clockNow(),
     requireTrustedSignalDiagnostics: true,
+  );
+
+  TripDriverPatternDecision driverPatternDecision({
+    required String profileId,
+    DateTime? nowUtc,
+  }) => TripDriverPatternAssistant.evaluate(
+    observations: TripDriverPatternReviewAdapter.fromReviews(
+      _sessionStore.pendingReviews,
+    ),
+    vehicleId: _odometer.vehicleId,
+    profileId: profileId,
+    nowUtc: nowUtc ?? _clockNow(),
   );
 
   Future<void> retryCloudBackup() async {

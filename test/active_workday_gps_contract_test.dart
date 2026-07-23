@@ -55,6 +55,21 @@ void main() {
     );
   });
 
+  test('end day reuses a trip-confirmed odometer without a second sheet', () {
+    final source = File(
+      'lib/screens/dashboard/active_workday_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('Future<int?> _finishAndReviewGpsTrip('));
+    expect(source, contains('confirmedTripEndingOdometer = await'));
+    expect(source, contains('odometerReading: confirmedTripEndingOdometer'));
+    expect(source, contains('if (tripTracking.isTracking) return;'));
+    expect(
+      source,
+      contains('return reviewConfirmed ? confirmedEndingOdometer : null;'),
+    );
+  });
+
   test('active dashboard keeps a stale GPS stream visible for review', () {
     final source = File(
       'lib/screens/dashboard/active_workday_screen.dart',

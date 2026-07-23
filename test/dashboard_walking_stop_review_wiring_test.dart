@@ -17,6 +17,11 @@ void main() {
       source,
       contains("await _openStopDialog('Stop', ActiveWorkdayEventType.stop)"),
     );
+    expect(source, contains('tripTracking!.recordUserTripEvent('));
+    expect(source, contains("commandId: 'workday.\${newWorkdayEvent.id}'"));
+    expect(source, contains("initiatingSource: 'dashboard'"));
+    expect(source, contains('TripManualEventType.pickup'));
+    expect(source, contains('TripManualEventType.dropoff'));
     expect(source, contains("'not end GPS tracking or change your mileage.'"));
   });
 }

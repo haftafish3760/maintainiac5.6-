@@ -2,6 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_field_trial_summary.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 
 void main() {
   test(
@@ -82,4 +84,57 @@ void main() {
     expect(summary.absoluteDifferenceMiles, isNull);
     expect(summary.toSafeSummary()['absoluteDifferenceMiles'], isNull);
   });
+
+  test(
+    'controller selects the latest review only for the requested vehicle',
+    () async {
+      final now = DateTime.utc(2026, 7, 22, 12);
+      final store = TripTrackingSessionStore.memory();
+      await store.saveReview(_simpleReview('older_current', 'vehicle_1', now));
+      await store.saveReview(
+        _simpleReview(
+          'newer_foreign',
+          'vehicle_2',
+          now.add(const Duration(hours: 2)),
+        ),
+      );
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+
+      expect(controller.latestReview?.id, 'newer_foreign');
+      expect(
+        controller.latestReviewForVehicle('vehicle_1')?.id,
+        'older_current',
+      );
+      expect(controller.latestReviewForVehicle('missing'), isNull);
+      expect(controller.latestReviewForVehicle('  '), isNull);
+    },
+  );
 }
+
+TripTrackingReviewRecord _simpleReview(
+  String id,
+  String vehicleId,
+  DateTime finishedAt,
+) => TripTrackingReviewRecord(
+  id: id,
+  vehicleId: vehicleId,
+  startingOdometer: 1000,
+  estimatedEndingOdometer: 1001,
+  profile: TripTrackingProfile.roadVehicle,
+  profileId: TripTrackingProfile.roadVehicle.name,
+  startedAt: finishedAt.subtract(const Duration(minutes: 10)),
+  finishedAt: finishedAt,
+  engineSnapshot: const TripTrackingEngineSnapshot(
+    totalAcceptedMeters: 1609.344,
+    walkingReviewSuggested: false,
+  ),
+);
