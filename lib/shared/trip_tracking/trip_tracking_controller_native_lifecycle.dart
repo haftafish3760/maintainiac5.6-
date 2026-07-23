@@ -285,11 +285,13 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
         _deferPlatformCleanup(() async {
           await _stopNativeTracking(interrupted: true);
           _platformStatus = 'storage_failed';
+          _platformError = 'Could not save degraded initial GPS fix evidence.';
           notifyListeners();
         });
       } else {
         await _stopNativeTracking(interrupted: true);
         _platformStatus = 'storage_failed';
+        _platformError = 'Could not save degraded initial GPS fix evidence.';
         notifyListeners();
       }
     }

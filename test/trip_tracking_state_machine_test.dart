@@ -39,6 +39,13 @@ void main() {
       );
       expect(
         TripTrackingSessionStateMachine.canTransition(
+          TripTrackingSessionLifecycleState.degraded,
+          TripTrackingSessionLifecycleState.paused,
+        ),
+        isTrue,
+      );
+      expect(
+        TripTrackingSessionStateMachine.canTransition(
           TripTrackingSessionLifecycleState.active,
           TripTrackingSessionLifecycleState.starting,
         ),

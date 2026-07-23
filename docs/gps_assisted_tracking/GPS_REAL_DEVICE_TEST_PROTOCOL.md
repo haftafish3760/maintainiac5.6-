@@ -11,6 +11,20 @@ Run only with a consenting tester in a safe driving environment. Never operate
 the app while driving. A passenger should operate the device when interaction
 is required, or perform each interaction while safely parked.
 
+## Pre-run setup
+
+1. While parked, select the intended vehicle and work profile and record the
+   physical starting odometer.
+2. Explicitly opt in to GPS assistance. For a high-accuracy trial, select
+   **High accuracy (3 sec)** before starting; do not silently change a driver's
+   saved preset.
+3. Explicitly opt in to activity recognition only when the run is intended to
+   evaluate walking-assisted stop evidence. Maps and route-history saving may
+   remain off and are not required for GPS assistance.
+4. Complete the in-app location, notification, and background-location
+   preflight as requested by the selected mode. Do not grant permissions with
+   ADB or outside the user-directed flow.
+
 ## Run record
 
 Create one coordinate-minimized record for every Android and iOS run. Record:

@@ -100,6 +100,10 @@ class TripTrackingSessionStateMachine {
         TripTrackingSessionLifecycleState.degraded: {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.active,
+          // A system or user pause must remain legal after signal quality has
+          // already degraded. Native shutdown otherwise records an illegal
+          // transition and can hide the actionable storage/permission cause.
+          TripTrackingSessionLifecycleState.paused,
           TripTrackingSessionLifecycleState.recovering,
           TripTrackingSessionLifecycleState.interrupted,
           TripTrackingSessionLifecycleState.failedRecoverable,

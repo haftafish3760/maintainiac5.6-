@@ -1017,6 +1017,179 @@ void main() {
   );
 
   test(
+    'unavailable background capability falls back to explicit foreground retry',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        backgroundTrackingAvailable: false,
+      );
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_background_capability_unavailable',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isFalse,
+      );
+      expect(native.requestAuthorizationCalls, 0);
+      expect(native.startCalls, 0);
+      expect(controller.isTracking, isTrue);
+      expect(
+        controller.platformError,
+        'Background GPS tracking is unavailable on this device.',
+      );
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      expect(native.startCalls, 1);
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.platformError, isNull);
+    },
+  );
+
+  test(
+    'native sampling preferences must persist before the collector starts',
+    () async {
+      final store = _FailingNativePreferenceSaveStore();
+      final native = _FakeTripTrackingPlatform();
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_native_preferences_storage_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isFalse,
+      );
+
+      expect(native.requestAuthorizationCalls, 1);
+      expect(native.startCalls, 0);
+      expect(native.hasEventListener, isFalse);
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(controller.platformError, contains('Could not save'));
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.reasonCode,
+        'native_preferences_persist_failed',
+      );
+    },
+  );
+
+  test(
+    'native collector is stopped when active checkpoint cannot commit',
+    () async {
+      final store = _FailingNativeActiveTransitionStore();
+      final native = _FakeTripTrackingPlatform();
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_native_active_checkpoint_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isFalse,
+      );
+
+      expect(native.startCalls, 1);
+      expect(native.stopCalls, 1);
+      expect(native.hasEventListener, isFalse);
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(controller.platformError, contains('Could not save'));
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.starting,
+      );
+      expect(controller.acceptedMeters, 0);
+    },
+  );
+
+  test(
+    'high-accuracy preference reaches native GPS and durable recovery state',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_high_accuracy_native_request',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: true,
+          samplingPreset: TripTrackingSamplingPreset.highAccuracy,
+          activityRecognitionEnabled: true,
+          adaptiveSamplingEnabled: false,
+        ),
+        isTrue,
+      );
+
+      expect(native.startedRequest?.sampling.mode, TripSamplingMode.precision);
+      expect(
+        native.startedRequest?.sampling.interval,
+        const Duration(seconds: 3),
+      );
+      expect(native.startedRequest?.sampling.minimumDisplacementMeters, 3);
+      expect(native.startedRequest?.activityRecognitionEnabled, isTrue);
+      expect(
+        store.activeSession?.nativeSampling?.interval,
+        const Duration(seconds: 3),
+      );
+      expect(
+        store.activeSession?.samplingCeiling?.interval,
+        const Duration(seconds: 3),
+      );
+      expect(store.activeSession?.adaptiveSamplingEnabled, isFalse);
+    },
+  );
+
+  test(
     'low battery GPS protection asks before requesting permission',
     () async {
       final native = _FakeTripTrackingPlatform(
@@ -1592,6 +1765,92 @@ void main() {
     },
   );
 
+  test(
+    'initial-fix timeout storage failure stops GPS without losing the local trip',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final store = _FailingNextSessionSaveStore();
+      var now = start;
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_initial_fix_timeout_storage_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      store.failNextSessionSave = true;
+      now = now.add(const Duration(minutes: 3));
+
+      native.addStatus('tracking');
+      await drainNativeTripEventsUntil(
+        () =>
+            controller.platformStatus == 'storage_failed' &&
+            !controller.nativeTracking,
+        maxPumps: 120,
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.acceptedMeters, 0);
+      expect(native.stopCalls, 1);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        'Could not save degraded initial GPS fix evidence.',
+      );
+    },
+  );
+
+  test(
+    'resume heartbeat stops GPS when initial-fix degradation cannot persist',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final store = _FailingNextSessionSaveStore();
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => start,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_resume_initial_fix_storage_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      store.failNextSessionSave = true;
+
+      await controller.checkNativeHeartbeat(
+        nowUtc: start.add(const Duration(minutes: 3)),
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.acceptedMeters, 0);
+      expect(native.stopCalls, 1);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        'Could not save degraded initial GPS fix evidence.',
+      );
+    },
+  );
+
   test('native heartbeat at the GPS freshness boundary stays usable', () async {
     final native = _FakeTripTrackingPlatform();
     var now = start;
@@ -1624,6 +1883,249 @@ void main() {
     expect(controller.healthState, TripTrackingHealthState.healthy);
     expect(controller.platformError, isNull);
   });
+
+  test(
+    'heartbeat detects a killed native collector without losing the local trip',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => start,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_heartbeat_collector_killed',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      await native.stop();
+
+      final decision = await controller.checkNativeHeartbeat(
+        nowUtc: start.add(const Duration(minutes: 1)),
+      );
+
+      expect(decision?.reasonCode, 'heartbeat_interrupted_recovery_required');
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.acceptedMeters, 0);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.interrupted,
+      );
+      expect(controller.platformError, contains('preserved for review'));
+    },
+  );
+
+  test('healthy native heartbeat keeps active tracking usable', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+      clockNow: () => start,
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_heartbeat_healthy',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(await controller.startNativeTracking(allowBackground: true), isTrue);
+    native.addLocation(sample(-80, 1));
+    await drainNativeTripEventsUntil(
+      () => controller.platformStatus == 'tracking',
+    );
+
+    final decision = await controller.checkNativeHeartbeat(
+      nowUtc: start.add(const Duration(minutes: 1)),
+    );
+
+    expect(decision?.reasonCode, 'heartbeat_recent');
+    expect(controller.isTracking, isTrue);
+    expect(controller.nativeTracking, isTrue);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.active);
+    expect(controller.platformStatus, 'tracking');
+    expect(controller.platformError, isNull);
+  });
+
+  test(
+    'heartbeat bridge outage degrades without fabricating distance',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => start,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_heartbeat_bridge_outage',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      native.throwOnIsTracking = true;
+
+      final decision = await controller.checkNativeHeartbeat(
+        nowUtc: start.add(const Duration(minutes: 4)),
+      );
+
+      expect(decision?.reasonCode, 'heartbeat_stale_retry_native');
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.acceptedMeters, 0);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.degraded,
+      );
+      expect(controller.platformStatus, 'native_heartbeat_stale');
+      expect(controller.platformError, contains('preserved'));
+    },
+  );
+
+  test('driver can pause GPS safely after heartbeat degradation', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+      clockNow: () => start,
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_pause_after_heartbeat_degradation',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(await controller.startNativeTracking(allowBackground: true), isTrue);
+    native.throwOnIsTracking = true;
+    await controller.checkNativeHeartbeat(
+      nowUtc: start.add(const Duration(minutes: 4)),
+    );
+    expect(
+      controller.lifecycleState,
+      TripTrackingSessionLifecycleState.degraded,
+    );
+    native.throwOnIsTracking = false;
+
+    await controller.stopNativeTracking();
+
+    expect(controller.isTracking, isTrue);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(
+      controller.contractLifecycleState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+    );
+    expect(
+      controller.activeSession?.transitionAudits.last.reasonCode,
+      'native_tracking_stopped',
+    );
+  });
+
+  test('permission loss pauses safely after heartbeat degradation', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+      clockNow: () => start,
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_permission_loss_after_heartbeat_degradation',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(await controller.startNativeTracking(allowBackground: true), isTrue);
+    native.throwOnIsTracking = true;
+    await controller.checkNativeHeartbeat(
+      nowUtc: start.add(const Duration(minutes: 4)),
+    );
+    expect(
+      controller.lifecycleState,
+      TripTrackingSessionLifecycleState.degraded,
+    );
+    native.throwOnIsTracking = false;
+
+    native.addAuthorization(
+      const TripTrackingAuthorization(
+        state: TripTrackingAuthorizationState.denied,
+        preciseLocation: false,
+      ),
+    );
+    await drainNativeTripEventsUntil(
+      () =>
+          controller.platformStatus == 'permission_required' &&
+          !controller.nativeTracking,
+    );
+
+    expect(controller.isTracking, isTrue);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(
+      controller.contractLifecycleState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+    );
+    expect(
+      controller.activeSession?.transitionAudits.last.reasonCode,
+      'native_permission_revoked_system_pause',
+    );
+  });
+
+  test(
+    'long heartbeat bridge outage interrupts without inventing a gap',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+        clockNow: () => start,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_heartbeat_bridge_long_outage',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      native.throwOnIsTracking = true;
+
+      final decision = await controller.checkNativeHeartbeat(
+        nowUtc: start.add(const Duration(minutes: 12)),
+      );
+
+      expect(decision?.reasonCode, 'heartbeat_interrupted_recovery_required');
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.acceptedMeters, 0);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.interrupted,
+      );
+      expect(controller.platformError, contains('preserved for review'));
+    },
+  );
 
   test(
     'forward wall-clock jump cannot complete a trip or invent stop mileage',
@@ -3119,6 +3621,44 @@ void main() {
     },
   );
 
+  test(
+    'foreground resume detects a background collector killed by the system',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_resume_collector_killed',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      await native.stop();
+
+      await controller.handleAppLifecycleState(
+        AppLifecycleState.resumed,
+        backgroundTrackingAllowed: true,
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.acceptedMeters, 0);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.interrupted,
+      );
+      expect(controller.platformError, contains('preserved for review'));
+    },
+  );
+
   test('foreground-only tracking stops when the app becomes hidden', () async {
     final native = _FakeTripTrackingPlatform();
     final controller = TestTripTrackingController(
@@ -3145,6 +3685,69 @@ void main() {
     expect(native.stopCalls, 1);
     expect(controller.nativeTracking, isFalse);
     expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+  });
+
+  test('foreground-only tracking stops when the app detaches', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_detached_foreground_only',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+
+    await controller.handleAppLifecycleState(
+      AppLifecycleState.detached,
+      backgroundTrackingAllowed: false,
+    );
+
+    expect(native.stopCalls, 1);
+    expect(controller.isTracking, isTrue);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(
+      controller.contractLifecycleState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+    );
+  });
+
+  test('transient inactive state does not stop foreground-only GPS', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    addTearDown(controller.dispose);
+    await controller.start(
+      tripId: 'trip_inactive_foreground_only',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+
+    await controller.handleAppLifecycleState(
+      AppLifecycleState.inactive,
+      backgroundTrackingAllowed: false,
+    );
+
+    expect(native.stopCalls, 0);
+    expect(controller.nativeTracking, isTrue);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.active);
   });
 
   test(
@@ -6568,6 +7171,54 @@ void main() {
       expect(
         controller.activeSession?.transitionAudits.last.reasonCode,
         'motion_withdrawal_foreground_service_permission_failed_system_pause',
+      );
+    },
+  );
+
+  test(
+    'location services loss while withdrawing motion assistance stays actionable',
+    () async {
+      final native = _ThrowingUpdateTripTrackingPlatform(
+        PlatformException(
+          code: 'trip_tracking_gps_disabled',
+          message: 'raw provider detail',
+        ),
+        activityRecognitionAvailable: true,
+      );
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_motion_withdrawal_location_services_loss',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: true,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      await controller.disableActivityRecognition();
+
+      expect(native.updateCalls, 1);
+      expect(native.stopCalls, 1);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'location_services_required');
+      expect(controller.platformError, 'GPS was turned off while tracking.');
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.reasonCode,
+        'motion_withdrawal_location_services_system_pause',
       );
     },
   );
@@ -10087,6 +10738,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     this.throwOnReadBatterySnapshot = false,
     this.batteryStateAvailable = true,
     this.lowPowerModeAvailable = true,
+    this.backgroundTrackingAvailable = true,
     this.activityRecognitionAvailable = false,
     this.locationAvailable = true,
     this.updateSucceeds = true,
@@ -10113,11 +10765,12 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   final Object? startException;
   final bool throwOnStop;
   final bool throwOnCancel;
-  final bool throwOnIsTracking;
+  bool throwOnIsTracking;
   final bool throwOnReadCapabilities;
   final bool throwOnReadBatterySnapshot;
   final bool batteryStateAvailable;
   final bool lowPowerModeAvailable;
+  final bool backgroundTrackingAvailable;
   final bool activityRecognitionAvailable;
   bool locationAvailable;
   final bool updateSucceeds;
@@ -10202,7 +10855,7 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
     }
     return TripTrackingPlatformCapabilities(
       locationAvailable: locationAvailable,
-      backgroundTrackingAvailable: true,
+      backgroundTrackingAvailable: backgroundTrackingAvailable,
       activityRecognitionAvailable: activityRecognitionAvailable,
       batteryStateAvailable: batteryStateAvailable,
       lowPowerModeAvailable: lowPowerModeAvailable,
@@ -10385,6 +11038,38 @@ class _FailingNextSessionSaveStore extends TripTrackingSessionStore {
     if (failNextSessionSave) {
       failNextSessionSave = false;
       throw StateError('local session checkpoint failed');
+    }
+    return super.save(session);
+  }
+}
+
+class _FailingNativePreferenceSaveStore extends TripTrackingSessionStore {
+  _FailingNativePreferenceSaveStore() : super.memory();
+
+  var failed = false;
+
+  @override
+  Future<void> save(TripTrackingSessionRecord session) async {
+    if (!failed && session.nativeSampling != null) {
+      failed = true;
+      throw StateError('local native preference checkpoint failed');
+    }
+    return super.save(session);
+  }
+}
+
+class _FailingNativeActiveTransitionStore extends TripTrackingSessionStore {
+  _FailingNativeActiveTransitionStore() : super.memory();
+
+  var failed = false;
+
+  @override
+  Future<void> save(TripTrackingSessionRecord session) async {
+    if (!failed &&
+        session.lifecycleState == TripTrackingSessionLifecycleState.active &&
+        session.nativeSampling != null) {
+      failed = true;
+      throw StateError('local native active checkpoint failed');
     }
     return super.save(session);
   }

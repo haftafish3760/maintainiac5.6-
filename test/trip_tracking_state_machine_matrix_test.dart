@@ -76,6 +76,7 @@ const Map<State, Set<State>> _approved = {
   State.degraded: {
     State.starting,
     State.active,
+    State.paused,
     State.recovering,
     State.interrupted,
     State.failedRecoverable,
