@@ -3,7 +3,13 @@ import {createHash} from 'node:crypto';
 import {after, before, describe, test} from 'node:test';
 
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {collection, doc, getDocs, setDoc} from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  setDoc,
+  writeBatch,
+} from 'firebase/firestore';
 
 import {callFunction, callFunctionError} from './callableTestClient.mjs';
 import {durableRecord} from './restoreSnapshotFixtures.mjs';
@@ -144,6 +150,30 @@ describe('restore manifest integrity', () => {
     });
   });
 
+  test('restore snapshot streams beyond one query page', async () => {
+    const identity = await createIdentity('paged');
+    const organizationId = 'orgManifestPaged';
+    await seedPrincipal(identity.uid, organizationId);
+    const structuredBytes = await seedPagedRecordSet(
+      identity.uid,
+      organizationId,
+      525,
+    );
+    await seedManifest(identity.uid, organizationId, 525, structuredBytes);
+    const authorization = await callFunction(
+      'issueRestoreAuthorization',
+      identity.token,
+      {
+        organizationId,
+        deviceId: 'restoreDevice',
+        mode: 'recordsOnly',
+        requestId: 'paged-snapshot-request',
+      },
+    );
+    assert.equal(authorization.recordCount, 525);
+    assert.equal(authorization.structuredBytes, structuredBytes);
+  });
+
   test('corrupt stored records fail before restore authorization', async () => {
     const identity = await createIdentity('corrupt');
     const organizationId = 'orgManifestCorrupt';
@@ -274,6 +304,36 @@ async function seedLargeRecordSet(uid, organizationId) {
         data,
       );
     }
+  });
+  return structuredBytes;
+}
+
+async function seedPagedRecordSet(uid, organizationId, count) {
+  let structuredBytes = 0;
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    let batch = writeBatch(db);
+    let batchWrites = 0;
+    for (let index = 0; index < count; index += 1) {
+      const data = durableRecord(
+        uid,
+        `paged-${String(index).padStart(4, '0')}`,
+        `value-${index}`,
+        organizationId,
+      );
+      structuredBytes += Buffer.byteLength(JSON.stringify(data), 'utf8');
+      batch.set(
+        doc(db, `orgs/${organizationId}/records/${data.recordKey}`),
+        data,
+      );
+      batchWrites += 1;
+      if (batchWrites === 400) {
+        await batch.commit();
+        batch = writeBatch(db);
+        batchWrites = 0;
+      }
+    }
+    if (batchWrites > 0) await batch.commit();
   });
   return structuredBytes;
 }
