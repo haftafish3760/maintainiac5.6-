@@ -249,6 +249,9 @@ final _coreAdjustmentLine = RegExp(
   r'\b(?:core\s+(?:charge|deposit|credit|refund|return|exchange)|(?:credit|refund|return)\s+core)\b',
 );
 final _transactionPolicyLine = RegExp(r'\b(?:return|refund|exchange) policy\b');
+final _standaloneReturnHeading = RegExp(
+  r'^(?:return|refund|exchange)\s*:?\s*$',
+);
 final _purchaseLineSignal = RegExp(r'\b(?:sku|part|qty|item)\b');
 final _transactionCompletionSignal = RegExp(
   r'\b(?:amount paid|retail sale|paid|payment|tender|cash|credit|debit|total)\b',

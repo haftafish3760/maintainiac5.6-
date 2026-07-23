@@ -59,6 +59,9 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
       .where((entry) => entry.value.isNotEmpty)
       .map((entry) => entry.key)
       .toSet();
+  final hasItemScopedReturnOrExchange = matchingRowsByItem.values
+      .expand((matchingRows) => matchingRows)
+      .any((row) => _isReturnOrExchangeText(row.comparisonText));
   final hasUnscopedNotCompletedSignal = rows.any(
     (row) =>
         _notCompletedLine.hasMatch(row.comparisonText) &&
@@ -73,6 +76,8 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final hasUnscopedReturnOrExchangeSignal = rows.any(
     (row) =>
         _isReturnOrExchangeText(row.comparisonText) &&
+        (!hasItemScopedReturnOrExchange ||
+            _standaloneReturnHeading.hasMatch(row.comparisonText)) &&
         !_itemDefinitions.any(
           (definition) => _definitionMatchesText(
             definition,

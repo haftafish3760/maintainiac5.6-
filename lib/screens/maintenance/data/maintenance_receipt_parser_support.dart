@@ -193,7 +193,7 @@ _ReceiptDateRead _receiptDate(
       }
     }
     final numeric = RegExp(
-      r'\b(\d{1,2})[/-](\d{1,2})[/-](\d{2,4})\b',
+      r'\b(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})\b',
     ).firstMatch(row.comparisonText);
     if (numeric != null) {
       final first = int.tryParse(numeric.group(1)!);

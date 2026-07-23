@@ -136,11 +136,26 @@ required checks pass.
     cases protect that boundary while the true-return and true-exchange cases
     from Pass 46 remain manual-review regressions. Focused analysis, the
     layout/return safety suite, and the 174-check full maintenance gate passed.
+48. Candidate-scoped mixed return/purchase transactions. When a receipt
+    explicitly identifies the returned or exchanged maintenance item, generic
+    refund-tender rows no longer contaminate a different item purchased in the
+    same transaction. Standalone return headings and refunds with no
+    item-specific return evidence remain receipt-wide manual-review safeguards.
+    Added exact brake-return/oil-purchase, filter-exchange/wiper-purchase, and
+    ambiguous-refund contracts. Focused analysis and return/layout safety tests
+    passed, followed by the 177-check full maintenance gate.
+49. Locale-safe dot-separated receipt dates. Common numeric dates such as
+    `07.08.26` and `23.07.26` now use the same two-digit-year, supported-locale,
+    future-date, and next-due separation rules as slash and dash formats.
+    Ambiguous dot-separated dates under an unsupported locale remain unset for
+    manual entry. The first focused run used an incorrect ambiguity expectation
+    for `07.23.26` and was not counted. The corrected temporal, schedule, and
+    parser-safety suite passed, followed by the 180-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **47**
-- Next pass: **48**
+- Last accepted pass: **49**
+- Next pass: **50**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 
