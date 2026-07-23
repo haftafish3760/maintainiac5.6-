@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -272,6 +273,49 @@ void main() {
   });
 
   test(
+    'checkpoint repositories sharing a Hive box reject overlapping attempts',
+    () async {
+      final firstEntered = Completer<void>();
+      final releaseFirst = Completer<void>();
+      var secondEntered = false;
+      final first = await MaintainiacSyncCheckpointStore.create(
+        'shared_sync_checkpoints',
+        storageCheck: () async {
+          firstEntered.complete();
+          await releaseFirst.future;
+          return _healthyStorage;
+        },
+      );
+      final second = await MaintainiacSyncCheckpointStore.create(
+        'shared_sync_checkpoints',
+        storageCheck: () async {
+          secondEntered = true;
+          return _healthyStorage;
+        },
+      );
+
+      final firstBegin = first.begin(
+        module: 'expenses',
+        attemptId: 'attempt-a',
+        trigger: MaintainiacSyncTrigger.manual,
+      );
+      await firstEntered.future;
+      final secondBegin = second.begin(
+        module: 'expenses',
+        attemptId: 'attempt-b',
+        trigger: MaintainiacSyncTrigger.manual,
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(secondEntered, isFalse);
+      releaseFirst.complete();
+      expect((await firstBegin).activeAttemptId, 'attempt-a');
+      await expectLater(secondBegin, throwsStateError);
+      expect(second.checkpointFor('expenses').activeAttemptId, 'attempt-a');
+    },
+  );
+
+  test(
     'corrupt checkpoint blocks sync instead of repeating an upload',
     () async {
       final box = await Hive.openBox<dynamic>('sync_checkpoints');
@@ -298,4 +342,11 @@ MaintainiacSyncDecision _decide(
   batterySaverEnabled: batterySaverEnabled,
   immediateSyncAllowed: immediateSyncAllowed,
   localNow: DateTime(2026, 7, 22, 12),
+);
+
+const _healthyStorage = AppStorageCheck(
+  availableBytes: 1024 * 1024 * 1024,
+  operationBytes: 1,
+  requiredBytes: 1,
+  purpose: AppStoragePurpose.smallRecordWrite,
 );

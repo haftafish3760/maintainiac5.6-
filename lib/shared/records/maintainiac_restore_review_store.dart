@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 
 import '../storage/app_storage_guard.dart';
 import 'maintainiac_durable_record_store.dart';
+import 'maintainiac_hive_write_serialization.dart';
 
 enum MaintainiacRestoreReviewType { conflict, corrupt, migrationRequired }
 
@@ -271,6 +272,10 @@ class MaintainiacRestoreReviewStore {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final box = _box;
+    if (box != null) {
+      return MaintainiacHiveWriteSerialization.enqueue(box.name, operation);
+    }
     final result = _writeTail.then((_) => operation());
     _writeTail = result.then<void>((_) {}, onError: (_) {});
     return result;

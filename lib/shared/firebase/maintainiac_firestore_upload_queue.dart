@@ -11,6 +11,7 @@ import 'maintainiac_firestore_scope_policy.dart';
 import 'maintainiac_firestore_schema.dart';
 import 'hosted_usage_limits.dart';
 import 'maintainiac_hosted_plan_client.dart';
+import '../records/maintainiac_hive_write_serialization.dart';
 import '../trip_tracking/trip_tracking_firestore_contract.dart';
 import '../storage/app_storage_guard.dart';
 

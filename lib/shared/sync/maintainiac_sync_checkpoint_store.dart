@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 
 import '../storage/app_storage_guard.dart';
+import '../records/maintainiac_hive_write_serialization.dart';
 import 'maintainiac_sync_settings.dart';
 
 enum MaintainiacSyncAttemptState { idle, running, succeeded, failed, cancelled }
@@ -257,6 +258,10 @@ class MaintainiacSyncCheckpointStore {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final box = _box;
+    if (box != null) {
+      return MaintainiacHiveWriteSerialization.enqueue(box.name, operation);
+    }
     final next = _writeTail.then((_) => operation());
     _writeTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;

@@ -7,7 +7,6 @@ class MaintainiacFirestoreUploadQueueStore {
 
   final Box<dynamic> _box;
   final MaintainiacFirestoreQueueStorageCheck? storageCheck;
-  Future<void> _writeTail = Future<void>.value();
 
   static Future<MaintainiacFirestoreUploadQueueStore> create({
     MaintainiacFirestoreQueueStorageCheck? storageCheck,
@@ -357,9 +356,7 @@ class MaintainiacFirestoreUploadQueueStore {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
-    final next = _writeTail.then((_) => operation());
-    _writeTail = next.then<void>((_) {}, onError: (Object _) {});
-    return next;
+    return MaintainiacHiveWriteSerialization.enqueue(_box.name, operation);
   }
 
   DateTime _nextQueueTimestamp(DateTime current, {DateTime? requested}) {

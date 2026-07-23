@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 
 import 'app_storage_guard.dart';
+import '../records/maintainiac_hive_write_serialization.dart';
 
 enum AppStorageWarningPreference { always, below500Mb, never }
 
@@ -121,6 +122,10 @@ class AppStorageWarningPreferenceStore {
   });
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final box = _box;
+    if (box != null) {
+      return MaintainiacHiveWriteSerialization.enqueue(box.name, operation);
+    }
     final next = _writeTail.then((_) => operation());
     _writeTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
