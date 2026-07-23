@@ -6,6 +6,48 @@ import 'maintainiac_sync_settings.dart';
 typedef MaintainiacSyncSettingsStorageCheck =
     Future<AppStorageCheck> Function();
 
+class MaintainiacSyncSettingsSnapshot {
+  const MaintainiacSyncSettingsSnapshot({
+    required this.settings,
+    required this.updatedAtUtc,
+    required this.revision,
+  });
+
+  factory MaintainiacSyncSettingsSnapshot.disabled() =>
+      MaintainiacSyncSettingsSnapshot(
+        settings: MaintainiacSyncSettings.disabled(),
+        updatedAtUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        revision: 0,
+      );
+
+  factory MaintainiacSyncSettingsSnapshot.fromMap(Map<dynamic, dynamic> map) {
+    final settingsMap = map['settings'];
+    final updatedAt = DateTime.tryParse(map['updatedAtUtc']?.toString() ?? '');
+    final revision = map['revision'];
+    if (settingsMap is! Map ||
+        updatedAt == null ||
+        revision is! int ||
+        revision < 1) {
+      throw const FormatException('Sync settings snapshot is corrupt.');
+    }
+    return MaintainiacSyncSettingsSnapshot(
+      settings: MaintainiacSyncSettings.fromMap(settingsMap),
+      updatedAtUtc: updatedAt.toUtc(),
+      revision: revision,
+    );
+  }
+
+  final MaintainiacSyncSettings settings;
+  final DateTime updatedAtUtc;
+  final int revision;
+
+  Map<String, Object?> toMap() => {
+    'settings': settings.toMap(),
+    'updatedAtUtc': updatedAtUtc.toIso8601String(),
+    'revision': revision,
+  };
+}
+
 class MaintainiacSyncSettingsStore {
   MaintainiacSyncSettingsStore._(
     this._box, {
@@ -30,27 +72,53 @@ class MaintainiacSyncSettingsStore {
   final _memory = <String, Map<String, Object?>>{};
   Future<void> _writeTail = Future<void>.value();
 
-  MaintainiacSyncSettings settingsFor(String module) {
-    if (!_validModule(module)) return MaintainiacSyncSettings.disabled();
+  MaintainiacSyncSettings settingsFor(String module) =>
+      snapshotFor(module).settings;
+
+  MaintainiacSyncSettingsSnapshot snapshotFor(String module) {
+    if (!_validModule(module)) {
+      return MaintainiacSyncSettingsSnapshot.disabled();
+    }
     final value = _box?.get(module) ?? _memory[module];
-    if (value is! Map) return MaintainiacSyncSettings.disabled();
+    if (value is! Map) {
+      return MaintainiacSyncSettingsSnapshot.disabled();
+    }
     try {
-      return MaintainiacSyncSettings.fromMap(value);
+      return MaintainiacSyncSettingsSnapshot.fromMap(value);
     } on FormatException {
-      return MaintainiacSyncSettings.disabled();
+      try {
+        return MaintainiacSyncSettingsSnapshot(
+          settings: MaintainiacSyncSettings.fromMap(value),
+          updatedAtUtc: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+          revision: 0,
+        );
+      } on FormatException {
+        return MaintainiacSyncSettingsSnapshot.disabled();
+      }
     }
   }
 
   Future<MaintainiacSyncSettings> save(
     String module,
-    MaintainiacSyncSettings settings,
-  ) => _enqueue(() async {
+    MaintainiacSyncSettings settings, {
+    DateTime? nowUtc,
+  }) => _enqueue(() async {
     if (!_validModule(module)) {
       throw ArgumentError.value(module, 'module', 'Invalid sync module.');
     }
     final check = await _storageCheck();
     if (!check.hasEnoughSpace) throw StateError(check.blockingMessage());
-    final map = Map<String, Object?>.unmodifiable(settings.toMap());
+    final previous = snapshotFor(module);
+    final requested = (nowUtc ?? DateTime.now()).toUtc();
+    final updatedAt = requested.isAfter(previous.updatedAtUtc)
+        ? requested
+        : previous.updatedAtUtc.add(const Duration(microseconds: 1));
+    final snapshot = MaintainiacSyncSettingsSnapshot(
+      settings: settings,
+      updatedAtUtc: updatedAt,
+      revision: previous.revision + 1,
+    );
+    final map = Map<String, Object?>.unmodifiable(snapshot.toMap());
     if (_box == null) {
       _memory[module] = map;
     } else {
