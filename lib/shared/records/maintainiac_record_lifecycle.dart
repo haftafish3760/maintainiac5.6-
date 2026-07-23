@@ -2,6 +2,7 @@ import 'package:hive/hive.dart';
 
 import '../storage/app_storage_guard.dart';
 import 'maintainiac_durable_payload.dart';
+import 'maintainiac_hive_write_serialization.dart';
 import 'maintainiac_record_ordering.dart';
 
 part 'maintainiac_record_draft_store.dart';

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -7,6 +8,118 @@ import 'package:maintaniac/shared/records/maintainiac_record_lifecycle.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
+  test(
+    'repositories sharing one Hive box cannot lose concurrent saves',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'maintainiac_shared_record_serialization_',
+      );
+      addTearDown(() async {
+        await Hive.close();
+        if (await directory.exists()) await directory.delete(recursive: true);
+      });
+      Hive.init(directory.path);
+      final firstEntered = Completer<void>();
+      final releaseFirst = Completer<void>();
+      var secondEntered = false;
+      final first = await MaintainiacDurableRecordStore.create(
+        'shared-concurrent-records',
+        storageCheck: () async {
+          firstEntered.complete();
+          await releaseFirst.future;
+          return _healthyStorage;
+        },
+      );
+      final second = await MaintainiacDurableRecordStore.create(
+        'shared-concurrent-records',
+        storageCheck: () async {
+          secondEntered = true;
+          return _healthyStorage;
+        },
+      );
+
+      final firstSave = first.save(
+        module: 'invoices',
+        id: 'invoice-1',
+        payload: const {'status': 'draft-a'},
+        now: DateTime.utc(2026, 7, 23, 1),
+      );
+      await firstEntered.future;
+      final secondSave = second.save(
+        module: 'invoices',
+        id: 'invoice-1',
+        payload: const {'status': 'draft-b'},
+        now: DateTime.utc(2026, 7, 23, 1, 1),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(secondEntered, isFalse);
+      releaseFirst.complete();
+      final saved = await Future.wait([firstSave, secondSave]);
+
+      expect(saved.map((record) => record.lifecycle.revision), [1, 2]);
+      expect(
+        second.recordFor('invoices', 'invoice-1')?.payload['status'],
+        'draft-b',
+      );
+    },
+  );
+
+  test(
+    'draft repositories sharing one Hive box serialize checkpoints',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'maintainiac_shared_draft_serialization_',
+      );
+      addTearDown(() async {
+        await Hive.close();
+        if (await directory.exists()) await directory.delete(recursive: true);
+      });
+      Hive.init(directory.path);
+      final firstEntered = Completer<void>();
+      final releaseFirst = Completer<void>();
+      var secondEntered = false;
+      final first = await MaintainiacRecordDraftStore.create(
+        storageCheck: () async {
+          firstEntered.complete();
+          await releaseFirst.future;
+          return _healthyStorage;
+        },
+      );
+      final second = await MaintainiacRecordDraftStore.create(
+        storageCheck: () async {
+          secondEntered = true;
+          return _healthyStorage;
+        },
+      );
+
+      final firstSave = first.save(
+        module: 'estimates',
+        id: 'estimate-1',
+        payload: const {'status': 'draft-a'},
+        now: DateTime.utc(2026, 7, 23, 1),
+      );
+      await firstEntered.future;
+      final secondSave = second.save(
+        module: 'estimates',
+        id: 'estimate-1',
+        payload: const {'status': 'draft-b'},
+        now: DateTime.utc(2026, 7, 23, 1, 1),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      expect(secondEntered, isFalse);
+      releaseFirst.complete();
+      final saved = await Future.wait([firstSave, secondSave]);
+
+      expect(saved.map((draft) => draft.lifecycle.revision), [1, 2]);
+      expect(
+        second.draftFor('estimates', 'estimate-1')?.payload['status'],
+        'draft-b',
+      );
+    },
+  );
+
   test('shared confirmed records survive a local Hive restart', () async {
     final directory = await Directory.systemTemp.createTemp(
       'maintainiac_durable_record_store_',
@@ -267,3 +380,10 @@ void main() {
     },
   );
 }
+
+const _healthyStorage = AppStorageCheck(
+  availableBytes: 1024 * 1024 * 1024,
+  operationBytes: 1,
+  requiredBytes: 1,
+  purpose: AppStoragePurpose.smallRecordWrite,
+);

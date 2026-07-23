@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../storage/app_storage_guard.dart';
 import 'maintainiac_durable_payload.dart';
+import 'maintainiac_hive_write_serialization.dart';
 import 'maintainiac_record_lifecycle.dart';
 import 'maintainiac_record_ordering.dart';
 
@@ -306,6 +307,10 @@ class MaintainiacDurableRecordStore {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
+    final box = _box;
+    if (box != null) {
+      return MaintainiacHiveWriteSerialization.enqueue(box.name, operation);
+    }
     final next = _writeTail.then((_) => operation());
     _writeTail = next.then<void>((_) {}, onError: (_) {});
     return next;
