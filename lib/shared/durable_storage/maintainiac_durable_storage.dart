@@ -12,6 +12,7 @@ export '../backup/cloud_backup_status.dart';
 export '../firebase/hosted_sync_scope.dart';
 export '../firebase/hosted_usage_limits.dart';
 export '../firebase/maintainiac_callable_functions.dart';
+export '../firebase/maintainiac_callable_durable_record_sink.dart';
 export '../firebase/maintainiac_cloud_identity.dart';
 export '../firebase/maintainiac_cloud_object_store.dart';
 export '../firebase/maintainiac_durable_cloud_backup_gateway.dart';

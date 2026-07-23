@@ -605,14 +605,20 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 
-  test('generic durable records are private, monotonic, and never hard deleted', async () => {
+  test('generic durable records are private and server written only', async () => {
     const owner = dbFor('ownerUid');
     const helper = dbFor('helperUid');
     const recordId = 'a'.repeat(64);
     const reference = doc(owner, `orgs/orgA/records/${recordId}`);
     const durable = genericDurableRecord(recordId);
 
-    await assertSucceeds(setDoc(reference, durable));
+    await assertFails(setDoc(reference, durable));
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(
+        doc(context.firestore(), `orgs/orgA/records/${recordId}`),
+        durable,
+      );
+    });
     await assertSucceeds(getDoc(reference));
     await assertFails(
       getDoc(doc(helper, `orgs/orgA/records/${recordId}`)),
@@ -629,11 +635,10 @@ describe('Firestore rules emulator safety', () => {
         privateToOwner: false,
       }),
     );
-    await assertSucceeds(setDoc(reference, durable));
     await assertFails(
       updateDoc(reference, {recordPayload: {theme: 'light'}}),
     );
-    await assertSucceeds(
+    await assertFails(
       setDoc(reference, {
         ...durable,
         localRevision: 2,
@@ -648,7 +653,7 @@ describe('Firestore rules emulator safety', () => {
         recordPayload: {rawOcrText: 'must stay local'},
       }),
     );
-    await assertSucceeds(
+    await assertFails(
       setDoc(reference, {
         ...durable,
         localRevision: 3,
@@ -673,20 +678,19 @@ describe('Firestore rules emulator safety', () => {
     const helper = dbFor('helperUid');
     const ownerRecordId = '1'.repeat(64);
     const helperRecordId = '2'.repeat(64);
-    await assertSucceeds(
-      setDoc(
-        doc(owner, `orgs/orgA/records/${ownerRecordId}`),
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await setDoc(
+        doc(db, `orgs/orgA/records/${ownerRecordId}`),
         genericDurableRecord(ownerRecordId),
-      ),
-    );
-    await assertSucceeds(
-      setDoc(doc(helper, `orgs/orgA/records/${helperRecordId}`), {
+      );
+      await setDoc(doc(db, `orgs/orgA/records/${helperRecordId}`), {
         ...genericDurableRecord(helperRecordId),
         accountScopeId: 'orgA.helperUid',
         createdByUid: 'helperUid',
         updatedByUid: 'helperUid',
-      }),
-    );
+      });
+    });
 
     await assertSucceeds(
       getDocs(

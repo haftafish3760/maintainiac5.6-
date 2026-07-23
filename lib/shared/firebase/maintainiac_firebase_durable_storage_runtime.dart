@@ -1,4 +1,5 @@
 import 'maintainiac_callable_functions.dart';
+import 'maintainiac_callable_durable_record_sink.dart';
 import 'maintainiac_cloud_identity.dart';
 import 'maintainiac_durable_cloud_revision_store.dart';
 import 'maintainiac_firestore_upload_queue.dart';
@@ -39,23 +40,27 @@ class MaintainiacFirebaseDurableStorageRuntime {
         revisions ?? await MaintainiacDurableCloudRevisionStore.create();
     final resolvedIdentity =
         identity ?? FirebaseMaintainiacCloudIdentityProvider();
+    final resolvedFunctions =
+        functions ?? FirebaseMaintainiacCallableFunctionClient();
     final hostedPlan = MaintainiacHostedPlanClient(
-      functions: functions ?? FirebaseMaintainiacCallableFunctionClient(),
+      functions: resolvedFunctions,
       identity: resolvedIdentity,
     );
     final resolvedSink =
-        sink ??
-        MaintainiacHostedFirestoreDocumentSink(
-          identityProvider: resolvedIdentity,
-        );
+        sink ?? MaintainiacCallableDurableRecordSink(resolvedFunctions);
+    final serverCommitted = resolvedSink is MaintainiacServerCommittedBatchSink;
     final uploads = MaintainiacFirestoreUploadCoordinator(
       queue: resolvedQueue,
       sink: resolvedSink,
       uploadEnabled: uploadEnabled,
       identityProvider: resolvedIdentity,
       uploadNetworkAllowed: uploadNetworkAllowed,
-      hostedSyncReservationProvider: (attemptId, batchSha256) => hostedPlan
-          .reserveSync(attemptId: attemptId, batchSha256: batchSha256),
+      hostedSyncReservationProvider: serverCommitted
+          ? null
+          : (attemptId, batchSha256) => hostedPlan.reserveSync(
+              attemptId: attemptId,
+              batchSha256: batchSha256,
+            ),
       uploadAcknowledgment: (records, acknowledgedAtUtc) =>
           resolvedRevisions.acknowledge(records, nowUtc: acknowledgedAtUtc),
     );

@@ -167,4 +167,8 @@ function requireUid(request) {
   return uid;
 }
 
-module.exports = {buildHostedPlanFunctions, loadHostedGrantForUid};
+module.exports = {
+  buildHostedPlanFunctions,
+  loadHostedGrantForUid,
+  reserveHostedSync,
+};

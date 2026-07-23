@@ -31,6 +31,7 @@ const callableNames = [
   'updateRestoreSession',
   'getHostedUsageGrant',
   'reserveHostedSync',
+  'commitDurableRecordBatch',
 ];
 let testEnv;
 

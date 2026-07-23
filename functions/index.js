@@ -15,6 +15,9 @@ const {
   buildDurableRecordManifestFunctions,
 } = require('./durable_record_manifest');
 const {
+  buildDurableRecordCommitFunctions,
+} = require('./durable_record_commit');
+const {
   buildHostedPlanFunctions,
   loadHostedGrantForUid,
 } = require('./hosted_plans');
@@ -46,6 +49,11 @@ exports.getRestorePlan = restoreAuthorizationFunctions.getRestorePlan;
 const durableRecordManifestFunctions = buildDurableRecordManifestFunctions();
 exports.updateDurableRecordManifest =
     durableRecordManifestFunctions.updateDurableRecordManifest;
+const durableRecordCommitFunctions = buildDurableRecordCommitFunctions({
+  enforceAppCheck: enforceCallableAppCheck,
+});
+exports.commitDurableRecordBatch =
+    durableRecordCommitFunctions.commitDurableRecordBatch;
 const hostedPlanFunctions = buildHostedPlanFunctions({
   enforceAppCheck: enforceCallableAppCheck,
 });

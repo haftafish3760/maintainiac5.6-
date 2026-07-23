@@ -17,6 +17,13 @@ abstract interface class MaintainiacFirestoreBatchDocumentSink {
 /// sync reservation. Test and local-only sinks remain usable without Firebase.
 abstract interface class MaintainiacHostedReservationRequiredSink {}
 
+abstract interface class MaintainiacServerCommittedBatchSink {
+  Future<MaintainiacHostedSyncReservation> writeServerAuthorizedDocuments({
+    required String attemptId,
+    required List<MaintainiacFirestoreDocumentDraft> documents,
+  });
+}
+
 Future<void> _firestoreUploadTail = Future<void>.value();
 
 class MaintainiacFirestoreUploadCoordinator {
@@ -139,9 +146,13 @@ class MaintainiacFirestoreUploadCoordinator {
       );
     }
     MaintainiacHostedSyncReservation? hostedReservation;
+    final serverCommittedSink = _sink is MaintainiacServerCommittedBatchSink
+        ? _sink as MaintainiacServerCommittedBatchSink
+        : null;
     final hostedReservationProvider = _hostedSyncReservationProvider;
     if (_sink is MaintainiacHostedReservationRequiredSink &&
-        hostedReservationProvider == null) {
+        hostedReservationProvider == null &&
+        serverCommittedSink == null) {
       return const MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.quotaExceeded,
         attemptedCount: 0,
@@ -150,7 +161,7 @@ class MaintainiacFirestoreUploadCoordinator {
         reason: 'Hosted backup authorization is not configured.',
       );
     }
-    if (hostedReservationProvider != null) {
+    if (hostedReservationProvider != null || serverCommittedSink != null) {
       if (attemptId == null ||
           !RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(attemptId)) {
         return const MaintainiacFirestoreUploadResult(
@@ -161,23 +172,25 @@ class MaintainiacFirestoreUploadCoordinator {
           reason: 'Cloud sync needs a durable attempt identity.',
         );
       }
-      try {
-        hostedReservation = await hostedReservationProvider(
-          attemptId,
-          _batchSha256(batch),
-        );
-      } catch (_) {
-        return const MaintainiacFirestoreUploadResult(
-          status: MaintainiacFirestoreUploadStatus.quotaExceeded,
-          attemptedCount: 0,
-          uploadedCount: 0,
-          failedCount: 0,
-          reason: 'Cloud sync allowance could not be reserved.',
-        );
+      if (hostedReservationProvider != null) {
+        try {
+          hostedReservation = await hostedReservationProvider(
+            attemptId,
+            _batchSha256(batch),
+          );
+        } catch (_) {
+          return const MaintainiacFirestoreUploadResult(
+            status: MaintainiacFirestoreUploadStatus.quotaExceeded,
+            attemptedCount: 0,
+            uploadedCount: 0,
+            failedCount: 0,
+            reason: 'Cloud sync allowance could not be reserved.',
+          );
+        }
       }
     }
     int? freeSyncsUsed;
-    if (hostedReservation == null) {
+    if (hostedReservation == null && serverCommittedSink == null) {
       try {
         freeSyncsUsed = _freeSyncsUsedInWindowReader?.call();
       } catch (_) {
@@ -224,7 +237,32 @@ class MaintainiacFirestoreUploadCoordinator {
     final batchSink = _sink is MaintainiacFirestoreBatchDocumentSink
         ? _sink as MaintainiacFirestoreBatchDocumentSink
         : null;
-    if (batchSink != null) {
+    if (serverCommittedSink != null) {
+      try {
+        hostedReservation = await serverCommittedSink
+            .writeServerAuthorizedDocuments(
+              attemptId: attemptId!,
+              documents: [
+                for (final record in batch)
+                  MaintainiacFirestoreDocumentDraft(
+                    path: record.path,
+                    data: Map<String, Object?>.unmodifiable(record.data),
+                  ),
+              ],
+            );
+        uploadedIds.addAll(batch.map((record) => record.id));
+        uploadedCount = batch.length;
+      } catch (error) {
+        for (final record in batch) {
+          failedCount += 1;
+          await _queue.markAttempted(
+            record,
+            error: error.toString(),
+            nowUtc: nowUtc,
+          );
+        }
+      }
+    } else if (batchSink != null) {
       try {
         await batchSink.writeDocuments([
           for (final record in batch)

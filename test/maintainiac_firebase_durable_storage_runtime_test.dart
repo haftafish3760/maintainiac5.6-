@@ -54,14 +54,12 @@ void main() {
         ),
       );
       await queue.enqueue(_draft());
-      final sink = _HostedSink();
       final functions = _Functions();
       final runtime = await MaintainiacFirebaseDurableStorageRuntime.create(
         queue: queue,
         revisions: revisions,
         identity: const _Identity('user-a'),
         functions: functions,
-        sink: sink,
       );
 
       final result = await runtime.uploads.uploadPending(
@@ -71,8 +69,7 @@ void main() {
 
       expect(result.status, MaintainiacFirestoreUploadStatus.uploaded);
       expect(result.reservationId, 'reservation-a');
-      expect(functions.names, ['reserveHostedSync']);
-      expect(sink.writes, hasLength(1));
+      expect(functions.names, ['commitDurableRecordBatch']);
       expect(revisions.checkpointFor(_draft().path), isNotNull);
       expect(queue.pendingRecords, isEmpty);
     },
@@ -127,6 +124,9 @@ class _Functions implements MaintainiacCallableFunctionClient {
       'limit': 4,
       'windowSeconds': 86400,
       'reservedAt': '2026-07-22T00:00:00.000Z',
+      'attemptedCount': 1,
+      'writtenCount': 1,
+      'batchSha256': 'f' * 64,
     };
   }
 }
