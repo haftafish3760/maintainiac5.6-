@@ -58,6 +58,114 @@ void main() {
     expect(safe['nativeInterruptionCanDeleteLocalData'], isFalse);
   });
 
+  test('permission event wins a race with stale active supervision', () {
+    final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
+      nativeDecision: nativeDecision(event: statusEvent('permissionRequired')),
+      supervisorDecision: supervisorDecision(),
+      localCheckpointAvailable: true,
+    );
+
+    expect(decision.status, TripNativeInterruptionRecoveryStatus.promptUser);
+    expect(decision.reasonCode, 'native_permission_requires_user_review');
+    expect(
+      decision.nextLifecycle,
+      TripTrackingSessionLifecycleState.permissionRequired,
+    );
+    expect(decision.shouldKeepForegroundServiceAlive, isFalse);
+    expect(decision.canFeedEngine, isFalse);
+    expect(
+      TripNativeInterruptionRecoverySummaryValidation.fromSummary(
+        decision.toSafeDashboardMap(),
+      ).isRenderable,
+      isTrue,
+    );
+  });
+
+  test('background restriction wins a race with stale active supervision', () {
+    final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
+      nativeDecision: nativeDecision(
+        event: statusEvent('backgroundRestricted'),
+      ),
+      supervisorDecision: supervisorDecision(),
+      localCheckpointAvailable: true,
+    );
+
+    expect(decision.status, TripNativeInterruptionRecoveryStatus.promptUser);
+    expect(
+      decision.nextLifecycle,
+      TripTrackingSessionLifecycleState.interrupted,
+    );
+    expect(decision.shouldKeepForegroundServiceAlive, isFalse);
+    expect(decision.canFeedEngine, isFalse);
+
+    final forged = TripNativeInterruptionRecoverySummaryValidation.fromSummary({
+      ...decision.toSafeDashboardMap(),
+      'nextLifecycle': TripTrackingSessionLifecycleState.active.name,
+    });
+    expect(forged.isRenderable, isFalse);
+    expect(
+      forged.reasons,
+      contains('native_review_lifecycle_boundary_missing'),
+    );
+  });
+
+  test('provider degradation wins a race with stale active supervision', () {
+    final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
+      nativeDecision: nativeDecision(event: statusEvent('providerUnavailable')),
+      supervisorDecision: supervisorDecision(),
+      localCheckpointAvailable: true,
+    );
+
+    expect(
+      decision.status,
+      TripNativeInterruptionRecoveryStatus.recoverInBackground,
+    );
+    expect(decision.nextLifecycle, TripTrackingSessionLifecycleState.degraded);
+    expect(decision.canFeedEngine, isFalse);
+    expect(decision.shouldRequestUserAction, isFalse);
+  });
+
+  test('native pause wins a race with stale active supervision', () {
+    final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
+      nativeDecision: nativeDecision(event: statusEvent('paused')),
+      supervisorDecision: supervisorDecision(),
+      localCheckpointAvailable: true,
+    );
+
+    expect(
+      decision.status,
+      TripNativeInterruptionRecoveryStatus.recoverInBackground,
+    );
+    expect(decision.nextLifecycle, TripTrackingSessionLifecycleState.paused);
+    expect(decision.canFeedEngine, isFalse);
+  });
+
+  test(
+    'explicit supervisor recovery remains authoritative over native noise',
+    () {
+      final decision = TripNativeInterruptionRecoveryPolicy.evaluate(
+        nativeDecision: nativeDecision(event: statusEvent('paused')),
+        supervisorDecision: supervisorDecision(
+          recovery: const TripTrackingRecoveryDecision(
+            status: TripTrackingRecoveryStatus.pendingReplayReady,
+            safeReason: 'trip_recovery_pending_replay_ready',
+            canRestore: true,
+            requiresUserAction: false,
+            estimatedOdometer: 1120,
+            pendingSampleQueued: true,
+          ),
+        ),
+        localCheckpointAvailable: true,
+      );
+
+      expect(
+        decision.nextLifecycle,
+        TripTrackingSessionLifecycleState.recovering,
+      );
+      expect(decision.canReplayPendingSample, isTrue);
+    },
+  );
+
   test(
     'pending recoverable sample can replay in background from checkpoint',
     () {

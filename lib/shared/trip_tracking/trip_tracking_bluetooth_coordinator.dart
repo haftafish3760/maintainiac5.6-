@@ -51,13 +51,22 @@ class TripTrackingBluetoothCoordinator {
         safeReason: 'bluetooth_observation_stale_or_disconnected',
       );
     }
-    final decision = resolveBluetoothVehicleMatchDecision(
-      settings: settings(),
-      link: linkStore.linkForDevice(observation.opaqueDeviceId),
-      hasActiveGpsTrip: hasActiveSession(),
-      hasUnfinishedStoredSession: hasUnfinishedStoredSession(),
-      activeVehicleId: currentVehicleId(),
-    );
+    late final BluetoothVehicleMatchDecision decision;
+    try {
+      decision = resolveBluetoothVehicleMatchDecision(
+        settings: settings(),
+        link: linkStore.linkForDevice(observation.opaqueDeviceId),
+        hasActiveGpsTrip: hasActiveSession(),
+        hasUnfinishedStoredSession: hasUnfinishedStoredSession(),
+        activeVehicleId: currentVehicleId(),
+      );
+    } catch (_) {
+      return const BluetoothVehicleMatchDecision(
+        disposition: BluetoothVehicleMatchDisposition.noMatch,
+        vehicleId: null,
+        safeReason: 'bluetooth_vehicle_context_unavailable',
+      );
+    }
     final vehicleId = decision.vehicleId;
     if (!decision.canSwitchVehicle || vehicleId == null) return decision;
 

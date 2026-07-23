@@ -33,10 +33,25 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
   ) => platform.events.listen(
     _enqueuePlatformEvent,
     onError: (Object error) {
+      if (!_nativeTracking && _pendingNativeStartRequest != null) {
+        _pendingNativeStartStopped = true;
+        _platformStatus = 'interrupted';
+        _platformError =
+            'GPS updates stopped while trip tracking was starting.';
+        notifyListeners();
+        return;
+      }
       if (!_nativeTracking) return;
       unawaited(_handleNativeInterruption('GPS updates stopped unexpectedly.'));
     },
     onDone: () {
+      if (!_nativeTracking && _pendingNativeStartRequest != null) {
+        _pendingNativeStartStopped = true;
+        _platformStatus = 'interrupted';
+        _platformError = 'GPS updates ended while trip tracking was starting.';
+        notifyListeners();
+        return;
+      }
       if (!_nativeTracking) return;
       _deferPlatformCleanup(
         () => _handleNativeInterruption('GPS updates ended unexpectedly.'),

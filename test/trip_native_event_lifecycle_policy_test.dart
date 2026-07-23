@@ -50,6 +50,43 @@ void main() {
     expect(safe['backgroundPauseRequiresRecoveryPath'], isTrue);
   });
 
+  test('permission loss interrupts every recoverable tracking state', () {
+    for (final current in const [
+      TripTrackingSessionLifecycleState.ready,
+      TripTrackingSessionLifecycleState.active,
+      TripTrackingSessionLifecycleState.paused,
+      TripTrackingSessionLifecycleState.degraded,
+      TripTrackingSessionLifecycleState.interrupted,
+      TripTrackingSessionLifecycleState.recovering,
+      TripTrackingSessionLifecycleState.failedRecoverable,
+    ]) {
+      for (final authorization in const [
+        TripTrackingAuthorizationState.denied,
+        TripTrackingAuthorizationState.restricted,
+        TripTrackingAuthorizationState.notDetermined,
+      ]) {
+        final decision = TripNativeEventLifecyclePolicy.evaluate(
+          currentState: current,
+          event: authorizationEvent(authorization),
+        );
+
+        expect(
+          decision.action,
+          TripNativeEventLifecycleAction.requestUserPermissionReview,
+          reason: '$current / $authorization',
+        );
+        expect(
+          decision.to,
+          TripTrackingSessionLifecycleState.permissionRequired,
+          reason: '$current / $authorization',
+        );
+        expect(decision.transitionAllowed, isTrue);
+        expect(decision.canFeedEngine, isFalse);
+        expect(decision.requiresUserReview, isTrue);
+      }
+    }
+  });
+
   test(
     'background restriction moves active trip to recoverable interruption',
     () {

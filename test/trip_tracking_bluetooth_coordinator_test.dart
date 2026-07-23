@@ -1,12 +1,119 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/device_capabilities/device_bluetooth_capabilities.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_bluetooth.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_bluetooth_coordinator.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
+  test(
+    'connection coordinator switches once and absorbs duplicate callbacks',
+    () async {
+      final now = DateTime.utc(2026, 7, 23, 9);
+      final links = TripTrackingBluetoothVehicleLinkStore.memory();
+      await links.save(
+        TripTrackingBluetoothVehicleLink(
+          deviceId: 'head-unit-2',
+          vehicleId: 'vehicle_2',
+          createdAt: now,
+        ),
+      );
+      var activeVehicleId = 'vehicle_1';
+      var switchCalls = 0;
+      final coordinator = TripTrackingBluetoothCoordinator(
+        linkStore: links,
+        settings: () => const TripTrackingSettings(
+          bluetoothVehicleRecognitionEnabled: true,
+          automaticVehicleSwitchEnabled: true,
+        ),
+        hasActiveSession: () => false,
+        hasUnfinishedStoredSession: () => false,
+        currentVehicleId: () => activeVehicleId,
+        switchVehicle: (vehicleId) async {
+          switchCalls += 1;
+          activeVehicleId = vehicleId;
+          return true;
+        },
+      );
+      final observation = DeviceBluetoothConnectionObservation(
+        opaqueDeviceId: 'head-unit-2',
+        connected: true,
+        observedAtUtc: now,
+      );
+
+      final results = await Future.wait([
+        coordinator.handleConnection(observation, nowUtc: now),
+        coordinator.handleConnection(observation, nowUtc: now),
+      ]);
+
+      expect(
+        results.first.disposition,
+        BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+      );
+      expect(
+        results.last.disposition,
+        BluetoothVehicleMatchDisposition.alreadyActiveVehicle,
+      );
+      expect(activeVehicleId, 'vehicle_2');
+      expect(switchCalls, 1);
+    },
+  );
+
+  test('connection coordinator fails safely and remains usable', () async {
+    final now = DateTime.utc(2026, 7, 23, 10);
+    final links = TripTrackingBluetoothVehicleLinkStore.memory();
+    await links.save(
+      TripTrackingBluetoothVehicleLink(
+        deviceId: 'head-unit-2',
+        vehicleId: 'vehicle_2',
+        createdAt: now,
+      ),
+    );
+    var settingsFail = true;
+    var activeVehicleId = 'vehicle_1';
+    final coordinator = TripTrackingBluetoothCoordinator(
+      linkStore: links,
+      settings: () {
+        if (settingsFail) throw StateError('settings unavailable');
+        return const TripTrackingSettings(
+          bluetoothVehicleRecognitionEnabled: true,
+          automaticVehicleSwitchEnabled: true,
+        );
+      },
+      hasActiveSession: () => false,
+      hasUnfinishedStoredSession: () => false,
+      currentVehicleId: () => activeVehicleId,
+      switchVehicle: (vehicleId) async {
+        activeVehicleId = vehicleId;
+        return true;
+      },
+    );
+    final observation = DeviceBluetoothConnectionObservation(
+      opaqueDeviceId: 'head-unit-2',
+      connected: true,
+      observedAtUtc: now,
+    );
+
+    final failed = await coordinator.handleConnection(observation, nowUtc: now);
+    settingsFail = false;
+    final recovered = await coordinator.handleConnection(
+      observation,
+      nowUtc: now,
+    );
+
+    expect(failed.disposition, BluetoothVehicleMatchDisposition.noMatch);
+    expect(failed.safeReason, 'bluetooth_vehicle_context_unavailable');
+    expect(failed.vehicleId, isNull);
+    expect(
+      recovered.disposition,
+      BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+    );
+    expect(activeVehicleId, 'vehicle_2');
+  });
+
   test(
     'coordinator never silently replaces an active Bluetooth vehicle',
     () async {

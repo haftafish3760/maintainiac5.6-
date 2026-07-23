@@ -240,8 +240,7 @@ BluetoothVehicleMatchDisposition resolveBluetoothVehicleMatch({
         ? BluetoothVehicleMatchDisposition.noMatch
         : BluetoothVehicleMatchDisposition.recognitionDisabled;
   }
-  if (hasActiveGpsTrip &&
-      _safeId(activeVehicleId).isNotEmpty &&
+  if (_safeId(activeVehicleId).isNotEmpty &&
       _safeId(activeVehicleId) == _safeId(link.vehicleId)) {
     return BluetoothVehicleMatchDisposition.alreadyActiveVehicle;
   }

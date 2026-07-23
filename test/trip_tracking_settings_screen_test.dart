@@ -183,8 +183,13 @@ void main() {
     await tester.tap(find.text('Not now'));
     await tester.pumpAndSettle();
     expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
+    expect(
+      find.bySemanticsLabel('Enable GPS-assisted tracking'),
+      findsOneWidget,
+    );
     await tester.ensureVisible(find.text('GPS update preset'));
     await tester.pump();
+    expect(find.bySemanticsLabel('GPS update preset'), findsOneWidget);
     await tester.tap(find.text('Enhanced (8 sec)'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('High accuracy (3 sec)').last);

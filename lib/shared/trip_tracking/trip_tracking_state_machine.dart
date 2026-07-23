@@ -71,6 +71,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.paused,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.permissionRequired,
           TripTrackingSessionLifecycleState.disabled,
         },
         TripTrackingSessionLifecycleState.starting: {
@@ -90,11 +91,13 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.interrupted,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedRecoverable,
+          TripTrackingSessionLifecycleState.permissionRequired,
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.paused: {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.permissionRequired,
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.degraded: {
@@ -108,6 +111,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.interrupted,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.permissionRequired,
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.interrupted: {
@@ -116,6 +120,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.stopping,
+          TripTrackingSessionLifecycleState.permissionRequired,
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.recovering: {
@@ -124,6 +129,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.awaitingReview,
+          TripTrackingSessionLifecycleState.permissionRequired,
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.awaitingReview: {
@@ -140,6 +146,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.awaitingReview,
+          TripTrackingSessionLifecycleState.permissionRequired,
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.failedTerminal: {

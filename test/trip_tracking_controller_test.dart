@@ -3751,6 +3751,83 @@ void main() {
   });
 
   test(
+    'a native stream error during startup fails closed without a phantom service',
+    () async {
+      final startGate = Completer<void>();
+      final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_stream_error_during_start',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final starting = controller.startNativeTracking(allowBackground: false);
+      await drainNativeTripEventsUntil(() => native.hasEventListener);
+      native.addError(StateError('location provider disconnected'));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'interrupted',
+      );
+      startGate.complete();
+
+      expect(await starting, isFalse);
+      expect(controller.nativeTracking, isFalse);
+      expect(native.stopCalls, 1);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      expect(controller.nativeTracking, isTrue);
+    },
+  );
+
+  test(
+    'a native stream close during startup fails closed without a phantom service',
+    () async {
+      final startGate = Completer<void>();
+      final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_stream_close_during_start',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final starting = controller.startNativeTracking(allowBackground: false);
+      await drainNativeTripEventsUntil(() => native.hasEventListener);
+      await native.closeEvents();
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'interrupted',
+      );
+      startGate.complete();
+
+      expect(await starting, isFalse);
+      expect(controller.nativeTracking, isFalse);
+      expect(native.stopCalls, 1);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.failedRecoverable,
+      );
+    },
+  );
+
+  test(
     'a native GPS stream error stops tracking and leaves a retryable trip',
     () async {
       final native = _FakeTripTrackingPlatform();

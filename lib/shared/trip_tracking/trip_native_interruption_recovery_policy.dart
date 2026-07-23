@@ -121,6 +121,15 @@ class TripNativeInterruptionRecoverySummaryValidation {
             summary['shouldRequestUserAction'] == true)) {
       reasons.add('unsafe_pending_sample_replay_claim');
     }
+    if ((summary['reasonCode'] == 'native_permission_requires_user_review' &&
+            summary['nextLifecycle'] !=
+                TripTrackingSessionLifecycleState.permissionRequired.name) ||
+        (summary['reasonCode'] ==
+                'native_background_restriction_requires_review' &&
+            summary['nextLifecycle'] !=
+                TripTrackingSessionLifecycleState.interrupted.name)) {
+      reasons.add('native_review_lifecycle_boundary_missing');
+    }
     if (summary['localCheckpointRequiredForRecovery'] != true ||
         summary['hiveRemainsOperationalSourceOfTruth'] != true ||
         summary['odometerRemainsOfficialMileageTruth'] != true ||
@@ -236,6 +245,7 @@ class TripNativeInterruptionRecoveryPolicy {
 
     if (nativeDecision.requiresUserReview ||
         supervisorDecision.shouldRequestUserAction) {
+      final nativeReviewRequired = nativeDecision.requiresUserReview;
       final prompt =
           supervisorDecision.status ==
           TripLifecycleSupervisorStatus.pauseForReview;
@@ -244,10 +254,13 @@ class TripNativeInterruptionRecoveryPolicy {
             ? TripNativeInterruptionRecoveryStatus.pauseForReview
             : TripNativeInterruptionRecoveryStatus.promptUser,
         reasonCode: _reviewReason(nativeDecision, supervisorDecision),
-        nextLifecycle: supervisorDecision.nextLifecycle,
+        nextLifecycle: nativeReviewRequired
+            ? nativeDecision.to
+            : supervisorDecision.nextLifecycle,
         canFeedEngine: false,
-        shouldKeepForegroundServiceAlive:
-            supervisorDecision.shouldKeepForegroundServiceAlive,
+        shouldKeepForegroundServiceAlive: nativeReviewRequired
+            ? false
+            : supervisorDecision.shouldKeepForegroundServiceAlive,
         shouldRequestUserAction: true,
         canReplayPendingSample: false,
         canUploadBackupMirror: false,
@@ -261,10 +274,15 @@ class TripNativeInterruptionRecoveryPolicy {
         nativeDecision.action ==
             TripNativeEventLifecycleAction.markInterrupted ||
         nativeDecision.action == TripNativeEventLifecycleAction.markDegraded) {
+      final supervisorOwnsRecovery =
+          supervisorDecision.status ==
+          TripLifecycleSupervisorStatus.recoverInBackground;
       return _decision(
         status: TripNativeInterruptionRecoveryStatus.recoverInBackground,
         reasonCode: _supervisorReason(supervisorDecision),
-        nextLifecycle: supervisorDecision.nextLifecycle,
+        nextLifecycle: supervisorOwnsRecovery
+            ? supervisorDecision.nextLifecycle
+            : nativeDecision.to,
         canFeedEngine: false,
         shouldKeepForegroundServiceAlive:
             supervisorDecision.shouldKeepForegroundServiceAlive,

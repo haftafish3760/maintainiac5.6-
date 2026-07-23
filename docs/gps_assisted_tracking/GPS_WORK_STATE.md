@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 391 in the current continuation
+- Current pass: 415 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -53,6 +53,10 @@
   transition audits cannot advance beyond the durable session/review
   checkpoint, preventing wall-clock anomalies or malformed records from
   rewriting newer recovery state
+- Cancelled and stopping recovery now have direct regression coverage proving
+  that a mismatched saved review cannot erase or replace either the terminal
+  checkpoint or its conflicting evidence. Recovery fails closed for explicit
+  repair while the confirmed odometer remains unchanged
 - The memory adapter now crosses the same serialization and normalization
   boundary as Hive instead of retaining a more permissive object graph. This
   exposed and repaired completion-pending contract restoration, explicit
@@ -64,9 +68,26 @@
 - Recovery reason/source codes and user-confirmed mileage adjustments now
   reject duplicate identities, impossible future ordering, and token or
   coordinate-like private text instead of silently persisting it
-- The complete trip-domain gate, Android debug build, and generic iOS
-  no-codesign build pass after these changes. The current Android build is
-  installed and resumed on the S25 Ultra without a Maintainiac crash
+- Permission loss now wins races with stale active supervision from every
+  recoverable tracking state. It enters the preserved permission-required
+  lifecycle, stops trusted collection, blocks replay and backup authority, and
+  cannot be discarded as an illegal native transition
+- Native provider degradation and pause callbacks now retain their validated
+  local lifecycle when the supervisor snapshot is stale. Stream failure or
+  closure during native startup is also captured before the start completes,
+  forcing cleanup without leaving a phantom collector or duplicate session
+- The trip-side Bluetooth vehicle-hint coordinator and capability-stream
+  binding are now serialized, idempotent across duplicate callbacks, and
+  failure-safe. They can identify or suggest a linked vehicle but cannot change
+  mileage or replace an active/unfinished trip. Native approved-device
+  observation remains owned by the shared device-capabilities adapter
+- The rebuilt Android app is installed on the S25 Ultra. Dashboard Settings
+  opens the GPS controls successfully, the active device setting is verified as
+  `High accuracy (3 sec)`, and the phone was returned to the Dashboard without
+  changing any non-Maintainiac setting
+- The complete 1,800-plus-test trip-domain gate, Android debug build, and
+  generic iOS no-codesign build pass after these changes. The current Android
+  build is installed and resumed on the S25 Ultra without a Maintainiac crash
 - Unresolved blockers: real Android/iOS route, battery, lifecycle, background,
   and long-session runs remain required before any real-world accuracy claim
 - Next action: continue lifecycle/recovery replay expansion, then convert

@@ -57,8 +57,8 @@ void main() {
         current: TripTrackingSessionLifecycleState.active,
         event: _authorizationEvent(TripTrackingAuthorizationState.denied),
         localCheckpoint: true,
-        expectedStatus: TripNativeInterruptionRecoveryStatus.ignoreSafely,
-        expectedReason: 'native_event_ignored_safely',
+        expectedStatus: TripNativeInterruptionRecoveryStatus.promptUser,
+        expectedReason: 'native_permission_requires_user_review',
       ),
     ];
 

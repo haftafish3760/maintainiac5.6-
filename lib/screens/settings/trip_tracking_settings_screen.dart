@@ -358,7 +358,12 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           Expanded(
             child: _SettingText(title: title, detail: detail),
           ),
-          Switch(value: value, onChanged: onChanged),
+          Semantics(
+            label: title,
+            value: value ? 'On' : 'Off',
+            toggled: value,
+            child: Switch(value: value, onChanged: onChanged),
+          ),
         ],
       ),
     ),
@@ -391,21 +396,26 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
         children: [
           Expanded(child: Text(title, style: _titleStyle)),
           const SizedBox(width: 8),
-          DropdownButton<T>(
-            value: value,
-            dropdownColor: const Color(0xFF202A2E),
-            underline: const SizedBox.shrink(),
-            style: const TextStyle(
-              color: Color(0xFFE2E8EA),
-              fontWeight: FontWeight.w800,
+          Semantics(
+            label: title,
+            value: label(value),
+            button: true,
+            child: DropdownButton<T>(
+              value: value,
+              dropdownColor: const Color(0xFF202A2E),
+              underline: const SizedBox.shrink(),
+              style: const TextStyle(
+                color: Color(0xFFE2E8EA),
+                fontWeight: FontWeight.w800,
+              ),
+              items: [
+                for (final item in items)
+                  DropdownMenuItem(value: item, child: Text(label(item))),
+              ],
+              onChanged: (next) {
+                if (next != null) onChanged(next);
+              },
             ),
-            items: [
-              for (final item in items)
-                DropdownMenuItem(value: item, child: Text(label(item))),
-            ],
-            onChanged: (next) {
-              if (next != null) onChanged(next);
-            },
           ),
         ],
       ),
