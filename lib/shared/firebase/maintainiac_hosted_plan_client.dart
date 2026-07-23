@@ -79,15 +79,20 @@ class MaintainiacHostedSyncReservation {
     final reservedAt = DateTime.tryParse(
       payload['reservedAt']?.toString() ?? '',
     );
+    final expectedRemaining = used is int && limit is int
+        ? (used >= limit ? 0 : limit - used)
+        : null;
     if (id is! String ||
         !RegExp(r'^[A-Za-z0-9-]{1,160}$').hasMatch(id) ||
         used is! int ||
         remaining is! int ||
         limit is! int ||
         used < 1 ||
+        used > 100 ||
         remaining < 0 ||
         limit < 1 ||
-        used + remaining != limit ||
+        limit > 100 ||
+        remaining != expectedRemaining ||
         seconds is! int ||
         seconds != const Duration(hours: 24).inSeconds ||
         reservedAt == null) {

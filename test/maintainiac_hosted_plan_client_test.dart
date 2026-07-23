@@ -104,6 +104,21 @@ void main() {
       );
     },
   );
+
+  test('client accepts a bounded exhausted result after plan downgrade', () {
+    final reservation = MaintainiacHostedSyncReservation.fromServer({
+      'reservationId': 'reservation-1',
+      'used': 4,
+      'remaining': 0,
+      'limit': 1,
+      'windowSeconds': const Duration(hours: 24).inSeconds,
+      'reservedAt': DateTime.utc(2026, 7, 22).toIso8601String(),
+    });
+
+    expect(reservation.used, 4);
+    expect(reservation.limit, 1);
+    expect(reservation.remaining, 0);
+  });
 }
 
 class _Identity implements MaintainiacCloudIdentityProvider {
