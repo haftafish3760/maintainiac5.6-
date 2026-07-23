@@ -46,6 +46,14 @@ class MaintainiacRestoreSessionClient {
     required String platform,
     required String appVersion,
   }) async {
+    if (!_inputToken(deviceId) ||
+        !RegExp(r'^[a-f0-9]{64}$').hasMatch(installationIdHash) ||
+        !const {'android', 'ios'}.contains(platform) ||
+        appVersion.trim() != appVersion ||
+        appVersion.isEmpty ||
+        appVersion.length > 64) {
+      throw ArgumentError('Invalid restore device registration.');
+    }
     await _functions.call(
       name: 'registerRestoreDevice',
       data: {
@@ -58,6 +66,9 @@ class MaintainiacRestoreSessionClient {
   }
 
   Future<void> revokeDevice({required String deviceId}) async {
+    if (!_inputToken(deviceId)) {
+      throw ArgumentError.value(deviceId, 'deviceId');
+    }
     await _functions.call(
       name: 'revokeRestoreDevice',
       data: {'deviceId': deviceId},
@@ -70,8 +81,11 @@ class MaintainiacRestoreSessionClient {
     required String mode,
     required String requestId,
   }) async {
-    if (!RegExp(r'^[A-Za-z0-9_-]{1,160}$').hasMatch(requestId)) {
-      throw ArgumentError.value(requestId, 'requestId');
+    if (!_inputToken(organizationId) ||
+        !_inputToken(deviceId) ||
+        !_inputToken(requestId) ||
+        !const {'full', 'smart', 'recordsOnly'}.contains(mode)) {
+      throw ArgumentError('Invalid restore authorization request.');
     }
     final result = await _functions.call(
       name: 'issueRestoreAuthorization',
@@ -217,3 +231,6 @@ DateTime _requiredDate(Map<String, Object?> map, String key) {
   }
   return parsed.toUtc();
 }
+
+bool _inputToken(String value) =>
+    RegExp(r'^[A-Za-z0-9_-]{1,160}$').hasMatch(value);

@@ -68,6 +68,39 @@ void main() {
   });
 
   test(
+    'invalid device and restore requests make zero callable requests',
+    () async {
+      final functions = _Functions(const {});
+      final client = MaintainiacRestoreSessionClient(functions);
+
+      await expectLater(
+        client.registerDevice(
+          deviceId: 'device-a',
+          installationIdHash: 'not-a-hash',
+          platform: 'android',
+          appVersion: '1.0.0',
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        client.revokeDevice(deviceId: '../device'),
+        throwsArgumentError,
+      );
+      await expectLater(
+        client.issue(
+          organizationId: 'org-a',
+          deviceId: 'device-a',
+          mode: 'unknown',
+          requestId: 'request-a',
+        ),
+        throwsArgumentError,
+      );
+
+      expect(functions.calls, 0);
+    },
+  );
+
+  test(
     'refresh rotates a credential without sending the expired secret',
     () async {
       final functions = _Functions({
@@ -128,12 +161,14 @@ class _Functions implements MaintainiacCallableFunctionClient {
   final Map<String, Map<String, Object?>> responses;
   Map<String, Object?>? lastData;
   String? lastName;
+  int calls = 0;
 
   @override
   Future<Map<String, Object?>> call({
     required String name,
     required Map<String, Object?> data,
   }) async {
+    calls += 1;
     lastName = name;
     lastData = data;
     return responses[name] ?? const {};
