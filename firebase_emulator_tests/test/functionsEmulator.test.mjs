@@ -20,6 +20,8 @@ import {
 const callableNames = [
   'issueExpenseProofUploadGrant',
   'finalizeExpenseProofUpload',
+  'registerRestoreDevice',
+  'issueRestoreAuthorization',
 ];
 let testEnv;
 
@@ -119,6 +121,79 @@ describe('Cloud Functions emulator safety', () => {
       assert.equal(storedGrant.data()?.receiptId, receiptId);
     });
   });
+
+  test('restore authorization binds account, registered device, and one-time token', async () => {
+    const identity = await createEmulatorIdentity();
+    await seedMember(identity.uid);
+    const installationIdHash = 'c'.repeat(64);
+    const registered = await callFunction('registerRestoreDevice', identity.token, {
+      deviceId: 'restoreDeviceA',
+      installationIdHash,
+      platform: 'android',
+      appVersion: '1.0.0',
+    });
+    assert.equal(registered.deviceId, 'restoreDeviceA');
+    assert.equal(registered.registrationRevision, 1);
+
+    const authorization = await callFunction(
+      'issueRestoreAuthorization',
+      identity.token,
+      {
+        organizationId: 'orgLifecycleA',
+        deviceId: 'restoreDeviceA',
+        mode: 'smart',
+      },
+    );
+    assert.match(authorization.sessionId, /^[a-f0-9-]{36}$/);
+    assert.match(authorization.authorizationToken, /^[a-f0-9]{64}$/);
+
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      const session = await getDoc(
+        doc(
+          db,
+          `orgs/orgLifecycleA/restoreSessions/${authorization.sessionId}`,
+        ),
+      );
+      const device = await getDoc(
+        doc(db, `users/${identity.uid}/devices/restoreDeviceA`),
+      );
+      const expectedHash = createHash('sha256')
+        .update(authorization.authorizationToken)
+        .digest('hex');
+      assert.equal(device.data()?.uid, identity.uid);
+      assert.equal(session.data()?.uid, identity.uid);
+      assert.equal(session.data()?.mode, 'smart');
+      assert.equal(session.data()?.authorizationTokenHash, expectedHash);
+      assert.equal(session.data()?.authorizationToken, undefined);
+    });
+
+    const rebound = await callFunctionError(
+      'registerRestoreDevice',
+      identity.token,
+      {
+        deviceId: 'restoreDeviceA',
+        installationIdHash: 'd'.repeat(64),
+        platform: 'android',
+        appVersion: '1.0.0',
+      },
+    );
+    assert.equal(rebound.status, 400);
+    assert.equal(rebound.body?.error?.status, 'FAILED_PRECONDITION');
+
+    const outsider = await createEmulatorIdentity();
+    const denied = await callFunctionError(
+      'issueRestoreAuthorization',
+      outsider.token,
+      {
+        organizationId: 'orgLifecycleA',
+        deviceId: 'restoreDeviceA',
+        mode: 'smart',
+      },
+    );
+    assert.equal(denied.status, 403);
+    assert.equal(denied.body?.error?.status, 'PERMISSION_DENIED');
+  });
 });
 
 function callableUrl(name) {
@@ -158,6 +233,13 @@ async function seedMember(uid) {
 }
 
 async function callFunction(name, token, data) {
+  const result = await callFunctionError(name, token, data);
+  assert.equal(result.status, 200, JSON.stringify(result.body));
+  assert.ok(result.body.result, `${name} must return a callable result`);
+  return result.body.result;
+}
+
+async function callFunctionError(name, token, data) {
   const response = await fetch(callableUrl(name), {
     method: 'POST',
     headers: {
@@ -167,7 +249,5 @@ async function callFunction(name, token, data) {
     body: JSON.stringify({data}),
   });
   const body = await response.json();
-  assert.equal(response.status, 200, JSON.stringify(body));
-  assert.ok(body.result, `${name} must return a callable result`);
-  return body.result;
+  return {status: response.status, body};
 }

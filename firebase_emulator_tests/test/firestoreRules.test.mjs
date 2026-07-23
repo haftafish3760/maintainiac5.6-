@@ -643,6 +643,49 @@ describe('Firestore rules emulator safety', () => {
     await assertFails(deleteDoc(doc(owner, 'orgs/orgA/uploadGrants/grant1')));
   });
 
+  test('restore devices and sessions are server-written and owner-readable', async () => {
+    const owner = dbFor('ownerUid');
+    const helper = dbFor('helperUid');
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/devices/deviceA'), {
+        uid: 'ownerUid',
+        deviceId: 'deviceA',
+        status: 'active',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'orgs/orgA/restoreSessions/sessionA'), {
+        uid: 'ownerUid',
+        orgId: 'orgA',
+        status: 'authorized',
+      }),
+    );
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await setDoc(doc(db, 'users/ownerUid/devices/deviceA'), {
+        uid: 'ownerUid',
+        deviceId: 'deviceA',
+        status: 'active',
+      });
+      await setDoc(doc(db, 'orgs/orgA/restoreSessions/sessionA'), {
+        uid: 'ownerUid',
+        orgId: 'orgA',
+        status: 'authorized',
+      });
+    });
+    await assertSucceeds(getDoc(doc(owner, 'users/ownerUid/devices/deviceA')));
+    await assertFails(getDoc(doc(helper, 'users/ownerUid/devices/deviceA')));
+    await assertSucceeds(
+      getDoc(doc(owner, 'orgs/orgA/restoreSessions/sessionA')),
+    );
+    await assertFails(
+      getDoc(doc(helper, 'orgs/orgA/restoreSessions/sessionA')),
+    );
+    await assertFails(
+      deleteDoc(doc(owner, 'orgs/orgA/restoreSessions/sessionA')),
+    );
+  });
+
   test('server-managed fields cannot be changed by clients', async () => {
     await testEnv.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'users/userA'), {

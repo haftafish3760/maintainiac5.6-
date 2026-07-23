@@ -10,6 +10,7 @@ const {
   requestOpenAiAssist,
   validateAssistRequest,
 } = require('./receipt_ai_assist');
+const {buildRestoreAuthorizationFunctions} = require('./restore_authorization');
 
 const runningInFunctionsEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
 initializeApp(
@@ -22,6 +23,12 @@ initializeApp(
 // emulator cannot mint production App Check assertions, so authenticated
 // lifecycle tests explicitly bypass only that local verification boundary.
 const enforceCallableAppCheck = !runningInFunctionsEmulator;
+const restoreAuthorizationFunctions = buildRestoreAuthorizationFunctions({
+  enforceAppCheck: enforceCallableAppCheck,
+});
+exports.registerRestoreDevice = restoreAuthorizationFunctions.registerRestoreDevice;
+exports.issueRestoreAuthorization =
+    restoreAuthorizationFunctions.issueRestoreAuthorization;
 
 const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
   default: 20 * 1024 * 1024,

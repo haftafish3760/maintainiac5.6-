@@ -1117,6 +1117,11 @@ service cloud.firestore {
           !request.resource.data.keys().hasAny(['orgId']);
         allow delete: if false;
       }
+
+      match /devices/{deviceId} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
     }
 
     match /usage/{uid}/months/{monthId} {
@@ -1222,6 +1227,13 @@ service cloud.firestore {
 
       match /syncManifests/{manifestId} {
         allow read: if isActiveMember(orgId);
+        allow write: if false;
+      }
+
+      match /restoreSessions/{sessionId} {
+        allow read: if isActiveMember(orgId) &&
+          resource.data.uid == request.auth.uid &&
+          resource.data.orgId == orgId;
         allow write: if false;
       }
 
