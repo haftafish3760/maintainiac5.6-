@@ -1016,6 +1016,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       review.hasValidTimeline &&
       review.id == session.id &&
       review.vehicleId == session.vehicleId &&
+      review.profile == session.profile &&
       review.effectiveProfileId == session.effectiveProfileId &&
       review.vehicleConfigurationRevision ==
           session.vehicleConfigurationRevision &&
@@ -1024,45 +1025,95 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       review.startedTimeZoneName == session.startedTimeZoneName &&
       _reviewAdvisoriesMatchSession(review, session) &&
       _reviewTripEventsMatchSession(review, session) &&
+      _reviewEngineSnapshotMatchesSession(review, session) &&
+      _reviewRecoveryEvidenceMatchesSession(review, session) &&
+      _reviewEstimatedOdometerMatchesSession(review, session) &&
+      _reviewFinishedAtMatchesSession(review, session) &&
       review.startingOdometer == session.startingOdometer &&
       review.startedAt == session.startedAt &&
       review.estimatedEndingOdometer >= review.startingOdometer;
 
-  bool _reviewAdvisoriesMatchSession(
+  bool _reviewEngineSnapshotMatchesSession(
+    TripTrackingReviewRecord review,
+    TripTrackingSessionRecord session,
+  ) =>
+      jsonEncode(review.engineSnapshot.toMap()) ==
+      jsonEncode(session.engineSnapshot.toMap());
+
+  bool _reviewEstimatedOdometerMatchesSession(
     TripTrackingReviewRecord review,
     TripTrackingSessionRecord session,
   ) {
-    if (review.advisories.length != session.advisories.length) return false;
-    for (var index = 0; index < review.advisories.length; index += 1) {
-      final saved = review.advisories[index];
-      final active = session.advisories[index];
-      if (saved.id != active.id ||
-          saved.type != active.type ||
-          saved.disposition != active.disposition ||
-          saved.detectedAt != active.detectedAt) {
-        return false;
-      }
-    }
-    return true;
+    final projection = TripLiveOdometerProjection(
+      startingOdometer: session.startingOdometer,
+      maxSupportedReading: _odometer.maxSupportedReading,
+    );
+    final expected = projection.updateAcceptedMeters(
+      session.engineSnapshot.totalAcceptedMeters,
+      gpsAssistanceCalibrationMultiplier:
+          session.gpsAssistanceCalibrationMultiplier,
+    );
+    return !projection.lastUpdateExceededMax &&
+        review.estimatedEndingOdometer == expected;
   }
+
+  bool _reviewFinishedAtMatchesSession(
+    TripTrackingReviewRecord review,
+    TripTrackingSessionRecord session,
+  ) {
+    if (session.lifecycleState == TripTrackingSessionLifecycleState.stopping ||
+        session.lifecycleState == TripTrackingSessionLifecycleState.cancelled) {
+      return review.finishedAt == session.updatedAt;
+    }
+    return !review.finishedAt.isBefore(session.updatedAt);
+  }
+
+  bool _reviewRecoveryEvidenceMatchesSession(
+    TripTrackingReviewRecord review,
+    TripTrackingSessionRecord session,
+  ) =>
+      review.gpsAssistanceCalibrationMultiplier ==
+          session.gpsAssistanceCalibrationMultiplier &&
+      review.recoveryCount == session.recoveryCount &&
+      review.revision >= session.revision &&
+      jsonEncode(review.ancestry?.toMap()) ==
+          jsonEncode(session.ancestry?.toMap()) &&
+      jsonEncode(
+            review.transitionAudits.map((audit) => audit.toMap()).toList(),
+          ) ==
+          jsonEncode(
+            session.transitionAudits.map((audit) => audit.toMap()).toList(),
+          ) &&
+      jsonEncode(review.batteryStateSummary?.toMap()) ==
+          jsonEncode(session.batteryStateSummary?.toMap()) &&
+      jsonEncode(
+            review.permissionHistory
+                .map((evidence) => evidence.toMap())
+                .toList(),
+          ) ==
+          jsonEncode(
+            session.permissionHistory
+                .map((evidence) => evidence.toMap())
+                .toList(),
+          );
+
+  bool _reviewAdvisoriesMatchSession(
+    TripTrackingReviewRecord review,
+    TripTrackingSessionRecord session,
+  ) =>
+      jsonEncode(
+        review.advisories.map((advisory) => advisory.toMap()).toList(),
+      ) ==
+      jsonEncode(
+        session.advisories.map((advisory) => advisory.toMap()).toList(),
+      );
 
   bool _reviewTripEventsMatchSession(
     TripTrackingReviewRecord review,
     TripTrackingSessionRecord session,
-  ) {
-    if (review.tripEvents.length != session.tripEvents.length) return false;
-    for (var index = 0; index < review.tripEvents.length; index += 1) {
-      final saved = review.tripEvents[index];
-      final active = session.tripEvents[index];
-      if (saved.id != active.id ||
-          saved.type != active.type ||
-          saved.occurredAt != active.occurredAt ||
-          saved.initiatingSource != active.initiatingSource) {
-        return false;
-      }
-    }
-    return true;
-  }
+  ) =>
+      jsonEncode(review.tripEvents.map((event) => event.toMap()).toList()) ==
+      jsonEncode(session.tripEvents.map((event) => event.toMap()).toList());
 
   bool _isCompletionPendingSession(TripTrackingSessionRecord session) =>
       session.lifecycleState ==

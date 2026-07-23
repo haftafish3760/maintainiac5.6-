@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 415 in the current continuation
+- Current pass: 436 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -57,6 +57,21 @@
   that a mismatched saved review cannot erase or replace either the terminal
   checkpoint or its conflicting evidence. Recovery fails closed for explicit
   repair while the confirmed odometer remains unchanged
+- Review cleanup now requires exact locally persisted engine, advisory, manual
+  event, transition-audit, battery, permission, ancestry, calibration, and
+  recovery evidence. A same-ID review with altered GPS distance or provenance
+  can no longer clear the recoverable session checkpoint. Its GPS-assisted
+  ending estimate must also reproduce from the preserved accepted distance and
+  calibration multiplier; that estimate remains advisory and never changes the
+  confirmed odometer. Terminal finish time and tracking-profile identity must
+  also match the checkpoint
+- Initial-session creation races, initial checkpoint write failure,
+  recovery-count checkpoint failure, and optional pending-sample read failure
+  now have direct controller regressions proving that no duplicate session,
+  phantom odometer lock, or erased durable checkpoint is produced
+- Terminal review-write and checkpoint-cleanup faults retain their source
+  checkpoint, retry idempotently, and never fabricate a replacement review.
+  Malformed terminal evidence fails closed for explicit repair
 - The memory adapter now crosses the same serialization and normalization
   boundary as Hive instead of retaining a more permissive object graph. This
   exposed and repaired completion-pending contract restoration, explicit

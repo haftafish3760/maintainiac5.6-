@@ -286,6 +286,63 @@ void main() {
     },
   );
 
+  test(
+    'initial checkpoint write failure leaves no phantom trip or odometer lock',
+    () async {
+      final store = _FailingInitialSessionCreateStore();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_initial_create_failure',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(store.activeSession, isNull);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(controller.platformError, 'Could not save the trip locally.');
+    },
+  );
+
+  test(
+    'concurrent durable start wins without leaving duplicate local state',
+    () async {
+      final store = _ConcurrentInitialSessionCreateStore();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'trip_losing_start_race',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: start,
+        ),
+        isFalse,
+      );
+
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(store.activeSession?.id, 'trip_concurrent_winner');
+      expect(controller.platformStatus, 'trip_already_active');
+    },
+  );
+
   test('starting another trip while one is active is rejected', () async {
     final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
@@ -764,6 +821,88 @@ void main() {
     expect(controller.platformStatus, 'storage_failed');
     expect(controller.platformError, contains('Could not read local trip'));
   });
+
+  test(
+    'recovery-count checkpoint failure releases only the in-memory projection',
+    () async {
+      final store = _FailingRecoveryCountSaveStore();
+      final session = TripTrackingSessionRecord(
+        id: 'trip_recovery_count_failure',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        updatedAt: start.add(const Duration(minutes: 5)),
+        lifecycleState: TripTrackingSessionLifecycleState.active,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 1600,
+          walkingReviewSuggested: false,
+        ),
+      );
+      await store.save(session);
+      store.failRecoveryCountSave = true;
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+
+      expect(await controller.restore(), isFalse);
+
+      expect(controller.isTracking, isFalse);
+      expect(odometer.hasLiveTripProjection, isFalse);
+      expect(store.activeSession?.id, session.id);
+      expect(store.activeSession?.recoveryCount, 0);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        'Could not save the trip recovery count locally.',
+      );
+    },
+  );
+
+  test(
+    'pending-sample read failure keeps recovered checkpoint and projection',
+    () async {
+      final store = _FailingPendingSampleReadStore();
+      final session = TripTrackingSessionRecord(
+        id: 'trip_pending_read_failure',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+        updatedAt: start.add(const Duration(minutes: 5)),
+        lifecycleState: TripTrackingSessionLifecycleState.active,
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 1600,
+          walkingReviewSuggested: false,
+        ),
+      );
+      await store.save(session);
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+
+      expect(await controller.restore(), isTrue);
+
+      expect(controller.isTracking, isTrue);
+      expect(odometer.hasLiveTripProjection, isTrue);
+      expect(store.activeSession?.recoveryCount, 1);
+      expect(
+        controller.acceptedMeters,
+        session.engineSnapshot.totalAcceptedMeters,
+      );
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        'Could not read pending GPS recovery data.',
+      );
+    },
+  );
 
   test(
     'restore preserves completion-pending session without clearing it',
@@ -9553,12 +9692,26 @@ void main() {
       TripTrackingReviewRecord(
         id: active.id,
         vehicleId: active.vehicleId,
+        vehicleConfigurationRevision: active.vehicleConfigurationRevision,
+        gpsAssistanceCalibrationMultiplier:
+            active.gpsAssistanceCalibrationMultiplier,
+        ancestry: active.ancestry,
         startingOdometer: active.startingOdometer,
         estimatedEndingOdometer: active.startingOdometer,
         profile: active.profile,
+        profileId: active.effectiveProfileId,
         startedAt: active.startedAt,
         finishedAt: start.add(const Duration(minutes: 1)),
+        startedTimeZoneOffsetMinutes: active.startedTimeZoneOffsetMinutes,
+        startedTimeZoneName: active.startedTimeZoneName,
         engineSnapshot: active.engineSnapshot,
+        advisories: active.advisories,
+        tripEvents: active.tripEvents,
+        transitionAudits: active.transitionAudits,
+        batteryStateSummary: active.batteryStateSummary,
+        permissionHistory: active.permissionHistory,
+        recoveryCount: active.recoveryCount,
+        revision: active.revision,
       ),
     );
 
@@ -9597,12 +9750,26 @@ void main() {
         TripTrackingReviewRecord(
           id: active.id,
           vehicleId: active.vehicleId,
+          vehicleConfigurationRevision: active.vehicleConfigurationRevision,
+          gpsAssistanceCalibrationMultiplier:
+              active.gpsAssistanceCalibrationMultiplier,
+          ancestry: active.ancestry,
           startingOdometer: active.startingOdometer,
           estimatedEndingOdometer: active.startingOdometer,
           profile: active.profile,
+          profileId: active.effectiveProfileId,
           startedAt: active.startedAt,
           finishedAt: start.add(const Duration(minutes: 1)),
+          startedTimeZoneOffsetMinutes: active.startedTimeZoneOffsetMinutes,
+          startedTimeZoneName: active.startedTimeZoneName,
           engineSnapshot: active.engineSnapshot,
+          advisories: active.advisories,
+          tripEvents: active.tripEvents,
+          transitionAudits: active.transitionAudits,
+          batteryStateSummary: active.batteryStateSummary,
+          permissionHistory: active.permissionHistory,
+          recoveryCount: active.recoveryCount,
+          revision: active.revision,
         ),
       );
 
@@ -11297,6 +11464,57 @@ class _DelayedReviewSaveStore extends TripTrackingSessionStore {
     reviewSaveStarted.complete();
     await allowReviewSave.future;
     await super.saveReview(review);
+  }
+}
+
+class _FailingInitialSessionCreateStore extends TripTrackingSessionStore {
+  _FailingInitialSessionCreateStore() : super.memory();
+
+  @override
+  Future<bool> createIfNoSessionEvidence(
+    TripTrackingSessionRecord session,
+  ) async {
+    throw StateError('initial local checkpoint failed');
+  }
+}
+
+class _ConcurrentInitialSessionCreateStore extends TripTrackingSessionStore {
+  _ConcurrentInitialSessionCreateStore() : super.memory();
+
+  @override
+  Future<bool> createIfNoSessionEvidence(
+    TripTrackingSessionRecord session,
+  ) async {
+    await super.save(
+      TripTrackingSessionRecord.fromMap({
+        ...session.toMap(),
+        'id': 'trip_concurrent_winner',
+      }),
+    );
+    return false;
+  }
+}
+
+class _FailingRecoveryCountSaveStore extends TripTrackingSessionStore {
+  _FailingRecoveryCountSaveStore() : super.memory();
+
+  var failRecoveryCountSave = false;
+
+  @override
+  Future<void> save(TripTrackingSessionRecord session) async {
+    if (failRecoveryCountSave && session.recoveryCount > 0) {
+      throw StateError('recovery count checkpoint failed');
+    }
+    await super.save(session);
+  }
+}
+
+class _FailingPendingSampleReadStore extends TripTrackingSessionStore {
+  _FailingPendingSampleReadStore() : super.memory();
+
+  @override
+  TripTrackingPendingSample? pendingSampleFor(String sessionId) {
+    throw StateError('pending sample read failed');
   }
 }
 
