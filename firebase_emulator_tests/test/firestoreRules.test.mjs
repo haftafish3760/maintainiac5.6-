@@ -686,6 +686,48 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 
+  test('hosted plans and sync usage cannot be self-assigned by clients', async () => {
+    const owner = dbFor('ownerUid');
+    const helper = dbFor('helperUid');
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/entitlements/current'), {
+        uid: 'ownerUid',
+        planId: 'unlimited',
+        status: 'active',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/syncUsage/rolling24Hours'), {
+        uid: 'ownerUid',
+        attempts: [],
+      }),
+    );
+    await assertFails(
+      getDoc(doc(owner, 'hostedPlans/freeConfigurable')),
+    );
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await setDoc(doc(db, 'users/ownerUid/entitlements/current'), {
+        uid: 'ownerUid',
+        planId: 'freeConfigurable',
+        status: 'active',
+      });
+      await setDoc(doc(db, 'users/ownerUid/syncUsage/rolling24Hours'), {
+        uid: 'ownerUid',
+        attempts: [],
+      });
+    });
+    await assertSucceeds(
+      getDoc(doc(owner, 'users/ownerUid/entitlements/current')),
+    );
+    await assertSucceeds(
+      getDoc(doc(owner, 'users/ownerUid/syncUsage/rolling24Hours')),
+    );
+    await assertFails(
+      getDoc(doc(helper, 'users/ownerUid/entitlements/current')),
+    );
+  });
+
   test('server-managed fields cannot be changed by clients', async () => {
     await testEnv.withSecurityRulesDisabled(async (context) => {
       await setDoc(doc(context.firestore(), 'users/userA'), {

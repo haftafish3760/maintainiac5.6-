@@ -24,6 +24,8 @@ const callableNames = [
   'issueRestoreAuthorization',
   'beginRestoreSession',
   'updateRestoreSession',
+  'getHostedUsageGrant',
+  'reserveHostedSync',
 ];
 let testEnv;
 
@@ -241,6 +243,48 @@ describe('Cloud Functions emulator safety', () => {
     assert.equal(denied.status, 403);
     assert.equal(denied.body?.error?.status, 'PERMISSION_DENIED');
   });
+
+  test('server plan grants and rolling sync reservations are enforced atomically', async () => {
+    const identity = await createEmulatorIdentity();
+    await seedHostedPlan(identity.uid);
+    const grant = await callFunction(
+      'getHostedUsageGrant',
+      identity.token,
+      {},
+    );
+    assert.equal(grant.planId, 'freeConfigurable');
+    assert.equal(grant.storageQuotaBytes, 100 * 1024 * 1024);
+    assert.equal(grant.dailySyncLimit, 4);
+
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      const reservation = await callFunction(
+        'reserveHostedSync',
+        identity.token,
+        {},
+      );
+      assert.equal(reservation.used, attempt);
+      assert.equal(reservation.remaining, 4 - attempt);
+      assert.equal(reservation.limit, 4);
+    }
+    const exhausted = await callFunctionError(
+      'reserveHostedSync',
+      identity.token,
+      {},
+    );
+    assert.equal(exhausted.status, 429);
+    assert.equal(exhausted.body?.error?.status, 'RESOURCE_EXHAUSTED');
+
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const usage = await getDoc(
+        doc(
+          context.firestore(),
+          `users/${identity.uid}/syncUsage/rolling24Hours`,
+        ),
+      );
+      assert.equal(usage.data()?.attempts?.length, 4);
+      assert.equal(usage.data()?.planId, 'freeConfigurable');
+    });
+  });
 });
 
 function callableUrl(name) {
@@ -275,6 +319,26 @@ async function seedMember(uid) {
       status: 'active',
       role: 'owner',
       permissions: ['addOwnReceipts'],
+    });
+  });
+}
+
+async function seedHostedPlan(uid) {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    const db = context.firestore();
+    await setDoc(doc(db, `users/${uid}/entitlements/current`), {
+      uid,
+      planId: 'freeConfigurable',
+      status: 'active',
+    });
+    await setDoc(doc(db, 'hostedPlans/freeConfigurable'), {
+      status: 'active',
+      displayName: 'Free configurable test plan',
+      storageQuotaBytes: 100 * 1024 * 1024,
+      dailySyncLimit: 4,
+      immediateSyncAllowed: false,
+      policyVersion: 7,
+      downloadAllowanceBytes: 25 * 1024 * 1024,
     });
   });
 }

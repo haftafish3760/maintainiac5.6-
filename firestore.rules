@@ -1122,6 +1122,16 @@ service cloud.firestore {
         allow read: if isSelf(uid);
         allow write: if false;
       }
+
+      match /entitlements/{entitlementId} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
+
+      match /syncUsage/{windowId} {
+        allow read: if isSelf(uid);
+        allow write: if false;
+      }
     }
 
     match /usage/{uid}/months/{monthId} {
@@ -1504,6 +1514,10 @@ service cloud.firestore {
         allow read: if true;
         allow write: if false;
       }
+    }
+
+    match /hostedPlans/{planId} {
+      allow read, write: if false;
     }
 
     match /vendorRegistry/{vendorId} {

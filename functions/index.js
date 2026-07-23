@@ -11,6 +11,7 @@ const {
   validateAssistRequest,
 } = require('./receipt_ai_assist');
 const {buildRestoreAuthorizationFunctions} = require('./restore_authorization');
+const {buildHostedPlanFunctions} = require('./hosted_plans');
 
 const runningInFunctionsEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
 initializeApp(
@@ -31,6 +32,11 @@ exports.issueRestoreAuthorization =
     restoreAuthorizationFunctions.issueRestoreAuthorization;
 exports.beginRestoreSession = restoreAuthorizationFunctions.beginRestoreSession;
 exports.updateRestoreSession = restoreAuthorizationFunctions.updateRestoreSession;
+const hostedPlanFunctions = buildHostedPlanFunctions({
+  enforceAppCheck: enforceCallableAppCheck,
+});
+exports.getHostedUsageGrant = hostedPlanFunctions.getHostedUsageGrant;
+exports.reserveHostedSync = hostedPlanFunctions.reserveHostedSync;
 
 const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
   default: 20 * 1024 * 1024,
