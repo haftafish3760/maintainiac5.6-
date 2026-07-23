@@ -75,6 +75,9 @@ outcomes.
 
 1. Deny precise location, then retry after granting it. Confirm no looping
    permission prompts and no empty trip/odometer lock remains after failure.
+   On Android 11 or newer, confirm background mode explains that “Allow all
+   the time” must be chosen manually, opens only Maintainiac's app-settings
+   page after explicit confirmation, and returns safely when dismissed.
 2. With foreground-only tracking, lock/background the app. Confirm native GPS
    stops and the local trip remains recoverable.
 3. With explicit background tracking enabled and platform approval granted,

@@ -27,6 +27,7 @@ import '../settings/trip_tracking_settings_screen.dart';
 import 'active_workday_actions.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_store.dart';
+import 'trip_background_location_settings_prompt.dart';
 import 'vehicle_profile_flow.dart';
 import 'vehicle_profile_widgets.dart';
 
@@ -719,8 +720,27 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         }
       }
     }
+    final backgroundSettingsRequired =
+        !started &&
+        defaultTargetPlatform == TargetPlatform.android &&
+        tripTracking.platformStatus == 'background_location_settings_required';
     if (!started && startedNewTrip) await tripTracking.discardEmptyTrip();
     if (!mounted) return;
+    if (backgroundSettingsRequired) {
+      final openSettings = await showTripBackgroundLocationSettingsPrompt(
+        context,
+      );
+      if (!mounted) return;
+      if (openSettings) {
+        final opened = await tripTracking.openBackgroundLocationSettings();
+        if (!opened && mounted) {
+          _showGpsMessage(
+            'Android settings could not be opened. Manual mileage is still available.',
+          );
+        }
+      }
+      return;
+    }
     _showGpsMessage(
       started
           ? 'GPS-assisted trip tracking started.'

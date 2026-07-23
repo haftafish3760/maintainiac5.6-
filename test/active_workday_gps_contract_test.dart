@@ -112,4 +112,38 @@ void main() {
     expect(source, contains('final summaryText = summary.toPlainText()'));
     expect(source, contains('content: SingleChildScrollView('));
   });
+
+  test(
+    'Android background permission handoff is explicit and preserves cleanup',
+    () {
+      final source = File(
+        'lib/screens/dashboard/active_workday_screen.dart',
+      ).readAsStringSync();
+      final start = source.indexOf('Future<void> _startGpsTripImpl() async');
+      final status = source.indexOf(
+        "'background_location_settings_required'",
+        start,
+      );
+      final discard = source.indexOf('tripTracking.discardEmptyTrip()', status);
+      final prompt = source.indexOf(
+        'showTripBackgroundLocationSettingsPrompt(',
+        status,
+      );
+      final userChoice = source.indexOf('if (openSettings)', prompt);
+      final openSettings = source.indexOf(
+        'tripTracking.openBackgroundLocationSettings()',
+        userChoice,
+      );
+
+      expect(status, greaterThan(start));
+      expect(
+        source.substring(start, status),
+        contains('defaultTargetPlatform == TargetPlatform.android'),
+      );
+      expect(discard, greaterThan(status));
+      expect(prompt, greaterThan(discard));
+      expect(userChoice, greaterThan(prompt));
+      expect(openSettings, greaterThan(userChoice));
+    },
+  );
 }

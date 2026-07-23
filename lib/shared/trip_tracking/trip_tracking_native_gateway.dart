@@ -24,8 +24,17 @@ abstract interface class TripTrackingNativeRecoveryGateway {
   Future<String?> consumeRecoveryStatus();
 }
 
+/// Optional user-directed navigation used on Android 11+, where background
+/// location can only be granted from the app's system settings page.
+abstract interface class TripTrackingNativeSettingsGateway {
+  Future<bool> openBackgroundLocationSettings();
+}
+
 class TripTrackingPlatform
-    implements TripTrackingNativeGateway, TripTrackingNativeRecoveryGateway {
+    implements
+        TripTrackingNativeGateway,
+        TripTrackingNativeRecoveryGateway,
+        TripTrackingNativeSettingsGateway {
   TripTrackingPlatform({MethodChannel? commands, EventChannel? events})
     : _commands = commands ?? const MethodChannel(_commandChannelName),
       _events = events ?? const EventChannel(_eventChannelName);
@@ -99,4 +108,9 @@ class TripTrackingPlatform
     );
     return status is String && status.isNotEmpty ? status : null;
   }
+
+  @override
+  Future<bool> openBackgroundLocationSettings() async =>
+      await _commands.invokeMethod<Object?>('openBackgroundLocationSettings') ==
+      true;
 }

@@ -719,6 +719,38 @@ void main() {
     );
   });
 
+  test(
+    'Android 11 background permission uses an explicit app-settings handoff',
+    () {
+      final android = File(
+        'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+      ).readAsStringSync();
+
+      expect(
+        android,
+        contains(
+          '"openBackgroundLocationSettings" -> '
+          'openBackgroundLocationSettings(result)',
+        ),
+      );
+      expect(
+        android,
+        contains('Build.VERSION.SDK_INT >= Build.VERSION_CODES.R'),
+      );
+      expect(android, contains('Settings.ACTION_APPLICATION_DETAILS_SETTINGS'));
+      expect(
+        android,
+        contains('Uri.fromParts("package", activity.packageName, null)'),
+      );
+      expect(
+        android,
+        contains(
+          '// Android 11+ removes "Allow all the time" from the runtime',
+        ),
+      );
+    },
+  );
+
   test('iOS native sampling never requests zero displacement', () {
     final ios = File(
       'ios/Runner/TripTrackingNativeBridge.swift',

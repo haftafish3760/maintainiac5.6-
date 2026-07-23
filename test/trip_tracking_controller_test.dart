@@ -1922,6 +1922,10 @@ void main() {
       expect(native.startCalls, 0);
       expect(native.hasEventListener, isFalse);
       expect(
+        controller.platformStatus,
+        'background_location_settings_required',
+      );
+      expect(
         controller.platformError,
         contains('Background location permission is required'),
       );
@@ -1932,6 +1936,33 @@ void main() {
       expect(controller.healthState, TripTrackingHealthState.permissionBlocked);
     },
   );
+
+  test('background settings navigation is explicit and optional', () async {
+    final native = _SettingsTripTrackingPlatform();
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: native,
+    );
+    addTearDown(controller.dispose);
+
+    expect(await controller.openBackgroundLocationSettings(), isTrue);
+    expect(native.openSettingsCalls, 1);
+
+    final unsupported = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: _FakeTripTrackingPlatform(),
+    );
+    addTearDown(unsupported.dispose);
+    expect(await unsupported.openBackgroundLocationSettings(), isFalse);
+  });
 
   test(
     'native start fails closed when background consent cannot persist',
@@ -9320,6 +9351,17 @@ class _FakeTripTrackingPlatform implements TripTrackingNativeGateway {
   Future<bool> get isTracking async {
     if (throwOnIsTracking) throw StateError('native status unavailable');
     return _running;
+  }
+}
+
+class _SettingsTripTrackingPlatform extends _FakeTripTrackingPlatform
+    implements TripTrackingNativeSettingsGateway {
+  var openSettingsCalls = 0;
+
+  @override
+  Future<bool> openBackgroundLocationSettings() async {
+    openSettingsCalls += 1;
+    return true;
   }
 }
 

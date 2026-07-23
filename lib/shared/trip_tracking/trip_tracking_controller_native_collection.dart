@@ -3,6 +3,21 @@ part of 'trip_tracking_controller.dart';
 /// Starts native location collection after policy, capability, and local
 /// recovery safeguards have approved the request.
 extension TripTrackingControllerNativeCollection on TripTrackingController {
+  Future<bool> openBackgroundLocationSettings() async {
+    final platform = _platform;
+    if (_isDisposed ||
+        platform == null ||
+        platform is! TripTrackingNativeSettingsGateway) {
+      return false;
+    }
+    try {
+      return await (platform as TripTrackingNativeSettingsGateway)
+          .openBackgroundLocationSettings();
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> startNativeTracking({
     required bool allowBackground,
     double? observedSpeedMetersPerSecond,
@@ -176,6 +191,13 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     }
     if (!authorization.canTrackPrecisely ||
         (allowBackground && !authorization.canTrackInBackground)) {
+      final backgroundSettingsRequired =
+          allowBackground &&
+          authorization.canTrackPrecisely &&
+          !authorization.canTrackInBackground;
+      if (backgroundSettingsRequired) {
+        _platformStatus = 'background_location_settings_required';
+      }
       _platformError = allowBackground
           ? 'Background location permission is required for this tracking mode.'
           : 'Precise location permission is required to start trip tracking.';

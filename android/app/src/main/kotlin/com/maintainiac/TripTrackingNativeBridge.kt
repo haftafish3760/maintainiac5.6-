@@ -7,9 +7,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
@@ -68,6 +70,7 @@ class TripTrackingNativeBridge(
             "readCapabilities" -> result.success(capabilities())
             "readBatterySnapshot" -> result.success(batterySnapshot())
             "requestAuthorization" -> requestAuthorization(call, result)
+            "openBackgroundLocationSettings" -> openBackgroundLocationSettings(result)
             "start" -> start(call, result)
             "update" -> update(call, result)
             "stop" -> {
@@ -143,10 +146,35 @@ class TripTrackingNativeBridge(
         }
         if (pendingBackgroundAuthorization && hasFineLocation() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !hasBackgroundLocation()) {
             pendingBackgroundAuthorization = false
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                // Android 11+ removes "Allow all the time" from the runtime
+                // dialog. Complete safely so Flutter can explain the choice
+                // and let the user explicitly open this app's settings.
+                completeAuthorizationRequest()
+                return
+            }
             activity.requestPermissions(arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION), tripTrackingPermissionRequestCode)
             return
         }
         completeAuthorizationRequest()
+    }
+
+    private fun openBackgroundLocationSettings(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            result.success(false)
+            return
+        }
+        try {
+            activity.startActivity(
+                Intent(
+                    Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    Uri.fromParts("package", activity.packageName, null),
+                ),
+            )
+            result.success(true)
+        } catch (_: Exception) {
+            result.success(false)
+        }
     }
 
     private fun start(call: MethodCall, result: MethodChannel.Result) {
