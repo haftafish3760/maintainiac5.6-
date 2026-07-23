@@ -96,6 +96,24 @@ void main() {
     expect(current.copyWith(endingOdometerDraft: 1002).revision, 8);
   });
 
+  test(
+    'application-update review migration is deterministic and idempotent',
+    () {
+      final legacy = reviewMap(schemaVersion: 1);
+      final firstMigration = TripTrackingReviewRecord.fromMap(legacy);
+      final secondMigration = TripTrackingReviewRecord.fromMap(
+        firstMigration.toMap(),
+      );
+
+      expect(firstMigration.hasValidTimeline, isTrue);
+      expect(firstMigration.schemaVersion, 2);
+      expect(secondMigration.hasValidTimeline, isTrue);
+      expect(secondMigration.schemaVersion, 2);
+      expect(secondMigration.toMap(), firstMigration.toMap());
+      expect(legacy['schemaVersion'], 1);
+    },
+  );
+
   test('unknown cloud sync state cannot become trusted backup progress', () {
     final review = TripTrackingReviewRecord.fromMap(
       reviewMap(cloudSyncState: 'uploadedSomewhere'),

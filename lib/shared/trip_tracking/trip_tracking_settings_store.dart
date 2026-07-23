@@ -116,6 +116,8 @@ class TripTrackingSettings {
         this.bluetoothVehicleRecognitionEnabled;
     final automaticSwitch =
         automaticVehicleSwitchEnabled ?? this.automaticVehicleSwitchEnabled;
+    final walkingReview =
+        walkingTransitionReviewEnabled ?? this.walkingTransitionReviewEnabled;
     final odometerAlerts =
         gpsEnabled &&
         (odometerAnomalyAlertsEnabled ?? this.odometerAnomalyAlertsEnabled);
@@ -129,9 +131,9 @@ class TripTrackingSettings {
           adaptiveSamplingEnabled ?? this.adaptiveSamplingEnabled,
       activityRecognitionEnabled:
           gpsEnabled &&
+          walkingReview &&
           (activityRecognitionEnabled ?? this.activityRecognitionEnabled),
-      walkingTransitionReviewEnabled:
-          walkingTransitionReviewEnabled ?? this.walkingTransitionReviewEnabled,
+      walkingTransitionReviewEnabled: walkingReview,
       backgroundTrackingEnabled:
           gpsEnabled &&
           (backgroundTrackingEnabled ?? this.backgroundTrackingEnabled),
@@ -285,6 +287,7 @@ class TripTrackingSettings {
         map.containsKey('defaultProfile') && defaultProfile == null;
     final gpsEnabled =
         !hasInvalidDefaultProfile && map['gpsAssistedTrackingEnabled'] == true;
+    final walkingReview = map['walkingTransitionReviewEnabled'] != false;
     final odometerAlerts =
         gpsEnabled && map['odometerAnomalyAlertsEnabled'] == true;
     return TripTrackingSettings(
@@ -295,9 +298,10 @@ class TripTrackingSettings {
       ),
       adaptiveSamplingEnabled: map['adaptiveSamplingEnabled'] == true,
       activityRecognitionEnabled:
-          gpsEnabled && map['activityRecognitionEnabled'] == true,
-      walkingTransitionReviewEnabled:
-          map['walkingTransitionReviewEnabled'] != false,
+          gpsEnabled &&
+          walkingReview &&
+          map['activityRecognitionEnabled'] == true,
+      walkingTransitionReviewEnabled: walkingReview,
       backgroundTrackingEnabled:
           gpsEnabled && map['backgroundTrackingEnabled'] == true,
       organizationMileageSharingEnabled:

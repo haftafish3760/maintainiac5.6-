@@ -107,6 +107,7 @@ class TripTrackingSessionStateMachine {
           TripTrackingSessionLifecycleState.failedTerminal,
         },
         TripTrackingSessionLifecycleState.interrupted: {
+          TripTrackingSessionLifecycleState.paused,
           TripTrackingSessionLifecycleState.recovering,
           TripTrackingSessionLifecycleState.starting,
           TripTrackingSessionLifecycleState.failedRecoverable,
@@ -115,6 +116,7 @@ class TripTrackingSessionStateMachine {
         },
         TripTrackingSessionLifecycleState.recovering: {
           TripTrackingSessionLifecycleState.active,
+          TripTrackingSessionLifecycleState.paused,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.failedRecoverable,
           TripTrackingSessionLifecycleState.awaitingReview,

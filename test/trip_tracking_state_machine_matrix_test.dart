@@ -84,6 +84,7 @@ const Map<State, Set<State>> _approved = {
     State.cancelled,
   },
   State.interrupted: {
+    State.paused,
     State.recovering,
     State.starting,
     State.failedRecoverable,
@@ -93,6 +94,7 @@ const Map<State, Set<State>> _approved = {
   },
   State.recovering: {
     State.active,
+    State.paused,
     State.stopping,
     State.failedRecoverable,
     State.awaitingReview,

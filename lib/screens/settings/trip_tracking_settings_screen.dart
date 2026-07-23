@@ -248,11 +248,15 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           ),
           _switch(
             title: 'Use motion activity for walking review',
-            detail: settings.gpsAssistedTrackingEnabled
-                ? 'Off by default. When enabled, the app asks for motion/activity permission at trip start and uses it only during an active GPS trip to help separate driving from walking.'
-                : 'Enable GPS-assisted tracking before using motion activity during trips.',
+            detail: !settings.gpsAssistedTrackingEnabled
+                ? 'Enable GPS-assisted tracking before using motion activity during trips.'
+                : !settings.walkingTransitionReviewEnabled
+                ? 'Enable walking-transition review before allowing optional motion activity.'
+                : 'Off by default. When enabled, the app asks for motion/activity permission at trip start and uses it only during an active GPS trip to help separate driving from walking.',
             value: settings.activityRecognitionEnabled,
-            onChanged: settings.gpsAssistedTrackingEnabled
+            onChanged:
+                settings.gpsAssistedTrackingEnabled &&
+                    settings.walkingTransitionReviewEnabled
                 ? (value) => onChanged(
                     settings.copyWith(activityRecognitionEnabled: value),
                   )

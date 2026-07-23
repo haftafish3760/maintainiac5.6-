@@ -461,6 +461,29 @@ void main() {
     );
   });
 
+  test(
+    'disabling walking review also withdraws optional motion collection',
+    () {
+      final enabled = const TripTrackingSettings().copyWith(
+        gpsAssistedTrackingEnabled: true,
+        walkingTransitionReviewEnabled: true,
+        activityRecognitionEnabled: true,
+      );
+      final disabled = enabled.copyWith(walkingTransitionReviewEnabled: false);
+      final restored = TripTrackingSettings.fromMap(const {
+        'gpsAssistedTrackingEnabled': true,
+        'walkingTransitionReviewEnabled': false,
+        'activityRecognitionEnabled': true,
+      });
+
+      expect(enabled.activityRecognitionEnabled, isTrue);
+      expect(disabled.walkingTransitionReviewEnabled, isFalse);
+      expect(disabled.activityRecognitionEnabled, isFalse);
+      expect(restored.walkingTransitionReviewEnabled, isFalse);
+      expect(restored.activityRecognitionEnabled, isFalse);
+    },
+  );
+
   test('motion and background helpers require GPS tracking opt-in', () {
     final restored = TripTrackingSettings.fromMap(const {
       'gpsAssistedTrackingEnabled': false,

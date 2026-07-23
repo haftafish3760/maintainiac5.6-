@@ -315,13 +315,21 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     _latestActivity = null;
     _platformStatus = interrupted ? 'interrupted' : 'stopped';
     final lifecycleState = _session?.lifecycleState;
+    final interruptedStateCanBecomePause =
+        (lifecycleState == TripTrackingSessionLifecycleState.interrupted ||
+            lifecycleState == TripTrackingSessionLifecycleState.recovering) &&
+        (!interrupted || interruptionReasonCode != null);
     if (lifecycleState == TripTrackingSessionLifecycleState.active ||
         lifecycleState == TripTrackingSessionLifecycleState.degraded ||
+        interruptedStateCanBecomePause ||
         (interrupted &&
             (lifecycleState == TripTrackingSessionLifecycleState.ready ||
                 lifecycleState ==
                     TripTrackingSessionLifecycleState.starting))) {
-      if (wasNativeTracking && engine != null) {
+      if (wasNativeTracking &&
+          engine != null &&
+          (lifecycleState == TripTrackingSessionLifecycleState.active ||
+              lifecycleState == TripTrackingSessionLifecycleState.degraded)) {
         engine.beginSignalGap(
           _clockNow(),
           reason: interrupted

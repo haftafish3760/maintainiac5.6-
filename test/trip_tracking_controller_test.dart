@@ -28,8 +28,8 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dar
 /// Freshness classification itself is covered with real age boundaries in the
 /// dedicated initial-fix tests, while this harness keeps older lifecycle and
 /// motion fixtures focused on their stated behavior.
-class TripTrackingController extends production.TripTrackingController {
-  TripTrackingController({
+class TestTripTrackingController extends production.TripTrackingController {
+  TestTripTrackingController({
     required super.sessionStore,
     required super.odometer,
     super.platform,
@@ -94,7 +94,7 @@ void main() {
   test(
     'controller accepts newer Android monotonic time at a duplicate wall clock',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -120,7 +120,7 @@ void main() {
 
   test('monotonic ordering cannot regress the durable session clock', () async {
     final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
     );
@@ -160,7 +160,7 @@ void main() {
     'controller rejects invalid direct speed accuracy before persistence',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -193,7 +193,7 @@ void main() {
     'controller rejects regressing Android monotonic time before persistence',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -220,7 +220,7 @@ void main() {
   test(
     'controller allows a recovered Android monotonic clock epoch reset',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -258,7 +258,7 @@ void main() {
         }
       });
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -287,7 +287,7 @@ void main() {
   );
 
   test('starting another trip while one is active is rejected', () async {
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -321,6 +321,44 @@ void main() {
     expect(controller.activeSession?.id, 'trip_active_one');
   });
 
+  test('active trip blocks an implicit work-profile switch', () async {
+    final store = TripTrackingSessionStore.memory();
+    final controller = TestTripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    addTearDown(controller.dispose);
+    expect(
+      await controller.start(
+        tripId: 'trip_profile_locked',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        profileId: 'delivery_job',
+        startedAt: start,
+      ),
+      isTrue,
+    );
+    final revisionBeforeSwitch = controller.activeSession!.revision;
+
+    expect(
+      await controller.start(
+        tripId: 'trip_profile_replacement',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        profileId: 'contractor_job',
+        startedAt: start.add(const Duration(minutes: 1)),
+      ),
+      isFalse,
+    );
+
+    expect(controller.platformStatus, 'trip_already_active');
+    expect(controller.activeSession?.id, 'trip_profile_locked');
+    expect(controller.activeSession?.effectiveProfileId, 'delivery_job');
+    expect(controller.activeSession?.revision, revisionBeforeSwitch);
+    expect(store.activeSession?.id, 'trip_profile_locked');
+    expect(store.activeSession?.effectiveProfileId, 'delivery_job');
+  });
+
   test(
     'starting a trip while a recoverable local session exists is rejected',
     () async {
@@ -340,7 +378,7 @@ void main() {
       );
       await store.save(storedSession);
 
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -381,7 +419,7 @@ void main() {
         ),
       );
 
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -426,7 +464,7 @@ void main() {
       );
       await store.save(storedSession);
 
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -466,7 +504,7 @@ void main() {
       );
       await store.save(storedSession);
 
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -508,7 +546,7 @@ void main() {
       );
 
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         platform: native,
@@ -538,7 +576,7 @@ void main() {
     'starting a trip is blocked if native collector state cannot be verified',
     () async {
       final native = _FakeTripTrackingPlatform(throwOnIsTracking: true);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -569,7 +607,7 @@ void main() {
       vehicleId: 'vehicle_b',
       initialReading: 2000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -609,7 +647,7 @@ void main() {
       vehicleId: 'vehicle_1',
       initialReading: 1000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -647,7 +685,7 @@ void main() {
       vehicleId: 'vehicle_1',
       initialReading: 1000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -683,7 +721,7 @@ void main() {
       vehicleId: 'vehicle_1',
       initialReading: 1000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -716,7 +754,7 @@ void main() {
         await hiveDirectory.delete(recursive: true);
       }
     });
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -748,7 +786,7 @@ void main() {
         ),
       );
 
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -771,7 +809,7 @@ void main() {
       Hive.init(hiveDirectory.path);
       final store = await TripTrackingSessionStore.create();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -812,7 +850,7 @@ void main() {
       Hive.init(hiveDirectory.path);
       final store = await TripTrackingSessionStore.create();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -849,7 +887,7 @@ void main() {
     () async {
       final store = _FailingPendingCleanupStore();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -896,7 +934,7 @@ void main() {
       final store = await TripTrackingSessionStore.create();
       final native = _FakeTripTrackingPlatform();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         platform: native,
@@ -937,7 +975,7 @@ void main() {
     'native GPS capability read failures fail closed before permission request',
     () async {
       final native = _FakeTripTrackingPlatform(throwOnReadCapabilities: true);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -988,7 +1026,7 @@ void main() {
           lowPowerModeEnabled: false,
         ),
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1030,7 +1068,7 @@ void main() {
           lowPowerModeEnabled: true,
         ),
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1071,7 +1109,7 @@ void main() {
         lowPowerModeEnabled: true,
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -1107,7 +1145,7 @@ void main() {
         lowPowerModeEnabled: false,
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -1151,7 +1189,7 @@ void main() {
         lowPowerModeEnabled: true,
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -1191,7 +1229,7 @@ void main() {
         lowPowerModeEnabled: true,
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -1225,7 +1263,7 @@ void main() {
       final native = _FakeTripTrackingPlatform(
         throwOnReadBatterySnapshot: true,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1256,7 +1294,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       var now = DateTime.utc(2026, 7, 12, 12);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1301,7 +1339,7 @@ void main() {
       final native = _FakeTripTrackingPlatform();
       final store = _FailingNextSessionSaveStore();
       var now = DateTime.utc(2026, 7, 12, 12);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -1346,7 +1384,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       var now = DateTime.utc(2026, 7, 12, 12);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1386,11 +1424,79 @@ void main() {
   );
 
   test(
+    'unplugging at the consent boundary pauses GPS without ending the trip',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      var now = DateTime.utc(2026, 7, 12, 12);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: native,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+
+      await controller.start(
+        tripId: 'trip_runtime_unplugged_battery',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+
+      native.batterySnapshot = const TripTrackingBatterySnapshot(
+        batteryPercent: 15,
+        isCharging: true,
+        lowPowerModeEnabled: false,
+      );
+      now = now.add(const Duration(minutes: 6));
+      native.addLocation(sample(-80, 360));
+      await drainNativeTripEventsUntil(
+        () => controller.activeSession?.batteryStateSummary?.isCharging == true,
+      );
+      expect(controller.nativeTracking, isTrue);
+
+      native.batterySnapshot = const TripTrackingBatterySnapshot(
+        batteryPercent: 15,
+        isCharging: false,
+        lowPowerModeEnabled: false,
+      );
+      now = now.add(const Duration(minutes: 6));
+      native.addLocation(sample(-79.9997, 720));
+      await drainNativeTripEventsUntil(
+        () =>
+            !controller.nativeTracking &&
+            controller.activeSession?.effectiveContractState ==
+                TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.platformStatus, 'low_battery_requires_user_choice');
+      expect(controller.platformError, contains('Choose whether to continue'));
+      expect(
+        controller.activeSession?.batteryStateSummary?.isCharging,
+        isFalse,
+      );
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+    },
+  );
+
+  test(
     'runtime battery check warns below twenty percent before the fifteen percent prompt',
     () async {
       final native = _FakeTripTrackingPlatform();
       var now = DateTime.utc(2026, 7, 12, 12);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1436,7 +1542,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       var now = start;
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1489,7 +1595,7 @@ void main() {
   test('native heartbeat at the GPS freshness boundary stays usable', () async {
     final native = _FakeTripTrackingPlatform();
     var now = start;
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -1525,7 +1631,7 @@ void main() {
       final native = _FakeTripTrackingPlatform();
       final store = TripTrackingSessionStore.memory();
       var now = start;
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -1565,7 +1671,7 @@ void main() {
     'native critical battery stop keeps the actionable battery status',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1617,7 +1723,7 @@ void main() {
     () async {
       final startGate = Completer<void>();
       final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1663,7 +1769,7 @@ void main() {
         startDelay: startGate.future,
         startSucceeds: false,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1700,7 +1806,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       var now = DateTime.utc(2026, 7, 12, 12);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1743,7 +1849,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       var now = DateTime.utc(2026, 7, 12, 12);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1792,7 +1898,7 @@ void main() {
           preciseLocation: true,
         ),
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1844,7 +1950,7 @@ void main() {
         },
       );
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1891,7 +1997,7 @@ void main() {
           recordedAt: nativeStart.add(Duration(seconds: seconds)),
           horizontalAccuracyMeters: 5,
         );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
       platform: native,
@@ -1928,7 +2034,7 @@ void main() {
   test(
     'latest local review stays available after a trip is finished',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -1986,7 +2092,7 @@ void main() {
       vehicleId: 'vehicle_1',
       initialReading: 1000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
     );
@@ -2017,7 +2123,7 @@ void main() {
     'finishing a trip drains queued native GPS events into the review',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2052,7 +2158,7 @@ void main() {
     'walking after driving creates review-only stop and resume advisories',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -2111,7 +2217,7 @@ void main() {
       );
       expect(controller.activeSession?.revision, revisionBeforeReview + 1);
 
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -2133,7 +2239,7 @@ void main() {
   test(
     'traffic-like vehicle-only waiting does not create a stop advisory',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -2168,7 +2274,7 @@ void main() {
     'traffic-like vehicle-only waiting stays advisory-free across recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -2192,7 +2298,7 @@ void main() {
       }
       expect(controller.advisories, isEmpty);
 
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -2207,7 +2313,7 @@ void main() {
 
   test('cross-midnight trip remains a single review session', () async {
     final store = TripTrackingSessionStore.memory();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -2285,7 +2391,7 @@ void main() {
     'multi-day trip preserves one session and its accepted distance',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -2336,7 +2442,7 @@ void main() {
   test(
     'walking confirmation creates a high-confidence stop after vehicle-only wait',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -2393,7 +2499,7 @@ void main() {
   test(
     'traffic-like vehicle-only waiting cannot create a rejected stop record',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -2425,7 +2531,7 @@ void main() {
   test(
     'dismissed walking stop review clears the walking review state',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -2472,7 +2578,7 @@ void main() {
 
   test('failed stop review checkpoint remains retryable', () async {
     final store = _FailingNextSessionSaveStore();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -2530,10 +2636,149 @@ void main() {
     expect(controller.activeSession?.revision, revisionBeforeReview + 1);
   });
 
+  test('ten separated drive-and-walk stops each remain reviewable', () async {
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+    );
+    await controller.start(
+      tripId: 'trip_ten_stop_detection_replay',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      startedAt: start,
+    );
+    TripActivityObservation activity(TripActivity type, int seconds) =>
+        TripActivityObservation(
+          activity: type,
+          confidence: 95,
+          recordedAt: start.add(Duration(seconds: seconds)),
+        );
+
+    for (var stopIndex = 0; stopIndex < 10; stopIndex += 1) {
+      final baseSeconds = stopIndex * 120;
+      final driveStartLongitude = -80 + (stopIndex * .002);
+      final stopLongitude = driveStartLongitude + .001;
+      await controller.ingest(
+        sample(driveStartLongitude, baseSeconds, speed: 9),
+        activity: activity(TripActivity.automotive, baseSeconds),
+      );
+      await controller.ingest(
+        sample(stopLongitude, baseSeconds + 20, speed: 9),
+        activity: activity(TripActivity.automotive, baseSeconds + 20),
+      );
+      for (final offset in [35, 50, 65]) {
+        await controller.ingest(
+          sample(stopLongitude, baseSeconds + offset, speed: 0),
+          activity: activity(TripActivity.walking, baseSeconds + offset),
+        );
+      }
+
+      expect(
+        controller.needsWalkingReview,
+        isTrue,
+        reason: 'stop ${stopIndex + 1} was not surfaced for review',
+      );
+      await controller.reviewLatestStopAdvisory(
+        TripTrackingAdvisoryDisposition.confirmed,
+      );
+      expect(controller.needsWalkingReview, isFalse);
+    }
+
+    expect(controller.advisories, hasLength(10));
+    expect(
+      controller.advisories.every(
+        (event) =>
+            event.disposition == TripTrackingAdvisoryDisposition.confirmed,
+      ),
+      isTrue,
+    );
+    expect(controller.acceptedMeters, greaterThan(1000));
+  });
+
+  test(
+    'mixed route surfaces seven walking stops and rejects three traffic waits',
+    () async {
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+      );
+      await controller.start(
+        tripId: 'trip_mixed_stop_detection_replay',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      TripActivityObservation activity(TripActivity type, int seconds) =>
+          TripActivityObservation(
+            activity: type,
+            confidence: 95,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          );
+      const trafficWaitIndexes = {2, 5, 8};
+      var confirmedStops = 0;
+
+      for (var eventIndex = 0; eventIndex < 10; eventIndex += 1) {
+        final baseSeconds = eventIndex * 180;
+        final driveStartLongitude = -80 + (eventIndex * .002);
+        final waitLongitude = driveStartLongitude + .001;
+        await controller.ingest(
+          sample(driveStartLongitude, baseSeconds, speed: 9),
+          activity: activity(TripActivity.automotive, baseSeconds),
+        );
+        await controller.ingest(
+          sample(waitLongitude, baseSeconds + 20, speed: 9),
+          activity: activity(TripActivity.automotive, baseSeconds + 20),
+        );
+
+        if (trafficWaitIndexes.contains(eventIndex)) {
+          for (final offset in [35, 65, 95, 125, 145]) {
+            await controller.ingest(
+              sample(waitLongitude, baseSeconds + offset, speed: 0),
+            );
+          }
+          expect(controller.needsWalkingReview, isFalse);
+          expect(
+            controller.advisories,
+            hasLength(confirmedStops),
+            reason: 'traffic wait ${eventIndex + 1} created a stop advisory',
+          );
+          continue;
+        }
+
+        for (final offset in [35, 50, 65]) {
+          await controller.ingest(
+            sample(waitLongitude, baseSeconds + offset, speed: 0),
+            activity: activity(TripActivity.walking, baseSeconds + offset),
+          );
+        }
+        expect(
+          controller.needsWalkingReview,
+          isTrue,
+          reason: 'walking stop ${eventIndex + 1} was not surfaced',
+        );
+        await controller.reviewLatestStopAdvisory(
+          TripTrackingAdvisoryDisposition.confirmed,
+        );
+        confirmedStops += 1;
+      }
+
+      expect(confirmedStops, 7);
+      expect(controller.advisories, hasLength(7));
+      expect(
+        controller.advisories.every(
+          (event) =>
+              event.disposition == TripTrackingAdvisoryDisposition.confirmed,
+        ),
+        isTrue,
+      );
+      expect(controller.acceptedMeters, greaterThan(1000));
+    },
+  );
+
   test('overlapping native start and stop requests are serialized', () async {
     final startGate = Completer<void>();
     final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -2562,7 +2807,7 @@ void main() {
 
   test('duplicate stop requests while already stopped are ignored', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -2603,7 +2848,7 @@ void main() {
     'backgrounding foreground-only tracking stops the native collector',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2645,7 +2890,7 @@ void main() {
     'native subscription cancel failure still clears GPS tracking state',
     () async {
       final native = _FakeTripTrackingPlatform(throwOnCancel: true);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2677,7 +2922,7 @@ void main() {
     'a stale UI background preference cannot keep foreground GPS running',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2712,7 +2957,7 @@ void main() {
     () async {
       final startGate = Completer<void>();
       final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2745,7 +2990,7 @@ void main() {
     'background-enabled tracking is not stopped by app lifecycle changes',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2773,7 +3018,7 @@ void main() {
 
   test('foreground-only tracking stops when the app becomes hidden', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -2803,7 +3048,7 @@ void main() {
     'a native GPS stream error stops tracking and leaves a retryable trip',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2843,12 +3088,65 @@ void main() {
     },
   );
 
+  test('user can preserve a signal-lost trip as explicitly paused', () async {
+    final native = _FakeTripTrackingPlatform();
+    final controller = TestTripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(initialReading: 1000),
+      platform: native,
+    );
+    await controller.start(
+      tripId: 'trip_signal_lost_user_pause',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: start,
+    );
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+
+    native.addError(StateError('location provider disconnected'));
+    await drainNativeTripEventsUntil(
+      () =>
+          !controller.nativeTracking &&
+          controller.lifecycleState ==
+              TripTrackingSessionLifecycleState.interrupted &&
+          native.stopCalls == 1,
+    );
+    await Future<void>.delayed(Duration.zero);
+
+    await controller.stopNativeTracking();
+
+    expect(controller.isTracking, isTrue);
+    expect(controller.nativeTracking, isFalse);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(controller.activeSession?.pauseKind, TripTrackingPauseKind.user);
+    expect(
+      controller.activeSession?.effectiveContractState,
+      TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
+    );
+    expect(
+      controller.activeSession?.transitionAudits.last.reasonCode,
+      'native_tracking_stopped',
+    );
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+    expect(controller.nativeTracking, isTrue);
+    expect(
+      controller.activeSession?.effectiveContractState,
+      TripTrackingSessionLifecycleContractState.ACTIVE_TRACKING,
+    );
+  });
+
   test(
     'native GPS event processing failures do not expose raw errors',
     () async {
       var storageAvailable = true;
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(
           storageCheck: () async => AppStorageCheck(
             purpose: AppStoragePurpose.mileageTracking,
@@ -2898,7 +3196,7 @@ void main() {
     'malformed native payload events are ignored without stopping GPS',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -2927,7 +3225,7 @@ void main() {
 
   test('a fatal native platform error interrupts and stops tracking', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -2964,7 +3262,7 @@ void main() {
     'a terminal Core Location failure preserves a recoverable local trip',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3006,7 +3304,7 @@ void main() {
     'native platform errors do not surface raw tokens or coordinates',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3043,7 +3341,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: native,
@@ -3107,7 +3405,7 @@ void main() {
     'a late fatal platform error cannot interrupt a manually paused trip',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3145,7 +3443,7 @@ void main() {
         activityRecognitionAvailable: true,
       );
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3189,7 +3487,7 @@ void main() {
         activityRecognitionAvailable: true,
       );
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3227,7 +3525,7 @@ void main() {
         activityRecognitionAvailable: true,
       );
       final store = _FailingNextSessionSaveStore();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3281,7 +3579,7 @@ void main() {
         code: 'trip_tracking_activity_unavailable',
         message: 'Motion provider ended with the collector.',
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3319,7 +3617,7 @@ void main() {
         message: 'Motion permission was unavailable at startup.',
       );
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3360,7 +3658,7 @@ void main() {
           message: 'Motion permission was unavailable at startup.',
         );
       };
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3391,7 +3689,7 @@ void main() {
       startDelay: Future<void>.delayed(Duration.zero),
     );
     native.beforeStart = () => native.addStatus('stopped');
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -3423,7 +3721,7 @@ void main() {
         preciseLocation: false,
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -3470,7 +3768,7 @@ void main() {
         );
       };
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: native,
@@ -3521,7 +3819,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: native,
@@ -3595,7 +3893,7 @@ void main() {
     'foreground tracking survives a background-only permission downgrade',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3634,7 +3932,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       final store = _FailingNextSessionSaveStore();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3689,7 +3987,7 @@ void main() {
     'background permission downgrade interrupts an active background trip',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -3736,7 +4034,7 @@ void main() {
 
   test('duplicate fatal platform errors issue one native stop', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -3773,7 +4071,7 @@ void main() {
 
   test('a fixed sampling preset is not silently overridden', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -3809,7 +4107,7 @@ void main() {
     'recovery preserves a poor-accuracy timestamp against stale GPS fixes',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final original = TripTrackingController(
+      final original = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -3822,7 +4120,7 @@ void main() {
       await original.ingest(sample(-80, 0));
       await original.ingest(sample(-79.99, 30, accuracy: 120));
 
-      final recovered = TripTrackingController(
+      final recovered = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -3839,7 +4137,7 @@ void main() {
 
   test('recovery replays one durable in-flight GPS sample', () async {
     final store = TripTrackingSessionStore.memory();
-    final original = TripTrackingController(
+    final original = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -3861,7 +4159,7 @@ void main() {
       vehicleId: 'vehicle_1',
       initialReading: 1000,
     );
-    final recovered = TripTrackingController(
+    final recovered = TestTripTrackingController(
       sessionStore: store,
       odometer: recoveredOdometer,
     );
@@ -3887,7 +4185,7 @@ void main() {
         );
       },
     );
-    final original = TripTrackingController(
+    final original = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -3904,7 +4202,7 @@ void main() {
         sample: sample(-79.98, 90),
       ),
     );
-    final recovered = TripTrackingController(
+    final recovered = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -3923,7 +4221,7 @@ void main() {
 
   test('recovery clears stale pending samples that cannot replay', () async {
     final store = TripTrackingSessionStore.memory();
-    final original = TripTrackingController(
+    final original = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -3940,7 +4238,7 @@ void main() {
       ),
     );
 
-    final recovered = TripTrackingController(
+    final recovered = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -3991,7 +4289,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 1000,
       );
-      final recovered = TripTrackingController(
+      final recovered = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -4008,7 +4306,7 @@ void main() {
     'GPS health degrades on poor fixes and recovers only on credible data',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4045,7 +4343,7 @@ void main() {
     'recovery preserves an implausible-jump reanchor against stale fixes',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final original = TripTrackingController(
+      final original = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4058,7 +4356,7 @@ void main() {
       await original.ingest(sample(-80, 0));
       await original.ingest(sample(-79.99, 2));
 
-      final recovered = TripTrackingController(
+      final recovered = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -4077,7 +4375,7 @@ void main() {
     'recovery preserves a drift timestamp against stale GPS fixes',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final original = TripTrackingController(
+      final original = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4090,7 +4388,7 @@ void main() {
       await original.ingest(sample(-80, 0));
       await original.ingest(sample(-79.99996, 30));
 
-      final recovered = TripTrackingController(
+      final recovered = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -4107,7 +4405,7 @@ void main() {
 
   test('controller rejects replayed samples before pending storage', () async {
     final store = TripTrackingSessionStore.memory();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -4141,7 +4439,7 @@ void main() {
     'duplicate native timestamps cannot overwrite pending recovery sample',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4167,7 +4465,7 @@ void main() {
     'a closed native GPS stream stops tracking instead of leaving it stuck',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4198,7 +4496,7 @@ void main() {
     'an externally stopped native collector detaches before a retry',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4239,7 +4537,7 @@ void main() {
     'an externally stopped native collector tolerates listener cancel failure',
     () async {
       final native = _FakeTripTrackingPlatform(throwOnCancel: true);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4283,7 +4581,7 @@ void main() {
     'an explicit native pause preserves the trip without an interruption',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4331,7 +4629,7 @@ void main() {
     () async {
       final store = _FailingNextSessionSaveStore();
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4363,7 +4661,7 @@ void main() {
     'malformed native status payload is ignored without stopping a valid trip',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4392,7 +4690,7 @@ void main() {
     'native idle status is ignored while GPS is actively tracking',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4423,7 +4721,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4462,7 +4760,7 @@ void main() {
   test(
     'a disposed controller rejects late GPS samples without notifying',
     () async {
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4480,7 +4778,7 @@ void main() {
 
   test('a disposed controller cannot restart native GPS collection', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -4504,7 +4802,7 @@ void main() {
     'restoring a trip reattaches to a surviving native GPS collector',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4538,7 +4836,7 @@ void main() {
           ),
         ),
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -4581,7 +4879,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final preRebootNative = _FakeTripTrackingPlatform();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: preRebootNative,
@@ -4598,7 +4896,7 @@ void main() {
       final acceptedBeforeReboot = initial.acceptedMeters;
 
       final native = _FakeTripTrackingPlatform();
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4633,7 +4931,7 @@ void main() {
     'restore stops a surviving collector without durable background consent',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4654,7 +4952,7 @@ void main() {
           ),
         ),
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -4686,7 +4984,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final native = _FakeTripTrackingPlatform();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4708,7 +5006,7 @@ void main() {
         ),
         isTrue,
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -4742,7 +5040,7 @@ void main() {
     'native status recovery failure preserves the local recoverable trip',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4754,7 +5052,7 @@ void main() {
       );
       await initial.ingest(sample(-80, 0, speed: 8));
 
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -4777,7 +5075,7 @@ void main() {
       final initialPlatform = _FakeTripTrackingPlatform(
         locationAvailable: false,
       );
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: initialPlatform,
@@ -4805,7 +5103,7 @@ void main() {
           allowBackground: true,
         ),
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4829,7 +5127,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final native = _FakeTripTrackingPlatform();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4852,7 +5150,7 @@ void main() {
         isTrue,
       );
       native.locationAvailable = false;
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -4880,7 +5178,7 @@ void main() {
     'recovery applies the persisted battery safeguard before accepting GPS',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4920,7 +5218,7 @@ void main() {
           allowBackground: true,
         ),
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -4944,7 +5242,7 @@ void main() {
     'recovery stops GPS when saved native settings cannot be reapplied',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -4973,7 +5271,7 @@ void main() {
           allowBackground: true,
         ),
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -5004,7 +5302,7 @@ void main() {
     'stopping native GPS preserves the recoverable trip for a later resume',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5039,7 +5337,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: native,
@@ -5078,7 +5376,7 @@ void main() {
     'stale walking activity is cleared across native stop and restart',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5123,7 +5421,7 @@ void main() {
       final native = _FakeTripTrackingPlatform(
         activityRecognitionAvailable: true,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5215,7 +5513,7 @@ void main() {
         activityRecognitionAvailable: true,
       );
       final store = _FailingNextSessionSaveStore();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5275,7 +5573,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       final store = _FailingNextSessionSaveStore();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5336,7 +5634,7 @@ void main() {
         activityRecognitionAvailable: true,
       );
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5395,7 +5693,7 @@ void main() {
       final native = _FakeTripTrackingPlatform(
         activityRecognitionAvailable: true,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5441,7 +5739,7 @@ void main() {
         activityRecognitionAvailable: true,
       );
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5477,7 +5775,7 @@ void main() {
         activityRecognitionAvailable: true,
       );
       final store = _FailingNextSessionSaveStore();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5520,7 +5818,7 @@ void main() {
         activityRecognitionAvailable: true,
         updateSucceeds: false,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5562,7 +5860,7 @@ void main() {
       final native = _FakeTripTrackingPlatform(
         activityRecognitionAvailable: true,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5601,7 +5899,7 @@ void main() {
     'legacy recovery stops GPS when saved native sampling is unavailable',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final initial = TripTrackingController(
+      final initial = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -5633,7 +5931,7 @@ void main() {
           activityRecognitionEnabled: true,
         ),
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -5666,7 +5964,7 @@ void main() {
     'withdrawing an already-disabled sensor does not disturb GPS tracking',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5692,7 +5990,7 @@ void main() {
     () async {
       final native = _FakeTripTrackingPlatform();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: native,
@@ -5726,7 +6024,7 @@ void main() {
     'a native stop fault still leaves the GPS trip safely recoverable',
     () async {
       final native = _FakeTripTrackingPlatform(throwOnStop: true);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5759,7 +6057,7 @@ void main() {
     'reviewing a walking-based stop cue persists across local recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -5785,7 +6083,7 @@ void main() {
       await controller.acknowledgeWalkingReview();
 
       expect(controller.needsWalkingReview, isFalse);
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -5803,7 +6101,7 @@ void main() {
       final native = _FakeTripTrackingPlatform(throwOnStop: true);
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         platform: native,
@@ -5841,7 +6139,7 @@ void main() {
     'permission startup failure can discard an empty trip without locking odometer',
     () async {
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: _FakeTripTrackingPlatform(
@@ -5875,7 +6173,7 @@ void main() {
         preciseLocation: false,
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -5905,7 +6203,7 @@ void main() {
         throwOnStart: true,
         startFailureMessage: 'token=pk.secret lat=35.123 lon=-80.456',
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -5936,7 +6234,7 @@ void main() {
         message: 'raw permission provider detail',
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -5971,7 +6269,7 @@ void main() {
           message: 'raw native provider failure',
         ),
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -6002,7 +6300,7 @@ void main() {
     'future-dated walking evidence is not applied to an earlier location',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -6035,7 +6333,7 @@ void main() {
     'direct ingest drops future activity before pending recovery save',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -6068,7 +6366,7 @@ void main() {
 
   test('invalid activity confidence cannot break GPS ingestion', () async {
     final store = TripTrackingSessionStore.memory();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -6103,7 +6401,7 @@ void main() {
     final odometer = GlobalOdometerController(initialReading: 1000);
     var odometerNotifications = 0;
     odometer.addListener(() => odometerNotifications++);
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
     );
@@ -6128,7 +6426,7 @@ void main() {
 
   test('accepted GPS distance can use bounded advisory calibration', () async {
     final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
       gpsAssistanceCalibrationMultiplier: .8,
@@ -6156,7 +6454,7 @@ void main() {
     () async {
       final store = _FailingNextSessionSaveStore();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -6203,7 +6501,7 @@ void main() {
         ),
       );
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: native,
@@ -6254,7 +6552,7 @@ void main() {
           maxSupportedReading: 1002,
         ),
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         policy: const TripTrackingPolicy(
@@ -6284,7 +6582,7 @@ void main() {
     'stale live odometer projection updates are not mislabeled as distance range failures',
     () async {
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
       );
@@ -6321,7 +6619,7 @@ void main() {
     'native future timestamps are rejected without changing GPS distance',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -6361,7 +6659,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final now = start.add(const Duration(minutes: 10));
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         clockNow: () => now,
@@ -6399,7 +6697,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final now = start.add(const Duration(minutes: 10));
-      final original = TripTrackingController(
+      final original = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
         clockNow: () => now,
@@ -6426,7 +6724,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 1000,
       );
-      final recovered = TripTrackingController(
+      final recovered = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         clockNow: () => now,
@@ -6445,7 +6743,7 @@ void main() {
     'mocked GPS fixes are rejected without durable pending recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -6480,7 +6778,7 @@ void main() {
     'invalid GPS fixes are rejected before durable pending recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -6511,7 +6809,7 @@ void main() {
     'malformed reported speeds are rejected before durable pending recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -6544,7 +6842,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -6584,7 +6882,7 @@ void main() {
     'cached native fixes before trip start cannot anchor live mileage',
     () async {
       final store = TripTrackingSessionStore.memory();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -6611,7 +6909,7 @@ void main() {
     'native sampling escalates only after an accepted high-speed sample',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -6642,7 +6940,7 @@ void main() {
 
   test('uncertain native speed cannot escalate GPS sampling', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -6669,7 +6967,7 @@ void main() {
     'stationary GPS drift deescalates precision sampling to save battery',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -6707,7 +7005,7 @@ void main() {
     'stationary GPS speed conflicts deescalate precision sampling',
     () async {
       final native = _FakeTripTrackingPlatform();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
@@ -6740,7 +7038,7 @@ void main() {
 
   test('a credible slowdown deescalates precision GPS sampling', () async {
     final native = _FakeTripTrackingPlatform();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
@@ -6772,7 +7070,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final firstOdometer = GlobalOdometerController(initialReading: 1000);
-      final first = TripTrackingController(
+      final first = TestTripTrackingController(
         sessionStore: store,
         odometer: firstOdometer,
       );
@@ -6789,7 +7087,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 1000,
       );
-      final restored = TripTrackingController(
+      final restored = TestTripTrackingController(
         sessionStore: store,
         odometer: restoredOdometer,
       );
@@ -6812,7 +7110,7 @@ void main() {
       final durableBridge = TripTrackingDurableRecordBridge(
         MaintainiacDurableRecordStore.memory(),
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         cloudMirror: mirror,
@@ -6877,7 +7175,7 @@ void main() {
     () async {
       final store = _DelayedReviewSaveStore();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -6919,7 +7217,7 @@ void main() {
       final native = _FakeTripTrackingPlatform();
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         platform: native,
@@ -6973,7 +7271,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -6998,7 +7296,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -7022,7 +7320,7 @@ void main() {
 
   test('canceling an in-flight GPS sample requires confirmation', () async {
     final store = TripTrackingSessionStore.memory();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -7047,7 +7345,7 @@ void main() {
 
   test('cancel preserves active-session cleanup failure diagnostics', () async {
     final store = _FailingReviewCleanupStore();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -7065,7 +7363,7 @@ void main() {
 
   test('cancel review save failure remains retryable', () async {
     final store = _FailingFirstReviewSaveStore();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -7091,7 +7389,7 @@ void main() {
 
   test('completion surfaces transient GPS cleanup failure', () async {
     final store = _FailingPendingCleanupStore();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -7133,7 +7431,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 1000,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         durableRecordBridge: durableBridge,
@@ -7186,7 +7484,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 1000,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -7220,7 +7518,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 1000,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -7273,7 +7571,7 @@ void main() {
         initialReading: 1000,
       );
       final mirror = _FakeTripTrackingCloudMirror();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         cloudMirror: mirror,
@@ -7332,7 +7630,7 @@ void main() {
 
   test('finishing a trip clears its transient pending GPS sample', () async {
     final store = TripTrackingSessionStore.memory();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -7358,7 +7656,7 @@ void main() {
 
   test('recovery does not resume a trip already queued for review', () async {
     final store = TripTrackingSessionStore.memory();
-    final first = TripTrackingController(
+    final first = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(initialReading: 1000),
     );
@@ -7386,7 +7684,7 @@ void main() {
     );
 
     final recoveredOdometer = GlobalOdometerController(initialReading: 1000);
-    final recovered = TripTrackingController(
+    final recovered = TestTripTrackingController(
       sessionStore: store,
       odometer: recoveredOdometer,
     );
@@ -7402,7 +7700,7 @@ void main() {
     'recovery refuses to resume a reviewed trip when stale cleanup fails',
     () async {
       final store = _FailingReviewCleanupStore();
-      final first = TripTrackingController(
+      final first = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -7430,7 +7728,7 @@ void main() {
       );
 
       final recoveredOdometer = GlobalOdometerController(initialReading: 1000);
-      final recovered = TripTrackingController(
+      final recovered = TestTripTrackingController(
         sessionStore: store,
         odometer: recoveredOdometer,
       );
@@ -7475,7 +7773,7 @@ void main() {
       }
     });
     final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -7526,7 +7824,7 @@ void main() {
       }
     });
     final odometer = GlobalOdometerController(initialReading: 1000);
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -7566,7 +7864,7 @@ void main() {
         maxSupportedReading: 1200,
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -7595,7 +7893,7 @@ void main() {
         ),
       ),
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
@@ -7617,7 +7915,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final mirror = _FakeTripTrackingCloudMirror()..throwOnFlush = true;
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -7652,7 +7950,7 @@ void main() {
     () async {
       final store = TripTrackingSessionStore.memory();
       final mirror = _FakeTripTrackingCloudMirror()..throwOnFlush = true;
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -7712,7 +8010,7 @@ void main() {
         createdByUid: 'firebaseUid-1',
         authenticatedUid: () => null,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -7775,7 +8073,7 @@ void main() {
         createdByUid: 'firebaseUid-1',
         backupEnabled: () => false,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(
           vehicleId: 'vehicle_1',
@@ -7828,7 +8126,7 @@ void main() {
           },
         },
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: GlobalOdometerController(initialReading: 1000),
       );
@@ -7861,7 +8159,7 @@ void main() {
         },
       );
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -7896,7 +8194,7 @@ void main() {
       vehicleId: 'vehicle_b',
       initialReading: 2000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -7938,7 +8236,7 @@ void main() {
       vehicleId: 'vehicle_1',
       initialReading: 1000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
     );
@@ -7986,7 +8284,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 1000,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
       );
@@ -8015,7 +8313,7 @@ void main() {
     );
     await store.saveReview(review);
     final mirror = _FakeTripTrackingCloudMirror();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_b',
@@ -8055,7 +8353,7 @@ void main() {
       vehicleId: 'vehicle_1',
       initialReading: 1000,
     );
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
       clockNow: () => start.add(const Duration(minutes: 3)),
@@ -8111,7 +8409,7 @@ void main() {
       initialReading: 1000,
     );
     final mirror = _FakeTripTrackingCloudMirror();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
       cloudMirror: mirror,
@@ -8151,7 +8449,7 @@ void main() {
       initialReading: 1000,
     );
     final mirror = _FakeTripTrackingCloudMirror();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
       cloudMirror: mirror,
@@ -8192,7 +8490,7 @@ void main() {
       initialReading: 1000,
     );
     final mirror = _FakeTripTrackingCloudMirror();
-    final controller = TripTrackingController(
+    final controller = TestTripTrackingController(
       sessionStore: store,
       odometer: odometer,
       cloudMirror: mirror,
@@ -8237,7 +8535,7 @@ void main() {
         vehicleId: 'vehicle_1',
         initialReading: 2000,
       );
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         cloudMirror: mirror,
@@ -8279,7 +8577,7 @@ void main() {
         initialReading: 1000,
       );
       final mirror = _FakeTripTrackingCloudMirror();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         cloudMirror: mirror,
@@ -8360,7 +8658,7 @@ void main() {
         initialReading: 1199,
       );
       final mirror = _FakeTripTrackingCloudMirror();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         cloudMirror: mirror,
@@ -8424,7 +8722,7 @@ void main() {
         initialReading: 1100,
       );
       final mirror = _FakeTripTrackingCloudMirror();
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: store,
         odometer: odometer,
         cloudMirror: mirror,
@@ -8557,17 +8855,30 @@ void main() {
 
       native.addLocation(sample(-80, 0));
       await drainNativeTripEventsUntil(
-        () => controller.platformStatus == 'storage_failed',
+        () => !controller.nativeTracking,
         maxPumps: 48,
       );
 
       expect(controller.platformStatus, 'storage_failed');
+      expect(controller.platformError, contains('initial GPS fix evidence'));
       expect(controller.initialFixAssessment, isNull);
       expect(
         controller.activeSession?.engineSnapshot.initialFixAssessment,
         isNull,
       );
-      expect(controller.activeSession?.revision, revisionBeforeFix);
+      expect(
+        controller.activeSession!.revision,
+        greaterThan(revisionBeforeFix),
+      );
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.reasonCode,
+        'initial_fix_evidence_storage_system_pause',
+      );
+      expect(controller.acceptedMeters, 0);
     },
   );
 
@@ -8781,7 +9092,7 @@ void main() {
       var now = start;
       final native = _FakeTripTrackingPlatform(locationAvailable: false);
       final odometer = GlobalOdometerController(initialReading: 1000);
-      final controller = TripTrackingController(
+      final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: odometer,
         platform: native,

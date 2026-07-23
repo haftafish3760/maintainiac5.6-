@@ -158,9 +158,19 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                   _platformStatus = 'storage_failed';
                   _platformError =
                       'Could not save initial GPS fix evidence locally.';
-                  _deferPlatformCleanup(
-                    () => _stopNativeTracking(interrupted: true),
-                  );
+                  _deferPlatformCleanup(() async {
+                    await _stopNativeTracking(
+                      interrupted: true,
+                      interruptionHealth: TripTrackingHealthState.unavailable,
+                      interruptionSource: 'native_initial_fix_evidence',
+                      interruptionReasonCode:
+                          'initial_fix_evidence_storage_system_pause',
+                    );
+                    _platformStatus = 'storage_failed';
+                    _platformError =
+                        'Could not save initial GPS fix evidence locally.';
+                    notifyListeners();
+                  });
                 }
                 notifyListeners();
                 return;

@@ -8,7 +8,7 @@ usage() {
 Usage:
   trip_tracking_qa_gate.sh [options] [paths...]
 
-  No args       Run all trip-tracking tests (test/trip_tracking_*_test.dart)
+  No args       Run every trip-domain test (test/trip_*_test.dart)
   --all         Same as no args
   --analyze     flutter analyze with explicit files/folders
   --android-debug  flutter build apk --debug
@@ -16,11 +16,12 @@ Usage:
 EOF
 }
 
-readonly DEFAULT_PATTERN='test/trip_tracking_*_test.dart'
 log_file="${TMPDIR:-/tmp}/maintainiac_trip_qa_$(date +%s).log"
 
 collect_trip_tracking_tests() {
-  local -a tests=($DEFAULT_PATTERN)
+  local -a tests=(
+    test/trip_*_test.dart
+  )
   if [ ${#tests[@]} -eq 0 ]; then
     echo "TRIP_QA_FAIL no_trip_tracking_tests_found"
     exit 1
