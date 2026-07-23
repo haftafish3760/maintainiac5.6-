@@ -245,6 +245,47 @@ class MaintainiacDurableRecordStore {
     return verified;
   });
 
+  Future<MaintainiacDurableRecord> preserveLocalAfterConflict({
+    required String module,
+    required String id,
+    required int expectedRevision,
+    DateTime? now,
+  }) => _enqueue(() async {
+    final local = recordFor(module, id);
+    if (local == null || local.lifecycle.revision != expectedRevision) {
+      throw StateError('The local record changed during conflict review.');
+    }
+    final preserved = local.withLifecycle(
+      local.lifecycle.saved(
+        now ?? DateTime.now(),
+        event: 'resolved cloud conflict by keeping local record',
+      ),
+    );
+    await _ensureSpace(
+      MaintainiacDurablePayload.encodedByteEstimate(preserved.toMap()),
+    );
+    await _put(preserved);
+    return preserved;
+  });
+
+  Future<MaintainiacDurableRecord> applyRemoteAfterConflict(
+    MaintainiacDurableRecord remote, {
+    required int expectedLocalRevision,
+  }) => _enqueue(() async {
+    final verified = MaintainiacDurableRecord.fromMap(remote.toMap());
+    final local = recordFor(verified.module, verified.id);
+    if (local == null ||
+        local.lifecycle.revision != expectedLocalRevision ||
+        verified.lifecycle.revision != expectedLocalRevision) {
+      throw StateError('The conflict record changed before resolution.');
+    }
+    await _ensureSpace(
+      MaintainiacDurablePayload.encodedByteEstimate(verified.toMap()),
+    );
+    await _put(verified);
+    return verified;
+  });
+
   Future<void> _put(MaintainiacDurableRecord record) async {
     final map = record.toMap();
     if (_box == null) {

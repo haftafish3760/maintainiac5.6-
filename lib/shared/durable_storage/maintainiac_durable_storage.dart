@@ -46,6 +46,7 @@ export '../records/maintainiac_restore_contract.dart';
 export '../records/maintainiac_restore_applier.dart';
 export '../records/maintainiac_restore_batch_processor.dart';
 export '../records/maintainiac_restore_review_store.dart';
+export '../records/maintainiac_restore_review_resolver.dart';
 export '../records/maintainiac_restore_session_store.dart';
 export '../storage/app_storage_guard.dart';
 export '../storage/app_storage_warning_preferences.dart';

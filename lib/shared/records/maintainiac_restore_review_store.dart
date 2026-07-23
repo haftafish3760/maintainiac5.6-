@@ -241,6 +241,10 @@ class MaintainiacRestoreReviewStore {
     DateTime? nowUtc,
   }) => _enqueue(() async {
     final current = issueById(id);
+    if (current?.state == MaintainiacRestoreReviewState.resolved &&
+        current?.resolution == resolution) {
+      return current!;
+    }
     if (current == null ||
         current.state != MaintainiacRestoreReviewState.pending) {
       throw StateError('Restore review issue is not pending.');
