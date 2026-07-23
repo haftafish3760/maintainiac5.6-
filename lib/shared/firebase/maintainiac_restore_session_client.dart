@@ -57,6 +57,13 @@ class MaintainiacRestoreSessionClient {
     );
   }
 
+  Future<void> revokeDevice({required String deviceId}) async {
+    await _functions.call(
+      name: 'revokeRestoreDevice',
+      data: {'deviceId': deviceId},
+    );
+  }
+
   Future<MaintainiacIssuedRestoreAuthorization> issue({
     required String organizationId,
     required String deviceId,

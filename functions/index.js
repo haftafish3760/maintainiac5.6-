@@ -11,6 +11,7 @@ const {
   validateAssistRequest,
 } = require('./receipt_ai_assist');
 const {buildRestoreAuthorizationFunctions} = require('./restore_authorization');
+const {buildDeviceRegistrationFunctions} = require('./device_registration');
 const {
   buildDurableRecordCommitFunctions,
 } = require('./durable_record_commit');
@@ -36,7 +37,11 @@ const enforceCallableAppCheck = !runningInFunctionsEmulator;
 const restoreAuthorizationFunctions = buildRestoreAuthorizationFunctions({
   enforceAppCheck: enforceCallableAppCheck,
 });
-exports.registerRestoreDevice = restoreAuthorizationFunctions.registerRestoreDevice;
+const deviceRegistrationFunctions = buildDeviceRegistrationFunctions({
+  enforceAppCheck: enforceCallableAppCheck,
+});
+exports.registerRestoreDevice = deviceRegistrationFunctions.registerRestoreDevice;
+exports.revokeRestoreDevice = deviceRegistrationFunctions.revokeRestoreDevice;
 exports.issueRestoreAuthorization =
     restoreAuthorizationFunctions.issueRestoreAuthorization;
 exports.refreshRestoreAuthorization =

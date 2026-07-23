@@ -28,6 +28,7 @@ const callableNames = [
   'issueExpenseProofUploadGrant',
   'finalizeExpenseProofUpload',
   'registerRestoreDevice',
+  'revokeRestoreDevice',
   'issueRestoreAuthorization',
   'refreshRestoreAuthorization',
   'beginRestoreSession',
@@ -358,6 +359,41 @@ describe('Cloud Functions emulator safety', () => {
         mode: 'smart',
         requestId: 'outsider-restore-request',
       },
+    );
+    assert.equal(denied.status, 403);
+    assert.equal(denied.body?.error?.status, 'PERMISSION_DENIED');
+  });
+
+  test('device registration is idempotent and revocation is permanent', async () => {
+    const identity = await createEmulatorIdentity();
+    await seedMember(identity.uid);
+    const registration = {
+      deviceId: 'revokedDevice',
+      installationIdHash: 'e'.repeat(64),
+      platform: 'ios',
+      appVersion: '1.0.0',
+    };
+    const first = await callFunction(
+      'registerRestoreDevice', identity.token, registration,
+    );
+    const retry = await callFunction(
+      'registerRestoreDevice', identity.token, registration,
+    );
+    assert.equal(first.registrationRevision, 1);
+    assert.equal(retry.registrationRevision, 1);
+
+    const revoked = await callFunction(
+      'revokeRestoreDevice', identity.token, {deviceId: 'revokedDevice'},
+    );
+    const revokeRetry = await callFunction(
+      'revokeRestoreDevice', identity.token, {deviceId: 'revokedDevice'},
+    );
+    assert.equal(revoked.status, 'revoked');
+    assert.equal(revoked.registrationRevision, 2);
+    assert.equal(revokeRetry.registrationRevision, 2);
+
+    const denied = await callFunctionError(
+      'registerRestoreDevice', identity.token, registration,
     );
     assert.equal(denied.status, 403);
     assert.equal(denied.body?.error?.status, 'PERMISSION_DENIED');

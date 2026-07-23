@@ -28,7 +28,6 @@ const snapshotRetentionSeconds = defineInt(
 
 function buildRestoreAuthorizationFunctions({enforceAppCheck}) {
   return {
-    registerRestoreDevice: onCall({enforceAppCheck}, registerRestoreDevice),
     issueRestoreAuthorization: onCall({enforceAppCheck}, issueRestoreAuthorization),
     refreshRestoreAuthorization: onCall(
       {enforceAppCheck},
@@ -39,55 +38,6 @@ function buildRestoreAuthorizationFunctions({enforceAppCheck}) {
     fetchRestoreRecordPage: onCall({enforceAppCheck}, fetchRestoreRecordPage),
     getRestorePlan: onCall({enforceAppCheck}, getRestorePlan),
   };
-}
-
-async function registerRestoreDevice(request) {
-  const uid = request.auth?.uid || '';
-  const deviceId = cleanToken(request.data?.deviceId);
-  const installationIdHash = String(
-    request.data?.installationIdHash || '',
-  ).trim();
-  const platform = String(request.data?.platform || '').trim();
-  const appVersion = String(request.data?.appVersion || '').trim();
-  if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
-  if (!deviceId || !SHA256.test(installationIdHash) ||
-      !['android', 'ios'].includes(platform) ||
-      appVersion.length < 1 || appVersion.length > 64) {
-    throw new HttpsError('invalid-argument', 'Invalid device registration.');
-  }
-  const db = getFirestore();
-  const deviceRef = db.doc(`users/${uid}/devices/${deviceId}`);
-  const registered = await db.runTransaction(async (transaction) => {
-    const existing = await transaction.get(deviceRef);
-    const data = existing.data();
-    if (data?.status === 'revoked') {
-      throw new HttpsError('permission-denied', 'This device registration is revoked.');
-    }
-    if (existing.exists && data?.installationIdHash !== installationIdHash) {
-      throw new HttpsError(
-        'failed-precondition',
-        'This device identity is already bound to another installation.',
-      );
-    }
-    const now = Timestamp.now();
-    const registrationRevision = existing.exists
-      ? Number(data?.registrationRevision || 0) + 1
-      : 1;
-    transaction.set(deviceRef, {
-      uid,
-      deviceId,
-      installationIdHash,
-      platform,
-      appVersion,
-      status: 'active',
-      appCheckProtected: true,
-      registrationRevision,
-      registeredAt: data?.registeredAt || now,
-      lastSeenAt: now,
-    });
-    return {deviceId, registrationRevision};
-  });
-  return registered;
 }
 
 async function issueRestoreAuthorization(request) {

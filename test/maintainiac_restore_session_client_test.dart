@@ -56,6 +56,17 @@ void main() {
     expect(functions.lastData?['action'], 'progress');
   });
 
+  test('device revocation uses the centralized callable boundary', () async {
+    final functions = _Functions(const {'revokeRestoreDevice': {}});
+
+    await MaintainiacRestoreSessionClient(
+      functions,
+    ).revokeDevice(deviceId: 'device-a');
+
+    expect(functions.lastName, 'revokeRestoreDevice');
+    expect(functions.lastData, {'deviceId': 'device-a'});
+  });
+
   test(
     'refresh rotates a credential without sending the expired secret',
     () async {
@@ -116,12 +127,14 @@ class _Functions implements MaintainiacCallableFunctionClient {
 
   final Map<String, Map<String, Object?>> responses;
   Map<String, Object?>? lastData;
+  String? lastName;
 
   @override
   Future<Map<String, Object?>> call({
     required String name,
     required Map<String, Object?> data,
   }) async {
+    lastName = name;
     lastData = data;
     return responses[name] ?? const {};
   }
