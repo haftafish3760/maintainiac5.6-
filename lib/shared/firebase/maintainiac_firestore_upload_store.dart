@@ -48,14 +48,21 @@ class MaintainiacFirestoreUploadQueueStore {
   Future<MaintainiacFirestoreQueuedDocument> enqueue(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
-  }) => _enqueue(() => _enqueueDocument(draft, queuedAtUtc: queuedAtUtc));
+  }) => _enqueue(
+    () => _enqueueDocument(draft, queuedAtUtc: queuedAtUtc, deduplicate: true),
+  );
 
   Future<MaintainiacFirestoreQueuedDocument> _enqueueDocument(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
     MaintainiacFirestoreQueuedDocument? retrySource,
+    bool deduplicate = false,
   }) async {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
+    if (deduplicate) {
+      final duplicate = _latestMatchingPending(draft);
+      if (duplicate != null) return duplicate;
+    }
     await _ensureStorageForQueueWrite();
     final queuedAt = (queuedAtUtc ?? DateTime.now().toUtc()).toUtc();
     final record = MaintainiacFirestoreQueuedDocument(
@@ -106,7 +113,13 @@ class MaintainiacFirestoreUploadQueueStore {
     await _ensureStorageForQueueWrite();
     final queued = <MaintainiacFirestoreQueuedDocument>[];
     for (final draft in drafts) {
-      queued.add(await _enqueueDocument(draft, queuedAtUtc: queuedAtUtc));
+      queued.add(
+        await _enqueueDocument(
+          draft,
+          queuedAtUtc: queuedAtUtc,
+          deduplicate: true,
+        ),
+      );
     }
     return List.unmodifiable(queued);
   });
@@ -274,6 +287,18 @@ class MaintainiacFirestoreUploadQueueStore {
         return right.compareTo(left);
       });
     return sorted.first;
+  }
+
+  MaintainiacFirestoreQueuedDocument? _latestMatchingPending(
+    MaintainiacFirestoreDocumentDraft draft,
+  ) {
+    final expected = jsonEncode(_canonicalSyncValue(draft.data));
+    final matching = pendingRecords.where(
+      (record) =>
+          record.path == draft.path &&
+          jsonEncode(_canonicalSyncValue(record.data)) == expected,
+    );
+    return matching.isEmpty ? null : matching.last;
   }
 
   String _recordIdFor(String path, DateTime queuedAtUtc) {
