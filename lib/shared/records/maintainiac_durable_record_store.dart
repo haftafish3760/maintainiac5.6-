@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../storage/app_storage_guard.dart';
+import 'maintainiac_durable_payload.dart';
 import 'maintainiac_record_lifecycle.dart';
 import 'maintainiac_record_ordering.dart';
 
@@ -312,12 +313,16 @@ class MaintainiacDurableRecord {
         (metadata.isActive && metadata.deletedAt != null)) {
       throw const FormatException('Durable record lifecycle is corrupt.');
     }
-    return MaintainiacDurableRecord(
-      module: module,
-      id: id,
-      payload: Map<String, dynamic>.from(payload),
-      lifecycle: metadata,
-    );
+    try {
+      return MaintainiacDurableRecord(
+        module: module,
+        id: id,
+        payload: Map<String, dynamic>.from(payload),
+        lifecycle: metadata,
+      );
+    } on ArgumentError {
+      throw const FormatException('Durable record payload is corrupt.');
+    }
   }
 
   final String module;
@@ -348,20 +353,5 @@ class MaintainiacDurableRecord {
       (value is String && DateTime.tryParse(value) != null);
 
   static Map<String, dynamic> _freezePayload(Map<String, dynamic> value) =>
-      Map.unmodifiable({
-        for (final entry in value.entries) entry.key: _freezeValue(entry.value),
-      });
-
-  static Object? _freezeValue(Object? value) {
-    if (value is Map) {
-      return Map.unmodifiable({
-        for (final entry in value.entries)
-          entry.key.toString(): _freezeValue(entry.value),
-      });
-    }
-    if (value is List) {
-      return List.unmodifiable(value.map(_freezeValue));
-    }
-    return value;
-  }
+      MaintainiacDurablePayload.freeze(value);
 }

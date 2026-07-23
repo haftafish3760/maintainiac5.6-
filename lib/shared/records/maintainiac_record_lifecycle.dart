@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 
 import '../storage/app_storage_guard.dart';
+import 'maintainiac_durable_payload.dart';
 import 'maintainiac_record_ordering.dart';
 
 /// The one lifecycle vocabulary used by durable Maintainiac records.
@@ -184,23 +185,27 @@ class MaintainiacRecordDraft {
             (deletedAt.isBefore(createdAt) || deletedAt.isAfter(updatedAt)))) {
       throw const FormatException('Draft lifecycle is inconsistent.');
     }
-    return MaintainiacRecordDraft(
-      module: module,
-      id: id,
-      payload: Map<String, dynamic>.from(payload),
-      lifecycle: MaintainiacRecordLifecycle(
-        createdAt: createdAt,
-        updatedAt: updatedAt,
-        revision: revision,
-        state: recordState,
-        deletedAt: deletedAt,
-        auditEvents:
-            (lifecycleMap['auditEvents'] as List?)?.whereType<String>().toList(
-              growable: false,
-            ) ??
-            const [],
-      ),
-    );
+    try {
+      return MaintainiacRecordDraft(
+        module: module,
+        id: id,
+        payload: Map<String, dynamic>.from(payload),
+        lifecycle: MaintainiacRecordLifecycle(
+          createdAt: createdAt,
+          updatedAt: updatedAt,
+          revision: revision,
+          state: recordState,
+          deletedAt: deletedAt,
+          auditEvents:
+              (lifecycleMap['auditEvents'] as List?)
+                  ?.whereType<String>()
+                  .toList(growable: false) ??
+              const [],
+        ),
+      );
+    } on ArgumentError {
+      throw const FormatException('Draft payload is corrupt.');
+    }
   }
 
   final String module;
@@ -473,21 +478,5 @@ int? _int(Object? value) =>
     value is int ? value : int.tryParse(value?.toString() ?? '');
 
 Map<String, dynamic> _freezeDraftPayload(Map<String, dynamic> payload) {
-  return Map.unmodifiable({
-    for (final entry in payload.entries)
-      entry.key: _freezeDraftValue(entry.value),
-  });
-}
-
-Object? _freezeDraftValue(Object? value) {
-  if (value is Map) {
-    return Map.unmodifiable({
-      for (final entry in value.entries)
-        entry.key: _freezeDraftValue(entry.value),
-    });
-  }
-  if (value is List) {
-    return List.unmodifiable(value.map(_freezeDraftValue));
-  }
-  return value;
+  return MaintainiacDurablePayload.freeze(payload);
 }
