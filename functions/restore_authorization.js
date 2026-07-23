@@ -17,6 +17,7 @@ function buildRestoreAuthorizationFunctions({enforceAppCheck}) {
     issueRestoreAuthorization: onCall({enforceAppCheck}, issueRestoreAuthorization),
     beginRestoreSession: onCall({enforceAppCheck}, beginRestoreSession),
     updateRestoreSession: onCall({enforceAppCheck}, updateRestoreSession),
+    fetchRestoreRecordPage: onCall({enforceAppCheck}, fetchRestoreRecordPage),
   };
 }
 
@@ -211,6 +212,40 @@ async function updateRestoreSession(request) {
     return {...data, status: nextStatus, completedItems, completedBytes};
   });
   return restoreSessionResult(input.sessionId, result, nextStatus);
+}
+
+async function fetchRestoreRecordPage(request) {
+  const input = restoreSessionInput(request);
+  const afterRecordKey = String(request.data?.afterRecordKey || '').trim();
+  const limit = Number(request.data?.limit || 0);
+  if ((afterRecordKey && !SHA256.test(afterRecordKey)) ||
+      !Number.isInteger(limit) || limit < 1 || limit > 10) {
+    throw new HttpsError('invalid-argument', 'Invalid restore page request.');
+  }
+  const db = getFirestore();
+  const sessionRef = db.doc(
+    `orgs/${input.organizationId}/restoreSessions/${input.sessionId}`,
+  );
+  await db.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(sessionRef);
+    await requireCurrentRestorePrincipal(transaction, input, db);
+    requireUsableSession(snapshot, input, {
+      allowedStates: new Set(['active']),
+    });
+  });
+  let query = db.collection(`orgs/${input.organizationId}/records`)
+    .where('createdByUid', '==', input.uid)
+    .where('privateToOwner', '==', true)
+    .orderBy('recordKey')
+    .limit(limit);
+  if (afterRecordKey) query = query.startAfter(afterRecordKey);
+  const snapshot = await query.get();
+  return {
+    documents: snapshot.docs.map((document) => ({
+      id: document.id,
+      data: document.data(),
+    })),
+  };
 }
 
 async function requireCurrentRestorePrincipal(transaction, input, db) {

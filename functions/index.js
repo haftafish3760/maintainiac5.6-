@@ -35,6 +35,8 @@ exports.issueRestoreAuthorization =
     restoreAuthorizationFunctions.issueRestoreAuthorization;
 exports.beginRestoreSession = restoreAuthorizationFunctions.beginRestoreSession;
 exports.updateRestoreSession = restoreAuthorizationFunctions.updateRestoreSession;
+exports.fetchRestoreRecordPage =
+    restoreAuthorizationFunctions.fetchRestoreRecordPage;
 const hostedPlanFunctions = buildHostedPlanFunctions({
   enforceAppCheck: enforceCallableAppCheck,
 });

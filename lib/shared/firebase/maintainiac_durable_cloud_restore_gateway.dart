@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../records/maintainiac_restore_applier.dart';
 import 'maintainiac_cloud_identity.dart';
 import 'maintainiac_firestore_durable_record_codec.dart';
@@ -20,40 +18,6 @@ abstract interface class MaintainiacDurableCloudRecordSource {
     required int limit,
     String? afterRecordKey,
   });
-}
-
-class FirebaseMaintainiacDurableCloudRecordSource
-    implements MaintainiacDurableCloudRecordSource {
-  FirebaseMaintainiacDurableCloudRecordSource({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  final FirebaseFirestore _firestore;
-
-  @override
-  Future<List<MaintainiacDurableCloudDocument>> fetchPage({
-    required String organizationId,
-    required String uid,
-    required int limit,
-    String? afterRecordKey,
-  }) async {
-    Query<Map<String, dynamic>> query = _firestore
-        .collection('orgs/$organizationId/records')
-        .where('createdByUid', isEqualTo: uid)
-        .where('privateToOwner', isEqualTo: true)
-        .orderBy('recordKey')
-        .limit(limit);
-    if (afterRecordKey != null) {
-      query = query.startAfter([afterRecordKey]);
-    }
-    final snapshot = await query.get();
-    return List.unmodifiable([
-      for (final document in snapshot.docs)
-        MaintainiacDurableCloudDocument(
-          id: document.id,
-          data: Map<String, Object?>.unmodifiable(document.data()),
-        ),
-    ]);
-  }
 }
 
 class MaintainiacDurableCloudRestorePage {
@@ -92,8 +56,8 @@ class MaintainiacDurableCloudRestoreGateway {
   }) : _source = source,
        _identityProvider = identityProvider;
 
-  static const int defaultPageSize = 50;
-  static const int maximumPageSize = 100;
+  static const int defaultPageSize = 9;
+  static const int maximumPageSize = 9;
 
   final MaintainiacDurableCloudRecordSource _source;
   final MaintainiacCloudIdentityProvider _identityProvider;

@@ -18,7 +18,7 @@ void main() {
       );
       final planPage = await gateway.fetchPage(
         organizationId: 'org-a',
-        pageSize: 100,
+        pageSize: 9,
       );
       final transferBytes = planPage.items.fold<int>(
         0,

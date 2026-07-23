@@ -172,6 +172,33 @@ describe('Cloud Functions emulator safety', () => {
       sessionInput,
     );
     assert.equal(started.status, 'active');
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      for (const recordKey of ['3'.repeat(64), '4'.repeat(64)]) {
+        await setDoc(
+          doc(db, `orgs/orgLifecycleA/records/${recordKey}`),
+          {
+            recordKey,
+            createdByUid: identity.uid,
+            privateToOwner: true,
+            recordPayload: {value: recordKey.substring(0, 1)},
+          },
+        );
+      }
+    });
+    const restorePage = await callFunction(
+      'fetchRestoreRecordPage',
+      identity.token,
+      {...sessionInput, limit: 1},
+    );
+    assert.equal(restorePage.documents.length, 1);
+    assert.equal(restorePage.documents[0].data.createdByUid, identity.uid);
+    const badPageToken = await callFunctionError(
+      'fetchRestoreRecordPage',
+      identity.token,
+      {...sessionInput, authorizationToken: '0'.repeat(64), limit: 1},
+    );
+    assert.equal(badPageToken.status, 403);
     const paused = await callFunction(
       'updateRestoreSession',
       identity.token,

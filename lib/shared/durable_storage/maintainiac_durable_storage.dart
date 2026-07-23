@@ -23,6 +23,7 @@ export '../firebase/maintainiac_firestore_revision_policy.dart';
 export '../firebase/maintainiac_firestore_scope_policy.dart';
 export '../firebase/maintainiac_firestore_upload_queue.dart';
 export '../firebase/maintainiac_hosted_plan_client.dart';
+export '../firebase/maintainiac_restore_callable_source.dart';
 export '../sync/maintainiac_sync_settings.dart';
 export '../sync/maintainiac_sync_settings_store.dart';
 export '../sync/maintainiac_sync_checkpoint_store.dart';
