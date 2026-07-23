@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {after, before, describe, test} from 'node:test';
 
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {doc, getDoc, setDoc} from 'firebase/firestore';
+import {doc, getDoc, setDoc, Timestamp} from 'firebase/firestore';
 
 import {callFunction, callFunctionError} from './callableTestClient.mjs';
 import {
@@ -86,6 +86,64 @@ describe('hosted sync reservations', () => {
       assert.equal(usage.data()?.attempts?.length, 4);
       assert.equal(usage.data()?.attempts?.[0]?.batches?.length, 3);
     });
+  });
+
+  test('oversized stored sync history fails closed before another write', async () => {
+    const identity = await createIdentity();
+    await seedHostedPlan(identity.uid);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(
+        doc(context.firestore(), `users/${identity.uid}/syncUsage/rolling24Hours`),
+        {
+          uid: identity.uid,
+          planId: 'freeConfigurable',
+          policyVersion: 7,
+          updatedAt: Timestamp.now(),
+          attempts: [{
+            id: 'reservation-corrupt',
+            attemptId: 'attempt-corrupt',
+            at: Timestamp.now(),
+            batches: ['1', '2', '3', '4'].map((value) => ({
+              sha256: value.repeat(64),
+              bytes: 100,
+            })),
+          }],
+        },
+      );
+    });
+
+    const blocked = await callFunctionError(
+      'reserveHostedSync',
+      identity.token,
+      reservationInput('attempt-new', '9', 100),
+    );
+
+    assert.equal(blocked.body?.error?.status, 'FAILED_PRECONDITION');
+  });
+
+  test('plans cannot configure an unsafe daily sync document size', async () => {
+    const identity = await createIdentity();
+    await seedHostedPlan(identity.uid);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(
+        doc(context.firestore(), 'hostedPlans/freeConfigurable'),
+        {
+          status: 'active',
+          displayName: 'Unsafe plan',
+          storageQuotaBytes: 100 * 1024 * 1024,
+          dailySyncLimit: 101,
+          immediateSyncAllowed: false,
+          policyVersion: 8,
+          downloadAllowanceBytes: 25 * 1024 * 1024,
+        },
+      );
+    });
+
+    const blocked = await callFunctionError(
+      'getHostedUsageGrant', identity.token, {},
+    );
+
+    assert.equal(blocked.body?.error?.status, 'FAILED_PRECONDITION');
   });
 });
 

@@ -68,7 +68,9 @@ async function reserveHostedSync(request) {
     if (storedAttempts != null && !Array.isArray(storedAttempts)) {
       invalidSyncHistory();
     }
-    if ((storedAttempts || []).some((entry) => !validSyncAttempt(entry))) {
+    if ((storedAttempts || []).some(
+      (entry) => !validSyncAttempt(entry, syncBounds),
+    )) {
       invalidSyncHistory();
     }
     const existingAttempts = storedAttempts || [];
@@ -170,15 +172,26 @@ function validatedSyncBounds() {
   return {batches, bytes};
 }
 
-function validSyncAttempt(entry) {
-  return entry && typeof entry.id === 'string' &&
-    ATTEMPT_TOKEN.test(entry.attemptId) &&
-    typeof entry.at?.toMillis === 'function' &&
-    Array.isArray(entry.batches) && entry.batches.length >= 1 &&
-    entry.batches.every((batch) =>
-      /^[a-f0-9]{64}$/.test(batch?.sha256 || '') &&
-      Number.isSafeInteger(batch?.bytes) && batch.bytes >= 1,
-    );
+function validSyncAttempt(entry, syncBounds) {
+  if (!entry || typeof entry.id !== 'string' ||
+      !ATTEMPT_TOKEN.test(entry.attemptId) ||
+      typeof entry.at?.toMillis !== 'function' ||
+      !Array.isArray(entry.batches) || entry.batches.length < 1 ||
+      entry.batches.length > syncBounds.batches) {
+    return false;
+  }
+  const hashes = new Set();
+  let bytes = 0;
+  for (const batch of entry.batches) {
+    if (!/^[a-f0-9]{64}$/.test(batch?.sha256 || '') ||
+        !Number.isSafeInteger(batch?.bytes) || batch.bytes < 1 ||
+        hashes.has(batch.sha256)) {
+      return false;
+    }
+    hashes.add(batch.sha256);
+    bytes += batch.bytes;
+  }
+  return bytes <= syncBounds.bytes;
 }
 
 function invalidSyncHistory() {
@@ -221,7 +234,7 @@ function validatedGrant(planId, data) {
       (storageQuotaBytes > 0 && storageQuotaBytes < 1024) ||
       storageQuotaBytes > 1024 * 1024 * 1024 * 1024 ||
       !Number.isInteger(dailySyncLimit) || dailySyncLimit < 0 ||
-      dailySyncLimit > 1000 ||
+      dailySyncLimit > 100 ||
       typeof immediateSyncAllowed !== 'boolean' ||
       !Number.isInteger(policyVersion) || policyVersion < 1 ||
       !Number.isInteger(downloadAllowanceBytes) ||
