@@ -15,6 +15,7 @@ export '../firebase/maintainiac_callable_functions.dart';
 export '../firebase/maintainiac_cloud_identity.dart';
 export '../firebase/maintainiac_cloud_object_store.dart';
 export '../firebase/maintainiac_durable_cloud_backup_gateway.dart';
+export '../firebase/maintainiac_durable_cloud_revision_store.dart';
 export '../firebase/maintainiac_firestore_documents.dart';
 export '../firebase/maintainiac_firestore_durable_record_codec.dart';
 export '../firebase/maintainiac_firestore_revision_policy.dart';

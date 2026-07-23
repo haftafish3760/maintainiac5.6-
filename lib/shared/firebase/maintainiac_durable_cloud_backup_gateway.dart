@@ -1,5 +1,6 @@
 import '../records/maintainiac_durable_record_store.dart';
 import 'maintainiac_cloud_identity.dart';
+import 'maintainiac_durable_cloud_revision_store.dart';
 import 'maintainiac_firestore_durable_record_codec.dart';
 import 'maintainiac_firestore_upload_queue.dart';
 
@@ -11,15 +12,18 @@ class MaintainiacDurableCloudBackupGateway {
     required MaintainiacDurableRecordStore records,
     required MaintainiacFirestoreUploadQueueStore queue,
     required MaintainiacCloudIdentityProvider identityProvider,
+    MaintainiacDurableCloudRevisionStore? revisions,
   }) : _records = records,
        _queue = queue,
-       _identityProvider = identityProvider;
+       _identityProvider = identityProvider,
+       _revisions = revisions;
 
   final MaintainiacDurableRecordStore _records;
   final MaintainiacFirestoreUploadQueueStore _queue;
   final MaintainiacCloudIdentityProvider _identityProvider;
+  final MaintainiacDurableCloudRevisionStore? _revisions;
 
-  Future<MaintainiacFirestoreQueuedDocument> queueRecord({
+  Future<MaintainiacFirestoreQueuedDocument?> queueRecord({
     required String organizationId,
     required MaintainiacDurableRecord record,
     int schemaVersion = 1,
@@ -33,6 +37,7 @@ class MaintainiacDurableCloudBackupGateway {
       schemaVersion: schemaVersion,
       record: record,
     );
+    if (_revisions?.isAcknowledged(draft) ?? false) return null;
     return _queue.enqueueReplacingPendingForPath(
       draft,
       queuedAtUtc: queuedAtUtc,
@@ -49,14 +54,13 @@ class MaintainiacDurableCloudBackupGateway {
     final records = _records.recordsFor(module, includeDeleted: true);
     final queued = <MaintainiacFirestoreQueuedDocument>[];
     for (final record in records) {
-      queued.add(
-        await queueRecord(
-          organizationId: organizationId,
-          record: record,
-          schemaVersion: schemaVersion,
-          queuedAtUtc: queuedAtUtc,
-        ),
+      final pending = await queueRecord(
+        organizationId: organizationId,
+        record: record,
+        schemaVersion: schemaVersion,
+        queuedAtUtc: queuedAtUtc,
       );
+      if (pending != null) queued.add(pending);
     }
     return List.unmodifiable(queued);
   }

@@ -41,7 +41,8 @@ void main() {
       record: record,
     );
 
-    expect(queued.path, startsWith('orgs/org-a/records/'));
+    expect(queued, isNotNull);
+    expect(queued!.path, startsWith('orgs/org-a/records/'));
     expect(queued.data['accountScopeId'], 'org-a.user-a');
     expect(queued.data['createdByUid'], 'user-a');
     expect(queued.data['updatedByUid'], 'user-a');
@@ -126,6 +127,89 @@ void main() {
     expect(queue.pendingRecords, hasLength(1));
     expect(queue.pendingRecords.single.data['recordState'], 'deleted');
   });
+
+  test(
+    'acknowledged unchanged records generate zero later queue writes',
+    () async {
+      final records = MaintainiacDurableRecordStore.memory();
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final revisions = MaintainiacDurableCloudRevisionStore.memory();
+      const identity = _Identity('user-a');
+      final gateway = MaintainiacDurableCloudBackupGateway(
+        records: records,
+        queue: queue,
+        identityProvider: identity,
+        revisions: revisions,
+      );
+      final record = await records.save(
+        module: 'settings',
+        id: 'settings-1',
+        payload: const {'theme': 'dark'},
+        now: DateTime.utc(2026, 7, 22),
+      );
+      await gateway.queueRecord(organizationId: 'org-a', record: record);
+      final uploaded = await MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _Sink(),
+        uploadEnabled: true,
+        identityProvider: identity,
+        uploadAcknowledgment: (documents, acknowledgedAtUtc) =>
+            revisions.acknowledge(documents, nowUtc: acknowledgedAtUtc),
+      ).uploadPending(nowUtc: DateTime.utc(2026, 7, 22, 1));
+
+      expect(uploaded.status, MaintainiacFirestoreUploadStatus.uploaded);
+      expect(
+        queue.pendingRecords,
+        isEmpty,
+        reason: queue.pendingRecords
+            .map(
+              (entry) => '${entry.id}:${entry.attemptCount}:${entry.lastError}',
+            )
+            .join(','),
+      );
+      expect(
+        await gateway.queueRecord(organizationId: 'org-a', record: record),
+        isNull,
+      );
+      expect(
+        await gateway.queueModule(organizationId: 'org-a', module: 'settings'),
+        isEmpty,
+      );
+    },
+  );
+
+  test(
+    'failed local cloud acknowledgment keeps the upload retryable',
+    () async {
+      final records = MaintainiacDurableRecordStore.memory();
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      const identity = _Identity('user-a');
+      final record = await records.save(
+        module: 'settings',
+        id: 'settings-1',
+        payload: const {'theme': 'dark'},
+      );
+      await MaintainiacDurableCloudBackupGateway(
+        records: records,
+        queue: queue,
+        identityProvider: identity,
+      ).queueRecord(organizationId: 'org-a', record: record);
+
+      final result = await MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: _Sink(),
+        uploadEnabled: true,
+        identityProvider: identity,
+        uploadAcknowledgment: (_, _) async => throw StateError('disk failure'),
+      ).uploadPending(nowUtc: DateTime.utc(2026, 7, 22, 1));
+
+      expect(result.status, MaintainiacFirestoreUploadStatus.failed);
+      expect(result.uploadedCount, 0);
+      expect(result.failedCount, 1);
+      expect(queue.pendingRecords, hasLength(1));
+      expect(queue.pendingRecords.single.lastError, contains('checkpoint'));
+    },
+  );
 }
 
 class _Identity implements MaintainiacCloudIdentityProvider {
@@ -133,4 +217,12 @@ class _Identity implements MaintainiacCloudIdentityProvider {
 
   @override
   final String? currentUid;
+}
+
+class _Sink implements MaintainiacFirestoreDocumentSink {
+  @override
+  Future<void> writeDocument({
+    required String path,
+    required Map<String, Object?> data,
+  }) async {}
 }

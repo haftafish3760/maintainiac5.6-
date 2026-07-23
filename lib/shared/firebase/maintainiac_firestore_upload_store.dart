@@ -210,12 +210,16 @@ class MaintainiacFirestoreUploadQueueStore {
   Future<void> markUploaded(Iterable<String> recordIds, {DateTime? nowUtc}) =>
       _enqueue(() async {
         await _ensureStorageForQueueWrite();
-        final uploadedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+        final requestedUploadedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
         for (final id in recordIds) {
           final record = MaintainiacFirestoreQueuedDocument.fromStored(
             _box.get(id),
           );
           if (record.isEmpty) continue;
+          final notBefore = record.lastAttemptAtUtc ?? record.queuedAtUtc;
+          final uploadedAt = requestedUploadedAt.isBefore(notBefore)
+              ? notBefore
+              : requestedUploadedAt;
           final uploaded = MaintainiacFirestoreQueuedDocument(
             id: record.id,
             path: record.path,

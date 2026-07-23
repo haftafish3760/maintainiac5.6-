@@ -63,6 +63,11 @@ typedef MaintainiacFirestoreQueueStorageCheck =
     Future<AppStorageCheck> Function();
 typedef MaintainiacFirestoreFreeSyncAttemptRecorder =
     Future<void> Function(DateTime nowUtc);
+typedef MaintainiacFirestoreUploadAcknowledgment =
+    Future<void> Function(
+      List<MaintainiacFirestoreQueuedDocument> uploaded,
+      DateTime acknowledgedAtUtc,
+    );
 typedef MaintainiacHostedSyncReservationProvider =
     Future<MaintainiacHostedSyncReservation> Function(
       String attemptId,

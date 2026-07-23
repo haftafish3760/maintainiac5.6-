@@ -24,6 +24,7 @@ class MaintainiacFirestoreUploadCoordinator {
     int Function()? freeSyncsUsedInWindowReader,
     MaintainiacFirestoreFreeSyncAttemptRecorder? freeSyncAttemptRecorder,
     MaintainiacHostedSyncReservationProvider? hostedSyncReservationProvider,
+    MaintainiacFirestoreUploadAcknowledgment? uploadAcknowledgment,
     bool Function()? uploadNetworkAllowed,
     MaintainiacCloudIdentityProvider? identityProvider,
   }) : _queue = queue,
@@ -32,6 +33,7 @@ class MaintainiacFirestoreUploadCoordinator {
        _uploadNetworkAllowed = uploadNetworkAllowed,
        _freeSyncAttemptRecorder = freeSyncAttemptRecorder,
        _hostedSyncReservationProvider = hostedSyncReservationProvider,
+       _uploadAcknowledgment = uploadAcknowledgment,
        _identityProvider =
            identityProvider ??
            (sink is FirebaseFirestoreDocumentSink
@@ -50,6 +52,7 @@ class MaintainiacFirestoreUploadCoordinator {
   final MaintainiacFirestoreFreeSyncAttemptRecorder? _freeSyncAttemptRecorder;
   final MaintainiacHostedSyncReservationProvider?
   _hostedSyncReservationProvider;
+  final MaintainiacFirestoreUploadAcknowledgment? _uploadAcknowledgment;
   final int Function()? _freeSyncsUsedInWindowReader;
   final MaintainiacCloudIdentityProvider? _identityProvider;
 
@@ -283,7 +286,28 @@ class MaintainiacFirestoreUploadCoordinator {
         }
       }
     }
-    await _queue.markUploaded(uploadedIds, nowUtc: nowUtc);
+    final acknowledgedAt = (nowUtc ?? DateTime.now().toUtc()).toUtc();
+    final uploadedRecords = batch
+        .where((record) => uploadedIds.contains(record.id))
+        .toList(growable: false);
+    final uploadAcknowledgment = _uploadAcknowledgment;
+    if (uploadedRecords.isNotEmpty && uploadAcknowledgment != null) {
+      try {
+        await uploadAcknowledgment(uploadedRecords, acknowledgedAt);
+      } catch (_) {
+        for (final record in uploadedRecords) {
+          await _queue.markAttempted(
+            record,
+            error: 'Cloud write succeeded but its local checkpoint failed.',
+            nowUtc: acknowledgedAt,
+          );
+        }
+        failedCount += uploadedRecords.length;
+        uploadedCount -= uploadedRecords.length;
+        uploadedIds.clear();
+      }
+    }
+    await _queue.markUploaded(uploadedIds, nowUtc: acknowledgedAt);
     // Original local records remain authoritative. This queue copy is removed
     // only after cloud acknowledgement has itself been saved durably.
     if (uploadedIds.isNotEmpty) await _queue.clearUploaded();
