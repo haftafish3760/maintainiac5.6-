@@ -2,6 +2,33 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/durable_storage/maintainiac_durable_storage.dart';
 
 void main() {
+  test('content hash matches the server canonicalization vector', () {
+    final time = DateTime.utc(2026, 7, 22);
+    final record = MaintainiacDurableRecord(
+      module: 'settings',
+      id: 'record-1',
+      payload: const {
+        'title': 'HDWR',
+        'ratio': 12.0,
+        'nested': {'enabled': true},
+        'count': 1,
+      },
+      lifecycle: MaintainiacRecordLifecycle(
+        createdAt: time,
+        updatedAt: time,
+        auditEvents: const ['2026-07-22T00:00:00.000Z created record'],
+      ),
+    );
+
+    expect(
+      MaintainiacRestoreApplier.contentSha256For(
+        record,
+        accountScopeId: 'orgVector.userVector',
+      ),
+      '9e34025a498e8ef5c2c1f14d11ba90f16b8081df239c403e033552de7ab01426',
+    );
+  });
+
   late MaintainiacDurableRecordStore store;
   late MaintainiacRestoreApplier applier;
 

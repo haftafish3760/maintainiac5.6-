@@ -27,6 +27,31 @@ before(async () => {
 after(async () => testEnv?.cleanup());
 
 describe('server committed durable records', () => {
+  test('content hash matches the client canonicalization vector', () => {
+    const data = {
+      accountScopeId: 'orgVector.userVector',
+      module: 'settings',
+      localRecordId: 'record-1',
+      recordPayload: {
+        title: 'HDWR',
+        ratio: 12.0,
+        nested: {enabled: true},
+        count: 1,
+      },
+      createdAt: '2026-07-22T00:00:00.000Z',
+      updatedAt: '2026-07-22T00:00:00.000Z',
+      localRevision: 1,
+      recordState: 'active',
+      deletedAt: null,
+      auditEvents: ['2026-07-22T00:00:00.000Z created record'],
+    };
+
+    assert.equal(
+      contentHash(data),
+      '9e34025a498e8ef5c2c1f14d11ba90f16b8081df239c403e033552de7ab01426',
+    );
+  });
+
   test('one reserved batch is idempotent and client writes stay blocked', async () => {
     const identity = await createIdentity();
     await seedHostedAccount(identity.uid);
