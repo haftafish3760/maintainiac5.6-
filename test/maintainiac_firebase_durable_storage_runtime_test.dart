@@ -74,6 +74,64 @@ void main() {
       expect(queue.pendingRecords, isEmpty);
     },
   );
+
+  test(
+    'server quota rejection preserves an unattempted durable batch',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      await queue.enqueue(_draft());
+      final runtime = await MaintainiacFirebaseDurableStorageRuntime.create(
+        queue: queue,
+        revisions: MaintainiacDurableCloudRevisionStore.memory(),
+        identity: const _Identity('user-a'),
+        functions: _Functions(
+          failure: const MaintainiacCallableFailure(
+            code: 'resource-exhausted',
+            message: 'limit reached',
+          ),
+        ),
+      );
+
+      final result = await runtime.uploads.uploadPending(
+        attemptId: 'attempt-a',
+        nowUtc: DateTime.utc(2026, 7, 22),
+      );
+
+      expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
+      expect(queue.pendingRecords.single.attemptCount, 0);
+    },
+  );
+
+  test('server revision conflict is retained for explicit review', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final draft = _draft();
+    await queue.enqueue(draft, queuedAtUtc: DateTime.utc(2026, 7, 22));
+    final runtime = await MaintainiacFirebaseDurableStorageRuntime.create(
+      queue: queue,
+      revisions: MaintainiacDurableCloudRevisionStore.memory(),
+      identity: const _Identity('user-a'),
+      functions: _Functions(
+        failure: MaintainiacCallableFailure(
+          code: 'failed-precondition',
+          message: 'revision conflict',
+          details: {
+            'reason': 'revision_conflict',
+            'path': draft.path,
+            'localRevision': 1,
+            'remoteRevision': 2,
+          },
+        ),
+      ),
+    );
+
+    final result = await runtime.uploads.uploadPending(
+      attemptId: 'attempt-a',
+      nowUtc: DateTime.utc(2026, 7, 23),
+    );
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.conflict);
+    expect(queue.records.single.conflictedAtUtc, isNotNull);
+  });
 }
 
 MaintainiacFirestoreDocumentDraft _draft() {
@@ -109,6 +167,9 @@ class _HostedSink
 }
 
 class _Functions implements MaintainiacCallableFunctionClient {
+  _Functions({this.failure});
+
+  final Object? failure;
   final names = <String>[];
 
   @override
@@ -117,6 +178,7 @@ class _Functions implements MaintainiacCallableFunctionClient {
     required Map<String, Object?> data,
   }) async {
     names.add(name);
+    if (failure != null) throw failure!;
     return {
       'reservationId': 'reservation-a',
       'used': 1,

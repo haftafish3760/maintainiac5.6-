@@ -24,6 +24,15 @@ abstract interface class MaintainiacServerCommittedBatchSink {
   });
 }
 
+class MaintainiacHostedSyncCommitRejected implements Exception {
+  const MaintainiacHostedSyncCommitRejected(this.reason);
+
+  final String reason;
+
+  @override
+  String toString() => reason;
+}
+
 Future<void> _firestoreUploadTail = Future<void>.value();
 
 class MaintainiacFirestoreUploadCoordinator {
@@ -252,6 +261,36 @@ class MaintainiacFirestoreUploadCoordinator {
             );
         uploadedIds.addAll(batch.map((record) => record.id));
         uploadedCount = batch.length;
+      } on MaintainiacHostedSyncCommitRejected catch (error) {
+        return MaintainiacFirestoreUploadResult(
+          status: MaintainiacFirestoreUploadStatus.quotaExceeded,
+          attemptedCount: 0,
+          uploadedCount: 0,
+          failedCount: 0,
+          reason: error.reason,
+        );
+      } on MaintainiacFirestoreRevisionConflict catch (error) {
+        final conflicted = batch
+            .where((record) => record.path == error.path)
+            .toList(growable: false);
+        for (final record in conflicted) {
+          conflictedCount += 1;
+          await _queue.markConflicted(
+            record,
+            error: error.toString(),
+            nowUtc: nowUtc,
+          );
+        }
+        if (conflicted.isEmpty) {
+          for (final record in batch) {
+            failedCount += 1;
+            await _queue.markAttempted(
+              record,
+              error: 'Cloud conflict did not match the durable batch.',
+              nowUtc: nowUtc,
+            );
+          }
+        }
       } catch (error) {
         for (final record in batch) {
           failedCount += 1;

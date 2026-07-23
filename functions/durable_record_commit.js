@@ -67,7 +67,11 @@ async function commitDurableRecordBatch(request) {
       const incoming = validated.documents[index].data;
       const current = existing[index].data();
       if (current != null) {
-        validateRevisionAdvance(incoming, current);
+        validateRevisionAdvance(
+          validated.documents[index].path,
+          incoming,
+          current,
+        );
         if (canonicalJson(incoming) === canonicalJson(current)) continue;
       }
       transaction.set(references[index], incoming, {merge: false});
@@ -126,7 +130,7 @@ function validateDocuments(uid, documents) {
   return {organizationId, documents: validated};
 }
 
-function validateRevisionAdvance(incoming, current) {
+function validateRevisionAdvance(path, incoming, current) {
   if (current.schema !== 'maintainiac_durable_record_v1' ||
       incoming.recordKey !== current.recordKey ||
       incoming.module !== current.module ||
@@ -141,6 +145,12 @@ function validateRevisionAdvance(incoming, current) {
     throw new HttpsError(
       'failed-precondition',
       'Durable record revision conflicts with the cloud record.',
+      {
+        reason: 'revision_conflict',
+        path,
+        localRevision: incoming.localRevision,
+        remoteRevision: current.localRevision,
+      },
     );
   }
 }

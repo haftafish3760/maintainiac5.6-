@@ -9,6 +9,21 @@ abstract interface class MaintainiacCallableFunctionClient {
   });
 }
 
+class MaintainiacCallableFailure implements Exception {
+  const MaintainiacCallableFailure({
+    required this.code,
+    required this.message,
+    this.details = const {},
+  });
+
+  final String code;
+  final String message;
+  final Map<String, Object?> details;
+
+  @override
+  String toString() => 'Hosted operation failed ($code).';
+}
+
 class FirebaseMaintainiacCallableFunctionClient
     implements MaintainiacCallableFunctionClient {
   FirebaseMaintainiacCallableFunctionClient({FirebaseFunctions? functions})
@@ -21,9 +36,22 @@ class FirebaseMaintainiacCallableFunctionClient
     required String name,
     required Map<String, Object?> data,
   }) async {
-    final result = await _functions
-        .httpsCallable(name)
-        .call<Map<String, dynamic>>(Map<String, dynamic>.from(data));
-    return Map<String, Object?>.unmodifiable(result.data);
+    try {
+      final result = await _functions
+          .httpsCallable(name)
+          .call<Map<String, dynamic>>(Map<String, dynamic>.from(data));
+      return Map<String, Object?>.unmodifiable(result.data);
+    } on FirebaseFunctionsException catch (error) {
+      final details = error.details;
+      throw MaintainiacCallableFailure(
+        code: error.code.split('/').last,
+        message: error.message ?? 'Hosted operation failed.',
+        details: details is Map
+            ? Map<String, Object?>.unmodifiable(
+                Map<String, Object?>.from(details),
+              )
+            : const {},
+      );
+    }
   }
 }
