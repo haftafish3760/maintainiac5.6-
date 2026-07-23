@@ -408,7 +408,7 @@ void main() {
       android,
       contains('if (allowBackground && !hasBackgroundLocation())'),
     );
-    expect(android, contains('if (!hasFineLocation())'));
+    expect(android, contains('if (!hasLocation())'));
     expect(android, contains('if (!locationServicesEnabled(locationManager))'));
     expect(
       ios,
@@ -418,7 +418,11 @@ void main() {
     );
     expect(
       ios,
-      contains('guard authorization["preciseLocation"] as? Bool == true else'),
+      isNot(
+        contains(
+          'guard authorization["preciseLocation"] as? Bool == true else',
+        ),
+      ),
     );
     expect(
       ios,
@@ -489,10 +493,9 @@ void main() {
       ios,
       contains('tracking && stopForLocationServicesDisabledIfNeeded()'),
     );
-    expect(ios, contains('let hasPreciseLocation'));
     expect(ios, contains('let canKeepBackgroundTracking'));
     expect(ios, contains('trip_tracking_background_location_denied'));
-    expect(ios, contains('trip_tracking_location_accuracy_reduced'));
+    expect(ios, isNot(contains('trip_tracking_location_accuracy_reduced')));
     expect(ios, contains('trip_tracking_location_error'));
     expect(ios, contains('locationError.code == .denied'));
     expect(ios, contains('locationError.code == .locationUnknown'));
@@ -533,19 +536,24 @@ void main() {
     );
   });
 
-  test('iOS refuses reduced-accuracy GPS before an active session starts', () {
+  test('native collectors keep approximate GPS advisory and non-authoritative', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
     final ios = File(
       'ios/Runner/TripTrackingNativeBridge.swift',
     ).readAsStringSync();
 
+    expect(android, contains('private fun hasLocation(): Boolean'));
+    expect(android, contains('Manifest.permission.ACCESS_COARSE_LOCATION'));
+    expect(android, contains('"preciseLocation" to hasFineLocation()'));
+    expect(ios, contains('"preciseLocation": precise'));
     expect(
       ios,
-      contains('guard authorization["preciseLocation"] as? Bool == true else'),
-    );
-    expect(
-      ios,
-      contains(
-        'Precise location permission is required before starting trip tracking.',
+      isNot(
+        contains(
+          'Precise location permission is required before starting trip tracking.',
+        ),
       ),
     );
   });

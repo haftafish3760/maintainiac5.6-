@@ -7535,34 +7535,247 @@ void main() {
     },
   );
 
-  test('approximate-only location cannot start a precise GPS trip', () async {
-    final native = _FakeTripTrackingPlatform(
-      authorization: const TripTrackingAuthorization(
+  test(
+    'approximate-only permission keeps the trip local and low confidence',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        authorization: const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.always,
+          preciseLocation: false,
+        ),
+      );
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_approximate_location',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'initial_fix_approximate',
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.acceptedMeters, 0);
+      expect(controller.platformError, contains('approximate location'));
+      expect(
+        controller.activeSession?.engineSnapshot.initialFixAssessment?.quality,
+        TripInitialFixQuality.approximateOnly,
+      );
+      expect(
+        controller.activeSession?.permissionHistory.last.preciseLocation,
+        isFalse,
+      );
+
+      native.addAuthorization(
+        const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.always,
+          preciseLocation: true,
+        ),
+      );
+      native.addLocation(sample(-80, 10));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
+      );
+
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.platformError, isNull);
+      expect(
+        controller.activeSession?.engineSnapshot.initialFixAssessment?.quality,
+        TripInitialFixQuality.freshPrecise,
+      );
+    },
+  );
+
+  test(
+    'precision downgrade keeps GPS advisory and recovers after precise access',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      await controller.start(
+        tripId: 'trip_precision_downgrade_recovery',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: true),
+        isTrue,
+      );
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
+      );
+
+      native.addAuthorization(
+        const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.always,
+          preciseLocation: false,
+        ),
+      );
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'initial_fix_approximate',
+      );
+
+      expect(controller.isTracking, isTrue);
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.platformError, contains('low confidence'));
+      expect(
+        controller.activeSession?.permissionHistory.last.preciseLocation,
+        isFalse,
+      );
+
+      native.addAuthorization(
+        const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.always,
+          preciseLocation: true,
+        ),
+      );
+      native.addLocation(sample(-79.999, 20, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
+      );
+
+      expect(controller.nativeTracking, isTrue);
+      expect(controller.platformError, isNull);
+      expect(
+        controller.activeSession?.permissionHistory.last.preciseLocation,
+        isTrue,
+      );
+    },
+  );
+
+  test(
+    'approximate evidence survives process recovery without becoming mileage',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      const approximateAuthorization = TripTrackingAuthorization(
         state: TripTrackingAuthorizationState.always,
         preciseLocation: false,
-      ),
-    );
+      );
+      final initialNative = _FakeTripTrackingPlatform(
+        authorization: approximateAuthorization,
+      );
+      final initial = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: initialNative,
+      );
+      addTearDown(initial.dispose);
+      await initial.start(
+        tripId: 'trip_approximate_process_recovery',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      expect(await initial.startNativeTracking(allowBackground: false), isTrue);
+      initialNative.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => initial.platformStatus == 'initial_fix_approximate',
+      );
+      expect(initial.acceptedMeters, 0);
+
+      final recoveredNative = _FakeTripTrackingPlatform(
+        authorization: approximateAuthorization,
+      );
+      final restored = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: recoveredNative,
+      );
+      addTearDown(restored.dispose);
+
+      expect(await restored.restore(), isTrue);
+      expect(restored.acceptedMeters, 0);
+      expect(restored.activeSession?.recoveryCount, 1);
+      expect(
+        restored.activeSession?.permissionHistory.last.preciseLocation,
+        isFalse,
+      );
+      expect(
+        restored.activeSession?.engineSnapshot.initialFixAssessment?.quality,
+        TripInitialFixQuality.approximateOnly,
+      );
+      expect(
+        restored.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+
+      expect(
+        await restored.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      recoveredNative.addLocation(sample(-79.9999, 20, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => restored.platformStatus == 'initial_fix_approximate',
+      );
+      expect(restored.nativeTracking, isTrue);
+      expect(restored.acceptedMeters, 0);
+      expect(restored.platformError, contains('low confidence'));
+
+      recoveredNative.addAuthorization(
+        const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.always,
+          preciseLocation: true,
+        ),
+      );
+      recoveredNative.addLocation(sample(-79.9998, 30, speed: 8));
+      await drainNativeTripEventsUntil(
+        () => restored.platformStatus == 'tracking',
+      );
+      expect(restored.platformError, isNull);
+      expect(
+        restored.activeSession?.permissionHistory.last.preciseLocation,
+        isTrue,
+      );
+    },
+  );
+
+  test('legacy precision error cannot stop an advisory GPS trip', () async {
+    final native = _FakeTripTrackingPlatform();
     final controller = TestTripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(initialReading: 1000),
       platform: native,
     );
+    addTearDown(controller.dispose);
     await controller.start(
-      tripId: 'trip_approximate_location',
+      tripId: 'trip_legacy_precision_error',
       vehicleId: 'vehicle_1',
       profile: TripTrackingProfile.roadVehicle,
       startedAt: start,
     );
+    expect(await controller.startNativeTracking(allowBackground: true), isTrue);
 
-    expect(
-      await controller.startNativeTracking(allowBackground: false),
-      isFalse,
+    native.addPlatformError(
+      code: 'trip_tracking_location_accuracy_reduced',
+      message: 'raw native precision detail',
     );
-    expect(controller.platformError, contains('Precise location permission'));
-    expect(
-      controller.lifecycleState,
-      TripTrackingSessionLifecycleState.permissionRequired,
+    await drainNativeTripEventsUntil(
+      () => controller.platformStatus == 'initial_fix_approximate',
     );
+
+    expect(controller.isTracking, isTrue);
+    expect(controller.nativeTracking, isTrue);
+    expect(native.stopCalls, 0);
+    expect(controller.platformError, contains('low confidence'));
+    expect(controller.platformError, isNot(contains('raw native')));
   });
 
   test(

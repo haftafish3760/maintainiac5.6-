@@ -74,21 +74,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let authorization = authorizationMap()
     emit(["type": "authorization"] .merging(authorization) { _, latest in latest })
     let state = authorization["state"] as? String
-    let hasPreciseLocation = authorization["preciseLocation"] as? Bool == true
     let canKeepBackgroundTracking = !requestedBackgroundAuthorization || state == "always"
     if tracking && (
       state == "denied" ||
       state == "restricted" ||
-      !hasPreciseLocation ||
       !canKeepBackgroundTracking
     ) {
       stopNativeCollection()
       let errorCode: String
       let errorMessage: String
-      if !hasPreciseLocation {
-        errorCode = "trip_tracking_location_accuracy_reduced"
-        errorMessage = "Precise location was reduced while tracking."
-      } else if !canKeepBackgroundTracking {
+      if !canKeepBackgroundTracking {
         errorCode = "trip_tracking_background_location_denied"
         errorMessage = "Background location permission was removed while tracking."
       } else {
@@ -287,10 +282,6 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       result(FlutterError(code: "trip_tracking_location_denied", message: "Location permission is required before starting trip tracking.", details: authorization))
       return
     }
-    guard authorization["preciseLocation"] as? Bool == true else {
-      result(FlutterError(code: "trip_tracking_location_accuracy_reduced", message: "Precise location permission is required before starting trip tracking.", details: authorization))
-      return
-    }
     let arguments = call.arguments as? [String: Any]
     let profile = arguments?["profile"] as? String
     let allowBackground = arguments?["allowBackground"] as? Bool ?? false
@@ -344,10 +335,6 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let state = authorization["state"] as? String
     guard state == "whileInUse" || state == "always" else {
       result(FlutterError(code: "trip_tracking_location_denied", message: "Location permission is required before updating trip tracking.", details: authorization))
-      return
-    }
-    guard authorization["preciseLocation"] as? Bool == true else {
-      result(FlutterError(code: "trip_tracking_location_accuracy_reduced", message: "Precise location permission is required before updating trip tracking.", details: authorization))
       return
     }
     guard state == "always" || (!allowBackground && state == "whileInUse") else {

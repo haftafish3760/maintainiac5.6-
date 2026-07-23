@@ -189,18 +189,18 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     )) {
       return false;
     }
-    if (!authorization.canTrackPrecisely ||
+    if (!authorization.canTrack ||
         (allowBackground && !authorization.canTrackInBackground)) {
       final backgroundSettingsRequired =
           allowBackground &&
-          authorization.canTrackPrecisely &&
+          authorization.canTrack &&
           !authorization.canTrackInBackground;
       if (backgroundSettingsRequired) {
         _platformStatus = 'background_location_settings_required';
       }
       _platformError = allowBackground
           ? 'Background location permission is required for this tracking mode.'
-          : 'Precise location permission is required to start trip tracking.';
+          : 'Location permission is required to start trip tracking.';
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.permissionRequired,
         health: TripTrackingHealthState.permissionBlocked,
@@ -266,7 +266,14 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       started = await platform.start(request);
     } catch (error) {
       final errorCode = error is PlatformException ? error.code : null;
+      // Current native adapters continue with approximate-only evidence, but
+      // older adapters can still reject startup with this legacy code. Since
+      // no collector started, preserve an actionable permission recovery
+      // state rather than treating it like an active-session precision event.
+      final legacyPrecisionStartFailure =
+          errorCode == 'trip_tracking_location_accuracy_reduced';
       final authorizationFailure =
+          legacyPrecisionStartFailure ||
           TripTrackingNativeErrorPolicy.isAuthorizationLoss(errorCode);
       final locationServicesFailure =
           TripTrackingNativeErrorPolicy.isLocationServicesLoss(errorCode);

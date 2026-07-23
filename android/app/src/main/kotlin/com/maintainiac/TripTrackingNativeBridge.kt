@@ -178,8 +178,8 @@ class TripTrackingNativeBridge(
     }
 
     private fun start(call: MethodCall, result: MethodChannel.Result) {
-        if (!hasFineLocation()) {
-            result.error("trip_tracking_location_denied", "Precise location permission is required before starting trip tracking.", authorizationMap())
+        if (!hasLocation()) {
+            result.error("trip_tracking_location_denied", "Location permission is required before starting trip tracking.", authorizationMap())
             return
         }
         val allowBackground = call.argument<Boolean>("allowBackground") == true
@@ -235,8 +235,8 @@ class TripTrackingNativeBridge(
             result.error("trip_tracking_gps_unavailable", "Device location is unavailable. Turn on Location Services before updating trip tracking.", authorizationMap())
             return
         }
-        if (!hasFineLocation()) {
-            result.error("trip_tracking_location_denied", "Precise location permission is required before updating trip tracking.", authorizationMap())
+        if (!hasLocation()) {
+            result.error("trip_tracking_location_denied", "Location permission is required before updating trip tracking.", authorizationMap())
             return
         }
         val allowBackground = call.argument<Boolean>("allowBackground") == true
@@ -308,12 +308,19 @@ class TripTrackingNativeBridge(
     private fun authorizationMap(): Map<String, Any> = mapOf(
         "schemaVersion" to 1,
         "state" to when {
-            !hasFineLocation() -> "denied"
+            !hasLocation() -> "denied"
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && hasBackgroundLocation() -> "always"
             else -> "whileInUse"
         },
         "preciseLocation" to hasFineLocation(),
     )
+
+    private fun hasLocation(): Boolean =
+        hasFineLocation() ||
+            ContextCompat.checkSelfPermission(
+                activity,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
 
     private fun hasFineLocation(): Boolean = ContextCompat.checkSelfPermission(
         activity,

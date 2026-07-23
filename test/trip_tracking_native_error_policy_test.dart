@@ -21,6 +21,12 @@ void main() {
       ),
       isFalse,
     );
+    expect(
+      TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+        'trip_tracking_location_accuracy_reduced',
+      ),
+      isFalse,
+    );
   });
 
   test('recoverable native GPS errors are explicit allow-list only', () {

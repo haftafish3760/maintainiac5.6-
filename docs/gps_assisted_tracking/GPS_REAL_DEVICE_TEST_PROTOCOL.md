@@ -89,6 +89,10 @@ outcomes.
 
 1. Deny precise location, then retry after granting it. Confirm no looping
    permission prompts and no empty trip/odometer lock remains after failure.
+   Repeat once with approximate location allowed: confirm the trip stays
+   locally recoverable, reports low confidence, adds no trusted GPS distance,
+   and resumes trusted sampling only after precise access and a fresh validated
+   fix return. Approximate access must never be presented as precise evidence.
    On Android 11 or newer, confirm background mode explains that “Allow all
    the time” must be chosen manually, opens only Maintainiac's app-settings
    page after explicit confirmation, and returns safely when dismissed. Also

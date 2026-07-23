@@ -26,8 +26,7 @@ class TripTrackingNativeErrorPolicy {
   static bool isAuthorizationLoss(String? errorCode) => switch (errorCode) {
     'trip_tracking_foreground_service_denied' ||
     'trip_tracking_location_denied' ||
-    'trip_tracking_background_location_denied' ||
-    'trip_tracking_location_accuracy_reduced' => true,
+    'trip_tracking_background_location_denied' => true,
     _ => false,
   };
 

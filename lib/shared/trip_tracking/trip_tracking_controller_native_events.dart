@@ -116,7 +116,9 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                 receivedAt: receivedAt,
                 locationServicesAvailable:
                     _lastKnownCapabilities?.locationAvailable == true,
-                preciseLocationAuthorized: true,
+                preciseLocationAuthorized:
+                    currentSession.permissionHistory.isNotEmpty &&
+                    currentSession.permissionHistory.last.preciseLocation,
                 sessionStartedAt: currentSession.startedAt,
                 recentKnownLocation: engine.snapshot.lastAccepted,
               );
@@ -140,6 +142,15 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                     TripInitialFixQuality.unavailable =>
                       'initial_fix_unavailable',
                     _ => 'initial_fix_rejected',
+                  };
+                  _platformError = switch (assessment.quality) {
+                    TripInitialFixQuality.approximateOnly =>
+                      'Only approximate location is available. GPS assistance will remain low confidence until precise access is restored.',
+                    TripInitialFixQuality.staleCached =>
+                      'The device returned an old location. The trip remains local while GPS waits for a current fix.',
+                    TripInitialFixQuality.unavailable =>
+                      'GPS has not produced a usable starting location yet.',
+                    _ => 'The starting GPS location was rejected safely.',
                   };
                 } catch (_) {
                   _engine = TripTrackingEngine.fromSnapshot(
@@ -242,16 +253,30 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               return;
             }
             final authorizationStillAllowsTracking =
-                authorization.canTrackPrecisely &&
+                authorization.canTrack &&
                 (!(_nativeTracking
                         ? _backgroundTrackingAllowed
                         : pendingStart!.allowBackground) ||
                     authorization.canTrackInBackground);
-            if (authorizationStillAllowsTracking) return;
+            if (authorizationStillAllowsTracking) {
+              if (!authorization.preciseLocation) {
+                _platformStatus = 'initial_fix_approximate';
+                _platformError =
+                    'Only approximate location is available. GPS assistance will remain low confidence until precise access is restored.';
+                notifyListeners();
+              } else if (_platformStatus == 'initial_fix_approximate') {
+                _platformStatus = _awaitingInitialFix
+                    ? 'awaiting_initial_fix'
+                    : 'tracking';
+                _platformError = null;
+                notifyListeners();
+              }
+              return;
+            }
             if (pendingStart != null && !_nativeTracking) {
               final backgroundOnlyLoss =
                   pendingStart.allowBackground &&
-                  authorization.canTrackPrecisely &&
+                  authorization.canTrack &&
                   !authorization.canTrackInBackground;
               _pendingNativeStartAuthorizationRevoked = true;
               _pendingNativeStartErrorCode = backgroundOnlyLoss
@@ -268,7 +293,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             // queue drain cannot wait on the event currently being processed.
             final backgroundOnlyLoss =
                 _backgroundTrackingAllowed &&
-                authorization.canTrackPrecisely &&
+                authorization.canTrack &&
                 !authorization.canTrackInBackground;
             final pendingStatus = backgroundOnlyLoss
                 ? 'background_location_settings_required'
@@ -454,6 +479,16 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                   });
                 }
               }
+              notifyListeners();
+            } else if (event.errorCode ==
+                    'trip_tracking_location_accuracy_reduced' &&
+                (_nativeTracking || _pendingNativeStartRequest != null)) {
+              // Approximate location remains advisory-only evidence. Preserve
+              // the local trip and collector; validation will reject or
+              // downgrade coarse samples instead of inventing precise miles.
+              _platformStatus = 'initial_fix_approximate';
+              _platformError =
+                  'Only approximate location is available. GPS assistance will remain low confidence until precise access is restored.';
               notifyListeners();
             } else if (_pendingNativeStartRequest != null &&
                 !_nativeTracking &&

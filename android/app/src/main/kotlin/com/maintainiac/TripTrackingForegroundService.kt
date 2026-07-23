@@ -192,7 +192,7 @@ class TripTrackingForegroundService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
-        if (!hasFineLocation()) {
+        if (!hasLocation()) {
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_denied", "errorMessage" to "Location permission was removed while tracking."))
             stopSelf()
             return START_NOT_STICKY
@@ -407,11 +407,11 @@ class TripTrackingForegroundService : Service() {
         return true
     }
 
-    /// Android can revoke precise location while this foreground service is
-    /// alive. Poll at the native heartbeat boundary so stale service status
-    /// never keeps a GPS session looking healthy after revocation.
+    /// Android can revoke all location access while this foreground service is
+    /// alive. Approximate access remains advisory and is classified by Dart;
+    /// only total permission loss retires the collector.
     private fun stopForLocationPermissionRevokedIfNeeded(): Boolean {
-        if (hasFineLocation()) return false
+        if (hasLocation()) return false
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "error",
@@ -489,6 +489,13 @@ class TripTrackingForegroundService : Service() {
         this,
         Manifest.permission.ACCESS_FINE_LOCATION,
     ) == PackageManager.PERMISSION_GRANTED
+
+    private fun hasLocation() =
+        hasFineLocation() ||
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
 
     private fun hasBackgroundLocation() =
         Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
