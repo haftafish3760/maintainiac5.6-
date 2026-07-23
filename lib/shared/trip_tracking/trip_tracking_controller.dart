@@ -328,29 +328,30 @@ class TripTrackingController extends ChangeNotifier {
   double get gpsAssistanceCalibrationMultiplier => _calibrationState.multiplier;
   TripTrackingPlatformCapabilities? get lastKnownCapabilities =>
       _lastKnownCapabilities;
-  TripTrackingReviewRecord? get latestReview =>
-      _sessionStore.pendingReviews.isEmpty
-      ? null
-      : _sessionStore.pendingReviews.first;
+  TripTrackingReviewRecord? get latestReview {
+    final reviews = _readPendingReviewsSafely();
+    return reviews.isEmpty ? null : reviews.first;
+  }
+
   TripTrackingReviewRecord? latestReviewForVehicle(String vehicleId) {
     final safeVehicleId = vehicleId.trim();
     if (safeVehicleId.isEmpty) return null;
-    for (final review in _sessionStore.pendingReviews) {
+    for (final review in _readPendingReviewsSafely()) {
       if (review.vehicleId == safeVehicleId) return review;
     }
     return null;
   }
 
-  TripTrackingReviewRecord? get latestUnconfirmedReview => _sessionStore
-      .pendingReviews
-      .where((review) => !review.isOdometerConfirmed)
-      .firstOrNull;
+  TripTrackingReviewRecord? get latestUnconfirmedReview =>
+      _readPendingReviewsSafely()
+          .where((review) => !review.isOdometerConfirmed)
+          .firstOrNull;
 
   TripOdometerCalibrationSignal odometerCalibrationSignal({
     String? vehicleId,
     DateTime? nowUtc,
   }) => TripOdometerCalibrationSignal.evaluateConfirmedReviews(
-    reviews: _sessionStore.pendingReviews,
+    reviews: _readPendingReviewsSafely(),
     vehicleId: vehicleId ?? _odometer.vehicleId,
     vehicleConfigurationRevision: _currentVehicleConfigurationRevision,
     // Persisted reviews are an external trust boundary. A caller that does
@@ -365,12 +366,22 @@ class TripTrackingController extends ChangeNotifier {
     DateTime? nowUtc,
   }) => TripDriverPatternAssistant.evaluate(
     observations: TripDriverPatternReviewAdapter.fromReviews(
-      _sessionStore.pendingReviews,
+      _readPendingReviewsSafely(),
     ),
     vehicleId: _odometer.vehicleId,
     profileId: profileId,
     nowUtc: nowUtc ?? _clockNow(),
   );
+
+  List<TripTrackingReviewRecord> _readPendingReviewsSafely() {
+    try {
+      return _sessionStore.pendingReviews;
+    } catch (_) {
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not read locally saved trip reviews.';
+      return const <TripTrackingReviewRecord>[];
+    }
+  }
 
   Future<void> retryCloudBackup() async {
     if (_isDisposed) return;

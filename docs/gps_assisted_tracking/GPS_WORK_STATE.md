@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 443 in the current continuation
+- Current pass: 448 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -75,6 +75,9 @@
 - Split-child creation now converts unavailable parent-review or pending-review
   storage into a controlled local-storage failure before creating a session or
   live odometer projection
+- Dashboard-facing review, calibration, and driver-pattern reads now fail
+  safely when local review storage is unavailable instead of throwing through
+  the UI; they surface a controlled storage error and retain durable evidence
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair
