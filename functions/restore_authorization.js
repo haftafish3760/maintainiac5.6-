@@ -2,6 +2,11 @@ const {createHash, randomBytes, randomUUID} = require('node:crypto');
 const {getFirestore, Timestamp} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {defineInt} = require('firebase-functions/params');
+const {
+  createRestoreSnapshot,
+  deleteRestoreSnapshot,
+  fetchRestoreSnapshotPage,
+} = require('./restore_snapshot');
 
 const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
 const SHA256 = /^[a-f0-9]{64}$/;
@@ -110,7 +115,16 @@ async function issueRestoreAuthorization(request) {
   const expiresAt = Timestamp.fromMillis(
     now.toMillis() + lifetimeSeconds * 1000,
   );
-  await db.doc(`orgs/${organizationId}/restoreSessions/${sessionId}`).create({
+  const sessionRef = db.doc(
+    `orgs/${organizationId}/restoreSessions/${sessionId}`,
+  );
+  const snapshot = await createRestoreSnapshot({
+    db,
+    sessionRef,
+    organizationId,
+    uid,
+    expiresAt,
+    sessionData: {
     uid,
     orgId: organizationId,
     deviceId,
@@ -120,16 +134,15 @@ async function issueRestoreAuthorization(request) {
     appCheckProtected: true,
     createdAt: now,
     expiresAt,
-    recordCount: Number(manifest.data()?.recordCount || 0),
-    structuredBytes: Number(manifest.data()?.structuredBytes || 0),
     manifestRevision: Number(manifest.data()?.manifestRevision || 0),
+    },
   });
   return {
     sessionId,
     authorizationToken,
     expiresAt: expiresAt.toDate().toISOString(),
-    recordCount: Number(manifest.data()?.recordCount || 0),
-    structuredBytes: Number(manifest.data()?.structuredBytes || 0),
+    recordCount: snapshot.recordCount,
+    structuredBytes: snapshot.structuredBytes,
     manifestRevision: Number(manifest.data()?.manifestRevision || 0),
   };
 }
@@ -259,6 +272,9 @@ async function updateRestoreSession(request) {
     transaction.update(sessionRef, update);
     return {...data, status: nextStatus, completedItems, completedBytes};
   });
+  if (action === 'cancel' || action === 'complete') {
+    await deleteRestoreSnapshot({db, sessionRef});
+  }
   return restoreSessionResult(input.sessionId, result, nextStatus);
 }
 
@@ -274,25 +290,20 @@ async function fetchRestoreRecordPage(request) {
   const sessionRef = db.doc(
     `orgs/${input.organizationId}/restoreSessions/${input.sessionId}`,
   );
-  await db.runTransaction(async (transaction) => {
+  const session = await db.runTransaction(async (transaction) => {
     const snapshot = await transaction.get(sessionRef);
     await requireCurrentRestorePrincipal(transaction, input, db);
-    requireUsableSession(snapshot, input, {
+    return requireUsableSession(snapshot, input, {
       allowedStates: new Set(['active']),
     });
   });
-  let query = db.collection(`orgs/${input.organizationId}/records`)
-    .where('createdByUid', '==', input.uid)
-    .where('privateToOwner', '==', true)
-    .orderBy('recordKey')
-    .limit(limit);
-  if (afterRecordKey) query = query.startAfter(afterRecordKey);
-  const snapshot = await query.get();
   return {
-    documents: snapshot.docs.map((document) => ({
-      id: document.id,
-      data: document.data(),
-    })),
+    documents: await fetchRestoreSnapshotPage({
+      sessionRef,
+      session,
+      afterRecordKey,
+      limit,
+    }),
   };
 }
 

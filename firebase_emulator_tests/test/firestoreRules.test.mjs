@@ -783,6 +783,10 @@ describe('Firestore rules emulator safety', () => {
         orgId: 'orgA',
         status: 'authorized',
       });
+      await setDoc(
+        doc(db, 'orgs/orgA/restoreSessions/sessionA/snapshotChunks/000000'),
+        {uid: 'ownerUid', orgId: 'orgA', documents: []},
+      );
     });
     await assertSucceeds(getDoc(doc(owner, 'users/ownerUid/devices/deviceA')));
     await assertFails(getDoc(doc(helper, 'users/ownerUid/devices/deviceA')));
@@ -791,6 +795,14 @@ describe('Firestore rules emulator safety', () => {
     );
     await assertFails(
       getDoc(doc(helper, 'orgs/orgA/restoreSessions/sessionA')),
+    );
+    await assertFails(
+      getDoc(
+        doc(
+          owner,
+          'orgs/orgA/restoreSessions/sessionA/snapshotChunks/000000',
+        ),
+      ),
     );
     await assertFails(
       deleteDoc(doc(owner, 'orgs/orgA/restoreSessions/sessionA')),

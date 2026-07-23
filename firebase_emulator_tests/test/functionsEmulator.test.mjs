@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { after, before, describe, test } from 'node:test';
 
 import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes } from 'firebase/storage';
 
 import {
@@ -16,6 +16,7 @@ import {
   storageHost,
   storagePort,
 } from './emulatorGuard.mjs';
+import {mutateRestoreRecordsAfterAuthorization} from './restoreSnapshotFixtures.mjs';
 
 const callableNames = [
   'issueExpenseProofUploadGrant',
@@ -178,6 +179,7 @@ describe('Cloud Functions emulator safety', () => {
     assert.match(authorization.authorizationToken, /^[a-f0-9]{64}$/);
     assert.equal(authorization.recordCount, restorePlan.recordCount);
     assert.equal(authorization.structuredBytes, restorePlan.structuredBytes);
+    await mutateRestoreRecordsAfterAuthorization(testEnv, identity.uid);
 
     const sessionInput = {
       organizationId: 'orgLifecycleA',
@@ -200,10 +202,16 @@ describe('Cloud Functions emulator safety', () => {
     const restorePage = await callFunction(
       'fetchRestoreRecordPage',
       identity.token,
-      {...sessionInput, limit: 1},
+      {...sessionInput, limit: 10},
     );
-    assert.equal(restorePage.documents.length, 1);
+    assert.equal(restorePage.documents.length, 2);
     assert.equal(restorePage.documents[0].data.createdByUid, identity.uid);
+    assert.equal(restorePage.documents[0].data.recordPayload.value, '3');
+    assert.equal(
+      restorePage.documents.some((document) =>
+        document.data.recordPayload.value === 'added-after-authorization'),
+      false,
+    );
     const badPageToken = await callFunctionError(
       'fetchRestoreRecordPage',
       identity.token,
@@ -293,6 +301,13 @@ describe('Cloud Functions emulator safety', () => {
       assert.equal(session.data()?.completedItems, authorization.recordCount);
       assert.equal(session.data()?.authorizationTokenHash, expectedHash);
       assert.equal(session.data()?.authorizationToken, undefined);
+      const snapshotChunks = await getDocs(
+        collection(
+          db,
+          `orgs/orgLifecycleA/restoreSessions/${authorization.sessionId}/snapshotChunks`,
+        ),
+      );
+      assert.equal(snapshotChunks.empty, true);
     });
 
     const rebound = await callFunctionError(
