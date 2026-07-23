@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 436 in the current continuation
+- Current pass: 443 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -69,6 +69,12 @@
   recovery-count checkpoint failure, and optional pending-sample read failure
   now have direct controller regressions proving that no duplicate session,
   phantom odometer lock, or erased durable checkpoint is produced
+- Concurrent start attempts through one memory store, two Hive-backed store
+  instances, and multiple controllers now prove that only one durable session
+  can win and the loser returns a controlled active-trip result
+- Split-child creation now converts unavailable parent-review or pending-review
+  storage into a controlled local-storage failure before creating a session or
+  live odometer projection
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair

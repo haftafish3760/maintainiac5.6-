@@ -177,13 +177,22 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       return false;
     }
     if (ancestry?.kind == TripTrackingSessionAncestryKind.splitChild) {
-      final parent = _sessionStore.reviewForTrip(ancestry!.parentSessionId!);
-      final parentAlreadySplit = _sessionStore.pendingReviews.any(
-        (review) =>
-            review.ancestry?.kind ==
-                TripTrackingSessionAncestryKind.splitChild &&
-            review.ancestry?.parentSessionId == ancestry.parentSessionId,
-      );
+      TripTrackingReviewRecord? parent;
+      var parentAlreadySplit = false;
+      try {
+        parent = _sessionStore.reviewForTrip(ancestry!.parentSessionId!);
+        parentAlreadySplit = _sessionStore.pendingReviews.any(
+          (review) =>
+              review.ancestry?.kind ==
+                  TripTrackingSessionAncestryKind.splitChild &&
+              review.ancestry?.parentSessionId == ancestry.parentSessionId,
+        );
+      } catch (error) {
+        _platformStatus = 'storage_failed';
+        _platformError = 'Could not read local split-trip ancestry evidence.';
+        notifyListeners();
+        return false;
+      }
       final odometerBoundaryMatches =
           parent?.vehicleId != vehicleId ||
           parent?.confirmedEndingOdometer == _odometer.confirmedReading;

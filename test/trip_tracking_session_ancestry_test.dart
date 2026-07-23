@@ -332,6 +332,42 @@ void main() {
     },
   );
 
+  for (final failurePoint in _SplitAncestryFailurePoint.values) {
+    test(
+      'split ancestry ${failurePoint.name} storage failure is controlled',
+      () async {
+        final odometer = GlobalOdometerController(
+          vehicleId: 'vehicle-1',
+          initialReading: 12000,
+        );
+        final controller = TripTrackingController(
+          sessionStore: _FailingSplitAncestryStore(failurePoint),
+          odometer: odometer,
+        );
+        addTearDown(controller.dispose);
+
+        expect(
+          await controller.start(
+            tripId: 'child-trip',
+            vehicleId: 'vehicle-1',
+            profile: TripTrackingProfile.roadVehicle,
+            ancestry: const TripTrackingSessionAncestry.splitChild(
+              parentSessionId: 'parent-trip',
+            ),
+          ),
+          isFalse,
+        );
+        expect(controller.platformStatus, 'storage_failed');
+        expect(
+          controller.platformError,
+          'Could not read local split-trip ancestry evidence.',
+        );
+        expect(controller.activeSession, isNull);
+        expect(odometer.hasLiveTripProjection, isFalse);
+      },
+    );
+  }
+
   test('user pause exact contract state survives process recovery', () async {
     final store = TripTrackingSessionStore.memory();
     final at = DateTime.utc(2026, 7, 22, 22);
@@ -368,4 +404,28 @@ void main() {
       TripTrackingSessionLifecycleContractState.PAUSED_BY_USER,
     );
   });
+}
+
+enum _SplitAncestryFailurePoint { parentReview, pendingReviews }
+
+class _FailingSplitAncestryStore extends TripTrackingSessionStore {
+  _FailingSplitAncestryStore(this.failurePoint) : super.memory();
+
+  final _SplitAncestryFailurePoint failurePoint;
+
+  @override
+  TripTrackingReviewRecord? reviewForTrip(String tripId) {
+    if (failurePoint == _SplitAncestryFailurePoint.parentReview) {
+      throw StateError('parent review unavailable');
+    }
+    return null;
+  }
+
+  @override
+  List<TripTrackingReviewRecord> get pendingReviews {
+    if (failurePoint == _SplitAncestryFailurePoint.pendingReviews) {
+      throw StateError('pending reviews unavailable');
+    }
+    return const <TripTrackingReviewRecord>[];
+  }
 }
