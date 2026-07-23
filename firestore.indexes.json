@@ -1,6 +1,15 @@
 {
   "indexes": [
     {
+      "collectionGroup": "records",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdByUid", "order": "ASCENDING" },
+        { "fieldPath": "privateToOwner", "order": "ASCENDING" },
+        { "fieldPath": "recordKey", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "expenses",
       "queryScope": "COLLECTION",
       "fields": [

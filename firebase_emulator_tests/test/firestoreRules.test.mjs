@@ -7,11 +7,17 @@ import {
   initializeTestEnvironment,
 } from '@firebase/rules-unit-testing';
 import {
+  collection,
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
   setDoc,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 
 import {
@@ -660,6 +666,48 @@ describe('Firestore rules emulator safety', () => {
       }),
     );
     await assertFails(deleteDoc(reference));
+  });
+
+  test('durable restore queries require the authenticated owner filter', async () => {
+    const owner = dbFor('ownerUid');
+    const helper = dbFor('helperUid');
+    const ownerRecordId = '1'.repeat(64);
+    const helperRecordId = '2'.repeat(64);
+    await assertSucceeds(
+      setDoc(
+        doc(owner, `orgs/orgA/records/${ownerRecordId}`),
+        genericDurableRecord(ownerRecordId),
+      ),
+    );
+    await assertSucceeds(
+      setDoc(doc(helper, `orgs/orgA/records/${helperRecordId}`), {
+        ...genericDurableRecord(helperRecordId),
+        accountScopeId: 'orgA.helperUid',
+        createdByUid: 'helperUid',
+        updatedByUid: 'helperUid',
+      }),
+    );
+
+    await assertSucceeds(
+      getDocs(
+        query(
+          collection(owner, 'orgs/orgA/records'),
+          where('createdByUid', '==', 'ownerUid'),
+          where('privateToOwner', '==', true),
+          orderBy('recordKey'),
+          limit(10),
+        ),
+      ),
+    );
+    await assertFails(
+      getDocs(
+        query(
+          collection(owner, 'orgs/orgA/records'),
+          orderBy('recordKey'),
+          limit(10),
+        ),
+      ),
+    );
   });
 
   test('invite reads are limited to owner/admin or matching email', async () => {
