@@ -271,7 +271,10 @@ describe('Cloud Functions emulator safety', () => {
       const reservation = await callFunction(
         'reserveHostedSync',
         identity.token,
-        {attemptId: `attempt-${attempt}`},
+        {
+          attemptId: `attempt-${attempt}`,
+          batchSha256: attempt.toString(16).repeat(64),
+        },
       );
       assert.equal(reservation.used, attempt);
       assert.equal(reservation.remaining, 4 - attempt);
@@ -280,17 +283,26 @@ describe('Cloud Functions emulator safety', () => {
         const retry = await callFunction(
           'reserveHostedSync',
           identity.token,
-          {attemptId: 'attempt-1'},
+          {attemptId: 'attempt-1', batchSha256: '1'.repeat(64)},
         );
         assert.equal(retry.reservationId, reservation.reservationId);
         assert.equal(retry.used, 1);
         assert.equal(retry.remaining, 3);
+        const mismatched = await callFunctionError(
+          'reserveHostedSync',
+          identity.token,
+          {attemptId: 'attempt-1', batchSha256: 'f'.repeat(64)},
+        );
+        assert.equal(
+          mismatched.body?.error?.status,
+          'FAILED_PRECONDITION',
+        );
       }
     }
     const exhausted = await callFunctionError(
       'reserveHostedSync',
       identity.token,
-      {attemptId: 'attempt-5'},
+      {attemptId: 'attempt-5', batchSha256: '5'.repeat(64)},
     );
     assert.equal(exhausted.status, 429);
     assert.equal(exhausted.body?.error?.status, 'RESOURCE_EXHAUSTED');

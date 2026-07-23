@@ -145,7 +145,10 @@ class MaintainiacFirestoreUploadCoordinator {
         );
       }
       try {
-        hostedReservation = await hostedReservationProvider(attemptId);
+        hostedReservation = await hostedReservationProvider(
+          attemptId,
+          _batchSha256(batch),
+        );
       } catch (_) {
         return const MaintainiacFirestoreUploadResult(
           status: MaintainiacFirestoreUploadStatus.quotaExceeded,
@@ -326,4 +329,31 @@ class MaintainiacFirestoreUploadCoordinator {
       return false;
     }
   }
+
+  String _batchSha256(List<MaintainiacFirestoreQueuedDocument> batch) {
+    final canonical = [
+      for (final record in batch)
+        {'path': record.path, 'data': _canonicalSyncValue(record.data)},
+    ];
+    return sha256.convert(utf8.encode(jsonEncode(canonical))).toString();
+  }
+}
+
+Object? _canonicalSyncValue(Object? value) {
+  if (value == null || value is bool || value is String || value is int) {
+    return value;
+  }
+  if (value is num && value.isFinite) return value;
+  if (value is DateTime) return value.toUtc().toIso8601String();
+  if (value is List) {
+    return value.map(_canonicalSyncValue).toList(growable: false);
+  }
+  if (value is Map) {
+    if (value.keys.any((key) => key is! String)) {
+      throw const FormatException('Cloud sync batch has a non-text field.');
+    }
+    final keys = value.keys.cast<String>().toList()..sort();
+    return {for (final key in keys) key: _canonicalSyncValue(value[key])};
+  }
+  throw const FormatException('Cloud sync batch contains unsupported data.');
 }

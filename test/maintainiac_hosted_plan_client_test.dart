@@ -29,12 +29,18 @@ void main() {
         identity: const _Identity('userA'),
       );
       final entitlement = await client.loadEntitlement();
-      final reservation = await client.reserveSync(attemptId: 'attempt-1');
+      final reservation = await client.reserveSync(
+        attemptId: 'attempt-1',
+        batchSha256: 'a' * 64,
+      );
       expect(entitlement.dailySyncLimit, 4);
       expect(entitlement.quotaBytes, 100 * 1024 * 1024);
       expect(reservation.remaining, 3);
       expect(functions.calls, ['getHostedUsageGrant', 'reserveHostedSync']);
-      expect(functions.payloads.last, {'attemptId': 'attempt-1'});
+      expect(functions.payloads.last, {
+        'attemptId': 'attempt-1',
+        'batchSha256': 'a' * 64,
+      });
     },
   );
 
@@ -63,11 +69,15 @@ void main() {
       );
       await expectLater(malformed.loadEntitlement(), throwsFormatException);
       await expectLater(
-        malformed.reserveSync(attemptId: 'attempt-1'),
+        malformed.reserveSync(attemptId: 'attempt-1', batchSha256: 'a' * 64),
         throwsFormatException,
       );
       await expectLater(
-        malformed.reserveSync(attemptId: 'bad/attempt'),
+        malformed.reserveSync(attemptId: 'bad/attempt', batchSha256: 'a' * 64),
+        throwsArgumentError,
+      );
+      await expectLater(
+        malformed.reserveSync(attemptId: 'attempt-1', batchSha256: 'bad-hash'),
         throwsArgumentError,
       );
     },

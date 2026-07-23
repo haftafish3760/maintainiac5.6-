@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'maintainiac_firestore_documents.dart';
@@ -53,7 +54,10 @@ typedef MaintainiacFirestoreQueueStorageCheck =
 typedef MaintainiacFirestoreFreeSyncAttemptRecorder =
     Future<void> Function(DateTime nowUtc);
 typedef MaintainiacHostedSyncReservationProvider =
-    Future<MaintainiacHostedSyncReservation> Function(String attemptId);
+    Future<MaintainiacHostedSyncReservation> Function(
+      String attemptId,
+      String batchSha256,
+    );
 
 /// Shared Firestore sink for module-specific backup coordinators. Keeping the
 /// actual write primitive here prevents Expenses, Trips, and future modules

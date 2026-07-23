@@ -127,8 +127,9 @@ void main() {
         queue: queue,
         sink: sink,
         uploadEnabled: true,
-        hostedSyncReservationProvider: (attemptId) async {
+        hostedSyncReservationProvider: (attemptId, batchSha256) async {
           expect(attemptId, 'attempt-1');
+          expect(batchSha256, matches(RegExp(r'^[a-f0-9]{64}$')));
           reservations += 1;
           return _reservation();
         },
@@ -151,7 +152,7 @@ void main() {
       queue: queue,
       sink: sink,
       uploadEnabled: true,
-      hostedSyncReservationProvider: (attemptId) =>
+      hostedSyncReservationProvider: (attemptId, batchSha256) =>
           throw StateError('limit reached'),
     ).uploadPending(attemptId: 'attempt-1');
 
@@ -168,7 +169,7 @@ void main() {
       queue: queue,
       sink: _RecordingFirestoreSink(),
       uploadEnabled: true,
-      hostedSyncReservationProvider: (attemptId) async {
+      hostedSyncReservationProvider: (attemptId, batchSha256) async {
         reservations += 1;
         return _reservation();
       },

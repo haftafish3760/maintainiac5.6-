@@ -23,8 +23,12 @@ async function getHostedUsageGrant(request) {
 async function reserveHostedSync(request) {
   const uid = requireUid(request);
   const attemptId = String(request.data?.attemptId || '').trim();
-  if (!ATTEMPT_TOKEN.test(attemptId)) {
-    throw new HttpsError('invalid-argument', 'A durable sync attempt ID is required.');
+  const batchSha256 = String(request.data?.batchSha256 || '').trim();
+  if (!ATTEMPT_TOKEN.test(attemptId) || !/^[a-f0-9]{64}$/.test(batchSha256)) {
+    throw new HttpsError(
+      'invalid-argument',
+      'A durable sync attempt ID and batch hash are required.',
+    );
   }
   const db = getFirestore();
   const entitlementRef = db.doc(`users/${uid}/entitlements/current`);
@@ -56,6 +60,12 @@ async function reserveHostedSync(request) {
     );
     const existing = attempts.find((entry) => entry.attemptId === attemptId);
     if (existing != null) {
+      if (existing.batchSha256 !== batchSha256) {
+        throw new HttpsError(
+          'failed-precondition',
+          'The sync attempt is already bound to another batch.',
+        );
+      }
       return reservationResult(existing, attempts.length, grant.dailySyncLimit);
     }
     if (attempts.length >= grant.dailySyncLimit) {
@@ -68,7 +78,7 @@ async function reserveHostedSync(request) {
       );
     }
     const reservationId = randomUUID();
-    const reserved = {id: reservationId, attemptId, at: now};
+    const reserved = {id: reservationId, attemptId, batchSha256, at: now};
     attempts.push(reserved);
     transaction.set(usageRef, {
       uid,

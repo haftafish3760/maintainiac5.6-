@@ -27,14 +27,18 @@ class MaintainiacHostedPlanClient {
 
   Future<MaintainiacHostedSyncReservation> reserveSync({
     required String attemptId,
+    required String batchSha256,
   }) async {
     _requireUid();
     if (!RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(attemptId)) {
       throw ArgumentError.value(attemptId, 'attemptId');
     }
+    if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(batchSha256)) {
+      throw ArgumentError.value(batchSha256, 'batchSha256');
+    }
     final payload = await _functions.call(
       name: 'reserveHostedSync',
-      data: {'attemptId': attemptId},
+      data: {'attemptId': attemptId, 'batchSha256': batchSha256},
     );
     return MaintainiacHostedSyncReservation.fromServer(payload);
   }
