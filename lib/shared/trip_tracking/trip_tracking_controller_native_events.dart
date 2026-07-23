@@ -659,6 +659,12 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
     try {
       await _sessionStore.save(updatedSession);
       _session = updatedSession;
+      if (_platformStatus == 'storage_failed' &&
+          _platformError ==
+              'Could not save GPS activity evidence locally; walking stop assistance is temporarily unavailable.') {
+        _platformStatus = null;
+        _platformError = null;
+      }
       notifyListeners();
       return true;
     } catch (_) {

@@ -6997,6 +6997,20 @@ void main() {
 
       expect(store.activeSession?.engineSnapshot.walkingEvidence, isEmpty);
       expect(controller.needsWalkingReview, isFalse);
+
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: start.add(const Duration(seconds: 60)),
+        ),
+      );
+      await drainNativeTripEventsUntil(
+        () => store.activeSession!.revision > revisionBeforeFailedActivity + 1,
+        maxPumps: 48,
+      );
+      expect(controller.platformStatus, isNull);
+      expect(controller.platformError, isNull);
     },
   );
 
