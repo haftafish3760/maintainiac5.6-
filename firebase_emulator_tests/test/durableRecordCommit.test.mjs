@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {after, before, describe, test} from 'node:test';
 
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
@@ -29,8 +30,7 @@ describe('server committed durable records', () => {
   test('one reserved batch is idempotent and client writes stay blocked', async () => {
     const identity = await createIdentity();
     await seedHostedAccount(identity.uid);
-    const recordKey = 'a'.repeat(64);
-    const first = durableDocument(identity.uid, recordKey, 1, 'dark');
+    const first = durableDocument(identity.uid, 'settings-a', 1, 'dark');
     const input = {attemptId: 'durable-attempt-a', documents: [first]};
 
     const committed = await callFunction(
@@ -57,13 +57,12 @@ describe('server committed durable records', () => {
   test('attempt rebinding and private local evidence fail closed', async () => {
     const identity = await createIdentity();
     await seedHostedAccount(identity.uid);
-    const recordKey = 'b'.repeat(64);
-    const first = durableDocument(identity.uid, recordKey, 1, 'dark');
+    const first = durableDocument(identity.uid, 'settings-b', 1, 'dark');
     await callFunction('commitDurableRecordBatch', identity.token, {
       attemptId: 'durable-attempt-b',
       documents: [first],
     });
-    const changed = durableDocument(identity.uid, recordKey, 2, 'light');
+    const changed = durableDocument(identity.uid, 'settings-b', 2, 'light');
     const rebound = await callFunctionError(
       'commitDurableRecordBatch',
       identity.token,
@@ -73,7 +72,7 @@ describe('server committed durable records', () => {
 
     const unsafe = durableDocument(
       identity.uid,
-      'c'.repeat(64),
+      'settings-c',
       1,
       'dark',
     );
@@ -85,19 +84,42 @@ describe('server committed durable records', () => {
     );
     assert.equal(rejected.status, 400);
   });
+
+  test('content, identity, and lifecycle tampering fail before writes', async () => {
+    const identity = await createIdentity();
+    await seedHostedAccount(identity.uid);
+    const tampered = durableDocument(identity.uid, 'tampered', 1, 'dark');
+    tampered.data.recordPayload.theme = 'changed-after-hash';
+    const wrongKey = durableDocument(identity.uid, 'wrong-key', 1, 'dark');
+    wrongKey.data.recordKey = 'f'.repeat(64);
+    wrongKey.path = `orgs/orgCommit/records/${wrongKey.data.recordKey}`;
+    const backward = durableDocument(identity.uid, 'backward', 1, 'dark');
+    backward.data.updatedAt = '2026-07-21T00:00:00.000Z';
+    backward.data.contentSha256 = contentHash(backward.data);
+
+    for (const [index, document] of [tampered, wrongKey, backward].entries()) {
+      const rejected = await callFunctionError(
+        'commitDurableRecordBatch',
+        identity.token,
+        {attemptId: `tamper-${index}`, documents: [document]},
+      );
+      assert.equal(rejected.status, 400);
+    }
+  });
 });
 
-function durableDocument(uid, recordKey, revision, theme) {
-  return {
+function durableDocument(uid, localRecordId, revision, theme) {
+  const recordKey = sha256(`settings\u0000${localRecordId}`);
+  const document = {
     path: `orgs/orgCommit/records/${recordKey}`,
     data: {
       schema: 'maintainiac_durable_record_v1',
       recordKey,
       module: 'settings',
-      localRecordId: 'settings-a',
+      localRecordId,
       accountScopeId: `orgCommit.${uid}`,
       recordSchemaVersion: 1,
-      contentSha256: String(revision).repeat(64).slice(0, 64),
+      contentSha256: '',
       privateToOwner: true,
       orgId: 'orgCommit',
       createdByUid: uid,
@@ -111,6 +133,40 @@ function durableDocument(uid, recordKey, revision, theme) {
       recordPayload: {theme},
     },
   };
+  document.data.contentSha256 = contentHash(document.data);
+  return document;
+}
+
+function contentHash(data) {
+  return sha256(canonicalJson({
+    accountScopeId: data.accountScopeId,
+    record: {
+      module: data.module,
+      id: data.localRecordId,
+      payload: data.recordPayload,
+      lifecycle: {
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        revision: data.localRevision,
+        state: data.recordState,
+        deletedAt: data.deletedAt,
+        auditEvents: data.auditEvents,
+      },
+    },
+  }));
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value != null && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map((key) =>
+      `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256(value) {
+  return createHash('sha256').update(value).digest('hex');
 }
 
 async function seedHostedAccount(uid) {

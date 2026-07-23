@@ -74,6 +74,16 @@ void main() {
       drafts.save(
         module: 'invoices',
         id: 'invoice-1',
+        payload: {
+          'amount': MaintainiacDurablePayload.maximumPortableInteger + 1,
+        },
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      drafts.save(
+        module: 'invoices',
+        id: 'invoice-1',
         payload: {'amount': double.nan},
       ),
       throwsArgumentError,

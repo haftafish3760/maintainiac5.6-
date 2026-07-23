@@ -9,6 +9,7 @@ class MaintainiacDurablePayload {
 
   static const int maximumDepth = 32;
   static const int maximumValueCount = 100000;
+  static const int maximumPortableInteger = 9007199254740991;
 
   static Map<String, dynamic> freeze(Map<String, dynamic> payload) {
     final traversal = _PayloadTraversal();
@@ -54,7 +55,13 @@ class _PayloadTraversal {
     if (depth > MaintainiacDurablePayload.maximumDepth) {
       throw ArgumentError('Durable payload nesting is too deep.');
     }
-    if (value == null || value is bool || value is int || value is String) {
+    if (value == null || value is bool || value is String) {
+      return value;
+    }
+    if (value is int) {
+      if (value.abs() > MaintainiacDurablePayload.maximumPortableInteger) {
+        throw ArgumentError('Durable payload integer is not portable.');
+      }
       return value;
     }
     if (value is double) {

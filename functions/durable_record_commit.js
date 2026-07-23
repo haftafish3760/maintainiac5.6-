@@ -9,6 +9,8 @@ const PATH = /^orgs\/([A-Za-z0-9_.-]{1,160})\/records\/([a-f0-9]{64})$/;
 const MAX_DOCUMENTS = 20;
 const MAX_DOCUMENT_BYTES = 768 * 1024;
 const MAX_BATCH_BYTES = 2 * 1024 * 1024;
+const MAX_VALUE_DEPTH = 32;
+const MAX_VALUE_COUNT = 100000;
 const REQUIRED_KEYS = new Set([
   'schema', 'recordKey', 'module', 'localRecordId', 'accountScopeId',
   'recordSchemaVersion', 'contentSha256', 'privateToOwner', 'orgId',
@@ -107,18 +109,20 @@ function validateDocuments(uid, documents) {
         data.accountScopeId !== `${organizationId}.${uid}` ||
         data.createdByUid !== uid || data.updatedByUid !== uid ||
         data.privateToOwner !== true ||
-        typeof data.module !== 'string' || data.module.length < 1 ||
-        data.module.length > 80 || typeof data.localRecordId !== 'string' ||
-        data.localRecordId.length < 1 || data.localRecordId.length > 160 ||
+        !validLocalKey(data.module, 80) ||
+        !validLocalKey(data.localRecordId, 160) ||
         !Number.isInteger(data.recordSchemaVersion) ||
         data.recordSchemaVersion < 1 || !SHA256.test(data.contentSha256) ||
         !Number.isInteger(data.localRevision) || data.localRevision < 1 ||
         !['active', 'deleted'].includes(data.recordState) ||
         !validDate(data.createdAt) || !validDate(data.updatedAt) ||
-        !Array.isArray(data.auditEvents) || data.auditEvents.length > 2000 ||
-        !isPlainObject(data.recordPayload) || containsBlockedKey(data) ||
+        !validAuditEvents(data.auditEvents) ||
+        !validPortableValue(data.recordPayload) || containsBlockedKey(data) ||
         (data.recordState === 'active' && data.deletedAt !== null) ||
-        (data.recordState === 'deleted' && !validDate(data.deletedAt))) {
+        (data.recordState === 'deleted' && !validDate(data.deletedAt)) ||
+        !validLifecycleOrder(data) ||
+        data.recordKey !== expectedRecordKey(data) ||
+        data.contentSha256 !== expectedContentSha256(data)) {
       invalidBatch();
     }
     const bytes = Buffer.byteLength(JSON.stringify(data), 'utf8');
@@ -140,6 +144,8 @@ function validateRevisionAdvance(path, incoming, current) {
       incoming.createdAt !== current.createdAt ||
       !Number.isInteger(current.localRevision) ||
       incoming.localRevision < current.localRevision ||
+      (incoming.localRevision > current.localRevision &&
+        Date.parse(incoming.updatedAt) <= Date.parse(current.updatedAt)) ||
       (incoming.localRevision === current.localRevision &&
         canonicalJson(incoming) !== canonicalJson(current))) {
     throw new HttpsError(
@@ -153,6 +159,70 @@ function validateRevisionAdvance(path, incoming, current) {
       },
     );
   }
+}
+
+function validLocalKey(value, maximumLength) {
+  return typeof value === 'string' && value.length >= 1 &&
+    value.length <= maximumLength && value === value.trim() &&
+    !value.includes(':');
+}
+
+function validAuditEvents(value) {
+  return Array.isArray(value) && value.length <= 2000 &&
+    value.every((event) => typeof event === 'string' &&
+      event.trim().length >= 1 && event.length <= 512);
+}
+
+function validPortableValue(root) {
+  const state = {count: 0};
+  function visit(value, depth) {
+    state.count += 1;
+    if (state.count > MAX_VALUE_COUNT || depth > MAX_VALUE_DEPTH) return false;
+    if (value === null || typeof value === 'string' ||
+        typeof value === 'boolean') return true;
+    if (typeof value === 'number') {
+      return Number.isFinite(value) &&
+        (!Number.isInteger(value) || Number.isSafeInteger(value));
+    }
+    if (Array.isArray(value)) {
+      return value.every((item) => visit(item, depth + 1));
+    }
+    if (!isPlainObject(value)) return false;
+    return Object.values(value).every((item) => visit(item, depth + 1));
+  }
+  return isPlainObject(root) && visit(root, 0);
+}
+
+function validLifecycleOrder(data) {
+  const created = Date.parse(data.createdAt);
+  const updated = Date.parse(data.updatedAt);
+  if (updated < created) return false;
+  if (data.deletedAt === null) return true;
+  const deleted = Date.parse(data.deletedAt);
+  return deleted >= created && deleted <= updated;
+}
+
+function expectedRecordKey(data) {
+  return sha256(`${data.module}\u0000${data.localRecordId}`);
+}
+
+function expectedContentSha256(data) {
+  return sha256(canonicalJson({
+    accountScopeId: data.accountScopeId,
+    record: {
+      module: data.module,
+      id: data.localRecordId,
+      payload: data.recordPayload,
+      lifecycle: {
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt,
+        revision: data.localRevision,
+        state: data.recordState,
+        deletedAt: data.deletedAt,
+        auditEvents: data.auditEvents,
+      },
+    },
+  }));
 }
 
 function containsBlockedKey(value) {
@@ -177,7 +247,9 @@ function isPlainObject(value) {
 }
 
 function validDate(value) {
-  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+  return typeof value === 'string' &&
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3,6})?Z$/.test(value) &&
+    Number.isFinite(Date.parse(value));
 }
 
 function invalidBatch() {

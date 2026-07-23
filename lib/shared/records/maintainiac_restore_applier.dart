@@ -152,7 +152,9 @@ Object? _canonicalValue(Object? value) {
   if (value == null || value is bool || value is String || value is int) {
     return value;
   }
-  if (value is double && value.isFinite) return value;
+  if (value is double && value.isFinite) {
+    return value == value.truncateToDouble() ? value.toInt() : value;
+  }
   if (value is DateTime) return value.toUtc().toIso8601String();
   if (value is List) return value.map(_canonicalValue).toList(growable: false);
   if (value is Map) {
