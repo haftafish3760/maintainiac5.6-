@@ -449,6 +449,8 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       id: session.id,
       vehicleId: session.vehicleId,
       vehicleConfigurationRevision: session.vehicleConfigurationRevision,
+      gpsAssistanceCalibrationMultiplier:
+          session.gpsAssistanceCalibrationMultiplier,
       startingOdometer: session.startingOdometer,
       estimatedEndingOdometer:
           estimatedEndingOdometer < session.startingOdometer

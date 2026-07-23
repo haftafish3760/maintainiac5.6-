@@ -256,6 +256,7 @@ class TripTrackingReviewRecord {
     required this.id,
     required this.vehicleId,
     this.vehicleConfigurationRevision = 0,
+    this.gpsAssistanceCalibrationMultiplier = 1,
     required this.startingOdometer,
     required this.estimatedEndingOdometer,
     required this.profile,
@@ -295,6 +296,7 @@ class TripTrackingReviewRecord {
   final String id;
   final String vehicleId;
   final int vehicleConfigurationRevision;
+  final double gpsAssistanceCalibrationMultiplier;
   final int startingOdometer;
   final int estimatedEndingOdometer;
   final TripTrackingProfile profile;
@@ -382,6 +384,7 @@ class TripTrackingReviewRecord {
       id: id,
       vehicleId: vehicleId,
       vehicleConfigurationRevision: vehicleConfigurationRevision,
+      gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
       profile: profile,
@@ -446,6 +449,10 @@ class TripTrackingReviewRecord {
     'vehicleConfigurationRevision': vehicleConfigurationRevision < 0
         ? 0
         : vehicleConfigurationRevision,
+    'gpsAssistanceCalibrationMultiplier':
+        _safeGpsAssistanceCalibrationMultiplier(
+          gpsAssistanceCalibrationMultiplier,
+        ),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
     'profile': profile.name,
@@ -543,6 +550,11 @@ class TripTrackingReviewRecord {
         !map.containsKey('vehicleConfigurationRevision') ||
         (map['vehicleConfigurationRevision'] is int &&
             (map['vehicleConfigurationRevision'] as int) >= 0);
+    final hasValidCalibrationMultiplier =
+        !map.containsKey('gpsAssistanceCalibrationMultiplier') ||
+        _isValidGpsAssistanceCalibrationMultiplier(
+          map['gpsAssistanceCalibrationMultiplier'],
+        );
     final hasValidTimeZoneContext =
         (!map.containsKey('startedTimeZoneOffsetMinutes') &&
             !map.containsKey('finishedTimeZoneOffsetMinutes')) ||
@@ -639,6 +651,10 @@ class TripTrackingReviewRecord {
       vehicleConfigurationRevision: _safeRecoveryCount(
         map['vehicleConfigurationRevision'],
       ),
+      gpsAssistanceCalibrationMultiplier:
+          _safeGpsAssistanceCalibrationMultiplier(
+            map['gpsAssistanceCalibrationMultiplier'],
+          ),
       startingOdometer: startingOdometer,
       estimatedEndingOdometer: estimatedEndingOdometer,
       profile: safeProfile,
@@ -720,6 +736,7 @@ class TripTrackingReviewRecord {
           hasSafeIdentity &&
           hasValidProfile &&
           hasValidVehicleConfigurationRevision &&
+          hasValidCalibrationMultiplier &&
           hasValidTimeZoneContext &&
           hasValidCloudSyncState &&
           _hasValidCloudSyncTimeline(

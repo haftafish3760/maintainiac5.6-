@@ -1,11 +1,31 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/services.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('native user-pause recovery marker uses the command channel', () async {
+    const channel = MethodChannel('maintainiac/test/trip_recovery');
+    final calls = <MethodCall>[];
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(channel, (call) async {
+      calls.add(call);
+      return 'paused_by_user';
+    });
+    addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+    final platform = TripTrackingPlatform(commands: channel);
+
+    expect(await platform.consumeRecoveryStatus(), 'paused_by_user');
+    expect(calls.single.method, 'consumeRecoveryStatus');
+    expect(calls.single.arguments, isNull);
+  });
+
   test('native request preserves the adaptive sampling recommendation', () {
     const policy = TripTrackingPolicy();
     final request = TripTrackingNativeRequest(

@@ -114,6 +114,7 @@ class TripTrackingSessionRecord {
     required this.id,
     required this.vehicleId,
     this.vehicleConfigurationRevision = 0,
+    this.gpsAssistanceCalibrationMultiplier = 1,
     required this.startingOdometer,
     required this.profile,
     this.profileId = '',
@@ -147,6 +148,7 @@ class TripTrackingSessionRecord {
   final String id;
   final String vehicleId;
   final int vehicleConfigurationRevision;
+  final double gpsAssistanceCalibrationMultiplier;
   final int startingOdometer;
   final TripTrackingProfile profile;
   final String profileId;
@@ -235,6 +237,7 @@ class TripTrackingSessionRecord {
       id: id,
       vehicleId: vehicleId,
       vehicleConfigurationRevision: vehicleConfigurationRevision,
+      gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
       startingOdometer: startingOdometer,
       profile: profile,
       profileId: effectiveProfileId,
@@ -278,6 +281,10 @@ class TripTrackingSessionRecord {
     'vehicleConfigurationRevision': vehicleConfigurationRevision < 0
         ? 0
         : vehicleConfigurationRevision,
+    'gpsAssistanceCalibrationMultiplier':
+        _safeGpsAssistanceCalibrationMultiplier(
+          gpsAssistanceCalibrationMultiplier,
+        ),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
     'profile': profile.name,
     'profileId': effectiveProfileId,
@@ -344,6 +351,11 @@ class TripTrackingSessionRecord {
         !map.containsKey('vehicleConfigurationRevision') ||
         (map['vehicleConfigurationRevision'] is int &&
             (map['vehicleConfigurationRevision'] as int) >= 0);
+    final hasValidCalibrationMultiplier =
+        !map.containsKey('gpsAssistanceCalibrationMultiplier') ||
+        _isValidGpsAssistanceCalibrationMultiplier(
+          map['gpsAssistanceCalibrationMultiplier'],
+        );
     final hasValidStartedTimeZone =
         !map.containsKey('startedTimeZoneOffsetMinutes') ||
         (_isValidTimeZoneOffset(map['startedTimeZoneOffsetMinutes']) &&
@@ -367,6 +379,10 @@ class TripTrackingSessionRecord {
       vehicleConfigurationRevision: _safeRecoveryCount(
         map['vehicleConfigurationRevision'],
       ),
+      gpsAssistanceCalibrationMultiplier:
+          _safeGpsAssistanceCalibrationMultiplier(
+            map['gpsAssistanceCalibrationMultiplier'],
+          ),
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
       profile: safeProfile,
       profileId: _safeIdentifier(map['profileId']).isEmpty
@@ -439,6 +455,7 @@ class TripTrackingSessionRecord {
           hasValidLifecycleState &&
           hasValidHealthState &&
           hasValidVehicleConfigurationRevision &&
+          hasValidCalibrationMultiplier &&
           hasValidStartedTimeZone &&
           hasSupportedSchemaVersion,
       revision: _safeTransitionRevision(map['revision']),

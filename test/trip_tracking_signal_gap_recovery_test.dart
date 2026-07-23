@@ -9,7 +9,11 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_route_point_store.
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
-class _GapPlatform implements TripTrackingNativeGateway {
+class _GapPlatform
+    implements TripTrackingNativeGateway, TripTrackingNativeRecoveryGateway {
+  _GapPlatform({this.recoveryStatus});
+
+  String? recoveryStatus;
   final _events = StreamController<TripTrackingPlatformEvent>.broadcast();
 
   @override
@@ -61,6 +65,13 @@ class _GapPlatform implements TripTrackingNativeGateway {
 
   @override
   Future<bool> update(TripTrackingNativeRequest request) async => true;
+
+  @override
+  Future<String?> consumeRecoveryStatus() async {
+    final status = recoveryStatus;
+    recoveryStatus = null;
+    return status;
+  }
 }
 
 TripLocationSample _sample(DateTime at, double longitude) => TripLocationSample(
@@ -99,7 +110,7 @@ void main() {
           vehicleId: 'vehicle_1',
           initialReading: 1000,
         ),
-        platform: _GapPlatform(),
+        platform: _GapPlatform(recoveryStatus: 'unknown_native_pause'),
         clockNow: () => now,
       );
 
@@ -118,6 +129,66 @@ void main() {
       );
     },
   );
+
+  test('native notification pause survives Dart process recovery', () async {
+    final startedAt = DateTime.utc(2026, 7, 21, 12);
+    var now = startedAt.add(const Duration(minutes: 10));
+    final store = TripTrackingSessionStore.memory();
+    await store.save(
+      TripTrackingSessionRecord(
+        id: 'notification_pause_recovery_trip',
+        vehicleId: 'vehicle_1',
+        startingOdometer: 1000,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: startedAt,
+        updatedAt: startedAt.add(const Duration(minutes: 5)),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 1000,
+          walkingReviewSuggested: false,
+        ),
+        lifecycleState: TripTrackingSessionLifecycleState.active,
+      ),
+    );
+    final platform = _GapPlatform(recoveryStatus: 'paused_by_user');
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+      platform: platform,
+      clockNow: () => now,
+    );
+
+    expect(await controller.restore(), isTrue);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.paused);
+    expect(controller.activeSession?.pauseKind, TripTrackingPauseKind.user);
+    expect(controller.platformStatus, 'recovery_paused_by_user');
+    expect(controller.platformError, isNull);
+    expect(
+      controller.signalGaps.single.reason,
+      TripTrackingSignalGapReason.userPause,
+    );
+    expect(
+      controller.activeSession?.transitionAudits.last.reasonCode,
+      'native_notification_pause_recovered',
+    );
+    expect(await platform.consumeRecoveryStatus(), isNull);
+
+    expect(
+      await controller.startNativeTracking(allowBackground: false),
+      isTrue,
+    );
+    platform.addLocation(_sample(now, -80));
+    await Future<void>.delayed(Duration.zero);
+    now = now.add(const Duration(seconds: 15));
+    platform.addLocation(_sample(now, -79.9985));
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
+
+    expect(controller.signalGaps.single.isOpen, isFalse);
+    expect(controller.acceptedMeters, greaterThan(1000));
+  });
 
   test('pause gap is durable and cannot create teleport mileage', () async {
     final startedAt = DateTime.utc(2026, 7, 21, 12);

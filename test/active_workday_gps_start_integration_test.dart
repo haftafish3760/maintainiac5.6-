@@ -27,6 +27,10 @@ class _DashboardGpsGateway implements TripTrackingNativeGateway {
     }),
   );
 
+  void addStatus(String status) => _events.add(
+    TripTrackingPlatformEvent.fromMap({'type': 'status', 'status': status}),
+  );
+
   @override
   Stream<TripTrackingPlatformEvent> get events => _events.stream;
 
@@ -166,6 +170,33 @@ void main() {
     expect(gateway.request?.activityRecognitionEnabled, isTrue);
     expect(odometer.confirmedReading, 12000);
 
+    final sessionId = trip.activeSession?.id;
+    gateway.running = false;
+    gateway.addStatus('paused');
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump();
+    expect(trip.nativeTracking, isFalse);
+    expect(trip.activeSession?.pauseKind, TripTrackingPauseKind.user);
+    expect(
+      trip.signalGaps.single.reason,
+      TripTrackingSignalGapReason.userPause,
+    );
+    expect(find.widgetWithText(FilledButton, 'RESUME'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'RESUME'));
+    await tester.pump();
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 50)),
+    );
+    await tester.pump();
+    expect(gateway.startCalls, 2);
+    expect(gateway.running, isTrue);
+    expect(trip.activeSession?.id, sessionId);
+    expect(odometer.confirmedReading, 12000);
+
     gateway.addLocation(
       TripLocationSample(
         latitude: 35,
@@ -189,6 +220,8 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(trip.acceptedMeters, greaterThan(100));
+    expect(trip.signalGaps, hasLength(1));
+    expect(trip.signalGaps.single.isOpen, isFalse);
 
     await tester.tap(find.widgetWithText(FilledButton, 'STOP'));
     await tester.pump();

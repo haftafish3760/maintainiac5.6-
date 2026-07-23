@@ -100,4 +100,16 @@ void main() {
       contains('awaitingInitialFix: controller?.awaitingInitialFix'),
     );
   });
+
+  test('field summary can be copied without route coordinates', () {
+    final source = File(
+      'lib/screens/dashboard/active_workday_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('Clipboard.setData'));
+    expect(source, contains("child: const Text('Copy Summary')"));
+    expect(source, contains('copied without route coordinates'));
+    expect(source, contains('final summaryText = summary.toPlainText()'));
+    expect(source, contains('content: SingleChildScrollView('));
+  });
 }

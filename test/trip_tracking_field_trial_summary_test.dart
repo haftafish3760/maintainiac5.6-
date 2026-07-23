@@ -13,6 +13,7 @@ void main() {
       final review = TripTrackingReviewRecord(
         id: 'field_trial',
         vehicleId: 'vehicle_1',
+        gpsAssistanceCalibrationMultiplier: 1.02,
         startingOdometer: 1000,
         estimatedEndingOdometer: 1010,
         confirmedEndingOdometer: 1011,
@@ -21,14 +22,20 @@ void main() {
         profileId: 'profile_1',
         startedAt: now,
         finishedAt: now.add(const Duration(hours: 1)),
-        engineSnapshot: const TripTrackingEngineSnapshot(
+        engineSnapshot: TripTrackingEngineSnapshot(
           totalAcceptedMeters: 16093.44,
           walkingReviewSuggested: false,
-          diagnostics: TripTrackingDiagnostics(
+          diagnostics: const TripTrackingDiagnostics(
             receivedSamples: 12,
             acceptedSamples: 10,
             rejectedDistanceMeters: 160.9344,
             estimatedGapDistanceMeters: 80.4672,
+          ),
+          initialFixAssessment: TripInitialFixAssessment(
+            quality: TripInitialFixQuality.freshPrecise,
+            assessedAt: now,
+            confidence: TripTrackingConfidence.high,
+            mayUseProvisionally: true,
           ),
         ),
         advisories: [
@@ -45,20 +52,65 @@ void main() {
             suggestedAction: 'review',
             disposition: TripTrackingAdvisoryDisposition.confirmed,
           ),
+          TripTrackingAdvisoryEvent(
+            id: 'stop_2',
+            type: TripTrackingAdvisoryType.probableStop,
+            sessionId: 'field_trial',
+            vehicleId: 'vehicle_1',
+            profile: TripTrackingProfile.roadVehicle,
+            detectedAt: now.add(const Duration(minutes: 30)),
+            evidenceStartedAt: now.add(const Duration(minutes: 30)),
+            evidenceEndedAt: now.add(const Duration(minutes: 31)),
+            confidence: TripTrackingConfidence.medium,
+            suggestedAction: 'review',
+          ),
         ],
         recoveryCount: 1,
       );
 
       final summary = TripTrackingFieldTrialSummary.fromReview(review);
       expect(summary.gpsAssistedMiles, closeTo(10, 0.0001));
+      expect(summary.calibrationAdjustedGpsMiles, closeTo(10.2, 0.0001));
       expect(summary.odometerMiles, 11);
+      expect(summary.signedDifferenceMiles, closeTo(-1, 0.0001));
+      expect(summary.calibrationAdjustedDifferenceMiles, closeTo(-0.8, 0.0001));
       expect(summary.absoluteDifferenceMiles, closeTo(1, 0.0001));
       expect(summary.rejectedSamples, 2);
       expect(summary.confirmedStopCount, 1);
+      expect(summary.probableStopCount, 2);
+      expect(summary.unresolvedStopCount, 1);
       expect(summary.recoveryCount, 1);
+      expect(summary.durationMinutes, 60);
+      expect(summary.initialFixQuality, 'freshPrecise');
+      expect(summary.initialFixQualityLabel, 'fresh precise');
+      expect(summary.algorithmVersion, 'gps-v1');
+      expect(summary.vehicleConfigurationRevision, 0);
+      expect(summary.gpsAssistanceCalibrationMultiplier, 1.02);
+      expect(summary.acceptedSamplePercent, closeTo(83.333, 0.001));
       expect(summary.toSafeSummary()['coordinatesIncluded'], isFalse);
       expect(summary.toSafeSummary()['odometerIsOfficial'], isTrue);
       expect(summary.toSafeSummary()['gpsCanConfirmMileage'], isFalse);
+      expect(summary.toSafeSummary()['signedDifferenceMiles'], -1);
+      expect(summary.toSafeSummary()['durationMinutes'], 60);
+      expect(summary.toSafeSummary()['acceptedSamplePercent'], 83.333);
+      expect(summary.toSafeSummary()['algorithmVersion'], 'gps-v1');
+      expect(
+        summary.toSafeSummary()['gpsAssistanceCalibrationMultiplier'],
+        1.02,
+      );
+      expect(summary.toPlainText(), contains('multiplier: 1.0200'));
+      expect(
+        summary.toPlainText(),
+        contains('Measured GPS vs odometer: -1.00 mi'),
+      );
+      expect(
+        summary.toPlainText(),
+        contains('GPS estimate after calibration: 10.20 mi'),
+      );
+      expect(summary.toPlainText(), contains('unresolved: 1'));
+      expect(summary.toPlainText(), isNot(contains('latitude')));
+      expect(summary.toPlainText(), isNot(contains('longitude')));
+      expect(summary.toPlainText(), isNot(contains('route geometry')));
     },
   );
 
@@ -81,6 +133,7 @@ void main() {
 
     final summary = TripTrackingFieldTrialSummary.fromReview(review);
     expect(summary.odometerMiles, isNull);
+    expect(summary.signedDifferenceMiles, isNull);
     expect(summary.absoluteDifferenceMiles, isNull);
     expect(summary.toSafeSummary()['absoluteDifferenceMiles'], isNull);
   });

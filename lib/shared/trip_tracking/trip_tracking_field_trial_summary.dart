@@ -16,7 +16,13 @@ class TripTrackingFieldTrialSummary {
     required this.probableStopCount,
     required this.confirmedStopCount,
     required this.dismissedStopCount,
+    required this.unresolvedStopCount,
     required this.recoveryCount,
+    required this.durationMinutes,
+    required this.initialFixQuality,
+    required this.algorithmVersion,
+    required this.vehicleConfigurationRevision,
+    required this.gpsAssistanceCalibrationMultiplier,
   });
 
   factory TripTrackingFieldTrialSummary.fromReview(
@@ -54,7 +60,22 @@ class TripTrackingFieldTrialSummary {
                 event.disposition == TripTrackingAdvisoryDisposition.rejected,
           )
           .length,
+      unresolvedStopCount: probableStops
+          .where(
+            (event) =>
+                event.disposition == TripTrackingAdvisoryDisposition.pending,
+          )
+          .length,
       recoveryCount: review.recoveryCount,
+      durationMinutes: review.finishedAt.isBefore(review.startedAt)
+          ? 0
+          : review.finishedAt.difference(review.startedAt).inMinutes,
+      initialFixQuality:
+          snapshot.initialFixAssessment?.quality.name ?? 'unavailable',
+      algorithmVersion: snapshot.algorithmVersion,
+      vehicleConfigurationRevision: review.vehicleConfigurationRevision,
+      gpsAssistanceCalibrationMultiplier:
+          review.gpsAssistanceCalibrationMultiplier,
     );
   }
 
@@ -69,17 +90,74 @@ class TripTrackingFieldTrialSummary {
   final int probableStopCount;
   final int confirmedStopCount;
   final int dismissedStopCount;
+  final int unresolvedStopCount;
   final int recoveryCount;
+  final int durationMinutes;
+  final String initialFixQuality;
+  final String algorithmVersion;
+  final int vehicleConfigurationRevision;
+  final double gpsAssistanceCalibrationMultiplier;
 
-  double? get absoluteDifferenceMiles =>
-      odometerMiles == null ? null : (gpsAssistedMiles - odometerMiles!).abs();
+  String get initialFixQualityLabel => switch (initialFixQuality) {
+    'freshPrecise' => 'fresh precise',
+    'freshModerate' => 'fresh moderate',
+    'freshLowQuality' => 'fresh low quality',
+    'staleCached' => 'stale cached',
+    'approximateOnly' => 'approximate only',
+    'rejected' => 'rejected',
+    _ => 'unavailable',
+  };
+
+  double get acceptedSamplePercent => receivedSamples <= 0
+      ? 0
+      : (acceptedSamples / receivedSamples * 100).clamp(0, 100).toDouble();
+
+  double? get signedDifferenceMiles =>
+      odometerMiles == null ? null : gpsAssistedMiles - odometerMiles!;
+
+  double? get absoluteDifferenceMiles => signedDifferenceMiles?.abs();
+
+  double get calibrationAdjustedGpsMiles =>
+      gpsAssistedMiles * gpsAssistanceCalibrationMultiplier;
+
+  double? get calibrationAdjustedDifferenceMiles => odometerMiles == null
+      ? null
+      : calibrationAdjustedGpsMiles - odometerMiles!;
+
+  String toPlainText() {
+    final signedDifference = signedDifferenceMiles;
+    final differenceLabel = signedDifference == null
+        ? 'not available'
+        : '${signedDifference >= 0 ? '+' : ''}${signedDifference.toStringAsFixed(2)} mi';
+    return 'Odometer: ${odometerMiles?.toStringAsFixed(2) ?? 'awaiting confirmation'} mi\n'
+        'GPS measured distance: ${gpsAssistedMiles.toStringAsFixed(2)} mi\n'
+        'GPS estimate after calibration: ${calibrationAdjustedGpsMiles.toStringAsFixed(2)} mi\n'
+        'Measured GPS vs odometer: $differenceLabel (positive means GPS is higher)\n'
+        'Duration: $durationMinutes min; initial fix: $initialFixQualityLabel\n'
+        'Samples: $receivedSamples received, $acceptedSamples accepted, $rejectedSamples rejected (${acceptedSamplePercent.toStringAsFixed(1)}% accepted)\n'
+        'Rejected candidate distance: ${rejectedDistanceMiles.toStringAsFixed(2)} mi (not counted as mileage)\n'
+        'Signal gaps: $signalGapCount; estimated gap: ${estimatedGapMiles.toStringAsFixed(2)} mi\n'
+        'Possible stops: $probableStopCount; confirmed: $confirmedStopCount; dismissed: $dismissedStopCount; unresolved: $unresolvedStopCount\n'
+        'Recoveries: $recoveryCount\n\n'
+        'Engine: $algorithmVersion; vehicle configuration revision: $vehicleConfigurationRevision\n\n'
+        'Applied GPS calibration multiplier: ${gpsAssistanceCalibrationMultiplier.toStringAsFixed(4)}\n\n'
+        'The odometer remains official. GPS assistance never confirms mileage.';
+  }
 
   Map<String, Object?> toSafeSummary() => {
     'gpsAssistedMiles': _round(gpsAssistedMiles),
+    'calibrationAdjustedGpsMiles': _round(calibrationAdjustedGpsMiles),
     'odometerMiles': odometerMiles == null ? null : _round(odometerMiles!),
     'absoluteDifferenceMiles': absoluteDifferenceMiles == null
         ? null
         : _round(absoluteDifferenceMiles!),
+    'signedDifferenceMiles': signedDifferenceMiles == null
+        ? null
+        : _round(signedDifferenceMiles!),
+    'calibrationAdjustedDifferenceMiles':
+        calibrationAdjustedDifferenceMiles == null
+        ? null
+        : _round(calibrationAdjustedDifferenceMiles!),
     'receivedSamples': receivedSamples,
     'acceptedSamples': acceptedSamples,
     'rejectedSamples': rejectedSamples,
@@ -89,7 +167,16 @@ class TripTrackingFieldTrialSummary {
     'probableStopCount': probableStopCount,
     'confirmedStopCount': confirmedStopCount,
     'dismissedStopCount': dismissedStopCount,
+    'unresolvedStopCount': unresolvedStopCount,
     'recoveryCount': recoveryCount,
+    'durationMinutes': durationMinutes,
+    'initialFixQuality': initialFixQuality,
+    'algorithmVersion': algorithmVersion,
+    'vehicleConfigurationRevision': vehicleConfigurationRevision,
+    'gpsAssistanceCalibrationMultiplier': _round(
+      gpsAssistanceCalibrationMultiplier,
+    ),
+    'acceptedSamplePercent': _round(acceptedSamplePercent),
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
     'odometerIsOfficial': true,

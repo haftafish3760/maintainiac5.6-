@@ -53,6 +53,18 @@ void main() {
     );
   });
 
+  test('user pause stays explicit and recoverable on the dashboard', () {
+    for (final status in ['paused', 'recovery_paused_by_user']) {
+      final warning = TripTrackingDashboardLiveStatusPolicy.warning(
+        tracking: true,
+        platformStatus: status,
+      );
+      expect(warning, contains('paused by you'));
+      expect(warning, contains('explicit gap'));
+      expect(warning, contains('resume or complete'));
+    }
+  });
+
   test(
     'explains stale and approximate initial fixes as degraded assistance',
     () {

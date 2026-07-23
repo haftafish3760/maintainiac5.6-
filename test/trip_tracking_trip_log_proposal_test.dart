@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
@@ -20,6 +21,7 @@ void main() {
           vehicleId: 'vehicle_1',
           initialReading: 12000,
         ),
+        gpsAssistanceCalibrationMultiplier: 1.08,
         tripLogProposalSink: sink,
         clockNow: () => at.add(const Duration(minutes: 10)),
       );
@@ -48,13 +50,62 @@ void main() {
       expect(proposal.vehicleId, 'vehicle_1');
       expect(proposal.profileId, 'work_profile_1');
       expect(proposal.beginningOdometer, 12000);
+      expect(proposal.duration, const Duration(minutes: 10));
       expect(proposal.requiresTripLogConfirmation, isTrue);
       expect(proposal.canFinalizeTripLog, isFalse);
       expect(proposal.canConfirmMileage, isFalse);
       expect(proposal.reviewRevision, review.revision);
-      expect(proposal.toMap()['schemaVersion'], 2);
+      expect(proposal.vehicleConfigurationRevision, 0);
+      expect(proposal.gpsAssistanceCalibrationMultiplier, 1.08);
+      expect(
+        proposal.calibrationAdjustedGpsAssistedDistanceMeters,
+        closeTo(proposal.gpsAssistedDistanceMeters * 1.08, 0.000001),
+      );
+      final measuredProposal = TripTrackingTripLogProposal.fromReview(
+        TripTrackingReviewRecord.fromMap({
+          ...review.toMap(),
+          'engineSnapshot': const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 100,
+            walkingReviewSuggested: false,
+          ).toMap(),
+        }),
+      );
+      expect(measuredProposal.gpsAssistedDistanceMeters, 100);
+      expect(
+        measuredProposal.calibrationAdjustedGpsAssistedDistanceMeters,
+        108,
+      );
+      expect(proposal.toMap()['schemaVersion'], 3);
+      expect(
+        proposal.toMap()['sourceReviewSchemaVersion'],
+        review.schemaVersion,
+      );
       expect(proposal.toMap()['reviewRevision'], review.revision);
+      expect(proposal.toMap()['durationMillis'], 600000);
+      expect(proposal.toMap()['vehicleConfigurationRevision'], 0);
+      expect(proposal.toMap()['gpsAssistanceCalibrationMultiplier'], 1.08);
+      expect(
+        proposal.toMap()['rawGpsMeasuredDistanceMeters'],
+        proposal.gpsAssistedDistanceMeters,
+      );
+      expect(
+        proposal.toMap()['calibrationAdjustedGpsAssistedDistanceMeters'],
+        proposal.calibrationAdjustedGpsAssistedDistanceMeters,
+      );
       expect(proposal.toMap()['coordinatesIncluded'], isFalse);
+      expect(proposal.toMap()['transitionAudits'], isNotEmpty);
+      expect(proposal.toMap()['permissionHistory'], isA<List<Object?>>());
+      expect(proposal.toMap()['recoveryCount'], 0);
+      expect(proposal.toMap()['algorithmVersion'], 'gps-v1');
+      expect(proposal.toMap()['sampleDiagnostics'], isA<Map>());
+      expect(proposal.toMap()['initialFixHistory'], isA<List>());
+      expect(proposal.toMap()['signalGaps'], isA<List>());
+      expect(jsonEncode(proposal.toMap()), isNotEmpty);
+      final serializedProposal = proposal.toMap().toString().toLowerCase();
+      expect(serializedProposal, isNot(matches(RegExp(r'\blatitude:'))));
+      expect(serializedProposal, isNot(matches(RegExp(r'\blongitude:'))));
+      expect(serializedProposal, isNot(matches(RegExp(r'\broutegeometry:'))));
+      expect(serializedProposal, isNot(contains('rawproviderpayload')));
       expect(review.confirmedEndingOdometer, isNull);
       final saved = store.reviewForTrip('trip_log_proposal')!;
       expect(

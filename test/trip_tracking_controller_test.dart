@@ -3914,6 +3914,11 @@ void main() {
         controller.platformError,
         'GPS updates stopped unexpectedly. Your local trip is preserved for review.',
       );
+      expect(controller.signalGaps, hasLength(1));
+      expect(
+        controller.signalGaps.single.reason,
+        TripTrackingSignalGapReason.systemPause,
+      );
 
       native.addLocation(sample(-80, 0, speed: 8));
       native.addLocation(sample(-79.99, 60, speed: 8));
@@ -3956,8 +3961,52 @@ void main() {
         controller.healthState,
         isNot(TripTrackingHealthState.interrupted),
       );
+      expect(controller.activeSession?.pauseKind, TripTrackingPauseKind.user);
+      expect(
+        controller.activeSession?.transitionAudits.last.reasonCode,
+        'native_notification_pause_requested',
+      );
+      expect(controller.signalGaps, hasLength(1));
+      expect(
+        controller.signalGaps.single.reason,
+        TripTrackingSignalGapReason.userPause,
+      );
+      expect(controller.signalGaps.single.isOpen, isTrue);
       expect(controller.platformStatus, 'paused');
       expect(controller.platformError, isNull);
+    },
+  );
+
+  test(
+    'native pause rolls back an uncommitted gap on storage failure',
+    () async {
+      final store = _FailingNextSessionSaveStore();
+      final native = _FakeTripTrackingPlatform();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_native_pause_storage_failure',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+      await controller.startNativeTracking(allowBackground: false);
+      store.failNextSessionSave = true;
+
+      native.addStatus('paused');
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.nativeTracking, isFalse);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.active,
+      );
+      expect(controller.signalGaps, isEmpty);
+      expect(controller.platformStatus, 'storage_failed');
     },
   );
 

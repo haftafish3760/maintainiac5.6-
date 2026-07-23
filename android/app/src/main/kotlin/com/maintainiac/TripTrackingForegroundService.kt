@@ -39,6 +39,9 @@ class TripTrackingForegroundService : Service() {
         private const val notificationChannelId = "maintainiac_trip_tracking"
         private const val notificationId = 7313
         private const val heartbeatIntervalMillis = 60_000L
+        private const val recoveryPreferences = "maintainiac_trip_tracking_recovery"
+        private const val recoveryStatusKey = "nativeRecoveryStatus"
+        private const val userPausedRecoveryStatus = "paused_by_user"
         @Volatile
         var isRunning = false
             private set
@@ -68,6 +71,13 @@ class TripTrackingForegroundService : Service() {
             isRunning = false
             activeActivityEpoch = null
             activeActivityStartedAtMillis = null
+        }
+
+        fun consumeRecoveryStatus(context: Context): String? {
+            val preferences = context.getSharedPreferences(recoveryPreferences, Context.MODE_PRIVATE)
+            val status = preferences.getString(recoveryStatusKey, null)
+            preferences.edit().remove(recoveryStatusKey).commit()
+            return status?.takeIf { it == userPausedRecoveryStatus }
         }
     }
 
@@ -161,12 +171,15 @@ class TripTrackingForegroundService : Service() {
         }
         if (intent?.action == stopAction) {
             // The persistent notification must give the driver an immediate,
-            // visible way to end tracking without reopening the app.
+            // visible way to pause GPS collection without falsely implying
+            // that the odometer-review workflow has been completed.
             userPauseRequested = true
+            recordRecoveryStatus(userPausedRecoveryStatus)
             stopSelf()
             return START_NOT_STICKY
         }
         userPauseRequested = false
+        recordRecoveryStatus(null)
         try {
             startForeground(notificationId, notification())
         } catch (error: SecurityException) {
@@ -326,6 +339,7 @@ class TripTrackingForegroundService : Service() {
         removeActivityRecognitionUpdates()
         retireActivityRecognitionEpoch()
         trackingStartedAtMillis = null
+        recordRecoveryStatus(if (userPauseRequested) userPausedRecoveryStatus else null)
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "status",
@@ -333,6 +347,12 @@ class TripTrackingForegroundService : Service() {
             ),
         )
         super.onDestroy()
+    }
+
+    private fun recordRecoveryStatus(status: String?) {
+        val edit = getSharedPreferences(recoveryPreferences, Context.MODE_PRIVATE).edit()
+        if (status == null) edit.remove(recoveryStatusKey) else edit.putString(recoveryStatusKey, status)
+        edit.commit()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -410,6 +430,12 @@ class TripTrackingForegroundService : Service() {
     }
 
     private fun notification(): android.app.Notification {
+        val openAppIntent = PendingIntent.getActivity(
+            this,
+            7314,
+            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
         val stopIntent = PendingIntent.getService(
             this,
             7315,
@@ -420,8 +446,9 @@ class TripTrackingForegroundService : Service() {
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentTitle("Maintainiac trip tracking")
             .setContentText("GPS-assisted trip tracking is active")
+            .setContentIntent(openAppIntent)
             .setOngoing(true)
-            .addAction(0, "Stop trip tracking", stopIntent)
+            .addAction(0, "Pause GPS assistance", stopIntent)
             .build()
     }
 

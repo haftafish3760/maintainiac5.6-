@@ -13,6 +13,14 @@ part 'trip_tracking_review_record.dart';
 
 typedef TripTrackingSessionStorageCheck = Future<AppStorageCheck> Function();
 
+double _safeGpsAssistanceCalibrationMultiplier(Object? value) {
+  if (value is! num || !value.isFinite || value <= 0) return 1;
+  return value.toDouble().clamp(0.8, 1.25).toDouble();
+}
+
+bool _isValidGpsAssistanceCalibrationMultiplier(Object? value) =>
+    value is num && value.isFinite && value >= 0.8 && value <= 1.25;
+
 extension _TakeLastExtension<T> on List<T> {
   Iterable<T> takeLast(int maxLength) {
     if (length <= maxLength) return this;

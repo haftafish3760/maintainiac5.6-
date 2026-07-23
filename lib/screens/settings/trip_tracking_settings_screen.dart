@@ -15,7 +15,12 @@ part 'trip_tracking_settings_account_panel.dart';
 
 /// Shared preference surface opened from both Dashboard Settings and Menu.
 class TripTrackingSettingsScreen extends StatelessWidget {
-  const TripTrackingSettingsScreen({super.key});
+  const TripTrackingSettingsScreen({
+    super.key,
+    this.bluetoothVehicleRecognitionAvailable = false,
+  });
+
+  final bool bluetoothVehicleRecognitionAvailable;
 
   @override
   Widget build(BuildContext context) {
@@ -52,6 +57,8 @@ class TripTrackingSettingsScreen extends StatelessWidget {
                         cloudBackupEnabled: enabled,
                       ),
                     ),
+              bluetoothVehicleRecognitionAvailable:
+                  bluetoothVehicleRecognitionAvailable,
             ),
           ),
         ],
@@ -67,12 +74,14 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
     required this.tripTracking,
     required this.cloudBackupEnabled,
     required this.onCloudBackupChanged,
+    required this.bluetoothVehicleRecognitionAvailable,
   });
 
   final TripTrackingSettings settings;
   final ValueChanged<TripTrackingSettings> onChanged;
   final TripTrackingController? tripTracking;
   final bool cloudBackupEnabled;
+  final bool bluetoothVehicleRecognitionAvailable;
   final ValueChanged<bool>? onCloudBackupChanged;
 
   @override
@@ -298,26 +307,28 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             const SizedBox(height: 8),
             _CalibrationAcceptancePanel(tripTracking: tripTracking!),
           ],
-          _switch(
-            title: 'Recognize a linked vehicle by Bluetooth',
-            detail:
-                'Uses only Bluetooth devices you explicitly link to a vehicle on this device.',
-            value: settings.bluetoothVehicleRecognitionEnabled,
-            onChanged: (value) => onChanged(
-              settings.copyWith(bluetoothVehicleRecognitionEnabled: value),
+          if (bluetoothVehicleRecognitionAvailable) ...[
+            _switch(
+              title: 'Recognize a linked vehicle by Bluetooth',
+              detail:
+                  'Uses only Bluetooth devices you explicitly link to a vehicle on this device.',
+              value: settings.bluetoothVehicleRecognitionEnabled,
+              onChanged: (value) => onChanged(
+                settings.copyWith(bluetoothVehicleRecognitionEnabled: value),
+              ),
             ),
-          ),
-          _switch(
-            title: 'Automatically switch the active vehicle',
-            detail:
-                'Never switches while a GPS trip is active. Otherwise, a linked device can select its vehicle.',
-            value: settings.automaticVehicleSwitchEnabled,
-            onChanged: settings.bluetoothVehicleRecognitionEnabled
-                ? (value) => onChanged(
-                    settings.copyWith(automaticVehicleSwitchEnabled: value),
-                  )
-                : (_) {},
-          ),
+            _switch(
+              title: 'Automatically switch the active vehicle',
+              detail:
+                  'Never switches while a GPS trip is active. Otherwise, a linked device can select its vehicle.',
+              value: settings.automaticVehicleSwitchEnabled,
+              onChanged: settings.bluetoothVehicleRecognitionEnabled
+                  ? (value) => onChanged(
+                      settings.copyWith(automaticVehicleSwitchEnabled: value),
+                    )
+                  : (_) {},
+            ),
+          ],
         ],
       ),
     );

@@ -238,6 +238,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
       result(nil)
     case "isTracking":
       result(tracking)
+    case "consumeRecoveryStatus":
+      // iOS has no native notification action that pauses this collector while
+      // Dart is detached. Keep the cross-platform recovery contract explicit.
+      result(nil)
     default:
       result(FlutterMethodNotImplemented)
     }

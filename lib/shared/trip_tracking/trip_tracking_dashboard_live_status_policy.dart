@@ -26,6 +26,11 @@ class TripTrackingDashboardLiveStatusPolicy {
     if (platformStatus == 'gps_signal_stale') {
       return safeError ?? _staleSignalFallback;
     }
+    if (platformStatus == 'paused' ||
+        platformStatus == 'recovery_paused_by_user') {
+      return safeError ??
+          'GPS assistance is paused by you. The trip and its explicit gap are preserved until you resume or complete it.';
+    }
     final initialFixFallback = switch (platformStatus) {
       'initial_fix_stale' =>
         'GPS returned an old cached location. The original trip start time is preserved while a current fix is requested.',

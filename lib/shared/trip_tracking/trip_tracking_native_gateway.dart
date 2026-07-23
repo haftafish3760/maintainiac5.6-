@@ -17,7 +17,15 @@ abstract interface class TripTrackingNativeGateway {
   Future<bool> get isTracking;
 }
 
-class TripTrackingPlatform implements TripTrackingNativeGateway {
+/// Optional native evidence retained when a platform-side driver action occurs
+/// while Dart is suspended. Reading consumes the marker so stale intent cannot
+/// affect a later trip.
+abstract interface class TripTrackingNativeRecoveryGateway {
+  Future<String?> consumeRecoveryStatus();
+}
+
+class TripTrackingPlatform
+    implements TripTrackingNativeGateway, TripTrackingNativeRecoveryGateway {
   TripTrackingPlatform({MethodChannel? commands, EventChannel? events})
     : _commands = commands ?? const MethodChannel(_commandChannelName),
       _events = events ?? const EventChannel(_eventChannelName);
@@ -83,4 +91,12 @@ class TripTrackingPlatform implements TripTrackingNativeGateway {
   @override
   Future<bool> get isTracking async =>
       await _commands.invokeMethod<Object?>('isTracking') == true;
+
+  @override
+  Future<String?> consumeRecoveryStatus() async {
+    final status = await _commands.invokeMethod<Object?>(
+      'consumeRecoveryStatus',
+    );
+    return status is String && status.isNotEmpty ? status : null;
+  }
 }

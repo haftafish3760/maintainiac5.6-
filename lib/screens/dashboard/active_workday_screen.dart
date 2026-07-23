@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../shared/device_capabilities/device_capability_scope.dart';
 import '../../shared/context/operational_context_store.dart';
@@ -985,7 +986,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       return;
     }
     final summary = TripTrackingFieldTrialSummary.fromReview(review);
-    final difference = summary.absoluteDifferenceMiles;
+    final summaryText = summary.toPlainText();
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
@@ -997,21 +998,33 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             fontWeight: FontWeight.w900,
           ),
         ),
-        content: Text(
-          'Odometer: ${summary.odometerMiles?.toStringAsFixed(2) ?? 'awaiting confirmation'} mi\n'
-          'GPS assistance: ${summary.gpsAssistedMiles.toStringAsFixed(2)} mi\n'
-          'Difference: ${difference?.toStringAsFixed(2) ?? 'not available'} mi\n'
-          'Samples: ${summary.acceptedSamples} accepted, ${summary.rejectedSamples} rejected\n'
-          'Signal gaps: ${summary.signalGapCount}; estimated gap: ${summary.estimatedGapMiles.toStringAsFixed(2)} mi\n'
-          'Possible stops: ${summary.probableStopCount}; confirmed: ${summary.confirmedStopCount}; dismissed: ${summary.dismissedStopCount}\n'
-          'Recoveries: ${summary.recoveryCount}\n\n'
-          'The odometer remains official. GPS assistance never confirms mileage.',
-          style: const TextStyle(
-            color: Color(0xFFC8D0D3),
-            fontWeight: FontWeight.w700,
+        content: SingleChildScrollView(
+          child: Text(
+            summaryText,
+            style: const TextStyle(
+              color: Color(0xFFC8D0D3),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await Clipboard.setData(ClipboardData(text: summaryText));
+                if (context.mounted) {
+                  _showGpsMessage(
+                    'GPS field summary copied without route coordinates.',
+                  );
+                }
+              } catch (_) {
+                if (context.mounted) {
+                  _showGpsMessage('GPS field summary could not be copied.');
+                }
+              }
+            },
+            child: const Text('Copy Summary'),
+          ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Done'),

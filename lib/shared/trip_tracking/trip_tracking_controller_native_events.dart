@@ -239,28 +239,47 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               _latestActivity = null;
               await _cancelPlatformSubscriptionAfterNativeStop();
               _platformSubscription = null;
-              if (!expectedStop &&
-                  (_session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.active ||
-                      _session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.degraded)) {
-                await _tryTransitionSession(
-                  TripTrackingSessionLifecycleState.interrupted,
-                  health: TripTrackingHealthState.interrupted,
-                  source: 'native_signal_event',
-                  reasonCode: 'native_location_stream_stopped',
+              final activeOrDegraded =
+                  _session?.lifecycleState ==
+                      TripTrackingSessionLifecycleState.active ||
+                  _session?.lifecycleState ==
+                      TripTrackingSessionLifecycleState.degraded;
+              if (activeOrDegraded) {
+                final driverRequestedPause = status == 'paused';
+                final engine = _engine;
+                final engineBeforeGap = engine?.snapshot;
+                engine?.beginSignalGap(
+                  _clockNow(),
+                  reason: driverRequestedPause
+                      ? TripTrackingSignalGapReason.userPause
+                      : TripTrackingSignalGapReason.systemPause,
                 );
-              } else if (expectedStop &&
-                  (_session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.active ||
-                      _session?.lifecycleState ==
-                          TripTrackingSessionLifecycleState.degraded)) {
-                await _tryTransitionSession(
-                  TripTrackingSessionLifecycleState.paused,
-                  pauseKind: TripTrackingPauseKind.system,
-                  source: 'native_signal_event',
-                  reasonCode: 'native_tracking_stopped',
-                );
+                final transitioned = expectedStop
+                    ? await _tryTransitionSession(
+                        TripTrackingSessionLifecycleState.paused,
+                        pauseKind: driverRequestedPause
+                            ? TripTrackingPauseKind.user
+                            : TripTrackingPauseKind.system,
+                        source: 'native_signal_event',
+                        reasonCode: driverRequestedPause
+                            ? 'native_notification_pause_requested'
+                            : 'native_tracking_stopped',
+                      )
+                    : await _tryTransitionSession(
+                        TripTrackingSessionLifecycleState.interrupted,
+                        health: TripTrackingHealthState.interrupted,
+                        source: 'native_signal_event',
+                        reasonCode: 'native_location_stream_stopped',
+                      );
+                if (!transitioned &&
+                    engine != null &&
+                    engineBeforeGap != null) {
+                  _engine = TripTrackingEngine.fromSnapshot(
+                    engineBeforeGap,
+                    policy: engine.policy,
+                    profile: engine.profile,
+                  );
+                }
               }
             } else if (status == 'tracking' && _nativeTracking) {
               final now = _clockNow().toUtc();

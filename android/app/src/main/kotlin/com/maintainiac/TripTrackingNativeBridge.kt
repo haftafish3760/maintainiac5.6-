@@ -78,6 +78,9 @@ class TripTrackingNativeBridge(
                 result.success(null)
             }
             "isTracking" -> result.success(isTracking())
+            "consumeRecoveryStatus" -> result.success(
+                TripTrackingForegroundService.consumeRecoveryStatus(activity),
+            )
             else -> result.notImplemented()
         }
     }

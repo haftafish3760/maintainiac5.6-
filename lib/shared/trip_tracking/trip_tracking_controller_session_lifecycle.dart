@@ -186,6 +186,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       id: tripId,
       vehicleId: vehicleId,
       vehicleConfigurationRevision: _currentVehicleConfigurationRevision,
+      gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
       startingOdometer: startingOdometer,
       profile: profile,
       profileId: effectiveProfileId,
@@ -347,7 +348,8 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       startingOdometer: session.startingOdometer,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
-    _activeTripCalibrationMultiplier = gpsAssistanceCalibrationMultiplier;
+    _activeTripCalibrationMultiplier =
+        session.gpsAssistanceCalibrationMultiplier;
     final estimatedOdometer = projection.updateAcceptedMeters(
       session.engineSnapshot.totalAcceptedMeters,
       gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
@@ -447,6 +449,19 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     final platform = _platform;
     if (platform != null) {
       try {
+        String? nativeRecoveryStatus;
+        final recoveryGateway = platform is TripTrackingNativeRecoveryGateway
+            ? platform as TripTrackingNativeRecoveryGateway
+            : null;
+        if (recoveryGateway != null) {
+          try {
+            nativeRecoveryStatus = await recoveryGateway
+                .consumeRecoveryStatus();
+          } catch (_) {
+            // Recovery markers are supporting evidence only. The durable
+            // session and live native probe remain authoritative.
+          }
+        }
         if (await platform.isTracking) {
           if (!session.backgroundTrackingAllowed) {
             // A collector that outlives this process cannot continue from
@@ -531,10 +546,13 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
                 TripTrackingSessionLifecycleState.degraded ||
             session.lifecycleState ==
                 TripTrackingSessionLifecycleState.starting) {
+          final driverRequestedPause = nativeRecoveryStatus == 'paused_by_user';
           final engineBeforeGap = _engine?.snapshot;
           _engine?.beginSignalGap(
             session.updatedAt,
-            reason: TripTrackingSignalGapReason.systemPause,
+            reason: driverRequestedPause
+                ? TripTrackingSignalGapReason.userPause
+                : TripTrackingSignalGapReason.systemPause,
           );
           final target =
               TripTrackingSessionStateMachine.canTransition(
@@ -546,11 +564,17 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
           final transitioned = await _tryTransitionSession(
             target,
             pauseKind: target == TripTrackingSessionLifecycleState.paused
-                ? TripTrackingPauseKind.system
+                ? driverRequestedPause
+                      ? TripTrackingPauseKind.user
+                      : TripTrackingPauseKind.system
                 : null,
-            health: TripTrackingHealthState.interrupted,
+            health: driverRequestedPause
+                ? null
+                : TripTrackingHealthState.interrupted,
             source: 'session_recovery',
-            reasonCode: 'native_collector_missing_after_recovery',
+            reasonCode: driverRequestedPause
+                ? 'native_notification_pause_recovered'
+                : 'native_collector_missing_after_recovery',
           );
           if (!transitioned && engineBeforeGap != null) {
             _engine = TripTrackingEngine.fromSnapshot(
@@ -559,9 +583,12 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
               profile: session.profile,
             );
           } else {
-            _platformStatus = 'recovery_paused_native_missing';
-            _platformError =
-                'The trip was recovered, but GPS collection is paused because the native service is no longer running.';
+            _platformStatus = driverRequestedPause
+                ? 'recovery_paused_by_user'
+                : 'recovery_paused_native_missing';
+            _platformError = driverRequestedPause
+                ? null
+                : 'The trip was recovered, but GPS collection is paused because the native service is no longer running.';
           }
         }
       } catch (error) {

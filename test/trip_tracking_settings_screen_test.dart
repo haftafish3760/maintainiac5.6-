@@ -115,6 +115,8 @@ void main() {
     expect(find.text('Remember low-battery GPS choice'), findsOneWidget);
     expect(find.text('Mileage backup network'), findsOneWidget);
     expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
+    expect(find.text('Recognize a linked vehicle by Bluetooth'), findsNothing);
+    expect(find.text('Automatically switch the active vehicle'), findsNothing);
     expect(settings.settings.activityRecognitionEnabled, isFalse);
     expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
     expect(settings.settings.gpsOdometerCalibrationAssistEnabled, isFalse);

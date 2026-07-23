@@ -563,16 +563,31 @@ void main() {
   });
 
   test(
-    'Android tracking notification gives the driver a direct stop control',
+    'Android notification exposes a pause without claiming trip completion',
     () {
       final android = File(
         'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
       ).readAsStringSync();
+      final ios = File(
+        'ios/Runner/TripTrackingNativeBridge.swift',
+      ).readAsStringSync();
 
       expect(android, contains('private const val stopAction'));
       expect(android, contains('intent?.action == stopAction'));
-      expect(android, contains('"Stop trip tracking"'));
+      expect(android, contains('"Pause GPS assistance"'));
+      expect(android, isNot(contains('"Stop trip tracking"')));
+      expect(android, contains('Intent(this, MainActivity::class.java)'));
+      expect(android, contains('PendingIntent.getActivity'));
+      expect(android, contains('.setContentIntent(openAppIntent)'));
       expect(android, contains('PendingIntent.getService'));
+      expect(android, contains('"paused_by_user"'));
+      expect(android, contains('consumeRecoveryStatus'));
+      expect(
+        android,
+        contains('recordRecoveryStatus(userPausedRecoveryStatus)'),
+      );
+      expect(ios, contains('case "consumeRecoveryStatus":'));
+      expect(ios, contains('result(nil)'));
     },
   );
 
