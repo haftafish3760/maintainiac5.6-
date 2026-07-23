@@ -11,6 +11,7 @@ private let tripTrackingEventChannel = "maintainiac/trip_tracking/events"
 final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocationManagerDelegate {
   private let locationManager = CLLocationManager()
   private let motionManager = CMMotionActivityManager()
+  private let pedometer = CMPedometer()
   private var eventSink: FlutterEventSink?
   private var pendingAuthorizationResult: FlutterResult?
   private var requestedBackgroundAuthorization = false
@@ -20,6 +21,8 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   private var activityRecognitionEnabled = false
   private var activityRecognitionGeneration = 0
   private var activityRecognitionUnavailableReported = false
+  private var pedometerBaselineSteps: Int?
+  private var lastPedometerEvidenceSteps = 0
   private var heartbeatTimer: Timer?
 
   override init() {
@@ -31,6 +34,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     // The timer captures this bridge weakly, but explicit teardown keeps the
     // native liveness loop bounded if Flutter replaces the engine/plugin.
     stopHeartbeat()
+    pedometer.stopUpdates()
   }
 
   func register(with pluginRegistry: FlutterPluginRegistry) {
@@ -380,6 +384,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     activityRecognitionEnabled = shouldEnable
     guard shouldEnable else {
       motionManager.stopActivityUpdates()
+      pedometer.stopUpdates()
+      pedometerBaselineSteps = nil
+      lastPedometerEvidenceSteps = 0
       return
     }
     motionManager.startActivityUpdates(to: .main) { [weak self] motion in
@@ -400,6 +407,47 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
         "confidence": self.confidence(for: motion.confidence),
         "recordedAt": ISO8601DateFormatter().string(from: observedAt),
       ])
+    }
+    startPedometerWalkingEvidence(generation: generation)
+  }
+
+  /// CMMotionActivity reports state transitions and may emit only one
+  /// "walking began" callback. Step-count updates provide bounded persistence
+  /// evidence so the Dart debounce policy can require multiple observations
+  /// without depending on duplicate activity callbacks. No step totals leave
+  /// this bridge; emitted walking observations remain advisory-only.
+  private func startPedometerWalkingEvidence(generation: Int) {
+    pedometer.stopUpdates()
+    pedometerBaselineSteps = nil
+    lastPedometerEvidenceSteps = 0
+    guard CMPedometer.isStepCountingAvailable() else { return }
+    pedometer.startUpdates(from: Date()) { [weak self] data, _ in
+      guard let self, let data else { return }
+      DispatchQueue.main.async { [weak self] in
+        guard let self,
+              self.activityRecognitionEnabled,
+              self.activityRecognitionGeneration == generation,
+              let trackingStartedAt = self.trackingStartedAt else { return }
+        let totalSteps = data.numberOfSteps.intValue
+        if self.pedometerBaselineSteps == nil {
+          self.pedometerBaselineSteps = totalSteps
+          return
+        }
+        let walkingSteps = max(0, totalSteps - (self.pedometerBaselineSteps ?? totalSteps))
+        guard walkingSteps - self.lastPedometerEvidenceSteps >= 5 else { return }
+        let observedAt = data.endDate
+        let now = Date()
+        guard observedAt >= trackingStartedAt,
+              observedAt >= now.addingTimeInterval(-120),
+              observedAt <= now.addingTimeInterval(120) else { return }
+        self.lastPedometerEvidenceSteps = walkingSteps
+        self.emit([
+          "type": "activity",
+          "activity": "walking",
+          "confidence": 90,
+          "recordedAt": ISO8601DateFormatter().string(from: observedAt),
+        ])
+      }
     }
   }
 

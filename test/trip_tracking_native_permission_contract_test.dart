@@ -93,6 +93,17 @@ void main() {
     expect(source, contains('status != .denied && status != .restricted'));
     expect(source, contains('activityRecognitionUnavailableReported'));
     expect(source, contains('trip_tracking_activity_unavailable'));
+    expect(source, contains('private let pedometer = CMPedometer()'));
+    expect(source, contains('CMPedometer.isStepCountingAvailable()'));
+    expect(
+      source,
+      contains('walkingSteps - self.lastPedometerEvidenceSteps >= 5'),
+    );
+    expect(source, contains('pedometer.stopUpdates()'));
+    expect(
+      source,
+      contains('self.activityRecognitionGeneration == generation'),
+    );
     expect(
       source,
       contains(

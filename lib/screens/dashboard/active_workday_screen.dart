@@ -11,12 +11,14 @@ import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_dashboard_live_status_policy.dart';
 import '../../shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
+import '../../shared/trip_tracking/trip_tracking_field_trial_summary.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/flow_placeholder_screen.dart';
 import '../expenses/entry/expense_receipt_entry_screen.dart';
 import '../expenses/profiles/expense_work_profile_screen.dart';
+import '../settings/trip_tracking_settings_screen.dart';
 import 'active_workday_actions.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_store.dart';
@@ -127,6 +129,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   onStop: _stopGpsTrip,
                   onReviewLatest: _reviewLatestGpsTrip,
                   onReviewWalkingStop: _reviewWalkingStop,
+                  onViewFieldSummary: _showLatestGpsFieldSummary,
+                  onOpenSettings: () => Navigator.of(context).push(
+                    appNativeRoute<void>(
+                      context,
+                      const TripTrackingSettingsScreen(),
+                    ),
+                  ),
                   startInFlight: _gpsStartInFlight,
                   stopInFlight: _gpsStopInFlight,
                 ),
@@ -751,6 +760,49 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
   }
 
+  Future<void> _showLatestGpsFieldSummary() async {
+    final review = TripTrackingScope.maybeOf(context)?.latestReview;
+    if (review == null) {
+      _showGpsMessage('No completed GPS trip summary is available.');
+      return;
+    }
+    final summary = TripTrackingFieldTrialSummary.fromReview(review);
+    final difference = summary.absoluteDifferenceMiles;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF101719),
+        title: const Text(
+          'GPS Field Summary',
+          style: TextStyle(
+            color: Color(0xFFF0F4F2),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: Text(
+          'Odometer: ${summary.odometerMiles?.toStringAsFixed(2) ?? 'awaiting confirmation'} mi\n'
+          'GPS assistance: ${summary.gpsAssistedMiles.toStringAsFixed(2)} mi\n'
+          'Difference: ${difference?.toStringAsFixed(2) ?? 'not available'} mi\n'
+          'Samples: ${summary.acceptedSamples} accepted, ${summary.rejectedSamples} rejected\n'
+          'Signal gaps: ${summary.signalGapCount}; estimated gap: ${summary.estimatedGapMiles.toStringAsFixed(2)} mi\n'
+          'Possible stops: ${summary.probableStopCount}; confirmed: ${summary.confirmedStopCount}; dismissed: ${summary.dismissedStopCount}\n'
+          'Recoveries: ${summary.recoveryCount}\n\n'
+          'The odometer remains official. GPS assistance never confirms mileage.',
+          style: const TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Done'),
+          ),
+        ],
+      ),
+    );
+  }
+
   String _gpsReviewConfirmedMessage({
     required TripTrackingController tripTracking,
     required String? cloudMirrorError,
@@ -843,6 +895,8 @@ class _GpsTripPanel extends StatelessWidget {
     required this.onStop,
     required this.onReviewLatest,
     required this.onReviewWalkingStop,
+    required this.onViewFieldSummary,
+    required this.onOpenSettings,
     required this.startInFlight,
     required this.stopInFlight,
   });
@@ -851,6 +905,8 @@ class _GpsTripPanel extends StatelessWidget {
   final Future<void> Function() onStop;
   final Future<void> Function() onReviewLatest;
   final Future<void> Function() onReviewWalkingStop;
+  final Future<void> Function() onViewFieldSummary;
+  final VoidCallback onOpenSettings;
   final bool startInFlight;
   final bool stopInFlight;
 
@@ -1101,6 +1157,31 @@ class _GpsTripPanel extends StatelessWidget {
                       child: const Text('REVIEW LATEST GPS TRIP'),
                     ),
                   ),
+                if (controller?.latestReview != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: onViewFieldSummary,
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.only(top: 3, right: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text('VIEW GPS FIELD SUMMARY'),
+                    ),
+                  ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: onOpenSettings,
+                    style: TextButton.styleFrom(
+                      minimumSize: Size.zero,
+                      padding: const EdgeInsets.only(top: 3, right: 8),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('GPS & MOTION SETTINGS'),
+                  ),
+                ),
               ],
             ),
           ),
