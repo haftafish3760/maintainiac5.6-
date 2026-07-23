@@ -1,5 +1,6 @@
 const {HttpsError} = require('firebase-functions/v2/https');
 const {requireManifestMatchesSnapshot} = require('./durable_manifest');
+const {validateStoredDurableDocument} = require('./durable_record_commit');
 
 const SNAPSHOT_SCHEMA = 'maintainiac_restore_snapshot_v1';
 const MAX_RECORDS = 10000;
@@ -35,7 +36,21 @@ async function createRestoreSnapshot({
   let currentBytes = 2;
   let structuredBytes = 0;
   for (const document of source.docs) {
-    const entry = {id: document.id, data: document.data()};
+    const data = document.data();
+    try {
+      validateStoredDurableDocument({
+        organizationId,
+        uid,
+        documentId: document.id,
+        data,
+      });
+    } catch (_) {
+      throw new HttpsError(
+        'data-loss',
+        'A cloud record needs recovery before restore can continue.',
+      );
+    }
+    const entry = {id: document.id, data};
     const entryBytes = Buffer.byteLength(JSON.stringify(entry), 'utf8');
     const dataBytes = Buffer.byteLength(JSON.stringify(entry.data), 'utf8');
     if (entryBytes > MAX_CHUNK_BYTES) {

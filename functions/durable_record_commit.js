@@ -183,6 +183,15 @@ function validateDocuments(uid, documents) {
   return {organizationId, documents: validated, totalBytes};
 }
 
+function validateStoredDurableDocument({organizationId, uid, documentId, data}) {
+  const validated = validateDocuments(uid, [{
+    path: `orgs/${organizationId}/records/${documentId}`,
+    data,
+  }]);
+  if (validated.organizationId !== organizationId) invalidBatch();
+  return validated.documents[0];
+}
+
 function validateRevisionAdvance(path, incoming, current) {
   if (current.schema !== 'maintainiac_durable_record_v1' ||
       incoming.recordKey !== current.recordKey ||
@@ -309,4 +318,7 @@ function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
 }
 
-module.exports = {buildDurableRecordCommitFunctions};
+module.exports = {
+  buildDurableRecordCommitFunctions,
+  validateStoredDurableDocument,
+};

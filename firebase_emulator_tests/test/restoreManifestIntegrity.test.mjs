@@ -6,6 +6,7 @@ import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
 import {collection, doc, getDocs, setDoc} from 'firebase/firestore';
 
 import {callFunction, callFunctionError} from './callableTestClient.mjs';
+import {durableRecord} from './restoreSnapshotFixtures.mjs';
 import {
   assertEmulatorOnly,
   emulatorProjectId,
@@ -143,6 +144,33 @@ describe('restore manifest integrity', () => {
     });
   });
 
+  test('corrupt stored records fail before restore authorization', async () => {
+    const identity = await createIdentity('corrupt');
+    const organizationId = 'orgManifestCorrupt';
+    await seedPrincipal(identity.uid, organizationId);
+    const data = durableRecord(
+      identity.uid,
+      'corrupt-record',
+      'preserved',
+      organizationId,
+    );
+    data.contentSha256 = 'f'.repeat(64);
+    await seedRecordData(data, organizationId);
+    const structuredBytes = Buffer.byteLength(JSON.stringify(data), 'utf8');
+    await seedManifest(identity.uid, organizationId, 1, structuredBytes);
+    const result = await callFunctionError(
+      'issueRestoreAuthorization',
+      identity.token,
+      {
+        organizationId,
+        deviceId: 'restoreDevice',
+        mode: 'recordsOnly',
+        requestId: 'corrupt-snapshot-request',
+      },
+    );
+    assert.equal(result.body?.error?.status, 'DATA_LOSS');
+  });
+
   test('stale preparing snapshots are rebuilt after admission lease', async () => {
     const identity = await createIdentity('resume');
     const organizationId = 'orgManifestResume';
@@ -210,44 +238,39 @@ async function seedPrincipal(uid, organizationId) {
 }
 
 async function seedRecord(uid, organizationId) {
-  const recordKey = '6'.repeat(64);
-  const data = {
-    schema: 'maintainiac_durable_record_v1',
-    recordKey,
-    orgId: organizationId,
-    createdByUid: uid,
-    updatedByUid: uid,
-    privateToOwner: true,
-    recordPayload: {value: 'preserved'},
-  };
+  const data = durableRecord(uid, 'single-record', 'preserved', organizationId);
+  await seedRecordData(data, organizationId);
+  return data;
+}
+
+async function seedRecordData(data, organizationId) {
   await testEnv.withSecurityRulesDisabled(async (context) => {
     await setDoc(
-      doc(context.firestore(), `orgs/${organizationId}/records/${recordKey}`),
+      doc(
+        context.firestore(),
+        `orgs/${organizationId}/records/${data.recordKey}`,
+      ),
       data,
     );
   });
-  return data;
 }
 
 async function seedLargeRecordSet(uid, organizationId) {
   let structuredBytes = 0;
   await testEnv.withSecurityRulesDisabled(async (context) => {
     for (let index = 0; index < 16; index += 1) {
-      const recordKey = index.toString(16).padStart(64, '0');
-      const data = {
-        schema: 'maintainiac_durable_record_v1',
-        recordKey,
-        orgId: organizationId,
-        createdByUid: uid,
-        updatedByUid: uid,
-        privateToOwner: true,
-        recordPayload: {
-          value: String.fromCharCode(65 + index).repeat(600 * 1024),
-        },
-      };
+      const data = durableRecord(
+        uid,
+        `large-${index}`,
+        String.fromCharCode(65 + index).repeat(600 * 1024),
+        organizationId,
+      );
       structuredBytes += Buffer.byteLength(JSON.stringify(data), 'utf8');
       await setDoc(
-        doc(context.firestore(), `orgs/${organizationId}/records/${recordKey}`),
+        doc(
+          context.firestore(),
+          `orgs/${organizationId}/records/${data.recordKey}`,
+        ),
         data,
       );
     }
