@@ -1,29 +1,40 @@
 part of 'maintainiac_record_lifecycle.dart';
 
 typedef MaintainiacDraftStorageCheck = Future<AppStorageCheck> Function();
+typedef MaintainiacDraftSizedStorageCheck =
+    Future<AppStorageCheck> Function(int operationBytes);
 
 class MaintainiacRecordDraftStore {
   MaintainiacRecordDraftStore._(
     this._box, {
     MaintainiacDraftStorageCheck? storageCheck,
-  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+    MaintainiacDraftSizedStorageCheck? sizedStorageCheck,
+  }) : _storageCheck = storageCheck,
+       _sizedStorageCheck = storageCheck == null
+           ? (sizedStorageCheck ?? _defaultSizedStorageCheck)
+           : null;
   MaintainiacRecordDraftStore.memory({
     MaintainiacDraftStorageCheck? storageCheck,
+    MaintainiacDraftSizedStorageCheck? sizedStorageCheck,
   }) : _box = null,
-       _storageCheck = storageCheck;
+       _storageCheck = storageCheck,
+       _sizedStorageCheck = storageCheck == null ? sizedStorageCheck : null;
 
   static const boxName = 'maintainiac_record_drafts';
 
   final Box<dynamic>? _box;
   final MaintainiacDraftStorageCheck? _storageCheck;
+  final MaintainiacDraftSizedStorageCheck? _sizedStorageCheck;
   final _memory = <String, MaintainiacRecordDraft>{};
   Future<void> _writeTail = Future<void>.value();
 
   static Future<MaintainiacRecordDraftStore> create({
     MaintainiacDraftStorageCheck? storageCheck,
+    MaintainiacDraftSizedStorageCheck? sizedStorageCheck,
   }) async => MaintainiacRecordDraftStore._(
     await Hive.openBox<dynamic>(boxName),
     storageCheck: storageCheck,
+    sizedStorageCheck: sizedStorageCheck,
   );
 
   MaintainiacRecordDraft? draftFor(
@@ -96,7 +107,6 @@ class MaintainiacRecordDraftStore {
     DateTime? now,
   }) => _enqueue(() async {
     _validateDraftKey(module, id);
-    await _ensureStorageForDraftSave();
     final time = now ?? DateTime.now();
     final existing = _storedDraftFor(module, id);
     if (existing == null && _containsStoredDraft(module, id)) {
@@ -122,17 +132,29 @@ class MaintainiacRecordDraftStore {
       payload: Map.unmodifiable(Map<String, dynamic>.from(payload)),
       lifecycle: lifecycle,
     );
+    await _ensureStorageForDraftSave(
+      MaintainiacDurablePayload.encodedByteEstimate(draft.toMap()),
+    );
     await _putDraft(draft);
     return draft;
   });
 
-  static Future<AppStorageCheck> _defaultStorageCheck() =>
-      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+  static Future<AppStorageCheck> _defaultSizedStorageCheck(
+    int operationBytes,
+  ) => AppStorageGuard.checkForBytes(
+    operationBytes: operationBytes < AppStorageGuard.smallRecordWriteBytes
+        ? AppStorageGuard.smallRecordWriteBytes
+        : operationBytes,
+    purpose: AppStoragePurpose.smallRecordWrite,
+  );
 
-  Future<void> _ensureStorageForDraftSave() async {
+  Future<void> _ensureStorageForDraftSave(int operationBytes) async {
     final check = _storageCheck;
-    if (check == null) return;
-    final storage = await check();
+    final sizedCheck = _sizedStorageCheck;
+    if (check == null && sizedCheck == null) return;
+    final storage = check != null
+        ? await check()
+        : await sizedCheck!(operationBytes);
     if (!storage.hasEnoughSpace) throw StateError(storage.blockingMessage());
   }
 
@@ -168,18 +190,19 @@ class MaintainiacRecordDraftStore {
         if (!_hasValidDraftKey(module, id)) return;
         final existing = _storedDraftFor(module, id);
         if (existing == null || existing.lifecycle.isDeleted) return;
-        await _ensureStorageForDraftSave();
-        await _putDraft(
-          MaintainiacRecordDraft(
-            module: existing.module,
-            id: existing.id,
-            payload: existing.payload,
-            lifecycle: existing.lifecycle.deleted(
-              now ?? DateTime.now(),
-              event: 'removed draft',
-            ),
+        final removed = MaintainiacRecordDraft(
+          module: existing.module,
+          id: existing.id,
+          payload: existing.payload,
+          lifecycle: existing.lifecycle.deleted(
+            now ?? DateTime.now(),
+            event: 'removed draft',
           ),
         );
+        await _ensureStorageForDraftSave(
+          MaintainiacDurablePayload.encodedByteEstimate(removed.toMap()),
+        );
+        await _putDraft(removed);
       });
 
   /// Removes a checkpoint only when it is still the version acknowledged by
@@ -197,18 +220,19 @@ class MaintainiacRecordDraftStore {
         !existing.lifecycle.updatedAt.isAtSameMomentAs(expectedUpdatedAt)) {
       return false;
     }
-    await _ensureStorageForDraftSave();
-    await _putDraft(
-      MaintainiacRecordDraft(
-        module: existing.module,
-        id: existing.id,
-        payload: existing.payload,
-        lifecycle: existing.lifecycle.deleted(
-          expectedUpdatedAt,
-          event: 'acknowledged confirmed record',
-        ),
+    final acknowledged = MaintainiacRecordDraft(
+      module: existing.module,
+      id: existing.id,
+      payload: existing.payload,
+      lifecycle: existing.lifecycle.deleted(
+        expectedUpdatedAt,
+        event: 'acknowledged confirmed record',
       ),
     );
+    await _ensureStorageForDraftSave(
+      MaintainiacDurablePayload.encodedByteEstimate(acknowledged.toMap()),
+    );
+    await _putDraft(acknowledged);
     return true;
   });
 

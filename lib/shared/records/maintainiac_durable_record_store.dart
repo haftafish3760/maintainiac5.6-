@@ -6,6 +6,8 @@ import 'maintainiac_record_lifecycle.dart';
 import 'maintainiac_record_ordering.dart';
 
 typedef MaintainiacDurableStorageCheck = Future<AppStorageCheck> Function();
+typedef MaintainiacDurableSizedStorageCheck =
+    Future<AppStorageCheck> Function(int operationBytes);
 
 /// Shared local-first store for confirmed records owned by a Maintainiac
 /// module. Modules keep their own payload schema while lifecycle, ordering,
@@ -14,24 +16,33 @@ class MaintainiacDurableRecordStore {
   MaintainiacDurableRecordStore._(
     this._box, {
     MaintainiacDurableStorageCheck? storageCheck,
-  }) : _storageCheck = storageCheck ?? _defaultStorageCheck;
+    MaintainiacDurableSizedStorageCheck? sizedStorageCheck,
+  }) : _storageCheck = storageCheck,
+       _sizedStorageCheck = storageCheck == null
+           ? (sizedStorageCheck ?? _defaultSizedStorageCheck)
+           : null;
 
   MaintainiacDurableRecordStore.memory({
     MaintainiacDurableStorageCheck? storageCheck,
+    MaintainiacDurableSizedStorageCheck? sizedStorageCheck,
   }) : _box = null,
-       _storageCheck = storageCheck;
+       _storageCheck = storageCheck,
+       _sizedStorageCheck = storageCheck == null ? sizedStorageCheck : null;
 
   final Box<dynamic>? _box;
   final MaintainiacDurableStorageCheck? _storageCheck;
+  final MaintainiacDurableSizedStorageCheck? _sizedStorageCheck;
   final _memory = <String, Map<String, dynamic>>{};
   Future<void> _writeTail = Future<void>.value();
 
   static Future<MaintainiacDurableRecordStore> create(
     String boxName, {
     MaintainiacDurableStorageCheck? storageCheck,
+    MaintainiacDurableSizedStorageCheck? sizedStorageCheck,
   }) async => MaintainiacDurableRecordStore._(
     await Hive.openBox<dynamic>(boxName),
     storageCheck: storageCheck,
+    sizedStorageCheck: sizedStorageCheck,
   );
 
   MaintainiacDurableRecord? recordFor(String module, String id) {
@@ -101,7 +112,6 @@ class MaintainiacDurableRecordStore {
     DateTime? now,
   }) => _enqueue(() async {
     _validateKey(module, id);
-    await _ensureSpace();
     final existing = recordFor(module, id);
     if (existing == null && _containsStoredValue(module, id)) {
       throw StateError(
@@ -130,6 +140,9 @@ class MaintainiacDurableRecordStore {
       id: id,
       payload: payload,
       lifecycle: lifecycle,
+    );
+    await _ensureSpace(
+      MaintainiacDurablePayload.encodedByteEstimate(record.toMap()),
     );
     await _put(record);
     return record;
@@ -168,12 +181,14 @@ class MaintainiacDurableRecordStore {
   }) => _enqueue(() async {
     final existing = recordFor(module, id);
     if (existing == null || existing.lifecycle.isDeleted) return existing;
-    await _ensureSpace();
     final record = existing.withLifecycle(
       existing.lifecycle.deleted(
         now ?? DateTime.now(),
         event: 'deleted record',
       ),
+    );
+    await _ensureSpace(
+      MaintainiacDurablePayload.encodedByteEstimate(record.toMap()),
     );
     await _put(record);
     return record;
@@ -186,12 +201,14 @@ class MaintainiacDurableRecordStore {
   }) => _enqueue(() async {
     final existing = recordFor(module, id);
     if (existing == null || existing.lifecycle.isActive) return existing;
-    await _ensureSpace();
     final record = existing.withLifecycle(
       existing.lifecycle.restored(
         now ?? DateTime.now(),
         event: 'restored record',
       ),
+    );
+    await _ensureSpace(
+      MaintainiacDurablePayload.encodedByteEstimate(record.toMap()),
     );
     await _put(record);
     return record;
@@ -221,7 +238,9 @@ class MaintainiacDurableRecordStore {
         'Restore cannot replace an equal or newer local record.',
       );
     }
-    await _ensureSpace();
+    await _ensureSpace(
+      MaintainiacDurablePayload.encodedByteEstimate(verified.toMap()),
+    );
     await _put(verified);
     return verified;
   });
@@ -235,10 +254,13 @@ class MaintainiacDurableRecordStore {
     }
   }
 
-  Future<void> _ensureSpace() async {
+  Future<void> _ensureSpace(int operationBytes) async {
     final check = _storageCheck;
-    if (check == null) return;
-    final result = await check();
+    final sizedCheck = _sizedStorageCheck;
+    if (check == null && sizedCheck == null) return;
+    final result = check != null
+        ? await check()
+        : await sizedCheck!(operationBytes);
     if (!result.hasEnoughSpace) throw StateError(result.blockingMessage());
   }
 
@@ -248,8 +270,14 @@ class MaintainiacDurableRecordStore {
     return next;
   }
 
-  static Future<AppStorageCheck> _defaultStorageCheck() =>
-      AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
+  static Future<AppStorageCheck> _defaultSizedStorageCheck(
+    int operationBytes,
+  ) => AppStorageGuard.checkForBytes(
+    operationBytes: operationBytes < AppStorageGuard.smallRecordWriteBytes
+        ? AppStorageGuard.smallRecordWriteBytes
+        : operationBytes,
+    purpose: AppStoragePurpose.smallRecordWrite,
+  );
 
   static String _key(String module, String id) => '$module:$id';
   bool _containsStoredValue(String module, String id) {

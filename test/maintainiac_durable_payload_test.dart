@@ -158,4 +158,38 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test(
+    'record and draft stores reserve actual serialized payload bytes',
+    () async {
+      var recordBytes = 0;
+      var draftBytes = 0;
+      final records = MaintainiacDurableRecordStore.memory(
+        sizedStorageCheck: (operationBytes) async {
+          recordBytes = operationBytes;
+          return _enoughSpace(operationBytes);
+        },
+      );
+      final drafts = MaintainiacRecordDraftStore.memory(
+        sizedStorageCheck: (operationBytes) async {
+          draftBytes = operationBytes;
+          return _enoughSpace(operationBytes);
+        },
+      );
+      final payload = {'notes': 'x' * 2048};
+
+      await records.save(module: 'notes', id: 'record-1', payload: payload);
+      await drafts.save(module: 'notes', id: 'draft-1', payload: payload);
+
+      expect(recordBytes, greaterThan(2048));
+      expect(draftBytes, greaterThan(2048));
+    },
+  );
 }
+
+AppStorageCheck _enoughSpace(int operationBytes) => AppStorageCheck(
+  availableBytes: operationBytes + AppStorageGuard.textRecordDeviceReserveBytes,
+  operationBytes: operationBytes,
+  requiredBytes: operationBytes + AppStorageGuard.textRecordDeviceReserveBytes,
+  purpose: AppStoragePurpose.smallRecordWrite,
+);

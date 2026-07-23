@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:collection';
 
 /// Validates and deep-freezes values before they cross a durable-storage
@@ -13,6 +14,25 @@ class MaintainiacDurablePayload {
     final traversal = _PayloadTraversal();
     return traversal.freezeRoot(payload);
   }
+
+  /// Serialized size used to reserve device space before a durable write.
+  /// Binary attachments use their own storage contract.
+  static int encodedByteEstimate(Object? value) {
+    final frozen = _PayloadTraversal().freezeAny(value);
+    return utf8.encode(jsonEncode(_jsonSafe(frozen))).length;
+  }
+
+  static Object? _jsonSafe(Object? value) {
+    if (value is DateTime) return value.toUtc().toIso8601String();
+    if (value is List) return value.map(_jsonSafe).toList(growable: false);
+    if (value is Map) {
+      return {
+        for (final entry in value.entries)
+          entry.key as String: _jsonSafe(entry.value),
+      };
+    }
+    return value;
+  }
 }
 
 class _PayloadTraversal {
@@ -23,6 +43,8 @@ class _PayloadTraversal {
     final frozen = _freeze(payload, 0);
     return frozen as Map<String, dynamic>;
   }
+
+  Object? freezeAny(Object? value) => _freeze(value, 0);
 
   Object? _freeze(Object? value, int depth) {
     _valueCount += 1;
