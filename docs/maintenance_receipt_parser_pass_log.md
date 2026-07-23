@@ -168,11 +168,19 @@ required checks pass.
     invoice without a work-order phrase. Declined/recommended sections still
     override completion for their rows. Focused analysis and 34 service/parser
     safety checks passed, followed by the 184-check full maintenance gate.
+52. Multi-odometer invoice safety. Explicit mileage/odometer out remains the
+    preferred completed-service reading, explicit in is the fallback, and
+    clearly labeled prior/previous/last mileage can no longer outrank the
+    current service reading. A reversed pair where out is below in now forces
+    review while retaining the printed out value as an editable suggestion; it
+    never changes global odometer truth. Added exact reversed-pair and
+    historical-versus-current contracts. Focused analysis and 44 parser/review
+    safety checks passed, followed by the 186-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **51**
-- Next pass: **52**
+- Last accepted pass: **52**
+- Next pass: **53**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

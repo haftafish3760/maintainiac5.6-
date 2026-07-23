@@ -275,6 +275,7 @@ int? _readingFor(String text, RegExp pattern) {
 
 int? _serviceOdometerFor(String text) {
   return _readingFor(text, _serviceOdometerOutPattern) ??
+      _readingFor(text, _serviceOdometerInPattern) ??
       _readingFor(text, _serviceOdometerPattern);
 }
 

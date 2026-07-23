@@ -26,6 +26,8 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final receiptDate = dateRead.date;
   final dueDateRead = _nextDueDate(rows, input.locale);
   final dueDate = dueDateRead.date;
+  final serviceOdometerIn = _readingFor(lower, _serviceOdometerInPattern);
+  final serviceOdometerOut = _readingFor(lower, _serviceOdometerOutPattern);
   final serviceOdometer = _serviceOdometerFor(lower);
   final dueOdometer = _readingFor(lower, _dueOdometerPattern);
   final explicitInterval = _readingFor(lower, _intervalMilesPattern);
@@ -241,6 +243,10 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
         input.currentOdometer != null &&
         serviceOdometer > input.currentOdometer!)
       'The receipt odometer is above the selected vehicle current odometer.',
+    if (serviceOdometerIn != null &&
+        serviceOdometerOut != null &&
+        serviceOdometerOut < serviceOdometerIn)
+      'The receipt mileage out is below mileage in; confirm the service odometer.',
     if (serviceOdometer != null &&
         dueOdometer != null &&
         dueOdometer <= serviceOdometer)
@@ -258,6 +264,7 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
       : warnings.any(
           (warning) =>
               warning.contains('above the selected') ||
+              warning.contains('mileage out is below') ||
               warning.contains('not above') ||
               warning.contains('Estimate or quote') ||
               warning.contains('Recommended, declined') ||

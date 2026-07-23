@@ -269,8 +269,11 @@ final _metadataLine = RegExp(
 final _serviceOdometerOutPattern = RegExp(
   r'\b(?:odometer|odo|mileage)\s*out\s*[:#]?\s*(\d{3,8})\b',
 );
+final _serviceOdometerInPattern = RegExp(
+  r'(?:\b(?:odometer|odo|mileage)\s*in|\bmiles in)\s*[:#]?\s*(\d{3,8})\b',
+);
 final _serviceOdometerPattern = RegExp(
-  r'\b(?:odometer|odo|vehicle mileage|mileage(?:\s*in)?|miles in|current miles)\s*[:#]?\s*(\d{3,8})\b',
+  r'\b(?<!prior )(?<!previous )(?<!last )(?<!last recorded )(?:odometer|odo|vehicle mileage|mileage|current miles)\s*[:#]?\s*(\d{3,8})\b',
 );
 final _dueOdometerPattern = RegExp(
   r'\b(?:next service due|next service|next due|due at|service due at|next oil change)\D{0,24}(\d{4,8})\b',
