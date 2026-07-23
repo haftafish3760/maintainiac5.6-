@@ -51,29 +51,73 @@ void main() {
       );
     });
 
-    test('malformed stored install timestamps do not become current time', () async {
-      final vault = _MemoryInstallationVault({
-        AppInstallationIdentityStore.installIdKey:
-            'mai_install_12345678901234567890123456789012',
-        AppInstallationIdentityStore.installCreatedAtKey: 'not-a-date',
-      });
-      final store = AppInstallationIdentityStore(
+    test(
+      'repairs malformed timestamps without rotating the stable ID',
+      () async {
+        final vault = _MemoryInstallationVault({
+          AppInstallationIdentityStore.installIdKey:
+              'mai_install_12345678901234567890123456789012',
+          AppInstallationIdentityStore.installCreatedAtKey: 'not-a-date',
+        });
+        final store = AppInstallationIdentityStore(
+          vault: vault,
+          now: () => DateTime.utc(2026, 6, 20, 10),
+          idFactory: () => 'mai_install_new45678901234567890123456789012',
+        );
+
+        final identity = await store.getOrCreate();
+
+        expect(
+          identity.installationId,
+          'mai_install_12345678901234567890123456789012',
+        );
+        expect(identity.createdAt, DateTime.utc(2026, 6, 20, 10));
+        expect(
+          vault.values[AppInstallationIdentityStore.installCreatedAtKey],
+          DateTime.utc(2026, 6, 20, 10).toIso8601String(),
+        );
+      },
+    );
+
+    test('serializes concurrent stores onto one durable identity', () async {
+      final vault = _DelayedInstallationVault();
+      var factoryCalls = 0;
+      AppInstallationIdentityStore newStore() => AppInstallationIdentityStore(
         vault: vault,
         now: () => DateTime.utc(2026, 6, 20, 10),
-        idFactory: () => 'mai_install_new45678901234567890123456789012',
+        idFactory: () {
+          factoryCalls += 1;
+          return 'mai_install_12345678901234567890123456789012';
+        },
       );
 
-      final identity = await store.getOrCreate();
+      final identities = await Future.wait(
+        List<Future<AppInstallationIdentity>>.generate(
+          20,
+          (_) => newStore().getOrCreate(),
+        ),
+      );
 
-      expect(
-        identity.installationId,
+      expect(factoryCalls, 1);
+      expect(identities.map((identity) => identity.installationId).toSet(), {
         'mai_install_12345678901234567890123456789012',
-      );
-      expect(
-        identity.createdAt,
-        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-      );
+      });
     });
+
+    test(
+      'rejects an invalid generated identity before committing it',
+      () async {
+        final vault = _MemoryInstallationVault();
+        final store = AppInstallationIdentityStore(
+          vault: vault,
+          idFactory: () => 'invalid',
+        );
+
+        await expectLater(store.getOrCreate(), throwsStateError);
+
+        expect(vault.values[AppInstallationIdentityStore.installIdKey], isNull);
+      },
+    );
   });
 
   group('AccountCreationGateContract', () {
@@ -116,5 +160,19 @@ class _MemoryInstallationVault implements InstallationIdentityVault {
   @override
   Future<void> write(String key, String value) async {
     values[key] = value;
+  }
+}
+
+class _DelayedInstallationVault extends _MemoryInstallationVault {
+  @override
+  Future<String?> read(String key) async {
+    await Future<void>.delayed(Duration.zero);
+    return super.read(key);
+  }
+
+  @override
+  Future<void> write(String key, String value) async {
+    await Future<void>.delayed(Duration.zero);
+    await super.write(key, value);
   }
 }

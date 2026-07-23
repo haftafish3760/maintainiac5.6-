@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/durable_storage/maintainiac_durable_storage.dart';
 
@@ -21,6 +23,19 @@ void main() {
       expect(await vault.load('credential-a'), isNull);
     },
   );
+
+  test('credential save and later delete cannot race out of order', () async {
+    final values = _BlockingSecureValues();
+    final vault = MaintainiacRestoreCredentialVault(values: values);
+
+    final save = vault.save('credential-a', _issued(now));
+    await values.writeStarted.future;
+    final delete = vault.delete('credential-a');
+    values.releaseWrite.complete();
+    await Future.wait([save, delete]);
+
+    expect(await vault.load('credential-a'), isNull);
+  });
 
   test(
     'hosted progress is reconciled and terminal credential is removed',
@@ -184,6 +199,18 @@ class _SecureValues implements MaintainiacSecureValueStore {
 
   @override
   Future<void> write(String key, String value) async => values[key] = value;
+}
+
+class _BlockingSecureValues extends _SecureValues {
+  final writeStarted = Completer<void>();
+  final releaseWrite = Completer<void>();
+
+  @override
+  Future<void> write(String key, String value) async {
+    writeStarted.complete();
+    await releaseWrite.future;
+    await super.write(key, value);
+  }
 }
 
 class _Functions implements MaintainiacCallableFunctionClient {

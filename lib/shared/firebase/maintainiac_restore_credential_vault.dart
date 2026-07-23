@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -51,9 +52,17 @@ class MaintainiacRestoreCredentialVault
   }) : _values = values;
 
   final MaintainiacSecureValueStore _values;
+  static Future<void> _operationTail = Future<void>.value();
 
   @override
   Future<void> save(
+    String credentialId,
+    MaintainiacIssuedRestoreAuthorization credential,
+  ) {
+    return _serialize(() => _save(credentialId, credential));
+  }
+
+  Future<void> _save(
     String credentialId,
     MaintainiacIssuedRestoreAuthorization credential,
   ) async {
@@ -81,7 +90,11 @@ class MaintainiacRestoreCredentialVault
   }
 
   @override
-  Future<MaintainiacIssuedRestoreAuthorization?> load(
+  Future<MaintainiacIssuedRestoreAuthorization?> load(String credentialId) {
+    return _serialize(() => _load(credentialId));
+  }
+
+  Future<MaintainiacIssuedRestoreAuthorization?> _load(
     String credentialId,
   ) async {
     final encoded = await _values.read(_key(credentialId));
@@ -116,8 +129,21 @@ class MaintainiacRestoreCredentialVault
   }
 
   @override
-  Future<void> delete(String credentialId) =>
-      _values.delete(_key(credentialId));
+  Future<void> delete(String credentialId) {
+    return _serialize(() => _values.delete(_key(credentialId)));
+  }
+
+  static Future<T> _serialize<T>(Future<T> Function() operation) async {
+    final previous = _operationTail;
+    final release = Completer<void>();
+    _operationTail = release.future;
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release.complete();
+    }
+  }
 }
 
 String _key(String credentialId) {

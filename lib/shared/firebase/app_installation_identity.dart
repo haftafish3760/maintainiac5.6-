@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -53,28 +54,62 @@ class AppInstallationIdentityStore {
   static const installIdKey = 'maintainiac_app_installation_id_v1';
   static const installCreatedAtKey =
       'maintainiac_app_installation_created_at_v1';
+  static Future<void> _identityOperationTail = Future<void>.value();
 
   final InstallationIdentityVault _vault;
   final DateTime Function() _now;
   final String Function() _idFactory;
 
-  Future<AppInstallationIdentity> getOrCreate() async {
+  Future<AppInstallationIdentity> getOrCreate() {
+    return _serializeIdentityOperation(_getOrCreate);
+  }
+
+  Future<AppInstallationIdentity> _getOrCreate() async {
     final storedId = await _vault.read(installIdKey);
     final storedCreatedAt = await _vault.read(installCreatedAtKey);
-    if (_isValidInstallId(storedId) && storedCreatedAt != null) {
+    if (_isValidInstallId(storedId)) {
+      final parsedCreatedAt = DateTime.tryParse(storedCreatedAt ?? '');
+      if (parsedCreatedAt != null) {
+        return AppInstallationIdentity(
+          installationId: storedId!,
+          createdAt: parsedCreatedAt.toUtc(),
+        );
+      }
+      final repairedCreatedAt = _now().toUtc();
+      await _vault.write(
+        installCreatedAtKey,
+        repairedCreatedAt.toIso8601String(),
+      );
       return AppInstallationIdentity(
         installationId: storedId!,
-        createdAt:
-            DateTime.tryParse(storedCreatedAt)?.toUtc() ??
-            DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        createdAt: repairedCreatedAt,
       );
     }
 
     final createdAt = _now().toUtc();
     final id = _idFactory();
-    await _vault.write(installIdKey, id);
+    if (!_isValidInstallId(id)) {
+      throw StateError('Installation identity factory returned an invalid ID.');
+    }
+    // The ID is the commit marker. A failed final write cannot expose a
+    // partially initialized identity to the next process operation.
     await _vault.write(installCreatedAtKey, createdAt.toIso8601String());
+    await _vault.write(installIdKey, id);
     return AppInstallationIdentity(installationId: id, createdAt: createdAt);
+  }
+
+  static Future<T> _serializeIdentityOperation<T>(
+    Future<T> Function() operation,
+  ) async {
+    final previous = _identityOperationTail;
+    final release = Completer<void>();
+    _identityOperationTail = release.future;
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release.complete();
+    }
   }
 
   static bool _isValidInstallId(String? value) {
