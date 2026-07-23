@@ -12,6 +12,12 @@ receipt_files=$(find \
      -path '*/maintenance_receipts/*.json' \))
 for receipt_file in \
   $receipt_files \
+  lib/screens/maintenance/maintenance_item_icon.dart \
+  lib/screens/maintenance/maintenance_item_icon_body_painter.dart \
+  lib/screens/maintenance/maintenance_item_icon_chassis_painter.dart \
+  lib/screens/maintenance/maintenance_item_icon_engine_painter.dart \
+  lib/screens/maintenance/maintenance_item_icon_painter.dart \
+  lib/screens/maintenance/maintenance_models.dart \
   lib/shared/state/app_state.dart \
   lib/shared/state/app_state_maintenance_controller.dart \
   lib/shared/state/app_state_maintenance_models.dart \
@@ -29,6 +35,7 @@ done
 dart format --output=none --set-exit-if-changed \
   lib/screens/maintenance/data/maintenance_receipt_parser.dart \
   lib/screens/maintenance/data/maintenance_receipt_parser_catalog.dart \
+  lib/screens/maintenance/data/maintenance_receipt_parser_dates.dart \
   lib/screens/maintenance/data/maintenance_receipt_parser_engine.dart \
   lib/screens/maintenance/data/maintenance_receipt_parser_support.dart \
   lib/screens/maintenance/data/maintenance_receipt_application_service.dart \
@@ -38,6 +45,12 @@ dart format --output=none --set-exit-if-changed \
   lib/screens/maintenance/maintenance_draft_store.dart \
   lib/screens/maintenance/maintenance_item_detail_screen.dart \
   lib/screens/maintenance/maintenance_item_detail_widgets.dart \
+  lib/screens/maintenance/maintenance_item_icon.dart \
+  lib/screens/maintenance/maintenance_item_icon_body_painter.dart \
+  lib/screens/maintenance/maintenance_item_icon_chassis_painter.dart \
+  lib/screens/maintenance/maintenance_item_icon_engine_painter.dart \
+  lib/screens/maintenance/maintenance_item_icon_painter.dart \
+  lib/screens/maintenance/maintenance_models.dart \
   lib/screens/maintenance/maintenance_receipt_apply_dialog.dart \
   lib/screens/maintenance/maintenance_receipt_review_item_card.dart \
   lib/screens/maintenance/maintenance_receipt_review_flow.dart \
@@ -54,8 +67,10 @@ dart format --output=none --set-exit-if-changed \
   test/maintenance_receipt_corpus_test.dart \
   test/maintenance_receipt_duplicate_application_test.dart \
   test/maintenance_receipt_dirty_text_test.dart \
+  test/maintenance_receipt_layout_corpus_test.dart \
   test/maintenance_receipt_parser_test.dart \
   test/maintenance_receipt_parser_safety_test.dart \
+  test/maintenance_receipt_schedule_date_test.dart \
   test/maintenance_receipt_temporal_safety_test.dart \
   test/maintenance_receipt_review_test.dart \
   test/maintenance_receipt_review_screen_test.dart \
@@ -69,6 +84,8 @@ dart analyze \
   lib/screens/maintenance/maintenance_screen.dart \
   lib/screens/maintenance/maintenance_draft_store.dart \
   lib/screens/maintenance/maintenance_item_detail_screen.dart \
+  lib/screens/maintenance/maintenance_item_icon.dart \
+  lib/screens/maintenance/maintenance_models.dart \
   lib/screens/maintenance/maintenance_receipt_apply_dialog.dart \
   lib/screens/maintenance/maintenance_receipt_review_flow.dart \
   lib/screens/maintenance/maintenance_receipt_review_screen.dart \
@@ -84,8 +101,10 @@ dart analyze \
   test/maintenance_receipt_corpus_test.dart \
   test/maintenance_receipt_duplicate_application_test.dart \
   test/maintenance_receipt_dirty_text_test.dart \
+  test/maintenance_receipt_layout_corpus_test.dart \
   test/maintenance_receipt_parser_test.dart \
   test/maintenance_receipt_parser_safety_test.dart \
+  test/maintenance_receipt_schedule_date_test.dart \
   test/maintenance_receipt_temporal_safety_test.dart \
   test/maintenance_receipt_review_test.dart \
   test/maintenance_receipt_review_screen_test.dart \
@@ -102,8 +121,10 @@ flutter test \
   test/maintenance_receipt_corpus_test.dart \
   test/maintenance_receipt_duplicate_application_test.dart \
   test/maintenance_receipt_dirty_text_test.dart \
+  test/maintenance_receipt_layout_corpus_test.dart \
   test/maintenance_receipt_parser_test.dart \
   test/maintenance_receipt_parser_safety_test.dart \
+  test/maintenance_receipt_schedule_date_test.dart \
   test/maintenance_receipt_temporal_safety_test.dart \
   test/maintenance_receipt_review_test.dart \
   test/maintenance_receipt_review_screen_test.dart \

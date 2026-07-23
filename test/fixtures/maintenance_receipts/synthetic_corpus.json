@@ -253,5 +253,35 @@
       "Inspection": "reviewCompletedService"
     },
     "forbiddenItems": []
+  },
+  {
+    "id": "oreilly_periodic_engine_drivetrain_purchase",
+    "merchant": "O'Reilly Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "O'REILLY AUTO PARTS\n07/23/2026\nTIMING BELT KIT 129.99\nTRANSFER CASE FLUID ATF+4 14.99\nPCV VALVE 18.99\nTOTAL 163.97",
+    "actions": {
+      "Timing Belt": "reviewTrackingSetup",
+      "Transfer Case Fluid": "reviewTrackingSetup",
+      "PCV Valve": "reviewTrackingSetup"
+    },
+    "forbiddenItems": [
+      "Serpentine Belt",
+      "Transmission Fluid and Filter"
+    ]
+  },
+  {
+    "id": "independent_periodic_engine_drivetrain_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/23/2026\nWORK ORDER 1200\nODOMETER 90000\nTIMING BELT REPLACED 499.99\nTRANSFER CASE FLUID SERVICE 129.99\nPCV VALVE REPLACED 79.99\nWORK COMPLETED\nPAID IN FULL 709.97",
+    "actions": {
+      "Timing Belt": "reviewCompletedService",
+      "Transfer Case Fluid": "reviewCompletedService",
+      "PCV Valve": "reviewCompletedService"
+    },
+    "forbiddenItems": [
+      "Serpentine Belt",
+      "Transmission Fluid and Filter"
+    ]
   }
 ]

@@ -8,9 +8,11 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
       '\n'.allMatches(input.sourceText).length + 1 > _maxSourceRows;
   final rows = _sourceRows(input.sourceText);
   final lower = rows.map((row) => row.comparisonText).join(' ');
-  final hasPartsMerchant = _partsMerchant.hasMatch(lower);
+  final hasMaintenanceRetailMerchant = _maintenanceRetailMerchant.hasMatch(
+    lower,
+  );
   final hasPurchaseSignals =
-      hasPartsMerchant || _purchaseSignal.hasMatch(lower);
+      hasMaintenanceRetailMerchant || _purchaseSignal.hasMatch(lower);
   final hasServiceSignals = _serviceSignal.hasMatch(lower);
   final hasStrongServiceSignals = _strongServiceSignal.hasMatch(lower);
   final kind = switch ((hasPurchaseSignals, hasServiceSignals)) {
@@ -22,6 +24,8 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final merchantName = _merchantName(rows);
   final dateRead = _receiptDate(rows, input.locale, input.referenceDate);
   final receiptDate = dateRead.date;
+  final dueDateRead = _nextDueDate(rows, input.locale);
+  final dueDate = dueDateRead.date;
   final serviceOdometer = _serviceOdometerFor(lower);
   final dueOdometer = _readingFor(lower, _dueOdometerPattern);
   final explicitInterval = _readingFor(lower, _intervalMilesPattern);
@@ -34,13 +38,22 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
       ? dueOdometer - serviceOdometer
       : null;
   final intervalMiles = explicitInterval ?? inferredInterval;
-  final intervalMonths = _readingFor(lower, _intervalMonthsPattern);
+  final explicitIntervalMonths = _readingFor(lower, _intervalMonthsPattern);
+  final inferredIntervalMonths = _wholeMonthInterval(receiptDate, dueDate);
+  final intervalMonths = explicitIntervalMonths ?? inferredIntervalMonths;
   final documentIsNonCompleted =
       _estimateOrQuoteSignal.hasMatch(lower) &&
       !_explicitCompletionSignal.hasMatch(lower);
+  final canUseServiceAliases =
+      hasServiceSignals &&
+      (!hasMaintenanceRetailMerchant || hasStrongServiceSignals);
   final matchingRowsByItem = {
     for (final definition in _itemDefinitions)
-      definition.itemName: _matchingRowsForDefinition(rows, definition),
+      definition.itemName: _matchingRowsForDefinition(
+        rows,
+        definition,
+        includeServiceAliases: canUseServiceAliases,
+      ),
   };
   final matchedItemNames = matchingRowsByItem.entries
       .where((entry) => entry.value.isNotEmpty)
@@ -50,14 +63,22 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
     (row) =>
         _notCompletedLine.hasMatch(row.comparisonText) &&
         !_itemDefinitions.any(
-          (definition) => definition.pattern.hasMatch(row.comparisonText),
+          (definition) => _definitionMatchesText(
+            definition,
+            row.comparisonText,
+            includeServiceAliases: canUseServiceAliases,
+          ),
         ),
   );
   final hasUnscopedReturnOrExchangeSignal = rows.any(
     (row) =>
-        _returnOrExchangeLine.hasMatch(row.comparisonText) &&
+        _isReturnOrExchangeText(row.comparisonText) &&
         !_itemDefinitions.any(
-          (definition) => definition.pattern.hasMatch(row.comparisonText),
+          (definition) => _definitionMatchesText(
+            definition,
+            row.comparisonText,
+            includeServiceAliases: canUseServiceAliases,
+          ),
         ),
   );
   final candidates = <MaintenanceReceiptCandidate>[];
@@ -65,6 +86,9 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   for (final definition in _itemDefinitions) {
     final matchingRows = matchingRowsByItem[definition.itemName]!;
     if (matchingRows.isEmpty) continue;
+    final detailText = _detailTextFor(definition, rows, matchingRows);
+    final detailA = definition.detailA(detailText);
+    final detailB = definition.detailB(detailText);
 
     final itemNotCompleted =
         hasUnscopedNotCompletedSignal ||
@@ -73,22 +97,25 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
         );
     final returnOrExchange =
         hasUnscopedReturnOrExchangeSignal ||
-        matchingRows.any(
-          (row) => _returnOrExchangeLine.hasMatch(row.comparisonText),
-        );
+        matchingRows.any((row) => _isReturnOrExchangeText(row.comparisonText));
     final itemSpecificSchedule = rows.any((row) {
       final rowText = row.comparisonText;
-      return definition.pattern.hasMatch(rowText) &&
+      return _definitionMatchesText(
+            definition,
+            rowText,
+            includeServiceAliases: canUseServiceAliases,
+          ) &&
           (_dueOdometerPattern.hasMatch(rowText) ||
               _intervalMilesPattern.hasMatch(rowText) ||
-              _intervalMonthsPattern.hasMatch(rowText));
+              _intervalMonthsPattern.hasMatch(rowText) ||
+              _nextDueDateSignal.hasMatch(rowText));
     });
     final acceptsGenericSchedule =
         matchedItemNames.length == 1 || definition.itemName == 'Engine Oil';
     final scheduleApplies = itemSpecificSchedule || acceptsGenericSchedule;
     final itemServiceIndicated =
         hasServiceSignals &&
-        (!hasPartsMerchant || hasStrongServiceSignals) &&
+        (!hasMaintenanceRetailMerchant || hasStrongServiceSignals) &&
         !documentIsNonCompleted &&
         !itemNotCompleted &&
         !returnOrExchange &&
@@ -106,7 +133,8 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
                   _pricedLine.hasMatch(row.comparisonText) ||
                   _purchaseLineSignal.hasMatch(row.comparisonText),
             ) ||
-            (hasPartsMerchant && _transactionCompletionSignal.hasMatch(lower)));
+            (hasMaintenanceRetailMerchant &&
+                _transactionCompletionSignal.hasMatch(lower)));
     final action =
         itemNotCompleted || returnOrExchange || documentIsNonCompleted
         ? MaintenanceReceiptAction.manualReview
@@ -121,8 +149,8 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
     if (productPurchased) confidence += .12;
     if (serviceOdometer != null && itemServiceIndicated) confidence += .05;
     if (receiptDate != null) confidence += .03;
-    if (definition.detailA(lower) != null) confidence += .04;
-    if (definition.detailB(lower) != null) confidence += .04;
+    if (detailA != null) confidence += .04;
+    if (detailB != null) confidence += .04;
 
     candidates.add(
       MaintenanceReceiptCandidate(
@@ -141,8 +169,8 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
               safeSnippet: _safeSnippet(row.text),
             ),
         ]),
-        detailA: definition.detailA(lower),
-        detailB: definition.detailB(lower),
+        detailA: detailA,
+        detailB: detailB,
         serviceDate: itemServiceIndicated ? receiptDate : null,
         serviceOdometer: itemServiceIndicated ? serviceOdometer : null,
         dueOdometer: itemServiceIndicated && scheduleApplies
@@ -179,6 +207,18 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
       'The receipt date locale is unsupported; enter the service date manually.',
     if (dateRead.futureDateRejected)
       'A future receipt date was ignored; confirm or enter the service date manually.',
+    if (dueDateRead.ambiguousNumeric)
+      'An ambiguous next-service date was interpreted using ${input.locale.trim()}; confirm the time interval.',
+    if (dueDateRead.unsupportedLocale)
+      'The next-service date locale is unsupported; enter the time interval manually.',
+    if (receiptDate != null && dueDate != null && !dueDate.isAfter(receiptDate))
+      'The next-service date is not after the receipt service date.',
+    if (receiptDate != null &&
+        dueDate != null &&
+        dueDate.isAfter(receiptDate) &&
+        inferredIntervalMonths == null &&
+        explicitIntervalMonths == null)
+      'The next-service date is not a whole-month interval; confirm the time interval.',
     if (kind == MaintenanceReceiptKind.partsPurchase && candidates.isNotEmpty)
       'A parts purchase does not prove that any part or fluid was installed.',
     if (kind == MaintenanceReceiptKind.mixed)
@@ -217,6 +257,7 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
               warning.contains('Ambiguous numeric') ||
               warning.contains('date locale is unsupported') ||
               warning.contains('future receipt date') ||
+              warning.contains('next-service date') ||
               warning.contains('exceeded local parser limits') ||
               warning.contains('without enough evidence'),
         )
@@ -238,19 +279,73 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
 
 List<_SourceRow> _matchingRowsForDefinition(
   List<_SourceRow> rows,
-  _ItemDefinition definition,
-) {
+  _ItemDefinition definition, {
+  required bool includeServiceAliases,
+}) {
   final direct = rows
-      .where((row) => definition.pattern.hasMatch(row.comparisonText))
+      .where(
+        (row) => _definitionMatchesText(
+          definition,
+          row.comparisonText,
+          includeServiceAliases: includeServiceAliases,
+        ),
+      )
       .toList(growable: false);
   if (direct.isNotEmpty) return direct;
 
-  for (var index = 0; index + 1 < rows.length; index++) {
-    final joined =
-        '${rows[index].comparisonText} ${rows[index + 1].comparisonText}';
-    if (definition.pattern.hasMatch(joined)) {
-      return List.unmodifiable([rows[index], rows[index + 1]]);
+  List<_SourceRow>? bestWindow;
+  var bestDetailScore = -1;
+  for (var windowSize = 2; windowSize <= 3; windowSize++) {
+    for (var index = 0; index + windowSize <= rows.length; index++) {
+      final window = rows.sublist(index, index + windowSize);
+      final joined = window.map((row) => row.comparisonText).join(' ');
+      if (_definitionMatchesText(
+        definition,
+        joined,
+        includeServiceAliases: includeServiceAliases,
+      )) {
+        final detailScore =
+            (definition.detailA(joined) == null ? 0 : 1) +
+            (definition.detailB(joined) == null ? 0 : 1);
+        if (bestWindow == null || detailScore > bestDetailScore) {
+          bestWindow = window;
+          bestDetailScore = detailScore;
+        }
+      }
     }
   }
-  return const [];
+  return bestWindow == null ? const [] : List.unmodifiable(bestWindow);
+}
+
+bool _definitionMatchesText(
+  _ItemDefinition definition,
+  String text, {
+  required bool includeServiceAliases,
+}) {
+  return definition.pattern.hasMatch(text) ||
+      (includeServiceAliases && definition.servicePattern.hasMatch(text));
+}
+
+String _detailTextFor(
+  _ItemDefinition definition,
+  List<_SourceRow> rows,
+  List<_SourceRow> matchingRows,
+) {
+  final localText = matchingRows.map((row) => row.comparisonText).join(' ');
+  if (definition.itemName != 'Engine Oil' ||
+      definition.detailA(localText) != null) {
+    return localText;
+  }
+
+  final firstIndex = rows.indexOf(matchingRows.first);
+  if (firstIndex <= 0) return localText;
+  final precedingText = rows[firstIndex - 1].comparisonText;
+  return _oilType(precedingText) == null
+      ? localText
+      : '$precedingText $localText';
+}
+
+bool _isReturnOrExchangeText(String text) {
+  return _returnOrExchangeLine.hasMatch(text) &&
+      !_coreAdjustmentLine.hasMatch(text);
 }

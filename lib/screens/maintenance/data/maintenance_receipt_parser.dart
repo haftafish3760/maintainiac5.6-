@@ -11,6 +11,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 part 'maintenance_receipt_parser_catalog.dart';
+part 'maintenance_receipt_parser_dates.dart';
 part 'maintenance_receipt_parser_engine.dart';
 part 'maintenance_receipt_parser_support.dart';
 

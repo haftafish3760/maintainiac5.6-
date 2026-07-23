@@ -55,6 +55,10 @@ String _comparisonText(String value) {
   final normalized = value
       .replaceAll(RegExp(r'[‐‑‒–—―−]'), '-')
       .replaceAll(RegExp(r'[’‘`]'), "'")
+      .replaceAll(
+        RegExp(r"\b0\s*'?\s*reilly\b", caseSensitive: false),
+        "o'reilly",
+      )
       .replaceAll(RegExp(r'\b0il\b', caseSensitive: false), 'oil')
       .replaceAll(RegExp(r'\baut0zone\b', caseSensitive: false), 'autozone')
       .replaceAll(RegExp(r'\baut0z0ne\b', caseSensitive: false), 'autozone')
@@ -74,12 +78,20 @@ String _merchantName(List<_SourceRow> rows) {
   if (rows.isEmpty) return '';
   final joined = rows.take(5).map((row) => row.comparisonText).join(' ');
   final known = <(RegExp, String)>[
-    (RegExp(r'\badvance auto parts\b'), 'Advance Auto Parts'),
+    (
+      RegExp(r'\b(?:advance\s*auto\s*parts|advanceautoparts)\b'),
+      'Advance Auto Parts',
+    ),
     (RegExp(r'\bauto\s*zone\b'), 'AutoZone'),
-    (RegExp(r"\bo[’'`]?reilly auto parts\b"), "O'Reilly Auto Parts"),
+    (RegExp(r"\bo\s*[’'`]?\s*reilly\s*auto\s*parts\b"), "O'Reilly Auto Parts"),
     (RegExp(r'\bnapa auto parts\b|\bnapa\b'), 'NAPA Auto Parts'),
     (RegExp(r'\bcarquest\b'), 'Carquest Auto Parts'),
     (RegExp(r'\bpep boys\b'), 'Pep Boys'),
+    (RegExp(r'\bwal\s*-?\s*mart\b'), 'Walmart'),
+    (RegExp(r'\bcostco(?:\s*wholesale)?\b'), 'Costco'),
+    (RegExp(r"\bsam[’'`]?\s*s\s*club\b"), "Sam's Club"),
+    (RegExp(r'\btractor\s*supply(?:\s*co)?\b'), 'Tractor Supply'),
+    (RegExp(r'\brural\s*king\b'), 'Rural King'),
     (RegExp(r'\btake 5 oil change\b'), 'Take 5 Oil Change'),
     (RegExp(r'\bjiffy lube\b'), 'Jiffy Lube'),
     (RegExp(r'\bvalvoline instant oil change\b'), 'Valvoline'),
@@ -115,8 +127,9 @@ class _ReceiptDateRead {
 _ReceiptDateRead _receiptDate(
   List<_SourceRow> rows,
   String locale,
-  DateTime? referenceDate,
-) {
+  DateTime? referenceDate, {
+  bool skipNextDueRows = true,
+}) {
   var futureDateRejected = false;
   bool isFuture(DateTime date) {
     if (referenceDate == null) return false;
@@ -129,6 +142,9 @@ _ReceiptDateRead _receiptDate(
   }
 
   for (final row in rows.take(16)) {
+    if (skipNextDueRows && _nextDueDateSignal.hasMatch(row.comparisonText)) {
+      continue;
+    }
     final namedMonth = RegExp(
       r'\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(\d{1,2})(?:st|nd|rd|th)?[,]?\s+(20\d{2})\b',
     ).firstMatch(row.comparisonText);

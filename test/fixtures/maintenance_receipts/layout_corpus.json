@@ -1,0 +1,406 @@
+[
+  {
+    "id": "advance_wrapped_oil_columns",
+    "layoutClass": "wrapped_description_detached_price",
+    "damageClass": "none",
+    "merchant": "Advance Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "ADVANCE AUTO PARTS\nSALE\n07/23/2026\nSKU 1001\nFULL SYNTHETIC\nMOTOR OIL 5W - 30\n34.99\nSKU 1002\nOIL FILTER PH8A\n12.99\nAMOUNT PAID 47.98",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30"
+      },
+      "Oil Filter": {
+        "action": "reviewTrackingSetup",
+        "detailB": "PH8A"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "oreilly_three_row_brakes",
+    "layoutClass": "three_row_description",
+    "damageClass": "none",
+    "merchant": "O'Reilly Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "O'REILLY AUTO PARTS\n07/23/2026\nFRONT\nDISC BRAKE\nPADS 49.99\nREAR BRAKE\nROTORS 119.98\nTOTAL 169.97",
+    "items": {
+      "Brake Pads": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Front"
+      },
+      "Brake Rotors": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Rear"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "napa_three_row_fluids",
+    "layoutClass": "three_row_description",
+    "damageClass": "none",
+    "merchant": "NAPA Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "NAPA AUTO PARTS\n07/23/2026\nPOWER\nSTEERING\nFLUID 9.99\nATF+4 TRANSMISSION\nFLUID 11.99\nRETAIL SALE\nTOTAL 21.98",
+    "items": {
+      "Power Steering Fluid": {
+        "action": "reviewTrackingSetup"
+      },
+      "Transmission Fluid and Filter": {
+        "action": "reviewTrackingSetup",
+        "detailA": "ATF+4"
+      }
+    },
+    "forbiddenItems": [
+      "Engine Oil"
+    ]
+  },
+  {
+    "id": "dealer_three_row_filters",
+    "layoutClass": "three_row_description",
+    "damageClass": "none",
+    "merchant": "Smith Ford Parts Department",
+    "kind": "partsPurchase",
+    "sourceText": "SMITH FORD PARTS DEPARTMENT\n07/23/2026\nRETAIL SALE\nENGINE\nAIR\nFILTER AF1883 24.99\nCABIN\nAIR\nFILTER CF12150 21.99\nAMOUNT PAID 46.98",
+    "items": {
+      "Engine Air Filter": {
+        "action": "reviewTrackingSetup",
+        "detailB": "AF1883"
+      },
+      "Cabin Air Filter": {
+        "action": "reviewTrackingSetup",
+        "detailB": "CF12150"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "take_five_lof_service_alias",
+    "layoutClass": "service_code",
+    "damageClass": "none",
+    "merchant": "Take 5 Oil Change",
+    "kind": "serviceInvoice",
+    "sourceText": "TAKE 5 OIL CHANGE\n07/23/2026\nWORK ORDER 1001\nODOMETER OUT: 100,000\nSERVICE PERFORMED\nLOF SERVICE 79.99\nNEXT SERVICE DUE 105,000\nPAID IN FULL 79.99",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewCompletedService",
+        "serviceOdometer": 100000,
+        "dueOdometer": 105000,
+        "intervalMiles": 5000
+      },
+      "Oil Filter": {
+        "action": "reviewCompletedService",
+        "serviceOdometer": 100000
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "independent_battery_installation_alias",
+    "layoutClass": "service_alias",
+    "damageClass": "none",
+    "merchant": "Roadrunner Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "ROADRUNNER AUTO\n07/23/2026\nREPAIR ORDER 700\nMILEAGE IN 66000\nBATTERY INSTALLATION 210.00\nWORK COMPLETED\nPAID IN FULL 210.00",
+    "items": {
+      "Battery": {
+        "action": "reviewCompletedService",
+        "serviceOdometer": 66000
+      }
+    },
+    "forbiddenItems": [
+      "Key Fob Battery"
+    ]
+  },
+  {
+    "id": "independent_radiator_flush_alias",
+    "layoutClass": "service_alias",
+    "damageClass": "none",
+    "merchant": "Main Street Garage",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET GARAGE\n07/23/2026\nREPAIR ORDER 701\nODOMETER 72000\nRADIATOR FLUSH 129.99\nWORK COMPLETED\nPAID IN FULL 129.99",
+    "items": {
+      "Coolant": {
+        "action": "reviewCompletedService",
+        "serviceOdometer": 72000
+      }
+    },
+    "forbiddenItems": [
+      "Radiator Hose"
+    ]
+  },
+  {
+    "id": "parts_store_tune_up_kit_guard",
+    "layoutClass": "service_alias_collision",
+    "damageClass": "none",
+    "merchant": "AutoZone",
+    "kind": "partsPurchase",
+    "sourceText": "AUTOZONE\n07/23/2026\nSKU 555\nTUNE-UP KIT 39.99\nAMOUNT PAID 39.99",
+    "items": {},
+    "forbiddenItems": [
+      "Spark Plugs"
+    ]
+  },
+  {
+    "id": "oreilly_spaced_merchant_alias",
+    "layoutClass": "merchant_ocr_alias",
+    "damageClass": "spacing",
+    "merchant": "O'Reilly Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "O REILLY AUTO PARTS\n07/23/2026\nOIL FILTER PH8A 12.99\nTOTAL 12.99",
+    "items": {
+      "Oil Filter": {
+        "action": "reviewTrackingSetup",
+        "detailB": "PH8A"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "oreilly_zero_merchant_alias",
+    "layoutClass": "merchant_ocr_alias",
+    "damageClass": "safe_character_substitution",
+    "merchant": "O'Reilly Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "0'REILLY AUTO PARTS\n07/23/2026\nWIPER BLADES 22 IN 19.99\nTOTAL 19.99",
+    "items": {
+      "Wiper Blades": {
+        "action": "reviewTrackingSetup",
+        "detailB": "22 in"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "advance_collapsed_merchant_alias",
+    "layoutClass": "merchant_ocr_alias",
+    "damageClass": "missing_whitespace",
+    "merchant": "Advance Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "ADVANCEAUTOPARTS\n07/23/2026\nDEX-COOL ANTIFREEZE 18.99\nTOTAL 18.99",
+    "items": {
+      "Coolant": {
+        "action": "reviewTrackingSetup",
+        "detailA": "DEX-COOL"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "walmart_oil_purchase",
+    "layoutClass": "general_retailer",
+    "damageClass": "none",
+    "merchant": "Walmart",
+    "kind": "partsPurchase",
+    "sourceText": "WAL-MART\n07/23/2026\n5W-30 FULL SYNTHETIC MOTOR OIL 32.97\nSUBTOTAL 32.97\nTAX 2.31\nTOTAL 35.28",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "costco_tire_purchase",
+    "layoutClass": "warehouse_retailer",
+    "damageClass": "none",
+    "merchant": "Costco",
+    "kind": "partsPurchase",
+    "sourceText": "COSTCO WHOLESALE\n07/23/2026\n4 MICHELIN ALL-SEASON TIRES 235/65R17 799.96\nSUBTOTAL 799.96\nTOTAL 799.96",
+    "items": {
+      "Tires": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Michelin / All-Season",
+        "detailB": "235/65R17"
+      }
+    },
+    "forbiddenItems": [
+      "Tire Rotation"
+    ]
+  },
+  {
+    "id": "sams_club_battery_purchase",
+    "layoutClass": "warehouse_retailer",
+    "damageClass": "none",
+    "merchant": "Sam's Club",
+    "kind": "partsPurchase",
+    "sourceText": "SAM'S CLUB\n07/23/2026\nAUTOMOTIVE BATTERY GROUP 65 149.98\nCORE CHARGE 20.00\nTOTAL 169.98",
+    "items": {
+      "Battery": {
+        "action": "reviewTrackingSetup",
+        "detailB": "65"
+      }
+    },
+    "forbiddenItems": [
+      "Key Fob Battery"
+    ]
+  },
+  {
+    "id": "tractor_supply_oil_purchase",
+    "layoutClass": "general_retailer",
+    "damageClass": "none",
+    "merchant": "Tractor Supply",
+    "kind": "partsPurchase",
+    "sourceText": "TRACTOR SUPPLY CO\n07/23/2026\n10W-30 CONVENTIONAL MOTOR OIL 24.99\nOIL FILTER PH3614 8.99\nTOTAL 33.98",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Conventional",
+        "detailB": "10W-30"
+      },
+      "Oil Filter": {
+        "action": "reviewTrackingSetup",
+        "detailB": "PH3614"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "rural_king_transmission_purchase",
+    "layoutClass": "general_retailer",
+    "damageClass": "none",
+    "merchant": "Rural King",
+    "kind": "partsPurchase",
+    "sourceText": "RURAL KING\n07/23/2026\nATF+4 TRANSMISSION FLUID 11.99\nTOTAL 11.99",
+    "items": {
+      "Transmission Fluid and Filter": {
+        "action": "reviewTrackingSetup",
+        "detailA": "ATF+4"
+      }
+    },
+    "forbiddenItems": [
+      "Engine Oil"
+    ]
+  },
+  {
+    "id": "walmart_unproven_oil_service",
+    "layoutClass": "retailer_service_boundary",
+    "damageClass": "none",
+    "merchant": "Walmart",
+    "kind": "mixed",
+    "sourceText": "WALMART AUTO CARE CENTER\n07/23/2026\nOIL CHANGE PACKAGE 49.99\nTOTAL 49.99",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewTrackingSetup"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "walmart_proven_oil_service",
+    "layoutClass": "retailer_service_boundary",
+    "damageClass": "none",
+    "merchant": "Walmart",
+    "kind": "mixed",
+    "sourceText": "WALMART AUTO CARE CENTER\n07/23/2026\nWORK ORDER 990\nVEHICLE MILEAGE 88000\nSERVICE PERFORMED\nFULL SYNTHETIC OIL CHANGE 5W-30 69.99\nPAID IN FULL 69.99",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewCompletedService",
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30",
+        "serviceOdometer": 88000
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "bare_atf_system_ambiguity",
+    "layoutClass": "fluid_system_ambiguity",
+    "damageClass": "none",
+    "merchant": "AutoZone",
+    "kind": "partsPurchase",
+    "sourceText": "AUTOZONE\n07/23/2026\nATF+4 FLUID 11.99\nTOTAL 11.99",
+    "items": {},
+    "forbiddenItems": [
+      "Transmission Fluid and Filter",
+      "Transfer Case Fluid"
+    ]
+  },
+  {
+    "id": "battery_purchase_with_core_credit",
+    "layoutClass": "transaction_adjustment",
+    "damageClass": "none",
+    "merchant": "NAPA Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "NAPA AUTO PARTS\n07/23/2026\nAUTOMOTIVE BATTERY GROUP 65 189.99\nCORE CHARGE 22.00\nCORE RETURN CREDIT -22.00\nTOTAL 189.99",
+    "items": {
+      "Battery": {
+        "action": "reviewTrackingSetup",
+        "detailB": "65"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "battery_product_return",
+    "layoutClass": "actual_product_return",
+    "damageClass": "none",
+    "merchant": "NAPA Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "NAPA AUTO PARTS\n07/23/2026\nRETURNED AUTOMOTIVE BATTERY GROUP 65 -189.99\nREFUND TENDER 189.99",
+    "items": {
+      "Battery": {
+        "action": "manualReview",
+        "detailB": "65"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "oil_purchase_with_coupon",
+    "layoutClass": "transaction_adjustment",
+    "damageClass": "none",
+    "merchant": "Advance Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "ADVANCE AUTO PARTS\n07/23/2026\nFULL SYNTHETIC MOTOR OIL 5W-30 34.99\nOIL FILTER PH8A 12.99\nCOUPON -10.00\nTOTAL 37.98",
+    "items": {
+      "Engine Oil": {
+        "action": "reviewTrackingSetup",
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30"
+      },
+      "Oil Filter": {
+        "action": "reviewTrackingSetup",
+        "detailB": "PH8A"
+      }
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "battery_warranty_replacement",
+    "layoutClass": "warranty_service",
+    "damageClass": "none",
+    "merchant": "NAPA Auto Parts",
+    "kind": "mixed",
+    "sourceText": "NAPA AUTO PARTS SERVICE\n07/23/2026\nWORK ORDER 801\nODOMETER 70000\nBATTERY WARRANTY REPLACEMENT 0.00\nWORK COMPLETED\nNO CHARGE 0.00",
+    "items": {
+      "Battery": {
+        "action": "reviewCompletedService",
+        "serviceOdometer": 70000
+      }
+    },
+    "forbiddenItems": [
+      "Key Fob Battery"
+    ]
+  },
+  {
+    "id": "oil_filter_product_exchange",
+    "layoutClass": "actual_product_return",
+    "damageClass": "none",
+    "merchant": "O'Reilly Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "O'REILLY AUTO PARTS\n07/23/2026\nOIL FILTER PH8A EXCHANGED -12.99\nREFUND TENDER 12.99",
+    "items": {
+      "Oil Filter": {
+        "action": "manualReview",
+        "detailB": "PH8A"
+      }
+    },
+    "forbiddenItems": []
+  }
+]

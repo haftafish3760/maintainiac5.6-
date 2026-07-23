@@ -57,10 +57,41 @@ PAID IN FULL
     }
   });
 
-  test('manual catalog has separate brake and tire service records', () {
+  test('manual catalog separates adjacent maintenance families', () {
     final names = maintenanceCatalog.map((item) => item.name);
     expect(names, containsAll(['Brake Pads', 'Brake Rotors']));
     expect(names, containsAll(['Tires', 'Tire Rotation']));
+    expect(names, containsAll(['Serpentine Belt', 'Timing Belt']));
+    expect(
+      names,
+      containsAll([
+        'Transmission Fluid and Filter',
+        'Differential Fluid',
+        'Transfer Case Fluid',
+      ]),
+    );
+    expect(names, contains('PCV Valve'));
+  });
+
+  test('new periodic families are representable in Basic manual setup', () {
+    for (final name in ['Timing Belt', 'Transfer Case Fluid', 'PCV Valve']) {
+      final item = maintenanceCatalog.singleWhere(
+        (candidate) => candidate.name == name,
+      );
+      expect(item.timeOnly, isFalse, reason: name);
+      expect(item.defaultMiles, greaterThan(0), reason: '$name miles');
+      expect(item.defaultMonths, greaterThan(0), reason: '$name months');
+      expect(
+        item.mileageIntervalOptions,
+        contains(item.defaultMiles),
+        reason: '$name mileage options',
+      );
+      expect(
+        item.monthIntervalOptions,
+        contains(item.defaultMonths),
+        reason: '$name month options',
+      );
+    }
   });
 
   test(

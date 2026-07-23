@@ -13,7 +13,9 @@ class _MaintenanceItemIconPainter extends CustomPainter {
     if (lower.contains('oil filter') || lower.contains('fuel filter')) {
       return _paintFilter(canvas, size);
     }
-    if (lower.contains('transmission') || lower.contains('differential')) {
+    if (lower.contains('transmission') ||
+        lower.contains('differential') ||
+        lower.contains('transfer case')) {
       return _paintGearDrop(canvas, size);
     }
     if (lower.contains('coolant')) return _paintCoolant(canvas, size);

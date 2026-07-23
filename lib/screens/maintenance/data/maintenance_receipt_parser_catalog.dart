@@ -21,7 +21,7 @@ final _itemDefinitions = <_ItemDefinition>[
   _ItemDefinition(
     itemName: 'Transmission Fluid and Filter',
     pattern: RegExp(
-      r'\b(?:transmission fluid|trans fluid|transmission flush|atf\b|cvt fluid)\b',
+      r'\b(?:transmission fluid|trans fluid|transmission flush|cvt fluid)\b',
     ),
     servicePattern: RegExp(
       r'\b(?:transmission (?:service|flush)|atf service|cvt service)\b',
@@ -82,10 +82,24 @@ final _itemDefinitions = <_ItemDefinition>[
     ),
   ),
   _ItemDefinition(
+    itemName: 'PCV Valve',
+    pattern: RegExp(r'\b(?:pcv valve|positive crankcase ventilation valve)\b'),
+    servicePattern: RegExp(
+      r'\b(?:pcv valve|positive crankcase ventilation valve) (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
     itemName: 'Serpentine Belt',
     pattern: RegExp(r'\b(?:serpentine belt|drive belt)\b'),
     servicePattern: RegExp(
       r'\b(?:(?:serpentine|drive) belt (?:replace|replacement|installed))\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Timing Belt',
+    pattern: RegExp(r'\b(?:timing belt|camshaft belt)\b'),
+    servicePattern: RegExp(
+      r'\b(?:timing belt|camshaft belt) (?:replace|replaced|replacement|installed)\b',
     ),
   ),
   _ItemDefinition(
@@ -111,7 +125,7 @@ final _itemDefinitions = <_ItemDefinition>[
       r'\b(?:automotive battery|car battery|battery group|battery grp|(?:duralast|diehard|legend|everstart)[^\n]{0,40}battery)\b',
     ),
     servicePattern: RegExp(
-      r'\b(?:battery (?:replace|replacement|installed|installation))\b',
+      r'\b(?<!key fob )(?<!remote key )(?<!keyless remote )battery (?:warranty )?(?:replace|replaced|replacement|installed|installation)\b',
     ),
     detailB: _batteryGroup,
   ),
@@ -130,6 +144,14 @@ final _itemDefinitions = <_ItemDefinition>[
     servicePattern: RegExp(
       r'\b(?:differential (?:fluid )?(?:service|change|replacement)|gear oil (?:changed|replaced))\b',
     ),
+  ),
+  _ItemDefinition(
+    itemName: 'Transfer Case Fluid',
+    pattern: RegExp(r'\b(?:transfer case fluid|transfer case oil)\b'),
+    servicePattern: RegExp(
+      r'\b(?:transfer case (?:fluid )?(?:service|change|replacement)|transfer case (?:fluid|oil) (?:changed|replaced))\b',
+    ),
+    detailA: _fluidSpec,
   ),
   _ItemDefinition(
     itemName: 'Fuel Filter',
@@ -196,8 +218,8 @@ final _itemDefinitions = <_ItemDefinition>[
 Set<String> get maintenanceReceiptSupportedItemNames =>
     Set.unmodifiable(_itemDefinitions.map((definition) => definition.itemName));
 
-final _partsMerchant = RegExp(
-  r"\b(?:advance auto parts|auto\s*zone|o[’'`]?reilly auto parts|napa auto parts|carquest|pep boys)\b",
+final _maintenanceRetailMerchant = RegExp(
+  r"\b(?:advance\s*auto\s*parts|advanceautoparts|auto\s*zone|o\s*[’'`]?\s*reilly\s*auto\s*parts|napa\s*auto\s*parts|carquest|pep\s*boys|wal\s*-?\s*mart|costco(?:\s*wholesale)?|sam[’'`]?\s*s\s*club|tractor\s*supply(?:\s*co)?|rural\s*king)\b",
 );
 final _purchaseSignal = RegExp(
   r'\b(?:amount paid|cashier|register|change due|retail sale|sku|part no|item price)\b',
@@ -222,6 +244,9 @@ final _notCompletedLine = RegExp(
 );
 final _returnOrExchangeLine = RegExp(
   r'\b(?:return(?:ed)?|refund(?:ed)?|exchange(?:d)?|voided item)\b',
+);
+final _coreAdjustmentLine = RegExp(
+  r'\b(?:core\s+(?:charge|deposit|credit|refund|return|exchange)|(?:credit|refund|return)\s+core)\b',
 );
 final _purchaseLineSignal = RegExp(r'\b(?:sku|part|qty|item)\b');
 final _transactionCompletionSignal = RegExp(

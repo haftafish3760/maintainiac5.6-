@@ -234,6 +234,15 @@ const maintenanceCatalog = <MaintenanceCatalogItem>[
     detailB: 'Gap',
   ),
   MaintenanceCatalogItem(
+    name: 'PCV Valve',
+    icon: '🔧',
+    importance: 74,
+    defaultMiles: 30000,
+    defaultMonths: 24,
+    detailA: 'Valve type',
+    detailB: 'Part detail',
+  ),
+  MaintenanceCatalogItem(
     name: 'Serpentine Belt',
     icon: '🔁',
     importance: 86,
@@ -241,6 +250,15 @@ const maintenanceCatalog = <MaintenanceCatalogItem>[
     defaultMonths: 48,
     detailA: 'Belt type',
     detailB: 'Length/detail',
+  ),
+  MaintenanceCatalogItem(
+    name: 'Timing Belt',
+    icon: '⏱️',
+    importance: 96,
+    defaultMiles: 60000,
+    defaultMonths: 60,
+    detailA: 'Belt type',
+    detailB: 'Part detail',
   ),
   MaintenanceCatalogItem(
     name: 'Radiator Hose',
@@ -287,6 +305,15 @@ const maintenanceCatalog = <MaintenanceCatalogItem>[
     defaultMonths: 48,
     detailA: 'Fluid type',
     detailB: 'Viscosity',
+  ),
+  MaintenanceCatalogItem(
+    name: 'Transfer Case Fluid',
+    icon: '⚙️',
+    importance: 84,
+    defaultMiles: 30000,
+    defaultMonths: 36,
+    detailA: 'Fluid type',
+    detailB: 'Specification',
   ),
   MaintenanceCatalogItem(
     name: 'Fuel Filter',

@@ -38,6 +38,11 @@ Canonical checkout: `/Users/rbbie/Documents/Maintainiac_5.7_Active`
 
 - Manual maintenance selection, detailed item setup, service logging, active
   vehicle header, and global odometer UI exist.
+- The canonical manual catalog now contains 26 periodic/time-based families.
+  Timing Belt, Transfer Case Fluid, and PCV Valve were added manual-first with
+  Basic mileage/month defaults before receipt rules. Bare ATF remains
+  system-ambiguous; transmission or transfer-case suggestions require the
+  maintained system to be named.
 - Finalized `MaintenanceRecord` and `MaintenanceServiceEvent` data now use a
   versioned local Hive snapshot with serialized writes, stable vehicle IDs,
   persist-before-memory commit, duplicate-event protection, legacy nickname
@@ -59,8 +64,8 @@ Canonical checkout: `/Users/rbbie/Documents/Maintainiac_5.7_Active`
   an isolated test file. The ordered maintenance UI and isolated draft-resume
   files now pass together without removing assertions.
 - Verified 2026-07-23 evidence: 30 maintenance persistence/draft/UI/history
-  tests, 69 selected vehicle/global-odometer tests, and the 133-test maintenance
-  receipt gate passed. The receipt gate includes 127 parser/review/draft/UI/
+  tests, 69 selected vehicle/global-odometer tests, and the 172-check maintenance
+  receipt gate passed. The receipt gate includes 166 parser/review/draft/UI/
   application tests, one manual-prefill check, four shared adapter-contract
   checks, and the legacy expense-to-maintenance non-mutation regression.
   Focused maintenance analysis reported no issues. This is source/test
@@ -128,13 +133,26 @@ Canonical checkout: `/Users/rbbie/Documents/Maintainiac_5.7_Active`
   later valid date to be found. Generic next-due evidence on a multi-operation
   invoice is restricted to engine oil; another item needs item-specific
   schedule wording, preventing interval leakage across unrelated services.
+- Next-service calendar dates are parsed separately from the receipt service
+  date, so a due date printed first cannot become completed-service history.
+  Supported later dates may prefill a one-to-36-month Basic interval only when
+  they form an exact calendar-month span, including month-end clamping.
+  Ambiguous, unsupported-locale, reversed, and non-whole-month schedules force
+  review instead of inventing an interval. Generic due dates retain the same
+  multi-item isolation as mileage schedules.
 - A data-driven synthetic corpus now describes merchant, receipt kind,
-  per-item expected action, and forbidden candidates in JSON. Twenty corpus
-  cases run through the maintenance gate so another model can expand coverage
-  by adding fixtures instead of duplicating test logic. Detailed extraction also
-  retains filter part numbers, tire brand/type and size, and wiper sizes in
-  editable Advanced setup fields. The corpus defaults to exact candidate-set
-  matching and repeats every case under case, whitespace, and
+  per-item expected action, and forbidden candidates in JSON. Twenty-five
+  exact corpus cases run through the maintenance gate so another model can
+  expand coverage by adding fixtures instead of duplicating test logic. A
+  separate 24-case layout corpus labels layout and recognized-text damage
+  classes and covers wrapped descriptions, detached prices, bounded three-row
+  fragments, service aliases, merchant OCR aliases, general and warehouse
+  retailers, retailer service boundaries, transaction adjustments, true
+  returns/exchanges, warranty work, and alias-collision guards.
+  Detailed extraction also retains candidate-scoped filter part numbers, brake
+  axle, oil type and weight, tire brand/type and size, and wiper sizes in
+  editable Advanced setup fields. The exact corpus defaults to exact
+  candidate-set matching and repeats every case under case, whitespace, and
   CRLF transformations.
 - Persistable evidence snippets redact VINs, emails, formatted phone numbers,
   payment-number sequences, long account-like numbers, and street addresses.
@@ -344,8 +362,8 @@ field, and recognized-text damage class.
    stronger model before expanding the corpus.
 
 Pass numbering and accepted-pass evidence live in
-`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 41;
-the next bundled app-work pass is 42. Duplicate-line cleanup remains OCR-owned,
+`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 46;
+the next bundled app-work pass is 47. Duplicate-line cleanup remains OCR-owned,
 not parser-owned.
 
 ## Handoff instructions for another Codex model
