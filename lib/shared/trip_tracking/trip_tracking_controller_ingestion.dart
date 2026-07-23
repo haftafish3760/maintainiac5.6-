@@ -27,6 +27,7 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     final engine = _engine;
     final projection = _projection;
     if (session == null || engine == null || projection == null) return null;
+    if (!_canAcceptTrustedGpsSample(session.lifecycleState)) return null;
 
     if (sample.recordedAt.toUtc().isBefore(session.startedAt.toUtc())) {
       return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
@@ -294,6 +295,17 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     _platformError = null;
     notifyListeners();
   }
+
+  bool _canAcceptTrustedGpsSample(TripTrackingSessionLifecycleState state) =>
+      switch (state) {
+        TripTrackingSessionLifecycleState.ready ||
+        TripTrackingSessionLifecycleState.starting ||
+        TripTrackingSessionLifecycleState.active ||
+        TripTrackingSessionLifecycleState.degraded ||
+        TripTrackingSessionLifecycleState.interrupted ||
+        TripTrackingSessionLifecycleState.recovering => true,
+        _ => false,
+      };
 
   TripActivityObservation? _activitySafeForSample(
     TripLocationSample sample,

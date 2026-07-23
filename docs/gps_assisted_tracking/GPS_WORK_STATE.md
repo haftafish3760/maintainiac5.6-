@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 502 in the current continuation
+- Current pass: 504 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -91,6 +91,10 @@
   pending or accepted checkpoint cannot be saved. Native collection enters a
   recoverable system pause, direct ingestion returns a controlled result, and
   a later successful durable sample clears only the matching transient warning
+- Paused, review, and terminal sessions now reject late GPS callbacks before
+  pending storage, engine mutation, or live odometer projection. Direct system
+  pause and recovered user-pause regressions preserve the exact durable
+  revision and confirmed odometer until an explicit resume
 - Failure to clear an already-durable pending sample no longer loses the
   accepted decision or throws through the event stream. The checkpoint remains
   authoritative, cleanup stays explicit, and recovery cannot double-count it
