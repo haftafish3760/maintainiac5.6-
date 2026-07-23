@@ -9,11 +9,13 @@ import 'maintainiac_firestore_revision_policy.dart';
 import 'maintainiac_firestore_scope_policy.dart';
 import 'maintainiac_firestore_schema.dart';
 import 'hosted_usage_limits.dart';
+import 'maintainiac_hosted_plan_client.dart';
 import '../trip_tracking/trip_tracking_firestore_contract.dart';
 import '../storage/app_storage_guard.dart';
 
 part 'maintainiac_firestore_upload_policy.dart';
 part 'maintainiac_firestore_upload_store.dart';
+part 'maintainiac_firestore_upload_coordinator.dart';
 
 enum MaintainiacFirestoreUploadStatus {
   disabled,
@@ -34,6 +36,7 @@ class MaintainiacFirestoreUploadResult {
     required this.failedCount,
     this.conflictedCount = 0,
     this.reason,
+    this.reservationId,
   });
 
   final MaintainiacFirestoreUploadStatus status;
@@ -42,12 +45,15 @@ class MaintainiacFirestoreUploadResult {
   final int failedCount;
   final int conflictedCount;
   final String? reason;
+  final String? reservationId;
 }
 
 typedef MaintainiacFirestoreQueueStorageCheck =
     Future<AppStorageCheck> Function();
 typedef MaintainiacFirestoreFreeSyncAttemptRecorder =
     Future<void> Function(DateTime nowUtc);
+typedef MaintainiacHostedSyncReservationProvider =
+    Future<MaintainiacHostedSyncReservation> Function();
 
 /// Shared Firestore sink for module-specific backup coordinators. Keeping the
 /// actual write primitive here prevents Expenses, Trips, and future modules

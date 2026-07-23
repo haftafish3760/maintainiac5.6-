@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_documents.dart';
 import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_firestore_upload_queue.dart';
+import 'package:maintaniac/shared/firebase/maintainiac_hosted_plan_client.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
@@ -109,6 +110,70 @@ void main() {
     expect(sink.writes, hasLength(2));
     expect(queue.pendingRecords, isEmpty);
     expect(queue.records, isEmpty);
+  });
+
+  test(
+    'server reservation is obtained once before a hosted batch writes',
+    () async {
+      final queue = await MaintainiacFirestoreUploadQueueStore.create();
+      final sink = _RecordingFirestoreSink();
+      var reservations = 0;
+      await queue.enqueueAll([
+        _safeDraft('parserHealth/hosted_reservation_a'),
+        _safeDraft('parserHealth/hosted_reservation_b'),
+      ]);
+
+      final result = await MaintainiacFirestoreUploadCoordinator(
+        queue: queue,
+        sink: sink,
+        uploadEnabled: true,
+        hostedSyncReservationProvider: () async {
+          reservations += 1;
+          return _reservation();
+        },
+        freeSyncsUsedInWindowReader: () => 999,
+      ).uploadPending();
+
+      expect(result.status, MaintainiacFirestoreUploadStatus.uploaded);
+      expect(result.reservationId, 'reservation-hosted-a');
+      expect(reservations, 1);
+      expect(sink.writes, hasLength(2));
+    },
+  );
+
+  test('failed hosted reservation preserves every pending write', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    final sink = _RecordingFirestoreSink();
+    await queue.enqueue(_safeDraft('parserHealth/hosted_reservation_denied'));
+
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: sink,
+      uploadEnabled: true,
+      hostedSyncReservationProvider: () => throw StateError('limit reached'),
+    ).uploadPending();
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
+    expect(result.attemptedCount, 0);
+    expect(sink.writes, isEmpty);
+    expect(queue.pendingRecords, hasLength(1));
+  });
+
+  test('empty hosted queue does not consume a server reservation', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    var reservations = 0;
+    final result = await MaintainiacFirestoreUploadCoordinator(
+      queue: queue,
+      sink: _RecordingFirestoreSink(),
+      uploadEnabled: true,
+      hostedSyncReservationProvider: () async {
+        reservations += 1;
+        return _reservation();
+      },
+    ).uploadPending();
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.empty);
+    expect(reservations, 0);
   });
 
   test('upload sinks cannot mutate queued document payloads', () async {
@@ -762,6 +827,16 @@ void main() {
     },
   );
 }
+
+MaintainiacHostedSyncReservation _reservation() =>
+    MaintainiacHostedSyncReservation(
+      id: 'reservation-hosted-a',
+      used: 1,
+      remaining: 3,
+      limit: 4,
+      window: const Duration(hours: 24),
+      reservedAtUtc: DateTime.utc(2026, 7, 22),
+    );
 
 MaintainiacFirestoreDocumentDraft _safeDraft(String path) {
   return MaintainiacFirestoreDocumentDraft(
