@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 476 in the current continuation
+- Current pass: 482 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -97,6 +97,9 @@
 - A transient activity-evidence storage warning now clears only after a later
   activity checkpoint is durably saved. Walking assistance remains disabled
   for the failed evidence and cannot influence a later GPS sample
+- Completion-draft and stop-review retries now clear only their matching
+  storage warning after the replacement review is durable. Failed attempts
+  remain retryable without changing mileage or losing the pending stop choice
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair

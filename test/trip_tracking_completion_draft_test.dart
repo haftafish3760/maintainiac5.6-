@@ -68,6 +68,57 @@ void main() {
     },
   );
 
+  test(
+    'successful completion-draft retry clears its storage warning',
+    () async {
+      final now = DateTime.utc(2026, 7, 21, 12);
+      final store = _FailingReviewSaveStore();
+      await store.saveReview(
+        TripTrackingReviewRecord(
+          id: 'draft_retry',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          estimatedEndingOdometer: 1010,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: now,
+          finishedAt: now.add(const Duration(hours: 1)),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 16000,
+            walkingReviewSuggested: false,
+          ),
+        ),
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+      );
+      addTearDown(controller.dispose);
+
+      store.failNextReviewSave = true;
+      expect(
+        await controller.saveCompletionDraft(
+          tripId: 'draft_retry',
+          endingOdometerDraft: 1010,
+        ),
+        isFalse,
+      );
+      expect(controller.platformStatus, 'storage_failed');
+
+      expect(
+        await controller.saveCompletionDraft(
+          tripId: 'draft_retry',
+          endingOdometerDraft: 1010,
+        ),
+        isTrue,
+      );
+      expect(controller.platformStatus, isNull);
+      expect(controller.platformError, isNull);
+    },
+  );
+
   test('duplicate or private manual adjustments fail closed', () async {
     final now = DateTime.utc(2026, 7, 21, 12);
     final adjustment = TripManualMileageAdjustment(
@@ -104,4 +155,19 @@ void main() {
     expect(validation.isRecoverable, isFalse);
     expect(validation.reasons, contains('invalid_manual_adjustment_in_review'));
   });
+}
+
+class _FailingReviewSaveStore extends TripTrackingSessionStore {
+  _FailingReviewSaveStore() : super.memory();
+
+  var failNextReviewSave = false;
+
+  @override
+  Future<void> saveReview(TripTrackingReviewRecord review) {
+    if (failNextReviewSave) {
+      failNextReviewSave = false;
+      return Future<void>.error(StateError('review storage unavailable'));
+    }
+    return super.saveReview(review);
+  }
 }

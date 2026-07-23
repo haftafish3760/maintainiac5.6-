@@ -67,6 +67,12 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     );
     try {
       await _sessionStore.saveReview(next);
+      if (_platformStatus == 'storage_failed' &&
+          _platformError ==
+              'Could not save the trip completion draft locally.') {
+        _platformStatus = null;
+        _platformError = null;
+      }
       notifyListeners();
       return true;
     } catch (_) {
@@ -125,6 +131,12 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     try {
       await _sessionStore.save(reviewedSession);
       _session = reviewedSession;
+      if (_platformStatus == 'storage_failed' &&
+          _platformError ==
+              'Could not save the GPS stop review locally. It remains available for retry.') {
+        _platformStatus = null;
+        _platformError = null;
+      }
       notifyListeners();
     } catch (_) {
       _session = session;

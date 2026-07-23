@@ -3378,6 +3378,8 @@ void main() {
       TripTrackingAdvisoryDisposition.dismissed,
     );
     expect(controller.activeSession?.revision, revisionBeforeReview + 1);
+    expect(controller.platformStatus, isNull);
+    expect(controller.platformError, isNull);
   });
 
   test('ten separated drive-and-walk stops each remain reviewable', () async {
