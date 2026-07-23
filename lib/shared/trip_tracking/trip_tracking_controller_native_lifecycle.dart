@@ -25,7 +25,14 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     )) {
       _platformError =
           'Motion activity was disabled, but GPS tracking stopped because the privacy change could not be saved locally.';
-      await _stopNativeTracking();
+      await _stopNativeTracking(
+        interrupted: true,
+        interruptionHealth: TripTrackingHealthState.unavailable,
+        interruptionSource: 'motion_assistance_withdrawal',
+        interruptionReasonCode: 'motion_withdrawal_storage_system_pause',
+      );
+      _platformStatus = 'storage_failed';
+      notifyListeners();
       return;
     }
     final platform = _platform;
@@ -42,7 +49,12 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
       // sensor access after the driver opted out.
       _platformError =
           'Motion activity was disabled, but GPS tracking stopped because the recovered sampling state was unavailable.';
-      await _stopNativeTracking();
+      await _stopNativeTracking(
+        interrupted: true,
+        interruptionHealth: TripTrackingHealthState.unavailable,
+        interruptionSource: 'motion_assistance_withdrawal',
+        interruptionReasonCode: 'motion_withdrawal_recovery_state_system_pause',
+      );
       return;
     }
     try {
@@ -63,7 +75,12 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     }
     _platformError =
         'Motion activity was disabled, but GPS tracking stopped because the device could not apply that privacy change.';
-    await _stopNativeTracking();
+    await _stopNativeTracking(
+      interrupted: true,
+      interruptionHealth: TripTrackingHealthState.unavailable,
+      interruptionSource: 'motion_assistance_withdrawal',
+      interruptionReasonCode: 'motion_withdrawal_native_system_pause',
+    );
   }
 
   /// Foreground-only tracking must never continue after the app leaves the
@@ -109,6 +126,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     final session = _session;
     if (_isDisposed || session == null) return null;
     final now = (nowUtc ?? _clockNow()).toUtc();
+    await _markExpiredInitialFixPreparation(now);
     final platform = _platform;
     var providerRunning = false;
     var providerProbeSucceeded = false;
@@ -137,7 +155,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
       return decision;
     }
     if (providerRunning) {
-      _lastNativeHeartbeatUtc = now;
+      _lastNativeHeartbeatUtc = _nonRegressingNativeHeartbeatTime(now);
     }
     final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
       currentLifecycle: session.lifecycleState,
@@ -148,7 +166,12 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     switch (decision.action) {
       case TripTrackingHeartbeatWatchdogAction.continueTracking:
         if (providerRunning && _nativeTracking) {
-          _platformStatus = 'tracking';
+          _platformStatus =
+              _awaitingInitialFix &&
+                  _engine?.snapshot.initialFixAssessment?.quality ==
+                      TripInitialFixQuality.unavailable
+              ? 'initial_fix_unavailable'
+              : 'tracking';
           _platformError = null;
           notifyListeners();
         }
@@ -176,6 +199,79 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
         break;
     }
     return decision;
+  }
+
+  Future<void> _markExpiredInitialFixPreparation(
+    DateTime nowUtc, {
+    bool deferStopOnStorageFailure = false,
+  }) async {
+    final startedAt = _nativeTrackingStartedAtUtc;
+    final engine = _engine;
+    final session = _session;
+    if (!_awaitingInitialFix ||
+        startedAt == null ||
+        engine == null ||
+        session == null ||
+        nowUtc.isBefore(startedAt) ||
+        nowUtc.difference(startedAt) < _initialFixPreparationWindow ||
+        engine.snapshot.initialFixAssessment?.quality ==
+            TripInitialFixQuality.unavailable) {
+      return;
+    }
+    final previousSnapshot = engine.snapshot;
+    engine.recordInitialFixAssessment(
+      TripInitialFixAssessment(
+        quality: TripInitialFixQuality.unavailable,
+        assessedAt: nowUtc,
+        confidence: TripTrackingConfidence.low,
+        mayUseProvisionally: false,
+      ),
+    );
+    final nextSession = session.copyWith(
+      updatedAt: _nonRegressingSessionTime(session, nowUtc),
+      revision: session.revision + 1,
+      engineSnapshot: engine.snapshot,
+    );
+    try {
+      await _sessionStore.save(nextSession);
+      _session = nextSession;
+      _platformStatus = 'initial_fix_unavailable';
+      _platformError =
+          'A reliable starting GPS location is not available yet. Your original trip start time is preserved.';
+      await _tryTransitionSession(
+        TripTrackingSessionLifecycleState.degraded,
+        contractState:
+            TripTrackingSessionLifecycleContractState.SIGNAL_DEGRADED,
+        health: TripTrackingHealthState.reduced,
+        source: 'initial_fix_watchdog',
+        reasonCode: 'initial_fix_preparation_window_expired',
+      );
+    } catch (_) {
+      _engine = TripTrackingEngine.fromSnapshot(
+        previousSnapshot,
+        policy: engine.policy,
+        profile: engine.profile,
+      );
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not save degraded initial GPS fix evidence.';
+      if (deferStopOnStorageFailure) {
+        _deferPlatformCleanup(() async {
+          await _stopNativeTracking(interrupted: true);
+          _platformStatus = 'storage_failed';
+          notifyListeners();
+        });
+      } else {
+        await _stopNativeTracking(interrupted: true);
+        _platformStatus = 'storage_failed';
+        notifyListeners();
+      }
+    }
+  }
+
+  DateTime _nonRegressingNativeHeartbeatTime(DateTime candidateUtc) {
+    final candidate = candidateUtc.toUtc();
+    final current = _lastNativeHeartbeatUtc;
+    return current != null && candidate.isBefore(current) ? current : candidate;
   }
 
   Future<void> _stopNativeTracking({
@@ -218,9 +314,13 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     _backgroundTrackingAllowed = false;
     _latestActivity = null;
     _platformStatus = interrupted ? 'interrupted' : 'stopped';
-    if (_session?.lifecycleState == TripTrackingSessionLifecycleState.active ||
-        _session?.lifecycleState ==
-            TripTrackingSessionLifecycleState.degraded) {
+    final lifecycleState = _session?.lifecycleState;
+    if (lifecycleState == TripTrackingSessionLifecycleState.active ||
+        lifecycleState == TripTrackingSessionLifecycleState.degraded ||
+        (interrupted &&
+            (lifecycleState == TripTrackingSessionLifecycleState.ready ||
+                lifecycleState ==
+                    TripTrackingSessionLifecycleState.starting))) {
       if (wasNativeTracking && engine != null) {
         engine.beginSignalGap(
           _clockNow(),
@@ -259,6 +359,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     _pendingNativeStartPreferenceSaveFailed = false;
     _pendingNativeStartStopped = false;
     _pendingNativeStartAuthorizationRevoked = false;
+    _pendingNativeStartErrorCode = null;
   }
 
   /// Platform callbacks are serialized by [_platformEventQueue]. Stopping the

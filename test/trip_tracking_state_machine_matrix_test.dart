@@ -44,6 +44,7 @@ const Map<State, Set<State>> _approved = {
   },
   State.ready: {
     State.starting,
+    State.paused,
     State.stopping,
     State.disabled,
     State.cancelled,

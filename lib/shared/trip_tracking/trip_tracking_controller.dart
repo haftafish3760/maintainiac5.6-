@@ -19,7 +19,7 @@ import 'trip_tracking_calibration_apply_guard.dart';
 import 'trip_tracking_durable_record_bridge.dart';
 import 'trip_tracking_engine.dart';
 import 'trip_tracking_heartbeat_watchdog_policy.dart';
-import 'trip_tracking_firebase_bridge.dart';
+import 'trip_tracking_backup_port.dart';
 import 'trip_tracking_models.dart';
 import 'trip_tracking_native_error_policy.dart';
 import 'trip_tracking_native_sampling_policy.dart';
@@ -60,6 +60,7 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingPolicy policy = const TripTrackingPolicy(),
     TripInitialFixClassifier initialFixClassifier =
         const TripInitialFixClassifier(),
+    Duration initialFixPreparationWindow = const Duration(seconds: 45),
     TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror(),
     TripTrackingDurableRecordBridge? durableRecordBridge,
     TripTrackingTripLogProposalSink? tripLogProposalSink,
@@ -75,6 +76,10 @@ class TripTrackingController extends ChangeNotifier {
        _platform = platform,
        _policy = policy,
        _initialFixClassifier = initialFixClassifier,
+       _initialFixPreparationWindow =
+           initialFixPreparationWindow > Duration.zero
+           ? initialFixPreparationWindow
+           : const Duration(seconds: 45),
        _cloudMirror = cloudMirror,
        _durableRecordBridge = durableRecordBridge,
        _tripLogProposalSink = tripLogProposalSink,
@@ -92,6 +97,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingNativeGateway? _platform;
   final TripTrackingPolicy _policy;
   final TripInitialFixClassifier _initialFixClassifier;
+  final Duration _initialFixPreparationWindow;
   final TripTrackingCloudMirror _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
   final TripTrackingTripLogProposalSink? _tripLogProposalSink;
@@ -138,6 +144,8 @@ class TripTrackingController extends ChangeNotifier {
   bool _pendingNativeStartPreferenceSaveFailed = false;
   bool _pendingNativeStartStopped = false;
   bool _pendingNativeStartAuthorizationRevoked = false;
+  String? _pendingNativeStartErrorCode;
+  String? _pendingNativeSystemPauseStatus;
   TripSamplingRecommendation? _nativeSampling;
   TripTrackingSamplingPlan? _nativeSamplingPlan;
   DateTime? _lastNativeHeartbeatUtc;
@@ -408,7 +416,14 @@ class TripTrackingController extends ChangeNotifier {
     // no local consumer. Normal background tracking keeps this controller
     // alive; a later restore can resume from the durable local checkpoint.
     if (_nativeTracking) {
-      unawaited(_stopNativeTracking());
+      unawaited(
+        _stopNativeTracking(
+          interrupted: true,
+          interruptionHealth: TripTrackingHealthState.interrupted,
+          interruptionSource: 'controller_dispose',
+          interruptionReasonCode: 'controller_disposed_system_pause',
+        ),
+      );
     } else {
       unawaited(_platformSubscription?.cancel());
       _platformSubscription = null;

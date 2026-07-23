@@ -389,6 +389,7 @@ void main() {
           initialReading: 1000,
         ),
         platform: native,
+        initialFixPreparationWindow: const Duration(hours: 1),
       );
       addTearDown(controller.dispose);
 
@@ -440,6 +441,7 @@ void main() {
           initialReading: 1000,
         ),
         platform: native,
+        initialFixPreparationWindow: const Duration(hours: 1),
         heartbeatNow: () => now,
       );
       addTearDown(controller.dispose);

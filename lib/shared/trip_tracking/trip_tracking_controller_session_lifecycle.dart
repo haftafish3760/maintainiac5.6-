@@ -498,16 +498,76 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
             // session and live native probe remain authoritative.
           }
         }
-        if (await platform.isTracking) {
+        final providerRunning = await platform.isTracking;
+        final recoveredContractState = session.effectiveContractState;
+        final explicitResumeRequired =
+            recoveredContractState ==
+                TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION ||
+            recoveredContractState ==
+                TripTrackingSessionLifecycleContractState
+                    .AWAITING_LOCATION_SERVICES ||
+            recoveredContractState ==
+                TripTrackingSessionLifecycleContractState.PAUSED_BY_USER ||
+            recoveredContractState ==
+                TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM;
+        if (providerRunning && explicitResumeRequired) {
+          try {
+            await platform.stop();
+            _platformStatus = switch (recoveredContractState) {
+              TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
+                'permission_required',
+              TripTrackingSessionLifecycleContractState
+                  .AWAITING_LOCATION_SERVICES =>
+                'location_services_required',
+              TripTrackingSessionLifecycleContractState.PAUSED_BY_USER =>
+                'recovery_paused_by_user',
+              _ => 'recovery_paused_native_missing',
+            };
+            _platformError = switch (recoveredContractState) {
+              TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
+                'GPS permission must be restored before you resume this trip.',
+              TripTrackingSessionLifecycleContractState
+                  .AWAITING_LOCATION_SERVICES =>
+                'Device location must be turned on before you resume this trip.',
+              TripTrackingSessionLifecycleContractState.PAUSED_BY_USER => null,
+              _ =>
+                'GPS assistance remains paused until you explicitly resume this trip.',
+            };
+          } catch (_) {
+            _platformStatus = 'recoverable';
+            _platformError =
+                'Could not stop GPS while restoring a session that requires explicit resume.';
+          }
+        } else if (providerRunning) {
           if (!session.backgroundTrackingAllowed) {
             // A collector that outlives this process cannot continue from
             // missing or foreground-only consent. Keep the local trip for an
             // explicit driver restart instead of silently tracking.
             try {
               await platform.stop();
-              _platformStatus = 'background_consent_required';
-              _platformError =
-                  'GPS recovery was paused because background tracking was not previously authorized.';
+              final engineBeforeGap = _engine?.snapshot;
+              _engine?.beginSignalGap(
+                _nonRegressingSessionTime(session, _clockNow()),
+                reason: TripTrackingSignalGapReason.systemPause,
+              );
+              final transitioned = await _tryTransitionSession(
+                TripTrackingSessionLifecycleState.paused,
+                pauseKind: TripTrackingPauseKind.system,
+                health: TripTrackingHealthState.interrupted,
+                source: 'session_recovery',
+                reasonCode: 'background_consent_missing_after_recovery',
+              );
+              if (!transitioned && engineBeforeGap != null) {
+                _engine = TripTrackingEngine.fromSnapshot(
+                  engineBeforeGap,
+                  policy: _policy,
+                  profile: session.profile,
+                );
+              } else {
+                _platformStatus = 'background_consent_required';
+                _platformError =
+                    'GPS recovery was paused because background tracking was not previously authorized.';
+              }
             } catch (_) {
               _platformStatus = 'recoverable';
               _platformError =
@@ -538,7 +598,13 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
             if (sampling == null) {
               _platformError =
                   'GPS recovery was paused because its saved sampling state is unavailable.';
-              await _stopNativeTracking();
+              await _stopNativeTracking(
+                interrupted: true,
+                interruptionHealth: TripTrackingHealthState.unavailable,
+                interruptionSource: 'session_recovery',
+                interruptionReasonCode:
+                    'recovery_sampling_state_missing_system_pause',
+              );
               _platformStatus = 'sampling_recovery_required';
             } else {
               bool reapplied;
@@ -558,14 +624,32 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
               if (!reapplied) {
                 _platformError =
                     'GPS recovery was paused because the device could not reapply its saved tracking settings.';
-                await _stopNativeTracking();
+                await _stopNativeTracking(
+                  interrupted: true,
+                  interruptionHealth: TripTrackingHealthState.unavailable,
+                  interruptionSource: 'session_recovery',
+                  interruptionReasonCode:
+                      'recovery_native_reconfiguration_system_pause',
+                );
                 _platformStatus = 'native_reconfiguration_failed';
               } else {
                 _platformSubscription = _listenToPlatformEvents(platform);
                 try {
                   _lastKnownCapabilities = await platform.readCapabilities();
-                  _lastBatterySafetyCheckUtc = _clockNow().toUtc();
-                  await _enforceRuntimeBatterySafety();
+                  if (_lastKnownCapabilities?.locationAvailable == false) {
+                    await _handleNativeSystemPause(
+                      message:
+                          'Device location must be turned on before GPS recovery can continue.',
+                      health: TripTrackingHealthState.unavailable,
+                      platformStatus: 'location_services_required',
+                      source: 'session_recovery_capabilities',
+                      reasonCode:
+                          'recovery_location_services_unavailable_system_pause',
+                    );
+                  } else {
+                    _lastBatterySafetyCheckUtc = _clockNow().toUtc();
+                    await _enforceRuntimeBatterySafety();
+                  }
                 } catch (_) {
                   // The surviving native collector remains authoritative for
                   // immediate OS-level safety. Do not fabricate a battery
@@ -576,6 +660,27 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
               }
             }
           }
+        } else if (explicitResumeRequired) {
+          _platformStatus = switch (recoveredContractState) {
+            TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
+              'permission_required',
+            TripTrackingSessionLifecycleContractState
+                .AWAITING_LOCATION_SERVICES =>
+              'location_services_required',
+            TripTrackingSessionLifecycleContractState.PAUSED_BY_USER =>
+              'recovery_paused_by_user',
+            _ => 'recovery_paused_native_missing',
+          };
+          _platformError = switch (recoveredContractState) {
+            TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION =>
+              'GPS permission must be restored before you resume this trip.',
+            TripTrackingSessionLifecycleContractState
+                .AWAITING_LOCATION_SERVICES =>
+              'Device location must be turned on before you resume this trip.',
+            TripTrackingSessionLifecycleContractState.PAUSED_BY_USER => null,
+            _ =>
+              'GPS assistance remains paused until you explicitly resume this trip.',
+          };
         } else if (session.lifecycleState ==
                 TripTrackingSessionLifecycleState.active ||
             session.lifecycleState ==
@@ -753,6 +858,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
   bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>
       switch (state) {
         TripTrackingSessionLifecycleState.ready ||
+        TripTrackingSessionLifecycleState.permissionRequired ||
         TripTrackingSessionLifecycleState.starting ||
         TripTrackingSessionLifecycleState.active ||
         TripTrackingSessionLifecycleState.paused ||
@@ -762,7 +868,6 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         TripTrackingSessionLifecycleState.stopping ||
         TripTrackingSessionLifecycleState.failedRecoverable => true,
         TripTrackingSessionLifecycleState.disabled ||
-        TripTrackingSessionLifecycleState.permissionRequired ||
         TripTrackingSessionLifecycleState.awaitingReview ||
         TripTrackingSessionLifecycleState.completed ||
         TripTrackingSessionLifecycleState.cancelled ||

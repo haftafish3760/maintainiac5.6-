@@ -23,6 +23,19 @@ class TripTrackingNativeErrorPolicy {
         _ => false,
       };
 
+  static bool isAuthorizationLoss(String? errorCode) => switch (errorCode) {
+    'trip_tracking_foreground_service_denied' ||
+    'trip_tracking_location_denied' ||
+    'trip_tracking_background_location_denied' ||
+    'trip_tracking_location_accuracy_reduced' => true,
+    _ => false,
+  };
+
+  static bool isLocationServicesLoss(String? errorCode) => switch (errorCode) {
+    'trip_tracking_gps_unavailable' || 'trip_tracking_gps_disabled' => true,
+    _ => false,
+  };
+
   static String safeMessage(String? errorCode) => switch (errorCode) {
     'trip_tracking_foreground_service_denied' =>
       'GPS foreground service permission is required for this tracking mode.',

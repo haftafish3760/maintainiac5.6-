@@ -2,6 +2,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_native_error_policy.dart';
 
 void main() {
+  test('native recovery errors distinguish user-action system pauses', () {
+    expect(
+      TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+        'trip_tracking_location_denied',
+      ),
+      isTrue,
+    );
+    expect(
+      TripTrackingNativeErrorPolicy.isLocationServicesLoss(
+        'trip_tracking_gps_disabled',
+      ),
+      isTrue,
+    );
+    expect(
+      TripTrackingNativeErrorPolicy.isLocationServicesLoss(
+        'trip_tracking_location_error',
+      ),
+      isFalse,
+    );
+  });
+
   test('recoverable native GPS errors are explicit allow-list only', () {
     for (final code in [
       'trip_tracking_foreground_service_denied',

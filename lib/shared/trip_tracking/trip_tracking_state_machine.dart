@@ -69,6 +69,7 @@ class TripTrackingSessionStateMachine {
         },
         TripTrackingSessionLifecycleState.ready: {
           TripTrackingSessionLifecycleState.starting,
+          TripTrackingSessionLifecycleState.paused,
           TripTrackingSessionLifecycleState.stopping,
           TripTrackingSessionLifecycleState.disabled,
         },

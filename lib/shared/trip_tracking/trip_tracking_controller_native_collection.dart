@@ -237,6 +237,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     _pendingNativeStartPreferenceSaveFailed = false;
     _pendingNativeStartStopped = false;
     _pendingNativeStartAuthorizationRevoked = false;
+    _pendingNativeStartErrorCode = null;
     _platformSubscription = _listenToPlatformEvents(platform);
     bool started;
     try {
@@ -265,6 +266,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     final nativeStoppedDuringStart = _pendingNativeStartStopped;
     final authorizationRevokedDuringStart =
         _pendingNativeStartAuthorizationRevoked;
+    final nativeErrorDuringStart = _pendingNativeStartErrorCode;
     _clearPendingNativeStart();
     if (_nativeCriticalBatteryStopPending) {
       await _cancelPlatformSubscriptionAfterNativeStop();
@@ -297,7 +299,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     }
     if (preferenceSaveFailedDuringStart ||
         nativeStoppedDuringStart ||
-        authorizationRevokedDuringStart) {
+        authorizationRevokedDuringStart ||
+        nativeErrorDuringStart != null) {
       try {
         await platform.stop();
       } catch (_) {
@@ -310,20 +313,43 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
           ? 'Motion activity became unavailable, and GPS tracking could not save that privacy change locally.'
           : authorizationRevokedDuringStart
           ? 'Precise location permission was removed while trip tracking was starting.'
+          : nativeErrorDuringStart != null
+          ? TripTrackingNativeErrorPolicy.safeMessage(nativeErrorDuringStart)
           : 'GPS updates stopped while trip tracking was starting.';
       final startFailureReason = authorizationRevokedDuringStart
           ? 'native_permission_revoked_during_start'
+          : nativeErrorDuringStart != null
+          ? 'native_platform_error_during_start'
           : preferenceSaveFailedDuringStart
           ? 'native_collection_preference_failed'
           : 'native_tracking_stopped_during_start';
       await _tryTransitionSession(
-        authorizationRevokedDuringStart
+        authorizationRevokedDuringStart ||
+                TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+                  nativeErrorDuringStart,
+                ) ||
+                TripTrackingNativeErrorPolicy.isLocationServicesLoss(
+                  nativeErrorDuringStart,
+                )
             ? TripTrackingSessionLifecycleState.permissionRequired
             : TripTrackingSessionLifecycleState.failedRecoverable,
-        contractState: authorizationRevokedDuringStart
+        contractState:
+            authorizationRevokedDuringStart ||
+                TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+                  nativeErrorDuringStart,
+                )
             ? TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION
+            : TripTrackingNativeErrorPolicy.isLocationServicesLoss(
+                nativeErrorDuringStart,
+              )
+            ? TripTrackingSessionLifecycleContractState
+                  .AWAITING_LOCATION_SERVICES
             : null,
-        health: authorizationRevokedDuringStart
+        health:
+            authorizationRevokedDuringStart ||
+                TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+                  nativeErrorDuringStart,
+                )
             ? TripTrackingHealthState.permissionBlocked
             : TripTrackingHealthState.unavailable,
         source: 'native_start',

@@ -64,26 +64,44 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       notifyListeners();
       await _stopNativeTracking(interrupted: true);
     } finally {
+      _pendingNativeSystemPauseStatus = null;
       _nativeInterruptionPending = false;
     }
   }
 
   Future<void> _handleNativePermissionRevoked(String message) async {
+    await _handleNativeSystemPause(
+      message: message,
+      health: TripTrackingHealthState.permissionBlocked,
+      platformStatus: 'permission_required',
+      source: 'native_authorization_event',
+      reasonCode: 'native_permission_revoked_system_pause',
+    );
+  }
+
+  Future<void> _handleNativeSystemPause({
+    required String message,
+    required TripTrackingHealthState health,
+    required String platformStatus,
+    required String source,
+    required String reasonCode,
+  }) async {
     if (_isDisposed || _nativeInterruptionPending) return;
     _nativeInterruptionPending = true;
     try {
       _platformError = message;
-      _platformStatus = 'permission_required';
+      _platformStatus = platformStatus;
       notifyListeners();
       await _stopNativeTracking(
         interrupted: true,
-        interruptionHealth: TripTrackingHealthState.permissionBlocked,
-        interruptionSource: 'native_authorization_event',
-        interruptionReasonCode: 'native_permission_revoked_system_pause',
+        interruptionHealth: health,
+        interruptionSource: source,
+        interruptionReasonCode: reasonCode,
       );
-      _platformStatus = 'permission_required';
+      _platformStatus = platformStatus;
       notifyListeners();
     } finally {
+      _pendingNativeSystemPauseStatus = null;
       _nativeInterruptionPending = false;
     }
   }
@@ -148,11 +166,14 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                 return;
               }
               _awaitingInitialFix = false;
+              _platformStatus = 'tracking';
+              _platformError = null;
             }
             // A received provider event is a runtime heartbeat. Deliberately
             // use receive time, not the untrusted payload timestamp.
-            _lastNativeHeartbeatUtc = receivedAt;
-            _lastNativeLocationReceivedUtc = _lastNativeHeartbeatUtc;
+            final heartbeatAt = _nonRegressingNativeHeartbeatTime(receivedAt);
+            _lastNativeHeartbeatUtc = heartbeatAt;
+            _lastNativeLocationReceivedUtc = heartbeatAt;
             final activity = _latestActivity;
             final decision = await ingest(
               event.location!,
@@ -200,7 +221,21 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               source: 'native_event',
             )) {
               if (_nativeTracking) {
-                _deferPlatformCleanup(_stopNativeTracking);
+                _deferPlatformCleanup(() async {
+                  await _stopNativeTracking(
+                    interrupted: true,
+                    interruptionHealth: TripTrackingHealthState.unavailable,
+                    interruptionSource: 'native_permission_evidence',
+                    interruptionReasonCode:
+                        'permission_evidence_storage_system_pause',
+                  );
+                  // Preserve the actionable storage failure after the native
+                  // stop records its recoverable system-pause boundary.
+                  _platformStatus = 'storage_failed';
+                  _platformError =
+                      'Could not save GPS permission state locally.';
+                  notifyListeners();
+                });
               }
               return;
             }
@@ -222,6 +257,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             // This handler is already serialized by the platform event queue.
             // Schedule interruption cleanup after it returns so its final
             // queue drain cannot wait on the event currently being processed.
+            _pendingNativeSystemPauseStatus = 'permission_required';
             _deferPlatformCleanup(
               () => _handleNativePermissionRevoked(
                 _backgroundTrackingAllowed
@@ -231,7 +267,19 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             );
           } else if (event.type == TripTrackingPlatformEventType.status) {
             final status = event.status;
+            if (status == 'tracking' && _awaitingInitialFix) {
+              await _markExpiredInitialFixPreparation(
+                _clockNow().toUtc(),
+                deferStopOnStorageFailure: true,
+              );
+            }
             if (status == 'stopped' || status == 'paused') {
+              final pendingSystemPauseStatus = _pendingNativeSystemPauseStatus;
+              if (pendingSystemPauseStatus != null) {
+                _platformStatus = pendingSystemPauseStatus;
+                notifyListeners();
+                return;
+              }
               if (_pendingNativeStartRequest != null && !_nativeTracking) {
                 _pendingNativeStartStopped = true;
                 _platformStatus = 'interrupted';
@@ -303,9 +351,14 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               }
             } else if (status == 'tracking' && _nativeTracking) {
               final now = _clockNow().toUtc();
-              _lastNativeHeartbeatUtc = now;
-              await _markGpsSignalStaleIfNeeded(now);
-              if (_platformStatus != 'gps_signal_stale') {
+              _lastNativeHeartbeatUtc = _nonRegressingNativeHeartbeatTime(now);
+              if (_engine?.snapshot.initialFixAssessment?.quality !=
+                  TripInitialFixQuality.unavailable) {
+                await _markGpsSignalStaleIfNeeded(now);
+              }
+              if (_platformStatus != 'gps_signal_stale' &&
+                  _platformStatus != 'initial_fix_unavailable' &&
+                  _platformStatus != 'storage_failed') {
                 _platformStatus = status;
               }
             } else if (status == 'idle' && !_nativeTracking) {
@@ -326,7 +379,10 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             _platformError = message;
             if (event.errorCode == 'trip_tracking_battery_critical') {
               _nativeCriticalBatteryStopPending = true;
-              unawaited(_handleNativeCriticalBatteryStop(message));
+              _pendingNativeSystemPauseStatus = 'battery_critical_gps_blocked';
+              _deferPlatformCleanup(
+                () => _handleNativeCriticalBatteryStop(message),
+              );
             } else if (event.errorCode ==
                 'trip_tracking_activity_unavailable') {
               final pendingStart = _pendingNativeStartRequest;
@@ -359,10 +415,49 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                   // This handler is executing inside the platform event queue.
                   // Stopping drains that queue, so schedule it after this event
                   // completes instead of awaiting a self-draining deadlock.
-                  _deferPlatformCleanup(_stopNativeTracking);
+                  _deferPlatformCleanup(() async {
+                    await _stopNativeTracking(
+                      interrupted: true,
+                      interruptionHealth: TripTrackingHealthState.unavailable,
+                      interruptionSource: 'native_activity_evidence',
+                      interruptionReasonCode:
+                          'activity_preference_storage_system_pause',
+                    );
+                    _platformStatus = 'storage_failed';
+                    notifyListeners();
+                  });
                 }
               }
               notifyListeners();
+            } else if (_pendingNativeStartRequest != null &&
+                !_nativeTracking &&
+                TripTrackingNativeErrorPolicy.requiresRecovery(
+                  event.errorCode,
+                )) {
+              _pendingNativeStartErrorCode ??= event.errorCode;
+              notifyListeners();
+            } else if (_nativeTracking &&
+                TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+                  event.errorCode,
+                )) {
+              _pendingNativeSystemPauseStatus = 'permission_required';
+              _deferPlatformCleanup(
+                () => _handleNativePermissionRevoked(message),
+              );
+            } else if (_nativeTracking &&
+                TripTrackingNativeErrorPolicy.isLocationServicesLoss(
+                  event.errorCode,
+                )) {
+              _pendingNativeSystemPauseStatus = 'location_services_required';
+              _deferPlatformCleanup(
+                () => _handleNativeSystemPause(
+                  message: message,
+                  health: TripTrackingHealthState.unavailable,
+                  platformStatus: 'location_services_required',
+                  source: 'native_location_services_event',
+                  reasonCode: 'native_location_services_system_pause',
+                ),
+              );
             } else if (_nativeTracking &&
                 TripTrackingNativeErrorPolicy.requiresRecovery(
                   event.errorCode,
@@ -375,8 +470,24 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         })
         .catchError((Object error, StackTrace _) {
           if (_isDisposed) return;
-          _platformError = 'GPS event could not be processed safely.';
-          notifyListeners();
+          const safeMessage = 'GPS event could not be processed safely.';
+          _platformStatus = 'native_event_processing_failed';
+          _platformError = safeMessage;
+          if (_nativeTracking) {
+            _deferPlatformCleanup(() async {
+              await _stopNativeTracking(
+                interrupted: true,
+                interruptionHealth: TripTrackingHealthState.unavailable,
+                interruptionSource: 'native_event_processing',
+                interruptionReasonCode: 'native_event_processing_system_pause',
+              );
+              _platformStatus = 'native_event_processing_failed';
+              _platformError = safeMessage;
+              notifyListeners();
+            });
+          } else {
+            notifyListeners();
+          }
         });
   }
 
@@ -529,7 +640,14 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         reasonCode: decision.reasonCode,
       ),
     )) {
-      await _stopNativeTracking();
+      await _stopNativeTracking(
+        interrupted: true,
+        interruptionHealth: TripTrackingHealthState.unavailable,
+        interruptionSource: 'runtime_battery_safety',
+        interruptionReasonCode: 'runtime_battery_evidence_storage_system_pause',
+      );
+      _platformStatus = 'storage_failed';
+      notifyListeners();
       return;
     }
     if (decision.allowsGps) {
@@ -543,7 +661,15 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
     }
     _platformStatus = decision.reasonCode;
     _platformError = _gpsBatteryMessageFor(decision);
-    await _stopNativeTracking();
+    await _stopNativeTracking(
+      interrupted: true,
+      interruptionHealth: TripTrackingHealthState.unavailable,
+      interruptionSource: 'runtime_battery_safety',
+      interruptionReasonCode:
+          decision.reasonCode == 'battery_critical_gps_blocked'
+          ? 'native_critical_battery_system_pause'
+          : 'runtime_battery_policy_system_pause',
+    );
     // Stopping the optional collector must not erase the actionable reason.
     // The local TripLog remains active and the user can make a new explicit
     // decision after charging or changing the GPS battery preference.
@@ -556,10 +682,19 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
   /// failure; local work and odometer truth remain intact.
   Future<void> _handleNativeCriticalBatteryStop(String message) async {
     if (_isDisposed) return;
-    await _stopNativeTracking();
-    _platformStatus = 'battery_critical_gps_blocked';
-    _platformError = message;
-    notifyListeners();
+    try {
+      await _stopNativeTracking(
+        interrupted: true,
+        interruptionHealth: TripTrackingHealthState.unavailable,
+        interruptionSource: 'native_battery_safety',
+        interruptionReasonCode: 'native_critical_battery_system_pause',
+      );
+      _platformStatus = 'battery_critical_gps_blocked';
+      _platformError = message;
+      notifyListeners();
+    } finally {
+      _pendingNativeSystemPauseStatus = null;
+    }
   }
 
   Future<void> _cancelPlatformSubscriptionAfterNativeStop() async {
