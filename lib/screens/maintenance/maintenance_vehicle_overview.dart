@@ -17,7 +17,7 @@ class _MaintenanceVehicleOverview extends StatelessWidget {
     for (final vehicle in vehicles) {
       final records =
           allRecords
-              .where((record) => record.vehicleName == vehicle.nickname)
+              .where((record) => record.belongsToVehicle(vehicle))
               .toList()
             ..sort(_compareMaintenancePriority);
       final attention = records.where(_needsAttention).length;

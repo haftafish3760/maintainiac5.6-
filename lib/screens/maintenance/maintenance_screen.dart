@@ -9,11 +9,13 @@ import '../../shared/widgets/app_screen_shell.dart';
 import '../dashboard/vehicle_profile_detail.dart';
 import '../dashboard/vehicle_profile_widgets.dart';
 import 'maintenance_draft_store.dart';
+import 'data/maintenance_receipt_review.dart';
 import 'maintenance_item_detail_screen.dart';
 import 'maintenance_models.dart';
 import 'maintenance_log_service_screen.dart';
 import 'maintenance_record_list_screen.dart';
 import 'maintenance_service_event_detail_screen.dart';
+import 'maintenance_receipt_review_screen.dart';
 import 'maintenance_svg_icon.dart';
 import 'maintenance_work_source_screen.dart';
 
@@ -55,7 +57,11 @@ class MaintenanceScreen extends StatelessWidget {
         (state.vehicles.isEmpty ? null : state.vehicles.first);
     final records =
         state.maintenance
-            .where((record) => record.vehicleName == activeVehicle?.nickname)
+            .where(
+              (record) =>
+                  activeVehicle != null &&
+                  record.belongsToVehicle(activeVehicle),
+            )
             .toList()
           ..sort(_compareMaintenancePriority);
 
@@ -144,7 +150,7 @@ List<MaintenanceServiceEvent> _eventsForActiveVehicle(
   if (activeVehicle == null) return const <MaintenanceServiceEvent>[];
   final events =
       state.maintenanceEvents
-          .where((event) => event.vehicleName == activeVehicle.nickname)
+          .where((event) => event.belongsToVehicle(activeVehicle))
           .toList()
         ..sort((a, b) => b.serviceDate.compareTo(a.serviceDate));
   return events;

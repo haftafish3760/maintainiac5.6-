@@ -1,0 +1,257 @@
+[
+  {
+    "id": "advance_oil_purchase",
+    "merchant": "Advance Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "ADVANCE AUTO PARTS\n07/23/2026\nOIL FILTER PH8A 12.99\n5QT FULL SYNTHETIC MOTOR OIL 5W-30 34.99\nTOTAL 47.98",
+    "actions": {
+      "Engine Oil": "reviewTrackingSetup",
+      "Oil Filter": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "oreilly_brake_purchase",
+    "merchant": "O'Reilly Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "O'REILLY AUTO PARTS\n07/23/2026\nFRONT DISC BRAKE PADS 49.99\n2 BRAKE ROTORS 119.98\nTOTAL 169.97",
+    "actions": {
+      "Brake Pads": "reviewTrackingSetup",
+      "Brake Rotors": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "napa_battery_purchase",
+    "merchant": "NAPA Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "NAPA AUTO PARTS\n07/23/2026\nAUTOMOTIVE BATTERY GROUP 65 189.99\nCORE CHARGE 22.00\nTOTAL 211.99",
+    "actions": {
+      "Battery": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "autozone_gear_oil_purchase",
+    "merchant": "AutoZone",
+    "kind": "partsPurchase",
+    "sourceText": "AUTOZONE\n07/23/2026\n75W-90 FULL SYNTHETIC GEAR OIL 18.99\nPOWER STEERING FLUID 9.99\nTOTAL 28.98",
+    "actions": {
+      "Differential Fluid": "reviewTrackingSetup",
+      "Power Steering Fluid": "reviewTrackingSetup"
+    },
+    "forbiddenItems": [
+      "Engine Oil"
+    ]
+  },
+  {
+    "id": "carquest_tire_wiper_purchase",
+    "merchant": "Carquest Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "CARQUEST AUTO PARTS\n07/23/2026\n2 ALL-SEASON TIRES 235/65R17 298.00\nWIPER BLADES 24 IN 19.99\nTOTAL 317.99",
+    "actions": {
+      "Tires": "reviewTrackingSetup",
+      "Wiper Blades": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "completed_oil_service",
+    "merchant": "Take 5 Oil Change",
+    "kind": "serviceInvoice",
+    "sourceText": "TAKE 5 OIL CHANGE\n07/23/2026\nREPAIR ORDER 100\nODOMETER 100000\nFULL SYNTHETIC OIL CHANGE 5W-30 79.99\nOIL FILTER REPLACEMENT 12.99\nNEXT DUE 105000",
+    "actions": {
+      "Engine Oil": "reviewCompletedService",
+      "Oil Filter": "reviewCompletedService"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "mixed_completed_and_estimate",
+    "merchant": "Main Street Auto Service",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO SERVICE\n07/23/2026\nREPAIR ORDER 812\nODOMETER 55000\nENGINE OIL CHANGE COMPLETED 69.00\nESTIMATE - FRONT BRAKE PADS REPLACEMENT 399.00\nPAID IN FULL 69.00",
+    "actions": {
+      "Engine Oil": "reviewCompletedService",
+      "Brake Pads": "manualReview"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "unrelated_grocery",
+    "merchant": "Corner Market",
+    "kind": "unknown",
+    "sourceText": "CORNER MARKET\n07/23/2026\nMILK 4.99\nBREAD 3.49\nTOTAL 8.48",
+    "actions": {},
+    "forbiddenItems": [
+      "Engine Oil",
+      "Battery",
+      "Tires"
+    ]
+  },
+  {
+    "id": "pep_boys_tire_purchase",
+    "merchant": "Pep Boys",
+    "kind": "partsPurchase",
+    "sourceText": "PEP BOYS\n07/23/2026\n2 MICHELIN ALL-SEASON TIRES 225/60R18 438.00\nAMOUNT PAID 438.00",
+    "actions": {
+      "Tires": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "dealer_filter_purchase",
+    "merchant": "Smith Ford Parts Department",
+    "kind": "partsPurchase",
+    "sourceText": "SMITH FORD PARTS DEPARTMENT\n07/23/2026\nRETAIL SALE\nPART NO FA-1883 ENGINE AIR FILTER 24.99\nAMOUNT PAID 24.99",
+    "actions": {
+      "Engine Air Filter": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "valvoline_completed_service",
+    "merchant": "Valvoline",
+    "kind": "serviceInvoice",
+    "sourceText": "VALVOLINE INSTANT OIL CHANGE\n07/23/2026\nWORK ORDER 551\nVEHICLE MILEAGE 78210\nSERVICE PERFORMED\nFULL SYNTHETIC OIL CHANGE 0W-20 89.99\nNEXT DUE 83210",
+    "actions": {
+      "Engine Oil": "reviewCompletedService"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "independent_tire_installation",
+    "merchant": "Joe's Tire Center",
+    "kind": "serviceInvoice",
+    "sourceText": "JOE'S TIRE CENTER\n07/23/2026\nWORK ORDER 771\nODOMETER 44100\nTIRE INSTALLATION 245/70R17 699.00\nPAID IN FULL 699.00",
+    "actions": {
+      "Tires": "reviewCompletedService"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "damaged_autozone_oil_purchase",
+    "merchant": "AutoZone",
+    "kind": "partsPurchase",
+    "sourceText": "AUT0ZONE\n07/23/2026\nFULL SYNTHETIC 0IL 5W—30 34.99\n0IL FILTER PH8A 12.99\nTOTAL 47.98",
+    "actions": {
+      "Engine Oil": "reviewTrackingSetup",
+      "Oil Filter": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "jiffy_lube_named_date_service",
+    "merchant": "Jiffy Lube",
+    "kind": "serviceInvoice",
+    "sourceText": "JIFFY LUBE\nJUL 23, 2026\nWORK ORDER 882\nODOMETER 90000\nSERVICE PERFORMED\nCONVENTIONAL OIL CHANGE 5W-30 49.99\nNEXT DUE 95000",
+    "actions": {
+      "Engine Oil": "reviewCompletedService"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "advance_filters_and_fluids_purchase",
+    "merchant": "Advance Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "ADVANCE AUTO PARTS\n07/23/2026\nDEX-COOL ANTIFREEZE 50/50 18.99\nDOT 4 BRAKE FLUID 12.99\nENGINE AIR FILTER AF1883 24.99\nCABIN AIR FILTER CF12150 21.99\nAMOUNT PAID 78.96",
+    "actions": {
+      "Coolant": "reviewTrackingSetup",
+      "Brake Fluid": "reviewTrackingSetup",
+      "Engine Air Filter": "reviewTrackingSetup",
+      "Cabin Air Filter": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "napa_transmission_and_fuel_filter_purchase",
+    "merchant": "NAPA Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "NAPA AUTO PARTS\n07/23/2026\nATF+4 TRANSMISSION FLUID 11.99\nFUEL FILTER FF7333 24.99\nRETAIL SALE\nTOTAL 36.98",
+    "actions": {
+      "Transmission Fluid and Filter": "reviewTrackingSetup",
+      "Fuel Filter": "reviewTrackingSetup"
+    },
+    "forbiddenItems": [
+      "Engine Oil"
+    ]
+  },
+  {
+    "id": "oreilly_ignition_belt_hose_purchase",
+    "merchant": "O'Reilly Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "O'REILLY AUTO PARTS\n07/23/2026\n4 IRIDIUM SPARK PLUGS 39.96\nSERPENTINE BELT 42.99\nUPPER RADIATOR HOSE 31.99\nAMOUNT PAID 114.94",
+    "actions": {
+      "Spark Plugs": "reviewTrackingSetup",
+      "Serpentine Belt": "reviewTrackingSetup",
+      "Radiator Hose": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "independent_fluid_services",
+    "merchant": "Fleet Auto Care",
+    "kind": "serviceInvoice",
+    "sourceText": "FLEET AUTO CARE\n07/23/2026\nREPAIR ORDER 501\nMILEAGE OUT 66000\nSERVICE PERFORMED\nCOOLANT FLUSH 149.99\nTRANSMISSION SERVICE ATF+4 199.99\nPAID IN FULL 349.98",
+    "actions": {
+      "Coolant": "reviewCompletedService",
+      "Transmission Fluid and Filter": "reviewCompletedService"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "completed_tire_rotation",
+    "merchant": "Neighborhood Tire",
+    "kind": "serviceInvoice",
+    "sourceText": "NEIGHBORHOOD TIRE\n07/23/2026\nWORK ORDER 919\nODOMETER 32000\nTIRE ROTATION 29.99\nPAID IN FULL 29.99",
+    "actions": {
+      "Tire Rotation": "reviewCompletedService"
+    },
+    "forbiddenItems": [
+      "Tires"
+    ]
+  },
+  {
+    "id": "carquest_washer_and_wipers_purchase",
+    "merchant": "Carquest Auto Parts",
+    "kind": "partsPurchase",
+    "sourceText": "CARQUEST AUTO PARTS\n07/23/2026\nWIPER BLADES 22 IN 19.99\nWINDSHIELD WASHER FLUID 5.49\nTOTAL 25.48",
+    "actions": {
+      "Wiper Blades": "reviewTrackingSetup",
+      "Washer Fluid": "reviewTrackingSetup"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "autozone_key_fob_battery_purchase",
+    "merchant": "AutoZone",
+    "kind": "partsPurchase",
+    "sourceText": "AUTOZONE\n07/23/2026\nKEY FOB BATTERY CR2032 7.99\nAMOUNT PAID 7.99",
+    "actions": {
+      "Key Fob Battery": "reviewTrackingSetup"
+    },
+    "forbiddenItems": [
+      "Battery"
+    ]
+  },
+  {
+    "id": "county_registration_renewal",
+    "merchant": "County Clerk",
+    "kind": "serviceInvoice",
+    "sourceText": "COUNTY CLERK\n07/23/2026\nVEHICLE REGISTRATION RENEWAL COMPLETED\nREGISTRATION RENEWED\nTOTAL 48.00",
+    "actions": {
+      "Registration": "reviewCompletedService"
+    },
+    "forbiddenItems": []
+  },
+  {
+    "id": "state_inspection_completed",
+    "merchant": "State Inspection Center",
+    "kind": "serviceInvoice",
+    "sourceText": "STATE INSPECTION CENTER\n07/23/2026\nSTATE INSPECTION COMPLETED\nVEHICLE INSPECTION PASSED\nTOTAL 20.00",
+    "actions": {
+      "Inspection": "reviewCompletedService"
+    },
+    "forbiddenItems": []
+  }
+]

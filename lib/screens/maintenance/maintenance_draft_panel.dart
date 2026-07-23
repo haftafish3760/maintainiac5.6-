@@ -25,7 +25,8 @@ class _MaintenanceDraftPanelState extends State<_MaintenanceDraftPanel> {
   @override
   void didUpdateWidget(covariant _MaintenanceDraftPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.activeVehicle?.nickname != widget.activeVehicle?.nickname) {
+    if (oldWidget.activeVehicle?.id != widget.activeVehicle?.id ||
+        oldWidget.activeVehicle?.nickname != widget.activeVehicle?.nickname) {
       _draftsFuture = _loadDrafts();
     }
   }
@@ -33,6 +34,7 @@ class _MaintenanceDraftPanelState extends State<_MaintenanceDraftPanel> {
   Future<List<MaintenanceDraftSummary>> _loadDrafts() {
     return MaintenanceDraftStore.loadDrafts(
       vehicleName: widget.activeVehicle?.nickname,
+      vehicleId: widget.activeVehicle?.id,
     );
   }
 
@@ -70,7 +72,41 @@ class _MaintenanceDraftPanelState extends State<_MaintenanceDraftPanel> {
     );
   }
 
-  void _openDraft(BuildContext context, MaintenanceDraftSummary draft) {
+  Future<void> _openDraft(
+    BuildContext context,
+    MaintenanceDraftSummary draft,
+  ) async {
+    if (draft.kind == 'Receipt review') {
+      try {
+        final stored = await MaintenanceDraftStore.loadReceiptReviewDraftByKey(
+          draft.storageKey,
+        );
+        final payload = stored?['review'];
+        if (payload is! Map) {
+          throw const FormatException('Receipt review draft is missing.');
+        }
+        final review = MaintenanceReceiptReview.fromDraftJson(payload);
+        if (!context.mounted) return;
+        await Navigator.of(context).push(
+          appNativeRoute<MaintenanceReceiptReviewOutcome>(
+            context,
+            MaintenanceReceiptReviewScreen(
+              parserResult: review.parserResult,
+              initialReview: review,
+            ),
+          ),
+        );
+        if (mounted) setState(() => _draftsFuture = _loadDrafts());
+      } on Object catch (error) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Receipt review could not be resumed: $error'),
+          ),
+        );
+      }
+      return;
+    }
     if (draft.kind == 'Setup draft') {
       final record = widget.records.where(
         (item) => item.itemName == draft.title,

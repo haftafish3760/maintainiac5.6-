@@ -142,14 +142,18 @@ class _MaintenanceTrackingSelectionPanelState
     });
   }
 
-  void _continue() {
+  Future<void> _continue() async {
     final state = AppStateScope.of(context);
     final activeVehicle =
         state.activeVehicle ??
         (state.vehicles.isEmpty ? null : state.vehicles.first);
     final vehicleName = activeVehicle?.nickname ?? 'Current Vehicle';
+    final vehicleId = activeVehicle?.id ?? '';
     final existingForVehicle = state.maintenance
-        .where((record) => record.vehicleName == vehicleName)
+        .where(
+          (record) =>
+              activeVehicle != null && record.belongsToVehicle(activeVehicle),
+        )
         .map((record) => record.itemName)
         .toSet();
 
@@ -170,22 +174,31 @@ class _MaintenanceTrackingSelectionPanelState
       return;
     }
 
-    state.addMaintenanceRecords(
-      selectedItems
-          .map(
-            (item) => MaintenanceRecord(
-              itemName: item.name,
-              vehicleName: vehicleName,
-              intervalMiles: item.defaultMiles,
-              milesSinceService: 0,
-              intervalMonths: item.defaultMonths,
-              monthsSinceService: 0,
-              importance: item.importance,
-              timeOnly: item.timeOnly,
-            ),
-          )
-          .toList(),
-    );
+    try {
+      await state.addMaintenanceRecords(
+        selectedItems
+            .map(
+              (item) => MaintenanceRecord(
+                itemName: item.name,
+                vehicleName: vehicleName,
+                vehicleId: vehicleId,
+                intervalMiles: item.defaultMiles,
+                milesSinceService: 0,
+                intervalMonths: item.defaultMonths,
+                monthsSinceService: 0,
+                importance: item.importance,
+                timeOnly: item.timeOnly,
+              ),
+            )
+            .toList(),
+      );
+    } on StateError catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+      return;
+    }
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

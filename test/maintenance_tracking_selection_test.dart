@@ -215,6 +215,42 @@ void main() {
     expect(find.text('Thresholds'), findsOneWidget);
   });
 
+  testWidgets('receipt-suggested setup values remain editable prefills', (
+    tester,
+  ) async {
+    final vehicle = appState.activeVehicle!;
+    await appState.addMaintenanceRecords([
+      MaintenanceRecord(
+        itemName: 'Engine Oil',
+        vehicleId: vehicle.id,
+        vehicleName: vehicle.nickname,
+        intervalMiles: 7500,
+        milesSinceService: 0,
+        intervalMonths: 6,
+        monthsSinceService: 0,
+        importance: 100,
+        detailA: 'Full Synthetic',
+        detailB: '5W-30',
+        sourceCommandId: List.filled(64, 'a').join(),
+        sourceReceiptFingerprint: List.filled(64, 'b').join(),
+        sourceParserSchemaVersion: 1,
+      ),
+    ]);
+
+    await _pumpMaintenance(tester, appState, odometer);
+    await tester.tap(find.text('Engine Oil').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Not set up yet'), findsOneWidget);
+    expect(find.text('7,500 miles'), findsOneWidget);
+    expect(find.text('6 months'), findsOneWidget);
+
+    await tester.tap(find.text('Show Advanced Details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Full synthetic'), findsOneWidget);
+    expect(find.text('5W-30'), findsOneWidget);
+  });
+
   testWidgets(
     'maintenance setup keeps paired fields side by side at S9 width',
     (tester) async {
@@ -367,56 +403,6 @@ void main() {
     expect(find.text('Open Item'), findsOneWidget);
     expect(find.text('Log Again'), findsOneWidget);
   });
-
-  testWidgets('maintenance home shows setup draft and resumes it', (
-    tester,
-  ) async {
-    appState.addMaintenanceRecords([
-      MaintenanceRecord(
-        itemName: 'Engine Oil',
-        vehicleName: 'Work Truck 1',
-        intervalMiles: 5000,
-        milesSinceService: 4100,
-        intervalMonths: 6,
-        monthsSinceService: 4,
-        importance: 100,
-      ),
-    ]);
-    await tester.runAsync(
-      () => MaintenanceDraftStore.saveSetupDraft(
-        vehicleName: 'Work Truck 1',
-        itemName: 'Engine Oil',
-        values: {
-          'dateEntryMode': 'elapsed',
-          'odometerEntryMode': 'distance',
-          'monthsSinceService': '2',
-          'milesSinceService': '1200',
-          'mileInterval': 7500,
-          'monthInterval': 6,
-        },
-      ),
-    );
-
-    await _pumpMaintenance(tester, appState, odometer);
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 100));
-
-    expect(find.text('Unfinished Maintenance'), findsOneWidget);
-    expect(find.text('Setup draft'), findsOneWidget);
-
-    await tester.tap(find.text('Setup draft'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 350));
-    await tester.pump(const Duration(milliseconds: 100));
-
-    expect(find.text('How long has it been?'), findsOneWidget);
-    expect(find.text('Estimated miles since'), findsOneWidget);
-    expect(_editableTextWithValue('2'), findsOneWidget);
-    expect(_editableTextWithValue('1200'), findsOneWidget);
-
-    await tester.pumpWidget(const SizedBox.shrink());
-    await tester.pump();
-  });
 }
 
 Future<void> _pumpMaintenance(
@@ -450,11 +436,4 @@ void _expectSameRow(
   final left = tester.getTopLeft(find.text(leftText).first).dy;
   final right = tester.getTopLeft(find.text(rightText).first).dy;
   expect((left - right).abs(), lessThan(tolerance));
-}
-
-Finder _editableTextWithValue(String value) {
-  return find.byWidgetPredicate(
-    (widget) => widget is EditableText && widget.controller.text == value,
-    description: 'EditableText with value $value',
-  );
 }

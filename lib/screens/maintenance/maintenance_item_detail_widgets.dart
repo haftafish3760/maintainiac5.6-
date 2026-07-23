@@ -312,7 +312,11 @@ class _DetailDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = options.isEmpty ? ['Not specified', 'Other'] : options;
-    final selected = items.contains(value) ? value : items.first;
+    final normalizedValue = value.trim().toLowerCase();
+    final selected = items.firstWhere(
+      (item) => item.trim().toLowerCase() == normalizedValue,
+      orElse: () => items.first,
+    );
     return _CompactDropdownField<String>(
       label: label,
       value: selected,

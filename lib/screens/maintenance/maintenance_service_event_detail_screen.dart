@@ -93,8 +93,11 @@ class _ServiceRecordActions extends StatelessWidget {
 
   MaintenanceRecord? _matchingRecord(AppStateController state) {
     for (final record in state.maintenance) {
-      if (record.vehicleName == event.vehicleName &&
-          record.itemName == event.itemName) {
+      final sameVehicle =
+          record.vehicleId.isNotEmpty && event.vehicleId.isNotEmpty
+          ? record.vehicleId == event.vehicleId
+          : record.vehicleName == event.vehicleName;
+      if (sameVehicle && record.itemName == event.itemName) {
         return record;
       }
     }
@@ -134,6 +137,7 @@ class _ServiceRecordHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final state = AppStateScope.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 11),
       decoration: BoxDecoration(
@@ -165,7 +169,10 @@ class _ServiceRecordHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  event.vehicleName,
+                  state.maintenanceVehicleName(
+                    vehicleId: event.vehicleId,
+                    fallback: event.vehicleName,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(

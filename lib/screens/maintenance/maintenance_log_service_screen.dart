@@ -304,17 +304,25 @@ class _MaintenanceLogServiceScreenState
       return;
     }
     final state = AppStateScope.of(context);
-    for (final record in _selected) {
-      state.logMaintenanceService(
-        MaintenanceServiceEvent(
-          itemName: record.itemName,
-          vehicleName: record.vehicleName,
-          serviceDate: _serviceDate,
-          odometer: odometer,
-          provider: _provider.text.trim(),
-          notes: _notes.text.trim(),
-        ),
-      );
+    try {
+      await state.logMaintenanceServices([
+        for (final record in _selected)
+          MaintenanceServiceEvent(
+            itemName: record.itemName,
+            vehicleName: record.vehicleName,
+            vehicleId: record.vehicleId,
+            serviceDate: _serviceDate,
+            odometer: odometer,
+            provider: _provider.text.trim(),
+            notes: _notes.text.trim(),
+          ),
+      ]);
+    } on StateError catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+      return;
     }
     await MaintenanceDraftStore.clearLogDraft(vehicleName: _vehicleLabel);
     if (!mounted) return;

@@ -105,37 +105,45 @@ extension _MaintenanceItemDetailCalculations
         _dateEntryMode == _LastDateEntryMode.elapsed && enteredMonths != null
         ? enteredMonths.clamp(0, 999)
         : _monthsBetween(effectiveLastDate, DateTime.now());
-    appState.updateMaintenanceRecord(
-      record.copyWith(
-        intervalMiles: effectiveMiles,
-        intervalMonths: effectiveMonths,
-        milesSinceService: milesSince,
-        monthsSinceService: monthsSince,
-        lastServiceDate: effectiveLastDate,
-        lastServiceOdometer: lastOdometer,
-        detailA: _detailA,
-        detailB: _detailB,
-        setupComplete: true,
-        lastServiceEstimated: _dateEntryMode == _LastDateEntryMode.elapsed
-            ? true
-            : _dateEstimated,
-        lastOdometerEstimated:
-            _odometerEntryMode == _LastOdometerEntryMode.distance
-            ? true
-            : _odometerEstimated,
-        thresholdsEnabled: _thresholdsEnabled,
-        mileageYellowAt: 900,
-        mileageOrangeAt: 600,
-        mileageRedAt: 300,
-        timeYellowDays: _timeYellowDefault,
-        timeOrangeDays: _timeOrangeDefault,
-        timeRedDays: _timeRedDefault,
-        inAppNotifications: _inAppNotifications,
-        pushNotifications: _pushNotifications,
-        soundNotifications: _soundNotifications,
-        pairOilFilter: _pairOilFilter,
-      ),
-    );
+    try {
+      await appState.updateMaintenanceRecord(
+        record.copyWith(
+          intervalMiles: effectiveMiles,
+          intervalMonths: effectiveMonths,
+          milesSinceService: milesSince,
+          monthsSinceService: monthsSince,
+          lastServiceDate: effectiveLastDate,
+          lastServiceOdometer: lastOdometer,
+          detailA: _detailA,
+          detailB: _detailB,
+          setupComplete: true,
+          lastServiceEstimated: _dateEntryMode == _LastDateEntryMode.elapsed
+              ? true
+              : _dateEstimated,
+          lastOdometerEstimated:
+              _odometerEntryMode == _LastOdometerEntryMode.distance
+              ? true
+              : _odometerEstimated,
+          thresholdsEnabled: _thresholdsEnabled,
+          mileageYellowAt: 900,
+          mileageOrangeAt: 600,
+          mileageRedAt: 300,
+          timeYellowDays: _timeYellowDefault,
+          timeOrangeDays: _timeOrangeDefault,
+          timeRedDays: _timeRedDefault,
+          inAppNotifications: _inAppNotifications,
+          pushNotifications: _pushNotifications,
+          soundNotifications: _soundNotifications,
+          pairOilFilter: _pairOilFilter,
+        ),
+      );
+    } on StateError catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+      return;
+    }
     await MaintenanceDraftStore.clearSetupDraft(
       vehicleName: record.vehicleName,
       itemName: record.itemName,

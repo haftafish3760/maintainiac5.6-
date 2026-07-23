@@ -51,10 +51,12 @@ class _MaintenanceItemDetailScreenState
       );
   late DateTime _lastServiceDate =
       widget.record.lastServiceDate ?? DateTime.now();
-  late int _mileInterval = widget.record.setupComplete
+  late int _mileInterval =
+      widget.record.setupComplete || widget.record.sourceCommandId.isNotEmpty
       ? widget.record.intervalMiles
       : 0;
-  late int _monthInterval = widget.record.setupComplete
+  late int _monthInterval =
+      widget.record.setupComplete || widget.record.sourceCommandId.isNotEmpty
       ? widget.record.intervalMonths
       : 0;
   late String _detailA = widget.record.detailA;
@@ -118,7 +120,10 @@ class _MaintenanceItemDetailScreenState
     final record = appState.maintenance.firstWhere(
       (item) =>
           item.itemName == widget.record.itemName &&
-          item.vehicleName == widget.record.vehicleName,
+          (item.recordId == widget.record.recordId ||
+              (item.vehicleId.isNotEmpty &&
+                  item.vehicleId == widget.record.vehicleId) ||
+              item.vehicleName == widget.record.vehicleName),
       orElse: () => widget.record,
     );
     final nextOdometer = _canPreviewNextDue
@@ -324,6 +329,12 @@ class _MaintenanceItemDetailScreenState
                           ? () => _save(appState, currentOdometer, record)
                           : null,
                     ),
+                    AppButton(
+                      label: 'Stop Tracking',
+                      tone: AppButtonTone.destructive,
+                      compact: true,
+                      onPressed: () => _stopTracking(appState, record),
+                    ),
                   ],
                 ),
               ],
@@ -332,5 +343,44 @@ class _MaintenanceItemDetailScreenState
         ),
       ),
     );
+  }
+
+  Future<void> _stopTracking(
+    AppStateController appState,
+    MaintenanceRecord record,
+  ) async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Stop tracking this item?'),
+            content: Text(
+              '${record.itemName} will leave the active maintenance list. '
+              'Its setup and service history will be kept, and it can be '
+              'restored from Maintenance Settings.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: const Text('Keep Tracking'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: const Text('Stop Tracking'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+    if (!confirmed || !mounted) return;
+    try {
+      await appState.archiveMaintenanceRecord(record.recordId);
+      if (mounted) Navigator.of(context).pop();
+    } on StateError catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.message)));
+    }
   }
 }
