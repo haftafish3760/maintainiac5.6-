@@ -15,7 +15,7 @@ function buildHostedPlanFunctions({enforceAppCheck}) {
 async function getHostedUsageGrant(request) {
   const uid = requireUid(request);
   const db = getFirestore();
-  const grant = await loadGrant(db, uid);
+  const grant = await loadHostedGrantForUid(db, uid);
   return publicGrant(grant);
 }
 
@@ -78,7 +78,7 @@ async function reserveHostedSync(request) {
   });
 }
 
-async function loadGrant(db, uid) {
+async function loadHostedGrantForUid(db, uid) {
   const entitlement = await db.doc(`users/${uid}/entitlements/current`).get();
   const planId = activePlanId(entitlement.data());
   const plan = await db.doc(`hostedPlans/${planId}`).get();
@@ -108,6 +108,7 @@ function validatedGrant(planId, data) {
       typeof displayName !== 'string' || displayName.length < 1 ||
       displayName.length > 120 ||
       !Number.isInteger(storageQuotaBytes) || storageQuotaBytes < 0 ||
+      (storageQuotaBytes > 0 && storageQuotaBytes < 1024) ||
       storageQuotaBytes > 1024 * 1024 * 1024 * 1024 ||
       !Number.isInteger(dailySyncLimit) || dailySyncLimit < 0 ||
       dailySyncLimit > 1000 ||
@@ -142,4 +143,4 @@ function requireUid(request) {
   return uid;
 }
 
-module.exports = {buildHostedPlanFunctions};
+module.exports = {buildHostedPlanFunctions, loadHostedGrantForUid};

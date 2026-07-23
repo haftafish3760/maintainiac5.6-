@@ -67,6 +67,7 @@ describe('Cloud Functions emulator safety', () => {
   test('authenticated proof upload finalizes once and charges quota once', async () => {
     const identity = await createEmulatorIdentity();
     await seedMember(identity.uid);
+    await seedHostedPlan(identity.uid);
     const proofBytes = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
     const receiptId = 'receiptLifecycleA';
     const proofId = 'proofLifecycleA';
@@ -121,6 +122,8 @@ describe('Cloud Functions emulator safety', () => {
         doc(db, `orgs/orgLifecycleA/uploadGrants/${grant.grantId}`),
       );
       assert.equal(quota.data()?.storageUsedBytes, proofBytes.byteLength);
+      assert.equal(quota.data()?.storageLimitBytes, 100 * 1024 * 1024);
+      assert.equal(quota.data()?.planId, 'freeConfigurable');
       assert.equal(storedGrant.data()?.status, 'finalized');
       assert.equal(storedGrant.data()?.receiptId, receiptId);
     });

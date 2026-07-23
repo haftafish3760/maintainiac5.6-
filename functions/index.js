@@ -11,7 +11,10 @@ const {
   validateAssistRequest,
 } = require('./receipt_ai_assist');
 const {buildRestoreAuthorizationFunctions} = require('./restore_authorization');
-const {buildHostedPlanFunctions} = require('./hosted_plans');
+const {
+  buildHostedPlanFunctions,
+  loadHostedGrantForUid,
+} = require('./hosted_plans');
 
 const runningInFunctionsEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
 initializeApp(
@@ -44,10 +47,6 @@ const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
 const proofGrantLifetimeSeconds = defineInt(
   'EXPENSE_PROOF_GRANT_LIFETIME_SECONDS',
   { default: 5 * 60 },
-);
-const defaultProofQuotaBytes = defineInt(
-  'EXPENSE_DEFAULT_PROOF_QUOTA_BYTES',
-  { default: 25 * 1024 * 1024 },
 );
 const maxOpenProofGrants = defineInt('EXPENSE_MAX_OPEN_PROOF_GRANTS', {
   default: 3,
@@ -116,13 +115,18 @@ function validQuotaBytes(value) {
       value <= 1024 * 1024 * 1024 * 1024;
 }
 
-function quotaValues(data, defaultLimitBytes) {
-  const limitBytes = data?.storageLimitBytes ?? defaultLimitBytes;
+function quotaValues(data, defaultLimitBytes, {enforceLimit = false} = {}) {
   const usedBytes = data?.storageUsedBytes ?? 0;
-  if (!validQuotaBytes(limitBytes) || !Number.isInteger(usedBytes) ||
-      usedBytes < 0 || usedBytes > limitBytes) {
+  const storedLimitBytes = data?.storageLimitBytes ?? defaultLimitBytes;
+  const requestedLimitBytes = enforceLimit ? defaultLimitBytes : storedLimitBytes;
+  if (!validQuotaBytes(requestedLimitBytes) || !Number.isInteger(usedBytes) ||
+      usedBytes < 0) {
     throw new HttpsError('failed-precondition', 'Proof storage quota is invalid.');
   }
+  // A reduced plan never deletes or invalidates already-backed-up evidence.
+  // It preserves used bytes while blocking any new reservation above the new
+  // entitlement until usage is again within the configured allowance.
+  const limitBytes = Math.max(requestedLimitBytes, usedBytes);
   return {limitBytes, usedBytes};
 }
 
@@ -170,9 +174,10 @@ exports.issueExpenseProofUploadGrant = onCall(
     if (requestedBytes > configuredMaxBytes) {
       throw new HttpsError('resource-exhausted', 'Proof exceeds the configured upload limit.');
     }
-    const configuredQuotaBytes = defaultProofQuotaBytes.value();
+    const hostedGrant = await loadHostedGrantForUid(db, uid);
+    const configuredQuotaBytes = hostedGrant.storageQuotaBytes;
     if (!validQuotaBytes(configuredQuotaBytes)) {
-      throw new HttpsError('failed-precondition', 'Default proof storage quota is invalid.');
+      throw new HttpsError('resource-exhausted', 'Cloud media storage is not enabled.');
     }
     const configuredOpenGrantLimit = maxOpenProofGrants.value();
     if (!Number.isInteger(configuredOpenGrantLimit) ||
@@ -215,7 +220,9 @@ exports.issueExpenseProofUploadGrant = onCall(
       if (openGrants.size >= configuredOpenGrantLimit) {
         throw new HttpsError('resource-exhausted', 'Too many proof uploads are pending.');
       }
-      const quotaData = quotaValues(quota.data(), configuredQuotaBytes);
+      const quotaData = quotaValues(quota.data(), configuredQuotaBytes, {
+        enforceLimit: true,
+      });
       const reservedBytes = openGrants.docs.reduce((total, openGrant) => {
         const data = openGrant.data();
         return data.expiresAt?.toMillis() > Date.now() &&
@@ -226,18 +233,22 @@ exports.issueExpenseProofUploadGrant = onCall(
       if (quotaData.usedBytes + reservedBytes + maxBytes > quotaData.limitBytes) {
         throw new HttpsError('resource-exhausted', 'Proof storage quota is exhausted.');
       }
-      if (!quota.exists) {
-        transaction.create(quotaRef, {
-          storageLimitBytes: quotaData.limitBytes,
-          storageUsedBytes: 0,
-          createdAt: Timestamp.now(),
-        });
-      }
+      transaction.set(quotaRef, {
+        storageLimitBytes: quotaData.limitBytes,
+        entitlementLimitBytes: configuredQuotaBytes,
+        storageUsedBytes: quotaData.usedBytes,
+        planId: hostedGrant.planId,
+        policyVersion: hostedGrant.policyVersion,
+        createdAt: quota.data()?.createdAt || Timestamp.now(),
+        updatedAt: Timestamp.now(),
+      });
       transaction.create(grantRef, {
         uid,
         proofId,
         status: 'open',
         maxBytes,
+        planId: hostedGrant.planId,
+        policyVersion: hostedGrant.policyVersion,
         expiresAt,
         createdAt: Timestamp.now(),
       });
