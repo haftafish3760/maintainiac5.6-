@@ -403,6 +403,11 @@ class MaintainiacFirestoreUploadCoordinator {
     // Original local records remain authoritative. This queue copy is removed
     // only after cloud acknowledgement has itself been saved durably.
     if (uploadedIds.isNotEmpty) await _queue.clearUploaded();
+    final remainingPendingCount = _queue.pendingRecords.where((record) {
+      if (path != null && record.path != path) return false;
+      return authenticatedUid == null ||
+          _belongsToAccount(record, authenticatedUid);
+    }).length;
 
     final status = conflictedCount > 0 && failedCount == 0 && uploadedCount == 0
         ? MaintainiacFirestoreUploadStatus.conflict
@@ -417,6 +422,7 @@ class MaintainiacFirestoreUploadCoordinator {
       uploadedCount: uploadedCount,
       failedCount: failedCount,
       conflictedCount: conflictedCount,
+      remainingPendingCount: remainingPendingCount,
       reason: conflictedCount > 0
           ? 'A newer cloud record needs conflict review before backup can continue.'
           : null,

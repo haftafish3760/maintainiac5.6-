@@ -120,6 +120,75 @@ void main() {
     expect(result.checkpoint.lastError, 'One record remains queued.');
   });
 
+  test('one authorized attempt drains bounded batches with one id', () async {
+    await _enable(settings);
+    final attemptIds = <String?>[];
+    var remaining = 3;
+    final orchestrator = MaintainiacDurableSyncOrchestrator(
+      settingsStore: settings,
+      checkpointStore: checkpoints,
+      uploadPending: ({limit, path, nowUtc, attemptId}) async {
+        attemptIds.add(attemptId);
+        remaining -= 1;
+        return MaintainiacFirestoreUploadResult(
+          status: MaintainiacFirestoreUploadStatus.uploaded,
+          attemptedCount: 1,
+          uploadedCount: 1,
+          failedCount: 0,
+          remainingPendingCount: remaining,
+          reservationId: 'reservation-1',
+        );
+      },
+    );
+    final result = await orchestrator.run(_request('attempt-1'));
+    expect(attemptIds, ['attempt-1', 'attempt-1', 'attempt-1']);
+    expect(result.outcome, MaintainiacDurableSyncOutcome.succeeded);
+    expect(result.upload?.attemptedCount, 3);
+    expect(result.upload?.uploadedCount, 3);
+    expect(result.upload?.remainingPendingCount, 0);
+    expect(result.checkpoint.revision, 2);
+  });
+
+  test('safe batch bound leaves remaining work durably failed', () async {
+    await _enable(settings);
+    var uploads = 0;
+    final orchestrator = MaintainiacDurableSyncOrchestrator(
+      settingsStore: settings,
+      checkpointStore: checkpoints,
+      uploadPending: ({limit, path, nowUtc, attemptId}) async {
+        uploads += 1;
+        return const MaintainiacFirestoreUploadResult(
+          status: MaintainiacFirestoreUploadStatus.uploaded,
+          attemptedCount: 1,
+          uploadedCount: 1,
+          failedCount: 0,
+          remainingPendingCount: 1,
+        );
+      },
+    );
+    final result = await orchestrator.run(
+      MaintainiacDurableSyncRequest(
+        module: 'expenses',
+        attemptId: 'attempt-1',
+        trigger: MaintainiacSyncTrigger.manual,
+        network: MaintainiacSyncNetwork.wifi,
+        isRoaming: false,
+        batterySaverEnabled: false,
+        immediateSyncAllowed: true,
+        localNow: DateTime(2026, 7, 22, 12),
+        maximumBatches: 2,
+      ),
+    );
+    expect(uploads, 2);
+    expect(result.outcome, MaintainiacDurableSyncOutcome.failed);
+    expect(result.upload?.status, MaintainiacFirestoreUploadStatus.partial);
+    expect(result.upload?.uploadedCount, 2);
+    expect(
+      result.checkpoint.lastError,
+      contains('safe per-attempt batch limit'),
+    );
+  });
+
   test('serialized runs cannot overlap upload attempts', () async {
     await _enable(settings);
     var active = 0;

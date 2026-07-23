@@ -36,6 +36,7 @@ class MaintainiacFirestoreUploadResult {
     required this.uploadedCount,
     required this.failedCount,
     this.conflictedCount = 0,
+    this.remainingPendingCount = 0,
     this.reason,
     this.reservationId,
   });
@@ -45,6 +46,7 @@ class MaintainiacFirestoreUploadResult {
   final int uploadedCount;
   final int failedCount;
   final int conflictedCount;
+  final int remainingPendingCount;
   final String? reason;
   final String? reservationId;
 }

@@ -25,7 +25,8 @@ class MaintainiacDurableSyncRequest {
     required this.localNow,
     this.limit,
     this.path,
-  });
+    this.maximumBatches = 20,
+  }) : assert(maximumBatches > 0 && maximumBatches <= 100);
 
   final String module;
   final String attemptId;
@@ -37,6 +38,7 @@ class MaintainiacDurableSyncRequest {
   final DateTime localNow;
   final int? limit;
   final String? path;
+  final int maximumBatches;
 }
 
 class MaintainiacDurableSyncResult {
@@ -123,12 +125,7 @@ class MaintainiacDurableSyncOrchestrator {
     );
     MaintainiacFirestoreUploadResult upload;
     try {
-      upload = await _uploadPending(
-        limit: request.limit,
-        path: request.path,
-        nowUtc: nowUtc,
-        attemptId: request.attemptId,
-      );
+      upload = await _drainPending(request, nowUtc);
     } catch (error) {
       upload = MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.failed,
@@ -160,6 +157,67 @@ class MaintainiacDurableSyncOrchestrator {
       checkpoint: checkpoint,
       upload: upload,
     );
+  }
+
+  Future<MaintainiacFirestoreUploadResult> _drainPending(
+    MaintainiacDurableSyncRequest request,
+    DateTime nowUtc,
+  ) async {
+    var attempted = 0;
+    var uploaded = 0;
+    var failed = 0;
+    var conflicted = 0;
+    String? reservationId;
+    for (
+      var batchNumber = 1;
+      batchNumber <= request.maximumBatches;
+      batchNumber += 1
+    ) {
+      final batch = await _uploadPending(
+        limit: request.limit,
+        path: request.path,
+        nowUtc: nowUtc,
+        attemptId: request.attemptId,
+      );
+      attempted += batch.attemptedCount;
+      uploaded += batch.uploadedCount;
+      failed += batch.failedCount;
+      conflicted += batch.conflictedCount;
+      reservationId = batch.reservationId ?? reservationId;
+      if (batch.status != MaintainiacFirestoreUploadStatus.uploaded ||
+          batch.remainingPendingCount == 0) {
+        final status =
+            batch.status == MaintainiacFirestoreUploadStatus.empty &&
+                uploaded > 0
+            ? MaintainiacFirestoreUploadStatus.uploaded
+            : batch.status;
+        return MaintainiacFirestoreUploadResult(
+          status: status,
+          attemptedCount: attempted,
+          uploadedCount: uploaded,
+          failedCount: failed,
+          conflictedCount: conflicted,
+          remainingPendingCount: batch.remainingPendingCount,
+          reason: batch.reason,
+          reservationId: reservationId,
+        );
+      }
+      if (batchNumber == request.maximumBatches) {
+        return MaintainiacFirestoreUploadResult(
+          status: MaintainiacFirestoreUploadStatus.partial,
+          attemptedCount: attempted,
+          uploadedCount: uploaded,
+          failedCount: failed,
+          conflictedCount: conflicted,
+          remainingPendingCount: batch.remainingPendingCount,
+          reason:
+              'Cloud sync reached its safe per-attempt batch limit; '
+              '${batch.remainingPendingCount} queued records remain.',
+          reservationId: reservationId,
+        );
+      }
+    }
+    throw StateError('Cloud sync batch limit was invalid.');
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
