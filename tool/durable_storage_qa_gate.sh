@@ -8,6 +8,7 @@ CORE_TESTS=(
   test/app_storage_guard_test.dart
   test/app_storage_warning_preferences_test.dart
   test/maintainiac_draft_autosave_coordinator_test.dart
+  test/maintainiac_draft_retention_reminder_test.dart
   test/maintainiac_durable_record_store_test.dart
   test/maintainiac_durable_storage_facade_test.dart
   test/maintainiac_firestore_account_isolation_test.dart
