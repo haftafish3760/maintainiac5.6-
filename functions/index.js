@@ -12,9 +12,6 @@ const {
 } = require('./receipt_ai_assist');
 const {buildRestoreAuthorizationFunctions} = require('./restore_authorization');
 const {
-  buildDurableRecordManifestFunctions,
-} = require('./durable_record_manifest');
-const {
   buildDurableRecordCommitFunctions,
 } = require('./durable_record_commit');
 const {
@@ -49,9 +46,6 @@ exports.updateRestoreSession = restoreAuthorizationFunctions.updateRestoreSessio
 exports.fetchRestoreRecordPage =
     restoreAuthorizationFunctions.fetchRestoreRecordPage;
 exports.getRestorePlan = restoreAuthorizationFunctions.getRestorePlan;
-const durableRecordManifestFunctions = buildDurableRecordManifestFunctions();
-exports.updateDurableRecordManifest =
-    durableRecordManifestFunctions.updateDurableRecordManifest;
 const durableRecordCommitFunctions = buildDurableRecordCommitFunctions({
   enforceAppCheck: enforceCallableAppCheck,
 });

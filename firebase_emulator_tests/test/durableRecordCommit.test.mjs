@@ -77,6 +77,18 @@ describe('server committed durable records', () => {
     const stored = await getDoc(doc(owner, first.path));
     assert.equal(stored.data()?.recordPayload?.theme, 'dark');
     await assert.rejects(setDoc(doc(owner, first.path), first.data));
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const manifest = await getDoc(doc(
+        context.firestore(),
+        `orgs/orgCommit/syncManifests/${identity.uid}`,
+      ));
+      assert.equal(manifest.data()?.recordCount, 1);
+      assert.equal(
+        manifest.data()?.structuredBytes,
+        Buffer.byteLength(JSON.stringify(first.data), 'utf8'),
+      );
+      assert.equal(manifest.data()?.manifestRevision, 1);
+    });
   });
 
   test('attempt rebinding and private local evidence fail closed', async () => {
@@ -94,6 +106,25 @@ describe('server committed durable records', () => {
       {attemptId: 'durable-attempt-b', documents: [changed]},
     );
     assert.equal(rebound.status, 400);
+
+    const updated = await callFunction(
+      'commitDurableRecordBatch',
+      identity.token,
+      {attemptId: 'durable-attempt-b-update', documents: [changed]},
+    );
+    assert.equal(updated.writtenCount, 1);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const manifest = await getDoc(doc(
+        context.firestore(),
+        `orgs/orgCommit/syncManifests/${identity.uid}`,
+      ));
+      assert.equal(manifest.data()?.recordCount, 1);
+      assert.equal(
+        manifest.data()?.structuredBytes,
+        Buffer.byteLength(JSON.stringify(changed.data), 'utf8'),
+      );
+      assert.equal(manifest.data()?.manifestRevision, 2);
+    });
 
     const unsafe = durableDocument(
       identity.uid,

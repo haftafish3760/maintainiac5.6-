@@ -1,5 +1,5 @@
 const {createHash} = require('node:crypto');
-const {getFirestore} = require('firebase-admin/firestore');
+const {getFirestore, Timestamp} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {reserveHostedSync} = require('./hosted_plans');
 
@@ -51,20 +51,29 @@ async function commitDurableRecordBatch(request) {
   });
   const db = getFirestore();
   const memberRef = db.doc(`orgs/${validated.organizationId}/members/${uid}`);
+  const manifestRef = db.doc(
+    `orgs/${validated.organizationId}/syncManifests/${uid}`,
+  );
   const writtenCount = await db.runTransaction(async (transaction) => {
-    const member = await transaction.get(memberRef);
+    const references = validated.documents.map((document) =>
+      db.doc(document.path));
+    const snapshots = await Promise.all([
+      transaction.get(memberRef),
+      transaction.get(manifestRef),
+      ...references.map((reference) => transaction.get(reference)),
+    ]);
+    const member = snapshots[0];
+    const manifest = snapshots[1];
     if (member.data()?.status !== 'active') {
       throw new HttpsError(
         'permission-denied',
         'An active organization membership is required.',
       );
     }
-    const references = validated.documents.map((document) =>
-      db.doc(document.path));
-    const existing = await Promise.all(
-      references.map((reference) => transaction.get(reference)),
-    );
+    const existing = snapshots.slice(2);
     let writes = 0;
+    let recordCountDelta = 0;
+    let structuredBytesDelta = 0;
     for (let index = 0; index < validated.documents.length; index += 1) {
       const incoming = validated.documents[index].data;
       const current = existing[index].data();
@@ -75,9 +84,40 @@ async function commitDurableRecordBatch(request) {
           current,
         );
         if (canonicalJson(incoming) === canonicalJson(current)) continue;
+        structuredBytesDelta -= encodedBytes(current);
+      } else {
+        recordCountDelta += 1;
       }
+      structuredBytesDelta += encodedBytes(incoming);
       transaction.set(references[index], incoming, {merge: false});
       writes += 1;
+    }
+    if (writes > 0) {
+      const currentManifest = validManifest(manifest.data(), {
+        organizationId: validated.organizationId,
+        uid,
+        allowMissing: !manifest.exists,
+      });
+      const recordCount = currentManifest.recordCount + recordCountDelta;
+      const structuredBytes =
+        currentManifest.structuredBytes + structuredBytesDelta;
+      if (recordCount < 0 || structuredBytes < 0 ||
+          !Number.isSafeInteger(recordCount) ||
+          !Number.isSafeInteger(structuredBytes)) {
+        throw new HttpsError(
+          'failed-precondition',
+          'Durable restore manifest requires reconciliation.',
+        );
+      }
+      transaction.set(manifestRef, {
+        schema: 'maintainiac_sync_manifest_v1',
+        uid,
+        orgId: validated.organizationId,
+        recordCount,
+        structuredBytes,
+        manifestRevision: currentManifest.manifestRevision + 1,
+        updatedAt: Timestamp.now(),
+      }, {merge: false});
     }
     return writes;
   });
@@ -87,6 +127,29 @@ async function commitDurableRecordBatch(request) {
     writtenCount,
     batchSha256,
   };
+}
+
+function validManifest(data, {organizationId, uid, allowMissing}) {
+  if (data == null && allowMissing) {
+    return {recordCount: 0, structuredBytes: 0, manifestRevision: 0};
+  }
+  if (data?.schema !== 'maintainiac_sync_manifest_v1' ||
+      data.uid !== uid || data.orgId !== organizationId ||
+      !Number.isSafeInteger(data.recordCount) || data.recordCount < 0 ||
+      !Number.isSafeInteger(data.structuredBytes) ||
+      data.structuredBytes < 0 ||
+      !Number.isSafeInteger(data.manifestRevision) ||
+      data.manifestRevision < 1) {
+    throw new HttpsError(
+      'failed-precondition',
+      'Durable restore manifest requires reconciliation.',
+    );
+  }
+  return data;
+}
+
+function encodedBytes(data) {
+  return Buffer.byteLength(JSON.stringify(data), 'utf8');
 }
 
 function validateDocuments(uid, documents) {

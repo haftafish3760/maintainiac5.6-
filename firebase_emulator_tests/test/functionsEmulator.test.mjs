@@ -19,7 +19,10 @@ import {
   callFunction,
   callFunctionError,
 } from './callableTestClient.mjs';
-import {mutateRestoreRecordsAfterAuthorization} from './restoreSnapshotFixtures.mjs';
+import {
+  mutateRestoreRecordsAfterAuthorization,
+  seedRestoreRecordsAndManifest,
+} from './restoreSnapshotFixtures.mjs';
 
 const callableNames = [
   'issueExpenseProofUploadGrant',
@@ -148,23 +151,7 @@ describe('Cloud Functions emulator safety', () => {
     });
     assert.equal(registered.deviceId, 'restoreDeviceA');
     assert.equal(registered.registrationRevision, 1);
-    await testEnv.withSecurityRulesDisabled(async (context) => {
-      const db = context.firestore();
-      for (const recordKey of ['3'.repeat(64), '4'.repeat(64)]) {
-        await setDoc(
-          doc(db, `orgs/orgLifecycleA/records/${recordKey}`),
-          {
-            schema: 'maintainiac_durable_record_v1',
-            recordKey,
-            orgId: 'orgLifecycleA',
-            createdByUid: identity.uid,
-            updatedByUid: identity.uid,
-            privateToOwner: true,
-            recordPayload: {value: recordKey.substring(0, 1)},
-          },
-        );
-      }
-    });
+    await seedRestoreRecordsAndManifest(testEnv, identity.uid);
     const restorePlan = await waitForRestorePlan(identity.token, {
       organizationId: 'orgLifecycleA',
       deviceId: 'restoreDeviceA',
