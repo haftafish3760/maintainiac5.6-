@@ -63,7 +63,7 @@ class CallableMaintainiacDurableCloudRecordSource
       },
     );
     final rawDocuments = response['documents'];
-    if (rawDocuments is! List) {
+    if (rawDocuments is! List || rawDocuments.length > limit) {
       throw const FormatException('Restore page response is malformed.');
     }
     return List.unmodifiable([

@@ -82,6 +82,9 @@ class MaintainiacDurableCloudRestoreGateway {
       limit: pageSize + 1,
       afterRecordKey: afterRecordKey,
     );
+    if (documents.length > pageSize + 1) {
+      throw const FormatException('Cloud restore page exceeds its limit.');
+    }
     final sorted = [...documents]..sort((a, b) => a.id.compareTo(b.id));
     if (sorted.map((document) => document.id).toSet().length != sorted.length ||
         sorted.any(

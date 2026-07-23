@@ -74,6 +74,26 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('callable source rejects more documents than it requested', () async {
+    final source = CallableMaintainiacDurableCloudRecordSource(
+      functions: _Functions({
+        'documents': List.generate(
+          3,
+          (index) => {
+            'id': index.toRadixString(16).padLeft(64, '0'),
+            'data': {'schema': 'maintainiac_durable_record_v1'},
+          },
+        ),
+      }),
+      authorization: authorization,
+    );
+
+    await expectLater(
+      source.fetchPage(organizationId: 'org-a', uid: 'user-a', limit: 2),
+      throwsFormatException,
+    );
+  });
 }
 
 class _Functions implements MaintainiacCallableFunctionClient {

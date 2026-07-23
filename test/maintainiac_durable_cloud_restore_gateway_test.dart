@@ -87,6 +87,25 @@ void main() {
     );
     expect(source.requestedLimit, isNull);
   });
+
+  test(
+    'restore rejects a source that exceeds the requested page bound',
+    () async {
+      final gateway = MaintainiacDurableCloudRestoreGateway(
+        source: _Source([
+          _document('settings', 'settings-1', revision: 1),
+          _document('settings', 'settings-2', revision: 1),
+          _document('settings', 'settings-3', revision: 1),
+        ]),
+        identityProvider: const _Identity('user-a'),
+      );
+
+      await expectLater(
+        gateway.fetchPage(organizationId: 'org-a', pageSize: 1),
+        throwsFormatException,
+      );
+    },
+  );
 }
 
 MaintainiacDurableCloudDocument _document(
