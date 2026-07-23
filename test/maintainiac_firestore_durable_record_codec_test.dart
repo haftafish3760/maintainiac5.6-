@@ -61,6 +61,29 @@ void main() {
     );
   });
 
+  test('generic codec rejects a mismatched authenticated account scope', () {
+    final record = MaintainiacDurableRecord(
+      module: 'settings',
+      id: 'settings-1',
+      payload: const {'theme': 'dark'},
+      lifecycle: MaintainiacRecordLifecycle(
+        createdAt: DateTime.utc(2026, 7, 22),
+        updatedAt: DateTime.utc(2026, 7, 22),
+      ),
+    );
+
+    expect(
+      () => MaintainiacFirestoreDurableRecordCodec.encode(
+        organizationId: 'org-a',
+        uid: 'user-a',
+        accountScopeId: 'org-a.user-b',
+        schemaVersion: 1,
+        record: record,
+      ),
+      throwsArgumentError,
+    );
+  });
+
   test('decode rejects account and document identity substitution', () {
     final draft = MaintainiacFirestoreDurableRecordCodec.encode(
       organizationId: 'org-a',

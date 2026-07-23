@@ -170,7 +170,8 @@ service cloud.firestore {
         request.resource.data.recordKey == recordId &&
         recordId.matches('[a-f0-9]{64}') &&
         request.resource.data.orgId == orgId &&
-        request.resource.data.accountScopeId is string &&
+        request.resource.data.accountScopeId == orgId + '.' + request.auth.uid &&
+        request.resource.data.privateToOwner == true &&
         request.resource.data.module is string &&
         request.resource.data.module.size() > 0 &&
         request.resource.data.module.size() <= 80 &&
@@ -1547,11 +1548,9 @@ service cloud.firestore {
       }
 
       match /records/{recordId} {
-        allow read: if isActiveMember(orgId) && (
-          isOwnerOrAdmin(orgId) ||
-          resource.data.createdByUid == request.auth.uid ||
-          resource.data.privateToOwner != true
-        );
+        allow read: if isActiveMember(orgId) &&
+          resource.data.createdByUid == request.auth.uid &&
+          resource.data.privateToOwner == true;
         allow create: if isActiveMember(orgId) &&
           writesOwnCreate() &&
           noForbiddenSensitiveFields() &&

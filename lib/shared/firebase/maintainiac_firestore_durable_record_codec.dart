@@ -23,6 +23,13 @@ class MaintainiacFirestoreDurableRecordCodec {
     _token(organizationId, 'organizationId');
     _token(uid, 'uid');
     _token(accountScopeId, 'accountScopeId');
+    if (accountScopeId != '$organizationId.$uid') {
+      throw ArgumentError.value(
+        accountScopeId,
+        'accountScopeId',
+        'Cloud records must use the authenticated organization account scope.',
+      );
+    }
     if (schemaVersion < 1) {
       throw ArgumentError.value(schemaVersion, 'schemaVersion');
     }
@@ -67,6 +74,9 @@ class MaintainiacFirestoreDurableRecordCodec {
     required String documentId,
     required Map<dynamic, dynamic> data,
   }) {
+    if (expectedAccountScopeId != '$expectedOrganizationId.$expectedUid') {
+      throw const FormatException('Cloud durable record scope is invalid.');
+    }
     if (data['schema'] != 'maintainiac_durable_record_v1' ||
         data['recordKey'] != documentId ||
         data['orgId'] != expectedOrganizationId ||

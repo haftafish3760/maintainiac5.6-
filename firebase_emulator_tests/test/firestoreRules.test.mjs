@@ -611,6 +611,18 @@ describe('Firestore rules emulator safety', () => {
     await assertFails(
       getDoc(doc(helper, `orgs/orgA/records/${recordId}`)),
     );
+    await assertFails(
+      setDoc(doc(owner, `orgs/orgA/records/${'d'.repeat(64)}`), {
+        ...genericDurableRecord('d'.repeat(64)),
+        accountScopeId: 'orgA.helperUid',
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, `orgs/orgA/records/${'e'.repeat(64)}`), {
+        ...genericDurableRecord('e'.repeat(64)),
+        privateToOwner: false,
+      }),
+    );
     await assertSucceeds(setDoc(reference, durable));
     await assertFails(
       updateDoc(reference, {recordPayload: {theme: 'light'}}),
@@ -628,6 +640,23 @@ describe('Firestore rules emulator safety', () => {
       setDoc(doc(owner, `orgs/orgA/records/${'c'.repeat(64)}`), {
         ...genericDurableRecord('c'.repeat(64)),
         recordPayload: {rawOcrText: 'must stay local'},
+      }),
+    );
+    await assertSucceeds(
+      setDoc(reference, {
+        ...durable,
+        localRevision: 3,
+        recordState: 'deleted',
+        updatedAt: '2026-07-22T02:00:00.000Z',
+        deletedAt: '2026-07-22T02:00:00.000Z',
+        contentSha256: 'f'.repeat(64),
+      }),
+    );
+    await assertFails(
+      updateDoc(reference, {
+        localRevision: 4,
+        recordState: 'deleted',
+        deletedAt: null,
       }),
     );
     await assertFails(deleteDoc(reference));
