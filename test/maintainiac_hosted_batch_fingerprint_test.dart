@@ -26,10 +26,12 @@ void main() {
       queue: queue,
       sink: _FailingSink(),
       uploadEnabled: true,
-      hostedSyncReservationProvider: (attemptId, batchSha256) async {
-        hashes.add(batchSha256);
-        return _reservation();
-      },
+      hostedSyncReservationProvider:
+          (attemptId, batchSha256, batchBytes) async {
+            expect(batchBytes, greaterThan(0));
+            hashes.add(batchSha256);
+            return _reservation();
+          },
     );
 
     await coordinator.uploadPending(attemptId: 'attempt-1', nowUtc: start);

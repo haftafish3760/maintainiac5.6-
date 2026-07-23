@@ -186,6 +186,7 @@ class MaintainiacFirestoreUploadCoordinator {
           hostedReservation = await hostedReservationProvider(
             attemptId,
             _batchSha256(batch),
+            _batchBytes(batch),
           );
         } catch (_) {
           return const MaintainiacFirestoreUploadResult(
@@ -452,6 +453,15 @@ class MaintainiacFirestoreUploadCoordinator {
     ];
     return sha256.convert(utf8.encode(jsonEncode(canonical))).toString();
   }
+
+  int _batchBytes(List<MaintainiacFirestoreQueuedDocument> batch) => utf8
+      .encode(
+        jsonEncode([
+          for (final record in batch)
+            {'path': record.path, 'data': _canonicalSyncValue(record.data)},
+        ]),
+      )
+      .length;
 }
 
 Object? _canonicalSyncValue(Object? value) {

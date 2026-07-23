@@ -32,6 +32,7 @@ void main() {
       final reservation = await client.reserveSync(
         attemptId: 'attempt-1',
         batchSha256: 'a' * 64,
+        batchBytes: 2048,
       );
       expect(entitlement.dailySyncLimit, 4);
       expect(entitlement.quotaBytes, 100 * 1024 * 1024);
@@ -40,6 +41,7 @@ void main() {
       expect(functions.payloads.last, {
         'attemptId': 'attempt-1',
         'batchSha256': 'a' * 64,
+        'batchBytes': 2048,
       });
     },
   );
@@ -69,15 +71,35 @@ void main() {
       );
       await expectLater(malformed.loadEntitlement(), throwsFormatException);
       await expectLater(
-        malformed.reserveSync(attemptId: 'attempt-1', batchSha256: 'a' * 64),
+        malformed.reserveSync(
+          attemptId: 'attempt-1',
+          batchSha256: 'a' * 64,
+          batchBytes: 2048,
+        ),
         throwsFormatException,
       );
       await expectLater(
-        malformed.reserveSync(attemptId: 'bad/attempt', batchSha256: 'a' * 64),
+        malformed.reserveSync(
+          attemptId: 'bad/attempt',
+          batchSha256: 'a' * 64,
+          batchBytes: 2048,
+        ),
         throwsArgumentError,
       );
       await expectLater(
-        malformed.reserveSync(attemptId: 'attempt-1', batchSha256: 'bad-hash'),
+        malformed.reserveSync(
+          attemptId: 'attempt-1',
+          batchSha256: 'bad-hash',
+          batchBytes: 2048,
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        malformed.reserveSync(
+          attemptId: 'attempt-1',
+          batchSha256: 'a' * 64,
+          batchBytes: 0,
+        ),
         throwsArgumentError,
       );
     },

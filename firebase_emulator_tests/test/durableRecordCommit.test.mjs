@@ -91,7 +91,7 @@ describe('server committed durable records', () => {
     });
   });
 
-  test('attempt rebinding and private local evidence fail closed', async () => {
+  test('one sync accepts later batches while private evidence fails closed', async () => {
     const identity = await createIdentity();
     await seedHostedAccount(identity.uid);
     const first = durableDocument(identity.uid, 'settings-b', 1, 'dark');
@@ -100,19 +100,14 @@ describe('server committed durable records', () => {
       documents: [first],
     });
     const changed = durableDocument(identity.uid, 'settings-b', 2, 'light');
-    const rebound = await callFunctionError(
+    const updated = await callFunction(
       'commitDurableRecordBatch',
       identity.token,
       {attemptId: 'durable-attempt-b', documents: [changed]},
     );
-    assert.equal(rebound.status, 400);
-
-    const updated = await callFunction(
-      'commitDurableRecordBatch',
-      identity.token,
-      {attemptId: 'durable-attempt-b-update', documents: [changed]},
-    );
     assert.equal(updated.writtenCount, 1);
+    assert.equal(updated.used, 1);
+    assert.equal(updated.batchCount, 2);
     await testEnv.withSecurityRulesDisabled(async (context) => {
       const manifest = await getDoc(doc(
         context.firestore(),

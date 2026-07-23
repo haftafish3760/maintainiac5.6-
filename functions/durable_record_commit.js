@@ -47,7 +47,11 @@ async function commitDurableRecordBatch(request) {
   const batchSha256 = sha256(canonicalJson(documents));
   const reservation = await reserveHostedSync({
     auth: request.auth,
-    data: {attemptId, batchSha256},
+    data: {
+      attemptId,
+      batchSha256,
+      batchBytes: validated.totalBytes,
+    },
   });
   const db = getFirestore();
   const memberRef = db.doc(`orgs/${validated.organizationId}/members/${uid}`);
@@ -194,7 +198,7 @@ function validateDocuments(uid, documents) {
     if (totalBytes > MAX_BATCH_BYTES) invalidBatch();
     return {path, data};
   });
-  return {organizationId, documents: validated};
+  return {organizationId, documents: validated, totalBytes};
 }
 
 function validateRevisionAdvance(path, incoming, current) {

@@ -57,9 +57,10 @@ class MaintainiacFirebaseDurableStorageRuntime {
       uploadNetworkAllowed: uploadNetworkAllowed,
       hostedSyncReservationProvider: serverCommitted
           ? null
-          : (attemptId, batchSha256) => hostedPlan.reserveSync(
+          : (attemptId, batchSha256, batchBytes) => hostedPlan.reserveSync(
               attemptId: attemptId,
               batchSha256: batchSha256,
+              batchBytes: batchBytes,
             ),
       uploadAcknowledgment: (records, acknowledgedAtUtc) =>
           resolvedRevisions.acknowledge(records, nowUtc: acknowledgedAtUtc),

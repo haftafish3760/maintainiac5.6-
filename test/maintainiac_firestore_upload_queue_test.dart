@@ -127,12 +127,13 @@ void main() {
         queue: queue,
         sink: sink,
         uploadEnabled: true,
-        hostedSyncReservationProvider: (attemptId, batchSha256) async {
-          expect(attemptId, 'attempt-1');
-          expect(batchSha256, matches(RegExp(r'^[a-f0-9]{64}$')));
-          reservations += 1;
-          return _reservation();
-        },
+        hostedSyncReservationProvider:
+            (attemptId, batchSha256, batchBytes) async {
+              expect(attemptId, 'attempt-1');
+              expect(batchSha256, matches(RegExp(r'^[a-f0-9]{64}$')));
+              reservations += 1;
+              return _reservation();
+            },
         freeSyncsUsedInWindowReader: () => 999,
       ).uploadPending(attemptId: 'attempt-1');
 
@@ -152,7 +153,7 @@ void main() {
       queue: queue,
       sink: sink,
       uploadEnabled: true,
-      hostedSyncReservationProvider: (attemptId, batchSha256) =>
+      hostedSyncReservationProvider: (attemptId, batchSha256, batchBytes) =>
           throw StateError('limit reached'),
     ).uploadPending(attemptId: 'attempt-1');
 
@@ -169,10 +170,11 @@ void main() {
       queue: queue,
       sink: _RecordingFirestoreSink(),
       uploadEnabled: true,
-      hostedSyncReservationProvider: (attemptId, batchSha256) async {
-        reservations += 1;
-        return _reservation();
-      },
+      hostedSyncReservationProvider:
+          (attemptId, batchSha256, batchBytes) async {
+            reservations += 1;
+            return _reservation();
+          },
     ).uploadPending();
 
     expect(result.status, MaintainiacFirestoreUploadStatus.empty);

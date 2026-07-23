@@ -28,6 +28,7 @@ class MaintainiacHostedPlanClient {
   Future<MaintainiacHostedSyncReservation> reserveSync({
     required String attemptId,
     required String batchSha256,
+    required int batchBytes,
   }) async {
     _requireUid();
     if (!RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(attemptId)) {
@@ -36,9 +37,16 @@ class MaintainiacHostedPlanClient {
     if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(batchSha256)) {
       throw ArgumentError.value(batchSha256, 'batchSha256');
     }
+    if (batchBytes < 1 || batchBytes > 64 * 1024 * 1024) {
+      throw ArgumentError.value(batchBytes, 'batchBytes');
+    }
     final payload = await _functions.call(
       name: 'reserveHostedSync',
-      data: {'attemptId': attemptId, 'batchSha256': batchSha256},
+      data: {
+        'attemptId': attemptId,
+        'batchSha256': batchSha256,
+        'batchBytes': batchBytes,
+      },
     );
     return MaintainiacHostedSyncReservation.fromServer(payload);
   }

@@ -72,6 +72,7 @@ typedef MaintainiacHostedSyncReservationProvider =
     Future<MaintainiacHostedSyncReservation> Function(
       String attemptId,
       String batchSha256,
+      int batchBytes,
     );
 
 /// Shared Firestore sink for module-specific backup coordinators. Keeping the
