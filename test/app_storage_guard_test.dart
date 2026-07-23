@@ -79,7 +79,7 @@ void main() {
       expect(check.hasEnoughSpace, isFalse);
       expect(check.blockingMessage(), contains('not enough free storage'));
       expect(check.blockingMessage(), contains('device safety reserve'));
-      expect(check.blockingMessage(), contains('will not delete anything'));
+      expect(check.blockingMessage(), contains('does not delete files'));
     });
 
     test('allows exactly enough storage and blocks just under it', () async {

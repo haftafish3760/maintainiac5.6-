@@ -9,8 +9,8 @@ void main() {
     expect(status(1023), DeviceStorageStatus.yellow);
     expect(status(500), DeviceStorageStatus.yellow);
     expect(status(499), DeviceStorageStatus.orange);
-    expect(status(250), DeviceStorageStatus.orange);
-    expect(status(249), DeviceStorageStatus.red);
+    expect(status(251), DeviceStorageStatus.orange);
+    expect(status(250), DeviceStorageStatus.red);
     expect(status(0), DeviceStorageStatus.red);
   });
 

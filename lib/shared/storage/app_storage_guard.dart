@@ -214,7 +214,7 @@ class AppStorageCheck {
     return 'There is not enough free storage to ${AppStorageGuard.purposeLabel(purpose)}. '
         'Available: $availableLabel. Minimum needed: $minimumLabel '
         '($operationLabel for this action plus a $reserveLabel device safety reserve). '
-        'Please free up storage space first. Maintainiac will not delete anything from your phone without your approval.';
+        'Please free up storage space first. Maintainiac does not delete files from your phone to make room.';
   }
 
   String unknownMessage() {

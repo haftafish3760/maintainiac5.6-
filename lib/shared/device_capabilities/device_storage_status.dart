@@ -10,7 +10,7 @@ class DeviceStorageAssessment {
   factory DeviceStorageAssessment.fromFreeMb(int? freeStorageMb) {
     final status = switch (freeStorageMb) {
       null => DeviceStorageStatus.unknown,
-      < 250 => DeviceStorageStatus.red,
+      <= 250 => DeviceStorageStatus.red,
       < 500 => DeviceStorageStatus.orange,
       < 1024 => DeviceStorageStatus.yellow,
       _ => DeviceStorageStatus.green,
