@@ -51,4 +51,40 @@ void main() {
     );
     expect(snapshotChunkBytes, lessThan(1024 * 1024));
   });
+
+  test('client batch hashing matches the callable canonical JSON contract', () {
+    expect(
+      maintainiacFirestoreBatchSha256([
+        MaintainiacFirestoreDocumentDraft(
+          path: 'orgs/org-a/records/${'a' * 64}',
+          data: const {
+            'schema': 'maintainiac_durable_record_v1',
+            'z': 2,
+            'a': 1,
+          },
+        ),
+      ]),
+      '071bd0380dde0567ed3d2af299f4e1ce75d10e53b0d696f13b9dfb1d78804a03',
+    );
+  });
+
+  test('client record hashing matches the callable canonical JSON contract', () {
+    final record = MaintainiacDurableRecord(
+      module: 'settings',
+      id: 'settings-1',
+      payload: const {'theme': 'dark'},
+      lifecycle: MaintainiacRecordLifecycle(
+        createdAt: DateTime.utc(2026, 7, 22),
+        updatedAt: DateTime.utc(2026, 7, 22),
+      ),
+    );
+
+    expect(
+      MaintainiacRestoreApplier.contentSha256For(
+        record,
+        accountScopeId: 'org-a.user-a',
+      ),
+      'c310e1a75e38ff7a3b0e3ba2d29a596d3a52c05502335d638180ec6161d924f4',
+    );
+  });
 }

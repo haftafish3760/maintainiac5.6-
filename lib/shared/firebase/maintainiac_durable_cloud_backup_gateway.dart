@@ -83,17 +83,23 @@ class MaintainiacDurableCloudBackupGateway {
     DateTime? queuedAtUtc,
   }) async {
     final uid = _authenticatedUid();
+    if (!RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(organizationId)) {
+      throw ArgumentError.value(organizationId, 'organizationId');
+    }
     final uniqueModules = <String>{};
     for (final module in modules) {
-      if (module.trim() != module ||
-          module.isEmpty ||
-          module.length > 80 ||
-          module.contains(':')) {
+      if (!RegExp(r'^[A-Za-z0-9_-]{1,80}$').hasMatch(module)) {
         throw ArgumentError.value(module, 'modules');
       }
       uniqueModules.add(module);
       if (uniqueModules.length > 100) {
         throw ArgumentError('A backup request contains too many modules.');
+      }
+    }
+    for (final module in uniqueModules) {
+      final schemaVersion = schemaVersions[module] ?? 1;
+      if (schemaVersion < 1) {
+        throw ArgumentError.value(schemaVersion, 'schemaVersions[$module]');
       }
     }
     final queuedAt = (queuedAtUtc ?? DateTime.now().toUtc()).toUtc();

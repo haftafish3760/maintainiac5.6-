@@ -175,6 +175,28 @@ void main() {
     expect(result.status, MaintainiacFirestoreUploadStatus.conflict);
     expect(queue.records.single.conflictedAtUtc, isNotNull);
   });
+
+  test('a mismatched server batch acknowledgment remains retryable', () async {
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    await queue.enqueue(_draft());
+    final runtime = await MaintainiacFirebaseDurableStorageRuntime.create(
+      queue: queue,
+      revisions: MaintainiacDurableCloudRevisionStore.memory(),
+      identity: const _Identity('user-a'),
+      functions: _Functions(batchSha256Override: 'f' * 64),
+      uploadEnabled: true,
+      uploadNetworkAllowed: () => true,
+    );
+
+    final result = await runtime.uploads.uploadPending(
+      attemptId: 'attempt-a',
+      nowUtc: DateTime.utc(2026, 7, 23),
+    );
+
+    expect(result.status, MaintainiacFirestoreUploadStatus.failed);
+    expect(queue.pendingRecords, hasLength(1));
+    expect(queue.pendingRecords.single.attemptCount, 1);
+  });
 }
 
 MaintainiacFirestoreDocumentDraft _draft() {
@@ -210,9 +232,10 @@ class _HostedSink
 }
 
 class _Functions implements MaintainiacCallableFunctionClient {
-  _Functions({this.failure});
+  _Functions({this.failure, this.batchSha256Override});
 
   final Object? failure;
+  final String? batchSha256Override;
   final names = <String>[];
 
   @override
@@ -222,6 +245,14 @@ class _Functions implements MaintainiacCallableFunctionClient {
   }) async {
     names.add(name);
     if (failure != null) throw failure!;
+    final documents = (data['documents'] as List)
+        .map(
+          (value) => MaintainiacFirestoreDocumentDraft(
+            path: (value as Map)['path'] as String,
+            data: Map<String, Object?>.from(value['data'] as Map),
+          ),
+        )
+        .toList(growable: false);
     return {
       'reservationId': 'reservation-a',
       'used': 1,
@@ -231,7 +262,9 @@ class _Functions implements MaintainiacCallableFunctionClient {
       'reservedAt': '2026-07-22T00:00:00.000Z',
       'attemptedCount': 1,
       'writtenCount': 1,
-      'batchSha256': 'f' * 64,
+      'batchSha256':
+          batchSha256Override ??
+          maintainiacFirestoreBatchSha256(documents),
     };
   }
 }

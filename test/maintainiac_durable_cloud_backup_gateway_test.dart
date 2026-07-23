@@ -173,6 +173,48 @@ void main() {
     );
   });
 
+  test('invalid module configuration fails before any record is queued', () async {
+    final records = MaintainiacDurableRecordStore.memory();
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    await records.save(
+      module: 'settings',
+      id: 'settings-1',
+      payload: const {'theme': 'dark'},
+    );
+    await records.save(
+      module: 'profiles',
+      id: 'profile-1',
+      payload: const {'name': 'Primary'},
+    );
+    final gateway = MaintainiacDurableCloudBackupGateway(
+      records: records,
+      queue: queue,
+      identityProvider: const _Identity('user-a'),
+    );
+
+    await expectLater(
+      gateway.queueModules(
+        organizationId: 'org-a',
+        modules: const ['settings', 'profiles'],
+        schemaVersions: const {'profiles': 0},
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      gateway.queueModule(organizationId: 'org-a', module: 'bad/module'),
+      throwsArgumentError,
+    );
+    await expectLater(
+      gateway.queueModules(
+        organizationId: 'bad/org',
+        modules: const [],
+      ),
+      throwsArgumentError,
+    );
+
+    expect(queue.pendingRecords, isEmpty);
+  });
+
   test(
     'acknowledged unchanged records generate zero later queue writes',
     () async {

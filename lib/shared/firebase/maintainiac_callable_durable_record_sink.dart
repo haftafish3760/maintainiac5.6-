@@ -83,12 +83,14 @@ class MaintainiacCallableDurableRecordSink
     final attemptedCount = response['attemptedCount'];
     final writtenCount = response['writtenCount'];
     final batchSha256 = response['batchSha256'];
+    final expectedBatchSha256 = maintainiacFirestoreBatchSha256(documents);
     if (attemptedCount != documents.length ||
         writtenCount is! int ||
         writtenCount < 0 ||
         writtenCount > documents.length ||
         batchSha256 is! String ||
-        !RegExp(r'^[a-f0-9]{64}$').hasMatch(batchSha256)) {
+        !RegExp(r'^[a-f0-9]{64}$').hasMatch(batchSha256) ||
+        batchSha256 != expectedBatchSha256) {
       throw const FormatException('Hosted durable commit response is invalid.');
     }
     return MaintainiacHostedSyncReservation.fromServer(response);

@@ -163,13 +163,27 @@ class MaintainiacDurableRecordStore {
     int? expectedRevision,
     DateTime? now,
   }) async {
-    final record = await save(
-      module: module,
-      id: id,
-      payload: payload,
-      expectedRevision: expectedRevision,
-      now: now,
-    );
+    final existing = recordFor(module, id);
+    final draft = draftStore.draftFor(module, id);
+    final matchesDraft =
+        draft != null &&
+        draft.lifecycle.updatedAt.isAtSameMomentAs(expectedDraftUpdatedAt);
+    final isAcknowledgmentRetry =
+        existing != null &&
+        matchesDraft &&
+        !existing.lifecycle.updatedAt.isBefore(expectedDraftUpdatedAt) &&
+        MaintainiacDurablePayload.equivalent(existing.payload, payload) &&
+        (expectedRevision == null ||
+            existing.lifecycle.revision == expectedRevision + 1);
+    final record = isAcknowledgmentRetry
+        ? existing
+        : await save(
+            module: module,
+            id: id,
+            payload: payload,
+            expectedRevision: expectedRevision,
+            now: now,
+          );
     await draftStore.removeIfUnchanged(
       module: module,
       id: id,

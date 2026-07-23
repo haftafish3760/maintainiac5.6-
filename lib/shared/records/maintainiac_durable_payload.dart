@@ -23,6 +23,12 @@ class MaintainiacDurablePayload {
     return utf8.encode(jsonEncode(_jsonSafe(frozen))).length;
   }
 
+  static bool equivalent(Object? left, Object? right) {
+    final frozenLeft = _PayloadTraversal().freezeAny(left);
+    final frozenRight = _PayloadTraversal().freezeAny(right);
+    return _equivalentValue(frozenLeft, frozenRight);
+  }
+
   static Object? _jsonSafe(Object? value) {
     if (value is DateTime) return value.toUtc().toIso8601String();
     if (value is List) return value.map(_jsonSafe).toList(growable: false);
@@ -33,6 +39,31 @@ class MaintainiacDurablePayload {
       };
     }
     return value;
+  }
+
+  static bool _equivalentValue(Object? left, Object? right) {
+    if (identical(left, right)) return true;
+    if (left is DateTime && right is DateTime) {
+      return left.isAtSameMomentAs(right);
+    }
+    if (left is num && right is num) return left == right;
+    if (left is List && right is List) {
+      if (left.length != right.length) return false;
+      for (var index = 0; index < left.length; index += 1) {
+        if (!_equivalentValue(left[index], right[index])) return false;
+      }
+      return true;
+    }
+    if (left is Map && right is Map) {
+      if (left.length != right.length ||
+          left.keys.any((key) => !right.containsKey(key))) {
+        return false;
+      }
+      return left.keys.every(
+        (key) => _equivalentValue(left[key], right[key]),
+      );
+    }
+    return left == right;
   }
 }
 

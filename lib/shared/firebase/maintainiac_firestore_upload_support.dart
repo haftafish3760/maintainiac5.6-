@@ -17,8 +17,20 @@ bool _maintainiacRecordBelongsToAccount(
 }
 
 String _maintainiacBatchSha256(List<MaintainiacFirestoreQueuedDocument> batch) {
+  return maintainiacFirestoreBatchSha256([
+    for (final record in batch)
+      MaintainiacFirestoreDocumentDraft(
+        path: record.path,
+        data: record.data,
+      ),
+  ]);
+}
+
+String maintainiacFirestoreBatchSha256(
+  List<MaintainiacFirestoreDocumentDraft> documents,
+) {
   return sha256
-      .convert(utf8.encode(_maintainiacCanonicalBatch(batch)))
+      .convert(utf8.encode(_maintainiacCanonicalDocuments(documents)))
       .toString();
 }
 
@@ -28,12 +40,19 @@ int _maintainiacBatchBytes(List<MaintainiacFirestoreQueuedDocument> batch) {
 
 String _maintainiacCanonicalBatch(
   List<MaintainiacFirestoreQueuedDocument> batch,
+) => _maintainiacCanonicalDocuments([
+  for (final record in batch)
+    MaintainiacFirestoreDocumentDraft(path: record.path, data: record.data),
+]);
+
+String _maintainiacCanonicalDocuments(
+  List<MaintainiacFirestoreDocumentDraft> documents,
 ) {
   return jsonEncode([
-    for (final record in batch)
+    for (final document in documents)
       {
-        'path': record.path,
-        'data': _maintainiacCanonicalSyncValue(record.data),
+        'data': _maintainiacCanonicalSyncValue(document.data),
+        'path': document.path,
       },
   ]);
 }

@@ -359,6 +359,53 @@ void main() {
     },
   );
 
+  test('draft acknowledgment retry does not duplicate a confirmed revision', () async {
+    var allowDraftWrite = true;
+    final drafts = MaintainiacRecordDraftStore.memory(
+      storageCheck: () async => AppStorageCheck(
+        availableBytes: allowDraftWrite ? 100 : 0,
+        operationBytes: 1,
+        requiredBytes: 1,
+        purpose: AppStoragePurpose.smallRecordWrite,
+      ),
+    );
+    final records = MaintainiacDurableRecordStore.memory();
+    final checkpoint = await drafts.save(
+      module: 'invoices',
+      id: 'invoice-1',
+      payload: const {'totalCents': 2500},
+      now: DateTime.utc(2026, 7, 23, 12),
+    );
+    allowDraftWrite = false;
+
+    await expectLater(
+      records.saveAndAcknowledgeDraft(
+        module: 'invoices',
+        id: 'invoice-1',
+        payload: checkpoint.payload,
+        draftStore: drafts,
+        expectedDraftUpdatedAt: checkpoint.lifecycle.updatedAt,
+        now: DateTime.utc(2026, 7, 23, 12, 1),
+      ),
+      throwsStateError,
+    );
+    expect(records.recordFor('invoices', 'invoice-1')?.lifecycle.revision, 1);
+    expect(drafts.draftFor('invoices', 'invoice-1'), isNotNull);
+
+    allowDraftWrite = true;
+    final retried = await records.saveAndAcknowledgeDraft(
+      module: 'invoices',
+      id: 'invoice-1',
+      payload: checkpoint.payload,
+      draftStore: drafts,
+      expectedDraftUpdatedAt: checkpoint.lifecycle.updatedAt,
+      now: DateTime.utc(2026, 7, 23, 12, 2),
+    );
+
+    expect(retried.lifecycle.revision, 1);
+    expect(drafts.draftFor('invoices', 'invoice-1'), isNull);
+  });
+
   test(
     'frequent draft checkpoints do not create per-keystroke audit bloat',
     () async {
