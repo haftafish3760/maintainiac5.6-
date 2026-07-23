@@ -8,6 +8,7 @@ typedef MaintainiacPendingSyncUploader =
       int? limit,
       String? path,
       DateTime? nowUtc,
+      String? attemptId,
     });
 
 enum MaintainiacDurableSyncOutcome { blocked, inProgress, succeeded, failed }
@@ -126,6 +127,7 @@ class MaintainiacDurableSyncOrchestrator {
         limit: request.limit,
         path: request.path,
         nowUtc: nowUtc,
+        attemptId: request.attemptId,
       );
     } catch (error) {
       upload = MaintainiacFirestoreUploadResult(

@@ -17,7 +17,7 @@ void main() {
       final orchestrator = MaintainiacDurableSyncOrchestrator(
         settingsStore: settings,
         checkpointStore: checkpoints,
-        uploadPending: ({limit, path, nowUtc}) async {
+        uploadPending: ({limit, path, nowUtc, attemptId}) async {
           uploads += 1;
           return _upload(MaintainiacFirestoreUploadStatus.uploaded);
         },
@@ -35,11 +35,13 @@ void main() {
     () async {
       await _enable(settings);
       MaintainiacSyncCheckpoint? checkpointDuringUpload;
+      String? uploadAttemptId;
       final orchestrator = MaintainiacDurableSyncOrchestrator(
         settingsStore: settings,
         checkpointStore: checkpoints,
-        uploadPending: ({limit, path, nowUtc}) async {
+        uploadPending: ({limit, path, nowUtc, attemptId}) async {
           checkpointDuringUpload = checkpoints.checkpointFor('expenses');
+          uploadAttemptId = attemptId;
           return _upload(
             MaintainiacFirestoreUploadStatus.uploaded,
             reservationId: 'reservation-1',
@@ -51,6 +53,7 @@ void main() {
         checkpointDuringUpload?.state,
         MaintainiacSyncAttemptState.running,
       );
+      expect(uploadAttemptId, 'attempt-1');
       expect(result.outcome, MaintainiacDurableSyncOutcome.succeeded);
       expect(result.checkpoint.state, MaintainiacSyncAttemptState.succeeded);
       expect(result.checkpoint.reservationId, 'reservation-1');
@@ -63,7 +66,7 @@ void main() {
     final orchestrator = MaintainiacDurableSyncOrchestrator(
       settingsStore: settings,
       checkpointStore: checkpoints,
-      uploadPending: ({limit, path, nowUtc}) async {
+      uploadPending: ({limit, path, nowUtc, attemptId}) async {
         throw StateError('offline');
       },
     );
@@ -85,7 +88,7 @@ void main() {
     final orchestrator = MaintainiacDurableSyncOrchestrator(
       settingsStore: settings,
       checkpointStore: checkpoints,
-      uploadPending: ({limit, path, nowUtc}) async {
+      uploadPending: ({limit, path, nowUtc, attemptId}) async {
         uploads += 1;
         return _upload(MaintainiacFirestoreUploadStatus.uploaded);
       },
@@ -101,7 +104,7 @@ void main() {
     final orchestrator = MaintainiacDurableSyncOrchestrator(
       settingsStore: settings,
       checkpointStore: checkpoints,
-      uploadPending: ({limit, path, nowUtc}) async =>
+      uploadPending: ({limit, path, nowUtc, attemptId}) async =>
           MaintainiacFirestoreUploadResult(
             status: MaintainiacFirestoreUploadStatus.partial,
             attemptedCount: 2,
@@ -124,7 +127,7 @@ void main() {
     final orchestrator = MaintainiacDurableSyncOrchestrator(
       settingsStore: settings,
       checkpointStore: checkpoints,
-      uploadPending: ({limit, path, nowUtc}) async {
+      uploadPending: ({limit, path, nowUtc, attemptId}) async {
         active += 1;
         if (active > maximumActive) maximumActive = active;
         await Future<void>.delayed(const Duration(milliseconds: 5));

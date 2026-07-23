@@ -53,7 +53,7 @@ typedef MaintainiacFirestoreQueueStorageCheck =
 typedef MaintainiacFirestoreFreeSyncAttemptRecorder =
     Future<void> Function(DateTime nowUtc);
 typedef MaintainiacHostedSyncReservationProvider =
-    Future<MaintainiacHostedSyncReservation> Function();
+    Future<MaintainiacHostedSyncReservation> Function(String attemptId);
 
 /// Shared Firestore sink for module-specific backup coordinators. Keeping the
 /// actual write primitive here prevents Expenses, Trips, and future modules

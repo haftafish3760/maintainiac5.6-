@@ -127,12 +127,13 @@ void main() {
         queue: queue,
         sink: sink,
         uploadEnabled: true,
-        hostedSyncReservationProvider: () async {
+        hostedSyncReservationProvider: (attemptId) async {
+          expect(attemptId, 'attempt-1');
           reservations += 1;
           return _reservation();
         },
         freeSyncsUsedInWindowReader: () => 999,
-      ).uploadPending();
+      ).uploadPending(attemptId: 'attempt-1');
 
       expect(result.status, MaintainiacFirestoreUploadStatus.uploaded);
       expect(result.reservationId, 'reservation-hosted-a');
@@ -150,8 +151,9 @@ void main() {
       queue: queue,
       sink: sink,
       uploadEnabled: true,
-      hostedSyncReservationProvider: () => throw StateError('limit reached'),
-    ).uploadPending();
+      hostedSyncReservationProvider: (attemptId) =>
+          throw StateError('limit reached'),
+    ).uploadPending(attemptId: 'attempt-1');
 
     expect(result.status, MaintainiacFirestoreUploadStatus.quotaExceeded);
     expect(result.attemptedCount, 0);
@@ -166,7 +168,7 @@ void main() {
       queue: queue,
       sink: _RecordingFirestoreSink(),
       uploadEnabled: true,
-      hostedSyncReservationProvider: () async {
+      hostedSyncReservationProvider: (attemptId) async {
         reservations += 1;
         return _reservation();
       },

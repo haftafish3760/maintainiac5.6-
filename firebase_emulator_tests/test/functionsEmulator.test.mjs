@@ -259,20 +259,38 @@ describe('Cloud Functions emulator safety', () => {
     assert.equal(grant.storageQuotaBytes, 100 * 1024 * 1024);
     assert.equal(grant.dailySyncLimit, 4);
 
+    const missingAttempt = await callFunctionError(
+      'reserveHostedSync',
+      identity.token,
+      {},
+    );
+    assert.equal(missingAttempt.status, 400);
+    assert.equal(missingAttempt.body?.error?.status, 'INVALID_ARGUMENT');
+
     for (let attempt = 1; attempt <= 4; attempt += 1) {
       const reservation = await callFunction(
         'reserveHostedSync',
         identity.token,
-        {},
+        {attemptId: `attempt-${attempt}`},
       );
       assert.equal(reservation.used, attempt);
       assert.equal(reservation.remaining, 4 - attempt);
       assert.equal(reservation.limit, 4);
+      if (attempt === 1) {
+        const retry = await callFunction(
+          'reserveHostedSync',
+          identity.token,
+          {attemptId: 'attempt-1'},
+        );
+        assert.equal(retry.reservationId, reservation.reservationId);
+        assert.equal(retry.used, 1);
+        assert.equal(retry.remaining, 3);
+      }
     }
     const exhausted = await callFunctionError(
       'reserveHostedSync',
       identity.token,
-      {},
+      {attemptId: 'attempt-5'},
     );
     assert.equal(exhausted.status, 429);
     assert.equal(exhausted.body?.error?.status, 'RESOURCE_EXHAUSTED');

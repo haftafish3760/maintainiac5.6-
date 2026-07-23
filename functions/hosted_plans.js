@@ -3,6 +3,7 @@ const {getFirestore, Timestamp} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
 
 const PLAN_TOKEN = /^[A-Za-z0-9_.-]{1,80}$/;
+const ATTEMPT_TOKEN = /^[A-Za-z0-9_.-]{1,160}$/;
 const DAY_MILLIS = 24 * 60 * 60 * 1000;
 
 function buildHostedPlanFunctions({enforceAppCheck}) {
@@ -21,6 +22,10 @@ async function getHostedUsageGrant(request) {
 
 async function reserveHostedSync(request) {
   const uid = requireUid(request);
+  const attemptId = String(request.data?.attemptId || '').trim();
+  if (!ATTEMPT_TOKEN.test(attemptId)) {
+    throw new HttpsError('invalid-argument', 'A durable sync attempt ID is required.');
+  }
   const db = getFirestore();
   const entitlementRef = db.doc(`users/${uid}/entitlements/current`);
   const usageRef = db.doc(`users/${uid}/syncUsage/rolling24Hours`);
@@ -49,6 +54,10 @@ async function reserveHostedSync(request) {
       entry.at?.toMillis?.() >= cutoff &&
       entry.at.toMillis() <= now.toMillis(),
     );
+    const existing = attempts.find((entry) => entry.attemptId === attemptId);
+    if (existing != null) {
+      return reservationResult(existing, attempts.length, grant.dailySyncLimit);
+    }
     if (attempts.length >= grant.dailySyncLimit) {
       const nextEligibleAt = attempts
         .map((entry) => entry.at.toMillis())
@@ -59,7 +68,8 @@ async function reserveHostedSync(request) {
       );
     }
     const reservationId = randomUUID();
-    attempts.push({id: reservationId, at: now});
+    const reserved = {id: reservationId, attemptId, at: now};
+    attempts.push(reserved);
     transaction.set(usageRef, {
       uid,
       planId,
@@ -67,15 +77,19 @@ async function reserveHostedSync(request) {
       attempts,
       updatedAt: now,
     });
-    return {
-      reservationId,
-      used: attempts.length,
-      remaining: grant.dailySyncLimit - attempts.length,
-      limit: grant.dailySyncLimit,
-      windowSeconds: DAY_MILLIS / 1000,
-      reservedAt: now.toDate().toISOString(),
-    };
+    return reservationResult(reserved, attempts.length, grant.dailySyncLimit);
   });
+}
+
+function reservationResult(entry, used, limit) {
+  return {
+    reservationId: entry.id,
+    used,
+    remaining: limit - used,
+    limit,
+    windowSeconds: DAY_MILLIS / 1000,
+    reservedAt: entry.at.toDate().toISOString(),
+  };
 }
 
 async function loadHostedGrantForUid(db, uid) {

@@ -29,11 +29,12 @@ void main() {
         identity: const _Identity('userA'),
       );
       final entitlement = await client.loadEntitlement();
-      final reservation = await client.reserveSync();
+      final reservation = await client.reserveSync(attemptId: 'attempt-1');
       expect(entitlement.dailySyncLimit, 4);
       expect(entitlement.quotaBytes, 100 * 1024 * 1024);
       expect(reservation.remaining, 3);
       expect(functions.calls, ['getHostedUsageGrant', 'reserveHostedSync']);
+      expect(functions.payloads.last, {'attemptId': 'attempt-1'});
     },
   );
 
@@ -61,7 +62,14 @@ void main() {
         identity: const _Identity('userA'),
       );
       await expectLater(malformed.loadEntitlement(), throwsFormatException);
-      await expectLater(malformed.reserveSync(), throwsFormatException);
+      await expectLater(
+        malformed.reserveSync(attemptId: 'attempt-1'),
+        throwsFormatException,
+      );
+      await expectLater(
+        malformed.reserveSync(attemptId: 'bad/attempt'),
+        throwsArgumentError,
+      );
     },
   );
 }
@@ -78,6 +86,7 @@ class _Functions implements MaintainiacCallableFunctionClient {
 
   final Map<String, Map<String, Object?>> responses;
   final List<String> calls = [];
+  final List<Map<String, Object?>> payloads = [];
 
   @override
   Future<Map<String, Object?>> call({
@@ -85,6 +94,7 @@ class _Functions implements MaintainiacCallableFunctionClient {
     required Map<String, Object?> data,
   }) async {
     calls.add(name);
+    payloads.add(Map.unmodifiable(data));
     final response = responses[name];
     if (response == null) throw StateError('No response for $name.');
     return response;

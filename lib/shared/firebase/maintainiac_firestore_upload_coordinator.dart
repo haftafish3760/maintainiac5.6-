@@ -57,13 +57,21 @@ class MaintainiacFirestoreUploadCoordinator {
     int? limit,
     String? path,
     DateTime? nowUtc,
-  }) =>
-      _enqueue(() => _uploadPending(limit: limit, path: path, nowUtc: nowUtc));
+    String? attemptId,
+  }) => _enqueue(
+    () => _uploadPending(
+      limit: limit,
+      path: path,
+      nowUtc: nowUtc,
+      attemptId: attemptId,
+    ),
+  );
 
   Future<MaintainiacFirestoreUploadResult> _uploadPending({
     int? limit,
     String? path,
     DateTime? nowUtc,
+    String? attemptId,
   }) async {
     if (!_uploadEnabled) {
       return const MaintainiacFirestoreUploadResult(
@@ -126,8 +134,18 @@ class MaintainiacFirestoreUploadCoordinator {
     MaintainiacHostedSyncReservation? hostedReservation;
     final hostedReservationProvider = _hostedSyncReservationProvider;
     if (hostedReservationProvider != null) {
+      if (attemptId == null ||
+          !RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(attemptId)) {
+        return const MaintainiacFirestoreUploadResult(
+          status: MaintainiacFirestoreUploadStatus.quotaExceeded,
+          attemptedCount: 0,
+          uploadedCount: 0,
+          failedCount: 0,
+          reason: 'Cloud sync needs a durable attempt identity.',
+        );
+      }
       try {
-        hostedReservation = await hostedReservationProvider();
+        hostedReservation = await hostedReservationProvider(attemptId);
       } catch (_) {
         return const MaintainiacFirestoreUploadResult(
           status: MaintainiacFirestoreUploadStatus.quotaExceeded,

@@ -25,11 +25,16 @@ class MaintainiacHostedPlanClient {
     return entitlement;
   }
 
-  Future<MaintainiacHostedSyncReservation> reserveSync() async {
+  Future<MaintainiacHostedSyncReservation> reserveSync({
+    required String attemptId,
+  }) async {
     _requireUid();
+    if (!RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(attemptId)) {
+      throw ArgumentError.value(attemptId, 'attemptId');
+    }
     final payload = await _functions.call(
       name: 'reserveHostedSync',
-      data: const {},
+      data: {'attemptId': attemptId},
     );
     return MaintainiacHostedSyncReservation.fromServer(payload);
   }
