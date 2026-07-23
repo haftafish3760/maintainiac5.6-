@@ -29,6 +29,8 @@ const restoreAuthorizationFunctions = buildRestoreAuthorizationFunctions({
 exports.registerRestoreDevice = restoreAuthorizationFunctions.registerRestoreDevice;
 exports.issueRestoreAuthorization =
     restoreAuthorizationFunctions.issueRestoreAuthorization;
+exports.beginRestoreSession = restoreAuthorizationFunctions.beginRestoreSession;
+exports.updateRestoreSession = restoreAuthorizationFunctions.updateRestoreSession;
 
 const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
   default: 20 * 1024 * 1024,

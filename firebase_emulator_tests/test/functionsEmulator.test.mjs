@@ -22,6 +22,8 @@ const callableNames = [
   'finalizeExpenseProofUpload',
   'registerRestoreDevice',
   'issueRestoreAuthorization',
+  'beginRestoreSession',
+  'updateRestoreSession',
 ];
 let testEnv;
 
@@ -147,6 +149,49 @@ describe('Cloud Functions emulator safety', () => {
     assert.match(authorization.sessionId, /^[a-f0-9-]{36}$/);
     assert.match(authorization.authorizationToken, /^[a-f0-9]{64}$/);
 
+    const sessionInput = {
+      organizationId: 'orgLifecycleA',
+      deviceId: 'restoreDeviceA',
+      sessionId: authorization.sessionId,
+      authorizationToken: authorization.authorizationToken,
+    };
+    const badToken = await callFunctionError(
+      'beginRestoreSession',
+      identity.token,
+      {...sessionInput, authorizationToken: '0'.repeat(64)},
+    );
+    assert.equal(badToken.status, 403);
+    const started = await callFunction(
+      'beginRestoreSession',
+      identity.token,
+      sessionInput,
+    );
+    assert.equal(started.status, 'active');
+    const paused = await callFunction(
+      'updateRestoreSession',
+      identity.token,
+      {...sessionInput, action: 'pause', completedItems: 2, completedBytes: 512},
+    );
+    assert.equal(paused.status, 'paused');
+    const resumed = await callFunction(
+      'beginRestoreSession',
+      identity.token,
+      sessionInput,
+    );
+    assert.equal(resumed.status, 'active');
+    const completed = await callFunction(
+      'updateRestoreSession',
+      identity.token,
+      {...sessionInput, action: 'complete', completedItems: 4, completedBytes: 1024},
+    );
+    const completionRetry = await callFunction(
+      'updateRestoreSession',
+      identity.token,
+      {...sessionInput, action: 'complete', completedItems: 4, completedBytes: 1024},
+    );
+    assert.deepEqual(completionRetry, completed);
+    assert.equal(completed.status, 'completed');
+
     await testEnv.withSecurityRulesDisabled(async (context) => {
       const db = context.firestore();
       const session = await getDoc(
@@ -164,6 +209,8 @@ describe('Cloud Functions emulator safety', () => {
       assert.equal(device.data()?.uid, identity.uid);
       assert.equal(session.data()?.uid, identity.uid);
       assert.equal(session.data()?.mode, 'smart');
+      assert.equal(session.data()?.status, 'completed');
+      assert.equal(session.data()?.completedItems, 4);
       assert.equal(session.data()?.authorizationTokenHash, expectedHash);
       assert.equal(session.data()?.authorizationToken, undefined);
     });
