@@ -115,6 +115,7 @@ class MaintainiacFirestoreUploadQueueStore {
     int? limit,
     String? path,
     DateTime? nowUtc,
+    bool Function(MaintainiacFirestoreQueuedDocument record)? isEligible,
   }) {
     final cappedLimit = (limit ?? MaintainiacFirestoreUploadPolicy.maxBatchSize)
         .clamp(0, MaintainiacFirestoreUploadPolicy.maxBatchSize)
@@ -126,6 +127,7 @@ class MaintainiacFirestoreUploadQueueStore {
     return List.unmodifiable(
       candidates
           .where((record) => record.isReadyForAttemptAt(now))
+          .where((record) => isEligible?.call(record) ?? true)
           .take(cappedLimit),
     );
   }

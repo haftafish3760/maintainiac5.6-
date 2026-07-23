@@ -7,13 +7,29 @@ class MaintainiacFirestoreScopePolicy {
     required String? authenticatedUid,
   }) {
     final segments = path.split('/');
-    if (segments.isEmpty || segments.first != 'orgs') return;
+    if (segments.isEmpty) return;
+    final uid = authenticatedUid?.trim() ?? '';
+    if (segments.first == 'users') {
+      if (segments.length < 3 || segments[1].trim().isEmpty) {
+        throw const MaintainiacFirestoreScopeMismatch(
+          'Cloud user path is invalid.',
+        );
+      }
+      if (uid.isEmpty || segments[1] != uid) {
+        throw const MaintainiacFirestoreScopeMismatch(
+          'Cloud user record does not belong to the authenticated account.',
+        );
+      }
+      _validateOptionalOwner(data, 'createdByUid', uid);
+      _validateOptionalOwner(data, 'updatedByUid', uid);
+      return;
+    }
+    if (segments.first != 'orgs') return;
     if (segments.length < 4 || segments[1].trim().isEmpty) {
       throw const MaintainiacFirestoreScopeMismatch(
         'Cloud organization path is invalid.',
       );
     }
-    final uid = authenticatedUid?.trim() ?? '';
     if (uid.isEmpty) {
       throw const MaintainiacFirestoreScopeMismatch(
         'Cloud organization writes require an authenticated account.',
@@ -28,6 +44,18 @@ class MaintainiacFirestoreScopePolicy {
     if (updatedByUid.isEmpty || updatedByUid != uid) {
       throw const MaintainiacFirestoreScopeMismatch(
         'Cloud document does not belong to the authenticated account.',
+      );
+    }
+  }
+
+  static void _validateOptionalOwner(
+    Map<String, Object?> data,
+    String field,
+    String uid,
+  ) {
+    if (data.containsKey(field) && data[field]?.toString().trim() != uid) {
+      throw MaintainiacFirestoreScopeMismatch(
+        'Cloud document $field does not match the authenticated account.',
       );
     }
   }

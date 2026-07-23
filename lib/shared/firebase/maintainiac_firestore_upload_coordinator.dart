@@ -19,12 +19,18 @@ class MaintainiacFirestoreUploadCoordinator {
     MaintainiacFirestoreFreeSyncAttemptRecorder? freeSyncAttemptRecorder,
     MaintainiacHostedSyncReservationProvider? hostedSyncReservationProvider,
     bool Function()? uploadNetworkAllowed,
+    MaintainiacCloudIdentityProvider? identityProvider,
   }) : _queue = queue,
        _sink = sink,
        _uploadEnabled = uploadEnabled,
        _uploadNetworkAllowed = uploadNetworkAllowed,
        _freeSyncAttemptRecorder = freeSyncAttemptRecorder,
        _hostedSyncReservationProvider = hostedSyncReservationProvider,
+       _identityProvider =
+           identityProvider ??
+           (sink is FirebaseFirestoreDocumentSink
+               ? sink._identityProvider
+               : null),
        _freeSyncsUsedInWindowReader =
            freeSyncsUsedInWindowReader ??
            (freeSyncsUsedInWindow == null
@@ -39,6 +45,7 @@ class MaintainiacFirestoreUploadCoordinator {
   final MaintainiacHostedSyncReservationProvider?
   _hostedSyncReservationProvider;
   final int Function()? _freeSyncsUsedInWindowReader;
+  final MaintainiacCloudIdentityProvider? _identityProvider;
 
   Future<MaintainiacFirestoreUploadResult> uploadPending({
     int? limit,
@@ -76,7 +83,32 @@ class MaintainiacFirestoreUploadCoordinator {
         reason: 'Backup sync is waiting for the selected network.',
       );
     }
-    final batch = _queue.nextBatch(limit: limit, path: path, nowUtc: nowUtc);
+    String? authenticatedUid;
+    final identityProvider = _identityProvider;
+    if (identityProvider != null) {
+      try {
+        authenticatedUid = identityProvider.currentUid?.trim();
+      } catch (_) {
+        authenticatedUid = null;
+      }
+      if (authenticatedUid == null || authenticatedUid.isEmpty) {
+        return const MaintainiacFirestoreUploadResult(
+          status: MaintainiacFirestoreUploadStatus.disabled,
+          attemptedCount: 0,
+          uploadedCount: 0,
+          failedCount: 0,
+          reason: 'Sign in before cloud backup can continue.',
+        );
+      }
+    }
+    final batch = _queue.nextBatch(
+      limit: limit,
+      path: path,
+      nowUtc: nowUtc,
+      isEligible: authenticatedUid == null
+          ? null
+          : (record) => _belongsToAccount(record, authenticatedUid!),
+    );
     if (batch.isEmpty) {
       return const MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.empty,
@@ -204,5 +236,21 @@ class MaintainiacFirestoreUploadCoordinator {
     final next = _firestoreUploadTail.then((_) => operation());
     _firestoreUploadTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
+  }
+
+  bool _belongsToAccount(
+    MaintainiacFirestoreQueuedDocument record,
+    String authenticatedUid,
+  ) {
+    try {
+      MaintainiacFirestoreScopePolicy.validateWrite(
+        path: record.path,
+        data: record.data,
+        authenticatedUid: authenticatedUid,
+      );
+      return true;
+    } on MaintainiacFirestoreScopeMismatch {
+      return false;
+    }
   }
 }
