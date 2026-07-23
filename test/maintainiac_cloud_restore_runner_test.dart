@@ -138,6 +138,56 @@ void main() {
     },
   );
 
+  test('an authorized empty restore completes without a cloud page', () async {
+    final sessions = MaintainiacRestoreSessionStore.memory(
+      storageCheck: ({required operationBytes}) async => AppStorageCheck(
+        availableBytes: 500 * mb,
+        operationBytes: operationBytes,
+        requiredBytes: operationBytes,
+        purpose: AppStoragePurpose.restoreImport,
+      ),
+    );
+    await sessions.prepare(
+      id: 'restore-empty',
+      accountScopeId: 'org-a.user-a',
+      deviceId: 'device-a',
+      authorizationId: 'authorization-a',
+      mode: MaintainiacRestoreMode.recordsOnly,
+      storagePlan: const MaintainiacRestoreStoragePlan(
+        structuredBytes: 0,
+        thumbnailBytes: 0,
+        proofBytes: 0,
+        temporaryBytes: 0,
+        availableBytes: 500 * mb,
+      ),
+      totalItems: 0,
+    );
+    await sessions.start('restore-empty');
+    final source = _PagedSource(const []);
+    final runner = MaintainiacCloudRestoreRunner(
+      gateway: MaintainiacDurableCloudRestoreGateway(
+        source: source,
+        identityProvider: const _Identity('user-a'),
+      ),
+      sessions: sessions,
+      batches: MaintainiacRestoreBatchProcessor(
+        sessions: sessions,
+        applier: MaintainiacRestoreApplier(
+          store: MaintainiacDurableRecordStore.memory(),
+          accountScopeId: 'org-a.user-a',
+          maximumSupportedSchemaVersion: 1,
+        ),
+      ),
+    );
+    final result = await runner.processNextPage(
+      organizationId: 'org-a',
+      sessionId: 'restore-empty',
+    );
+    expect(result.completed, isTrue);
+    expect(result.session.state, MaintainiacRestoreSessionState.completed);
+    expect(source.calls, 0);
+  });
+
   test(
     'hosted completion can retry after local records are committed',
     () async {
@@ -244,6 +294,7 @@ class _PagedSource implements MaintainiacDurableCloudRecordSource {
   _PagedSource(this.documents);
 
   final List<MaintainiacDurableCloudDocument> documents;
+  int calls = 0;
 
   @override
   Future<List<MaintainiacDurableCloudDocument>> fetchPage({
@@ -252,6 +303,7 @@ class _PagedSource implements MaintainiacDurableCloudRecordSource {
     required int limit,
     String? afterRecordKey,
   }) async {
+    calls += 1;
     final sorted = [...documents]..sort((a, b) => a.id.compareTo(b.id));
     return sorted
         .where(

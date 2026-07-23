@@ -56,6 +56,15 @@ class MaintainiacCloudRestoreRunner {
     if (session.state != MaintainiacRestoreSessionState.running) {
       throw StateError('Restore session is not ready to continue.');
     }
+    if (session.totalItems == 0 && session.transferBytes == 0) {
+      final completed = await _sessions.complete(session.id, nowUtc: nowUtc);
+      await _progressSink?.reconcile(completed);
+      return MaintainiacCloudRestoreStep(
+        session: completed,
+        batchStatus: MaintainiacRestoreBatchStatus.applied,
+        completed: true,
+      );
+    }
     final page = await _gateway.fetchPage(
       organizationId: organizationId,
       pageSize: pageSize,
