@@ -37,6 +37,7 @@ void main() {
       );
       addTearDown(appState.dispose);
       addTearDown(odometer.dispose);
+      addTearDown(activeWorkday.dispose);
       addTearDown(tripController.dispose);
       addTearDown(settingsController.dispose);
 
@@ -95,6 +96,7 @@ void main() {
       expect(find.textContaining('unusually high'), findsOneWidget);
       expect(find.textContaining('GPS stays advisory'), findsOneWidget);
       expect(odometer.confirmedReading, 1300);
+      await tester.pumpWidget(const SizedBox.shrink());
     },
   );
 
@@ -124,6 +126,7 @@ void main() {
     );
     addTearDown(appState.dispose);
     addTearDown(odometer.dispose);
+    addTearDown(activeWorkday.dispose);
     addTearDown(tripController.dispose);
     addTearDown(settingsController.dispose);
 
@@ -182,6 +185,7 @@ void main() {
     expect(find.textContaining('Repeated GPS/odometer drift'), findsOneWidget);
     expect(find.textContaining('odometer stays official'), findsOneWidget);
     expect(odometer.confirmedReading, 1000);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }
 

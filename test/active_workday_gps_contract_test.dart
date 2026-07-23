@@ -70,6 +70,18 @@ void main() {
     );
   });
 
+  test('live dashboard labels GPS as assistance, not odometer truth', () {
+    final source = File(
+      'lib/screens/dashboard/active_workday_screen.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('confirmed odometer stays official'));
+    expect(source, contains('controller!.acceptedMiles.toStringAsFixed(2)'));
+    expect(source, contains(r'GPS estimate: ${display.displayValue}'));
+    expect(source, contains(r'Confirmed: ${display.confirmedDisplayValue}'));
+    expect(source, isNot(contains('odometer is live')));
+  });
+
   test('active dashboard keeps a stale GPS stream visible for review', () {
     final source = File(
       'lib/screens/dashboard/active_workday_screen.dart',
@@ -83,5 +95,9 @@ void main() {
     expect(liveOdometer, greaterThanOrEqualTo(0));
     expect(liveWarning, greaterThan(liveOdometer));
     expect(source, contains('if (liveTrackingWarning != null)'));
+    expect(
+      source,
+      contains('awaitingInitialFix: controller?.awaitingInitialFix'),
+    );
   });
 }

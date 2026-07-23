@@ -416,6 +416,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   Future<void> _recordStoredEvent(
     ActiveWorkdayEventType type, {
     String? note,
+    bool confirmGpsStopCandidate = false,
   }) async {
     if (!mounted) return;
     final activeWorkday = ActiveWorkdayScope.of(context);
@@ -456,11 +457,17 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           return;
         }
       }
-      await tripTracking?.acknowledgeWalkingReview();
+      if (confirmGpsStopCandidate) {
+        await tripTracking?.acknowledgeWalkingReview();
+      }
     }
   }
 
-  Future<void> _openStopDialog(String kind, ActiveWorkdayEventType type) async {
+  Future<void> _openStopDialog(
+    String kind,
+    ActiveWorkdayEventType type, {
+    bool confirmGpsStopCandidate = false,
+  }) async {
     var note = '';
     final saved = await showDialog<bool>(
       context: context,
@@ -513,29 +520,49 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
     if (!mounted) return;
     if (saved == true) {
-      await _recordStoredEvent(type, note: note.trim());
+      await _recordStoredEvent(
+        type,
+        note: note.trim(),
+        confirmGpsStopCandidate: confirmGpsStopCandidate,
+      );
     }
   }
 
   Future<void> _reviewWalkingStop() async {
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (tripTracking?.needsWalkingReview != true) return;
+    final candidate = tripTracking?.latestPendingStopBoundaryCandidate;
+    final candidateTime = candidate == null
+        ? null
+        : _timeLabel(candidate.proposedBoundaryAt.toLocal());
+    final confidenceText = switch (candidate?.confidence) {
+      TripTrackingConfidence.high => 'High-confidence motion evidence.',
+      TripTrackingConfidence.medium => 'Moderate-confidence motion evidence.',
+      TripTrackingConfidence.low => 'Low-confidence motion evidence.',
+      TripTrackingConfidence.unknown ||
+      null => 'Motion confidence is unavailable.',
+    };
+    final remaining = tripTracking?.pendingStopReviewCount ?? 0;
     final shouldAddStop = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF101719),
-        title: const Text(
-          'Possible Stop Detected',
-          style: TextStyle(
+        title: Text(
+          candidateTime == null
+              ? 'Possible Stop Detected'
+              : 'Possible Stop at $candidateTime',
+          style: const TextStyle(
             color: Color(0xFFF0F4F2),
             fontWeight: FontWeight.w900,
           ),
         ),
-        content: const Text(
+        content: Text(
           'Driving followed by verified walking suggests that you stopped. '
           'Add it to your day, or dismiss it if you did not stop. This will '
-          'not end GPS tracking or change your mileage.',
-          style: TextStyle(
+          'not end GPS tracking or change your mileage.'
+          ' $confidenceText'
+          '${remaining > 1 ? ' $remaining possible stops remain for review.' : ''}',
+          style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontWeight: FontWeight.w700,
           ),
@@ -554,7 +581,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
     if (!mounted || shouldAddStop == null) return;
     if (shouldAddStop) {
-      await _openStopDialog('Stop', ActiveWorkdayEventType.stop);
+      await _openStopDialog(
+        'Stop',
+        ActiveWorkdayEventType.stop,
+        confirmGpsStopCandidate: true,
+      );
       return;
     }
     await tripTracking!.reviewLatestStopAdvisory(
@@ -1063,9 +1094,9 @@ class _LiveOdometerPanelLine extends StatelessWidget {
         final display = odometer.liveDisplaySnapshot;
         final status = display.statusLabelAt(DateTime.now());
         return Text(
-          'Live odometer: ${display.displayValue}${status == null ? '' : ' • $status'}',
+          'GPS estimate: ${display.displayValue} • Confirmed: ${display.confirmedDisplayValue}${status == null ? '' : ' • $status'}',
           style: const TextStyle(
-            color: Color(0xFF20F060),
+            color: Color(0xFF9CC7E8),
             fontSize: 12,
             fontWeight: FontWeight.w900,
           ),
@@ -1136,6 +1167,7 @@ class _GpsTripPanel extends StatelessWidget {
         : null;
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
+    final pendingStopReviewCount = controller?.pendingStopReviewCount ?? 0;
     final latestVehicleReview = controller?.latestReviewForVehicle(
       GlobalOdometerScope.of(context).vehicleId,
     );
@@ -1143,6 +1175,7 @@ class _GpsTripPanel extends StatelessWidget {
       tracking: tracking,
       platformStatus: controller?.platformStatus,
       platformError: controller?.platformError,
+      awaitingInitialFix: controller?.awaitingInitialFix == true,
     );
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
@@ -1181,7 +1214,7 @@ class _GpsTripPanel extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   nativeTracking
-                      ? 'Tracking ${controller!.acceptedMeters.toStringAsFixed(0)} m; odometer is live.'
+                      ? 'GPS assist ${controller!.acceptedMiles.toStringAsFixed(2)} mi; confirmed odometer stays official.'
                       : tracking
                       ? 'Trip is recoverable. Resume GPS when ready.'
                       : guidance?.enabled == true
@@ -1328,7 +1361,11 @@ class _GpsTripPanel extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 3, right: 8),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text('REVIEW POSSIBLE STOP'),
+                      child: Text(
+                        pendingStopReviewCount > 1
+                            ? 'REVIEW POSSIBLE STOPS ($pendingStopReviewCount)'
+                            : 'REVIEW POSSIBLE STOP',
+                      ),
                     ),
                   ),
                 ],

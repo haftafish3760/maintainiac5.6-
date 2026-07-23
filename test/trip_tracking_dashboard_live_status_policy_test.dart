@@ -41,4 +41,37 @@ void main() {
       );
     },
   );
+
+  test('explains initial-fix wait without moving the trip start', () {
+    expect(
+      TripTrackingDashboardLiveStatusPolicy.warning(
+        tracking: true,
+        platformStatus: 'tracking',
+        awaitingInitialFix: true,
+      ),
+      allOf(contains('Waiting for a current GPS fix'), contains('start time')),
+    );
+  });
+
+  test(
+    'explains stale and approximate initial fixes as degraded assistance',
+    () {
+      expect(
+        TripTrackingDashboardLiveStatusPolicy.warning(
+          tracking: true,
+          platformStatus: 'initial_fix_stale',
+          awaitingInitialFix: true,
+        ),
+        allOf(contains('old cached location'), contains('start time')),
+      );
+      expect(
+        TripTrackingDashboardLiveStatusPolicy.warning(
+          tracking: true,
+          platformStatus: 'initial_fix_approximate',
+          awaitingInitialFix: true,
+        ),
+        allOf(contains('degraded'), contains('odometer')),
+      );
+    },
+  );
 }

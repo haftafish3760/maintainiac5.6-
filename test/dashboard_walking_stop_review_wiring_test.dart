@@ -9,7 +9,19 @@ void main() {
     ).readAsStringSync();
 
     expect(source, contains('onReviewWalkingStop: _reviewWalkingStop'));
-    expect(source, contains("child: const Text('REVIEW POSSIBLE STOP')"));
+    expect(source, contains("'REVIEW POSSIBLE STOP'"));
+    expect(source, contains('controller?.pendingStopReviewCount'));
+    expect(source, contains('latestPendingStopBoundaryCandidate'));
+    expect(source, contains("'Possible Stop at \$candidateTime'"));
+    expect(source, contains("'High-confidence motion evidence.'"));
+    expect(source, contains("'Motion confidence is unavailable.'"));
+    expect(source, contains('bool confirmGpsStopCandidate = false'));
+    expect(source, contains('confirmGpsStopCandidate: true'));
+    expect(source, contains('if (confirmGpsStopCandidate)'));
+    expect(
+      source,
+      contains("'REVIEW POSSIBLE STOPS (\$pendingStopReviewCount)'"),
+    );
     expect(source, contains("child: const Text('Not a Stop')"));
     expect(source, contains("child: const Text('Add Stop')"));
     expect(source, contains('TripTrackingAdvisoryDisposition.dismissed'));

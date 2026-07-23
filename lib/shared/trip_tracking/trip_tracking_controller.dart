@@ -164,7 +164,17 @@ class TripTrackingController extends ChangeNotifier {
   TripTrackingSessionRecord? get activeSession => _session;
   bool get isTracking => _session != null;
   double get acceptedMeters => _engine?.totalAcceptedMeters ?? 0;
-  bool get needsWalkingReview => _engine?.needsWalkingReview ?? false;
+  double get acceptedMiles => acceptedMeters / metersPerMile;
+  bool get awaitingInitialFix => _awaitingInitialFix;
+  int get pendingStopReviewCount => advisories
+      .where(
+        (event) =>
+            event.type == TripTrackingAdvisoryType.probableStop &&
+            event.disposition == TripTrackingAdvisoryDisposition.pending,
+      )
+      .length;
+  bool get needsWalkingReview =>
+      (_engine?.needsWalkingReview ?? false) || pendingStopReviewCount > 0;
   TripMotionState get motionState =>
       _engine?.motionState ?? TripMotionState.unknown;
   TripTrackingDiagnostics get diagnostics =>
@@ -173,6 +183,20 @@ class TripTrackingController extends ChangeNotifier {
       List.unmodifiable(_session?.advisories ?? const []);
   List<TripBoundaryCandidate> get boundaryCandidates =>
       TripBoundaryCandidateResolver.fromAdvisories(advisories);
+  TripBoundaryCandidate? get latestPendingStopBoundaryCandidate {
+    final session = _session;
+    if (session == null) return null;
+    final index = TripStopAdvisoryReviewer.latestPendingStopReviewIndex(
+      session,
+      preferHighConfidence: _engine?.needsWalkingReview ?? false,
+    );
+    if (index < 0) return null;
+    final candidates = TripBoundaryCandidateResolver.fromAdvisories([
+      session.advisories[index],
+    ]);
+    return candidates.isEmpty ? null : candidates.single;
+  }
+
   List<TripTrackingSessionTransitionAudit> get transitionAudits =>
       List.unmodifiable(_session?.transitionAudits ?? const []);
   TripTrackingSessionLifecycleState? get lifecycleState =>

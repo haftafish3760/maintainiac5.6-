@@ -104,7 +104,7 @@ void main() {
       expect(decision.canWriteTextRecord, isFalse);
       expect(decision.shouldBlockTextRecord, isTrue);
       expect(decision.safeReason, 'storage_below_text_record_reserve');
-      expect(decision.message, contains('will not delete anything'));
+      expect(decision.message, contains('does not delete files'));
       expect(
         decision.toSafeSummary(),
         containsPair('availableBucket', 'below_text_reserve'),
