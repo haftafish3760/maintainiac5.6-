@@ -282,8 +282,15 @@ class TripTrackingController extends ChangeNotifier {
     if (!hasUnfinishedSession) {
       try {
         hasUnfinishedSession = _sessionStore.activeSession != null;
+        if (_platformStatus == 'automatic_start_storage_state_unknown') {
+          _platformStatus = null;
+          _platformError = null;
+        }
       } catch (_) {
         hasUnfinishedSession = true;
+        _platformStatus = 'automatic_start_storage_state_unknown';
+        _platformError =
+            'Could not verify local trip recovery state. Automatic start assistance is paused.';
       }
     }
     return detector.evaluate(

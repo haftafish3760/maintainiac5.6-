@@ -84,4 +84,51 @@ void main() {
       TripAutomaticStartDisposition.activeSessionExists,
     );
   });
+
+  test('unknown local recovery state suppresses automatic start safely', () {
+    final store = _RecoveringActiveSessionStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+    addTearDown(controller.dispose);
+    const settings = TripTrackingSettings(
+      gpsAssistedTrackingEnabled: true,
+      automaticStartAssistanceEnabled: true,
+    );
+
+    final failed = controller.evaluateAutomaticStartAssistance(
+      settings: settings,
+      observations: evidence(),
+    );
+    expect(
+      failed.disposition,
+      TripAutomaticStartDisposition.activeSessionExists,
+    );
+    expect(controller.platformStatus, 'automatic_start_storage_state_unknown');
+
+    store.fail = false;
+    final recovered = controller.evaluateAutomaticStartAssistance(
+      settings: settings,
+      observations: evidence(),
+    );
+    expect(recovered.disposition, TripAutomaticStartDisposition.candidate);
+    expect(controller.platformStatus, isNull);
+    expect(controller.platformError, isNull);
+  });
+}
+
+class _RecoveringActiveSessionStore extends TripTrackingSessionStore {
+  _RecoveringActiveSessionStore() : super.memory();
+
+  var fail = true;
+
+  @override
+  TripTrackingSessionRecord? get activeSession {
+    if (fail) throw StateError('active session storage unavailable');
+    return super.activeSession;
+  }
 }
