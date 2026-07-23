@@ -1,17 +1,23 @@
 # GPS Work State
 
-- Current phase: 16 — source-boundary refactoring and real-device evidence hardening
-- Current pass: 1198
-- Current objective: source-boundary hardening complete; replay/simulation and real-device evidence are required before further accuracy claims
+- Current phase: 17 — deterministic replay expansion and real-device evidence
+  hardening
+- Current pass: 266 in the current continuation
+- Current objective: harden native permission, location-service, and lifecycle
+  races while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
   `ios/Runner/`, `test/trip_tracking_*.dart`,
   `docs/gps_assisted_tracking/GPS_REAL_DEVICE_TEST_PROTOCOL.md`
-- Latest stable commit: `cdde880dd` (require review cue for recovered stop)
-- Latest validation result: engine (94), controller (173), and native contract
-  (20) targeted regressions green; shared GPS analyzer gate green; Android
-  Kotlin and generic iOS device builds green
-- Unresolved blockers: the remaining reliability and accuracy evidence requires
-  the intentionally deferred replay/simulation work and real Android/iOS route,
-  battery, lifecycle, and long-session runs
-- Next action: resume with the approved simulation/replay plan or collected
-  sanitized field runs; do not claim real-world accuracy before then
+- Previous stable checkpoint: `999be77d` (explicit Android
+  background-location settings handoff)
+- Latest validation result: Android and iOS native collectors now distinguish
+  foreground, background, and location-service authorization loss during
+  startup, active collection, recovery, motion-consent withdrawal, and adaptive
+  sampling updates. Update races pause locally without deadlocking their own
+  serialized event queue or accepting later queued samples. The
+  21-case/21,000-run deterministic corpus, synthetic twelve-hour recovery run,
+  bundled trip gate, focused analyzer, and Android debug build are green
+- Unresolved blockers: real Android/iOS route, battery, lifecycle, background,
+  and long-session runs remain required before any real-world accuracy claim
+- Next action: continue lifecycle/recovery replay expansion, then convert
+  sanitized field defects into deterministic regressions

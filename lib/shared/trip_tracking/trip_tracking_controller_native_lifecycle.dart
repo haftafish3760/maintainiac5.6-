@@ -57,6 +57,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
       );
       return;
     }
+    String? updateErrorCode;
     try {
       final updated = await platform.update(
         TripTrackingNativeRequest(
@@ -70,17 +71,39 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
         notifyListeners();
         return;
       }
-    } catch (_) {
+    } catch (error) {
+      updateErrorCode = error is PlatformException ? error.code : null;
       // A failed native update leaves the optional sensor state uncertain.
     }
-    _platformError =
-        'Motion activity was disabled, but GPS tracking stopped because the device could not apply that privacy change.';
+    final authorizationLost = TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+      updateErrorCode,
+    );
+    final locationServicesLost =
+        TripTrackingNativeErrorPolicy.isLocationServicesLoss(updateErrorCode);
+    _platformError = authorizationLost || locationServicesLost
+        ? TripTrackingNativeErrorPolicy.safeMessage(updateErrorCode)
+        : 'Motion activity was disabled, but GPS tracking stopped because the device could not apply that privacy change.';
     await _stopNativeTracking(
       interrupted: true,
-      interruptionHealth: TripTrackingHealthState.unavailable,
+      interruptionHealth: authorizationLost
+          ? TripTrackingHealthState.permissionBlocked
+          : TripTrackingHealthState.unavailable,
       interruptionSource: 'motion_assistance_withdrawal',
-      interruptionReasonCode: 'motion_withdrawal_native_system_pause',
+      interruptionReasonCode: authorizationLost
+          ? 'motion_withdrawal_permission_revoked_system_pause'
+          : locationServicesLost
+          ? 'motion_withdrawal_location_services_system_pause'
+          : 'motion_withdrawal_native_system_pause',
     );
+    if (authorizationLost) {
+      _platformStatus =
+          updateErrorCode == 'trip_tracking_background_location_denied'
+          ? 'background_location_settings_required'
+          : 'permission_required';
+    } else if (locationServicesLost) {
+      _platformStatus = 'location_services_required';
+    }
+    notifyListeners();
   }
 
   /// Foreground-only tracking must never continue after the app leaves the

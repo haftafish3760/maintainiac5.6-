@@ -7,7 +7,7 @@ void main() {
     final result = runTripTrackingSimulations(iterations: 3);
 
     expect(result.passed, isTrue);
-    expect(result.casesPerIteration, greaterThanOrEqualTo(10));
+    expect(result.casesPerIteration, greaterThanOrEqualTo(20));
     expect(result.toJson()['totalCaseRuns'], result.casesPerIteration * 3);
     expect(result.summary['distanceCaseCount'], greaterThanOrEqualTo(3));
     expect(

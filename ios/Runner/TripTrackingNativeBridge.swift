@@ -295,7 +295,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let profile = arguments?["profile"] as? String
     let allowBackground = arguments?["allowBackground"] as? Bool ?? false
     guard state == "always" || (!allowBackground && state == "whileInUse") else {
-      result(FlutterError(code: "trip_tracking_location_denied", message: "Background location permission is required for this tracking mode.", details: authorization))
+      result(FlutterError(code: "trip_tracking_background_location_denied", message: "Background location permission is required for this tracking mode.", details: authorization))
       return
     }
     if stopForCriticalBatteryIfNeeded() {
@@ -342,12 +342,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     let activityEnabled = arguments?["activityRecognitionEnabled"] as? Bool ?? false
     let authorization = authorizationMap()
     let state = authorization["state"] as? String
+    guard state == "whileInUse" || state == "always" else {
+      result(FlutterError(code: "trip_tracking_location_denied", message: "Location permission is required before updating trip tracking.", details: authorization))
+      return
+    }
     guard authorization["preciseLocation"] as? Bool == true else {
       result(FlutterError(code: "trip_tracking_location_accuracy_reduced", message: "Precise location permission is required before updating trip tracking.", details: authorization))
       return
     }
     guard state == "always" || (!allowBackground && state == "whileInUse") else {
-      result(FlutterError(code: "trip_tracking_location_denied", message: "Background location permission is required for this tracking mode.", details: authorization))
+      result(FlutterError(code: "trip_tracking_background_location_denied", message: "Background location permission is required for this tracking mode.", details: authorization))
       return
     }
     applySampling(intervalMillis: intervalMillis, displacement: displacement)

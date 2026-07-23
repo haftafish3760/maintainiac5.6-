@@ -375,6 +375,19 @@ void main() {
       bridge,
       contains('locationManager.showsBackgroundLocationIndicator = false'),
     );
+    expect(
+      RegExp(
+        'FlutterError\\(code: "trip_tracking_background_location_denied".*'
+        'Background location permission is required',
+      ).allMatches(bridge),
+      hasLength(2),
+    );
+    expect(
+      bridge,
+      contains(
+        'Location permission is required before updating trip tracking.',
+      ),
+    );
   });
 
   test('native sampling updates revalidate background authorization', () {
@@ -750,6 +763,38 @@ void main() {
       );
     },
   );
+
+  test('Android collector enforces live background-permission withdrawal', () {
+    final bridge = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+    final service = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+
+    expect(
+      bridge,
+      contains('TripTrackingForegroundService.allowBackgroundExtra'),
+    );
+    expect(
+      RegExp(
+        'result\\.error\\("trip_tracking_background_location_denied", '
+        '"Background location permission is required',
+      ).allMatches(bridge),
+      hasLength(2),
+    );
+    expect(service, contains('const val allowBackgroundExtra'));
+    expect(
+      service,
+      contains('intent.getBooleanExtra(allowBackgroundExtra, false)'),
+    );
+    expect(
+      service,
+      contains('stopForBackgroundLocationPermissionRevokedIfNeeded()'),
+    );
+    expect(service, contains('"trip_tracking_background_location_denied"'));
+    expect(service, contains('Manifest.permission.ACCESS_BACKGROUND_LOCATION'));
+  });
 
   test('iOS native sampling never requests zero displacement', () {
     final ios = File(

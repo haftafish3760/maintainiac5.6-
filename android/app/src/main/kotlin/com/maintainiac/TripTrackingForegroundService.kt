@@ -33,6 +33,7 @@ class TripTrackingForegroundService : Service() {
         const val intervalMillisExtra = "intervalMillis"
         const val minimumDisplacementExtra = "minimumDisplacementMeters"
         const val activityRecognitionEnabledExtra = "activityRecognitionEnabled"
+        const val allowBackgroundExtra = "allowBackground"
         const val samplingUpdateExtra = "samplingUpdate"
         const val activityEpochExtra = "activityEpoch"
         private const val stopAction = "com.maintainiac.trip_tracking.STOP"
@@ -84,6 +85,7 @@ class TripTrackingForegroundService : Service() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private var locationCallback: LocationCallback? = null
     private var trackingStartedAtMillis: Long? = null
+    private var backgroundTrackingRequired = false
     private var userPauseRequested = false
     private val heartbeatHandler = Handler(Looper.getMainLooper())
     private val heartbeatRunnable = object : Runnable {
@@ -91,6 +93,7 @@ class TripTrackingForegroundService : Service() {
             if (!isRunning) return
             if (stopForCriticalBatteryIfNeeded()) return
             if (stopForLocationPermissionRevokedIfNeeded()) return
+            if (stopForBackgroundLocationPermissionRevokedIfNeeded()) return
             if (stopForLocationServicesDisabledIfNeeded()) return
             stopActivityRecognitionIfPermissionRevoked()
             // Liveness only: no coordinates, mileage, stop evidence, or
@@ -180,6 +183,8 @@ class TripTrackingForegroundService : Service() {
         }
         userPauseRequested = false
         recordRecoveryStatus(null)
+        backgroundTrackingRequired =
+            intent.getBooleanExtra(allowBackgroundExtra, false)
         try {
             startForeground(notificationId, notification())
         } catch (error: SecurityException) {
@@ -190,6 +195,9 @@ class TripTrackingForegroundService : Service() {
         if (!hasFineLocation()) {
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_denied", "errorMessage" to "Location permission was removed while tracking."))
             stopSelf()
+            return START_NOT_STICKY
+        }
+        if (stopForBackgroundLocationPermissionRevokedIfNeeded()) {
             return START_NOT_STICKY
         }
         if (stopForCriticalBatteryIfNeeded()) return START_NOT_STICKY
@@ -296,6 +304,7 @@ class TripTrackingForegroundService : Service() {
 
     private fun emitLocation(location: Location) {
         if (stopForCriticalBatteryIfNeeded()) return
+        if (stopForBackgroundLocationPermissionRevokedIfNeeded()) return
         if (stopForLocationServicesDisabledIfNeeded()) return
         val startedAtMillis = trackingStartedAtMillis ?: return
         if (!isRunning || !location.hasAccuracy() ||
@@ -339,6 +348,7 @@ class TripTrackingForegroundService : Service() {
         removeActivityRecognitionUpdates()
         retireActivityRecognitionEpoch()
         trackingStartedAtMillis = null
+        backgroundTrackingRequired = false
         recordRecoveryStatus(if (userPauseRequested) userPausedRecoveryStatus else null)
         TripTrackingEventEmitter.emit(
             mapOf(
@@ -413,6 +423,19 @@ class TripTrackingForegroundService : Service() {
         return true
     }
 
+    private fun stopForBackgroundLocationPermissionRevokedIfNeeded(): Boolean {
+        if (!backgroundTrackingRequired || hasBackgroundLocation()) return false
+        TripTrackingEventEmitter.emit(
+            mapOf(
+                "type" to "error",
+                "errorCode" to "trip_tracking_background_location_denied",
+                "errorMessage" to "Background location permission was removed while tracking.",
+            ),
+        )
+        stopSelf()
+        return true
+    }
+
     private fun locationServicesEnabled(): Boolean {
         val manager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -466,6 +489,13 @@ class TripTrackingForegroundService : Service() {
         this,
         Manifest.permission.ACCESS_FINE_LOCATION,
     ) == PackageManager.PERMISSION_GRANTED
+
+    private fun hasBackgroundLocation() =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            ) == PackageManager.PERMISSION_GRANTED
 
     private fun hasActivityRecognition() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q ||
         ContextCompat.checkSelfPermission(this, Manifest.permission.ACTIVITY_RECOGNITION) == PackageManager.PERMISSION_GRANTED

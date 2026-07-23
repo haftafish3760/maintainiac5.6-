@@ -69,16 +69,6 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
     }
   }
 
-  Future<void> _handleNativePermissionRevoked(String message) async {
-    await _handleNativeSystemPause(
-      message: message,
-      health: TripTrackingHealthState.permissionBlocked,
-      platformStatus: 'permission_required',
-      source: 'native_authorization_event',
-      reasonCode: 'native_permission_revoked_system_pause',
-    );
-  }
-
   Future<void> _handleNativeSystemPause({
     required String message,
     required TripTrackingHealthState health,
@@ -112,7 +102,9 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
           if (_isDisposed) return;
           if (event.type == TripTrackingPlatformEventType.location &&
               event.location != null) {
-            if (!_nativeTracking) return;
+            if (!_nativeTracking || _pendingNativeSystemPauseStatus != null) {
+              return;
+            }
             final receivedAt = _clockNow().toUtc();
             if (_awaitingInitialFix) {
               final engine = _engine;
@@ -257,22 +249,44 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                     authorization.canTrackInBackground);
             if (authorizationStillAllowsTracking) return;
             if (pendingStart != null && !_nativeTracking) {
+              final backgroundOnlyLoss =
+                  pendingStart.allowBackground &&
+                  authorization.canTrackPrecisely &&
+                  !authorization.canTrackInBackground;
               _pendingNativeStartAuthorizationRevoked = true;
-              _platformError = pendingStart.allowBackground
-                  ? 'Background location permission was removed while trip tracking was starting.'
-                  : 'Precise location permission was removed while trip tracking was starting.';
+              _pendingNativeStartErrorCode = backgroundOnlyLoss
+                  ? 'trip_tracking_background_location_denied'
+                  : 'trip_tracking_location_denied';
+              _platformError = TripTrackingNativeErrorPolicy.safeMessage(
+                _pendingNativeStartErrorCode,
+              );
               notifyListeners();
               return;
             }
             // This handler is already serialized by the platform event queue.
             // Schedule interruption cleanup after it returns so its final
             // queue drain cannot wait on the event currently being processed.
-            _pendingNativeSystemPauseStatus = 'permission_required';
+            final backgroundOnlyLoss =
+                _backgroundTrackingAllowed &&
+                authorization.canTrackPrecisely &&
+                !authorization.canTrackInBackground;
+            final pendingStatus = backgroundOnlyLoss
+                ? 'background_location_settings_required'
+                : 'permission_required';
+            _pendingNativeSystemPauseStatus = pendingStatus;
             _deferPlatformCleanup(
-              () => _handleNativePermissionRevoked(
-                _backgroundTrackingAllowed
-                    ? 'Background location permission was removed while tracking.'
-                    : 'Precise location permission was removed while tracking.',
+              () => _handleNativeSystemPause(
+                message: backgroundOnlyLoss
+                    ? TripTrackingNativeErrorPolicy.safeMessage(
+                        'trip_tracking_background_location_denied',
+                      )
+                    : TripTrackingNativeErrorPolicy.safeMessage(
+                        'trip_tracking_location_denied',
+                      ),
+                health: TripTrackingHealthState.permissionBlocked,
+                platformStatus: pendingStatus,
+                source: 'native_authorization_event',
+                reasonCode: 'native_permission_revoked_system_pause',
               ),
             );
           } else if (event.type == TripTrackingPlatformEventType.status) {
@@ -450,9 +464,19 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                 TripTrackingNativeErrorPolicy.isAuthorizationLoss(
                   event.errorCode,
                 )) {
-              _pendingNativeSystemPauseStatus = 'permission_required';
+              final pendingStatus =
+                  event.errorCode == 'trip_tracking_background_location_denied'
+                  ? 'background_location_settings_required'
+                  : 'permission_required';
+              _pendingNativeSystemPauseStatus = pendingStatus;
               _deferPlatformCleanup(
-                () => _handleNativePermissionRevoked(message),
+                () => _handleNativeSystemPause(
+                  message: message,
+                  health: TripTrackingHealthState.permissionBlocked,
+                  platformStatus: pendingStatus,
+                  source: 'native_authorization_error',
+                  reasonCode: 'native_permission_revoked_system_pause',
+                ),
               );
             } else if (_nativeTracking &&
                 TripTrackingNativeErrorPolicy.isLocationServicesLoss(
@@ -772,10 +796,48 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         ),
       );
     } catch (error) {
-      _platformError = _safeNativeCommandFailure(
+      final message = _safeNativeCommandFailure(
         error,
         fallback: 'Could not update GPS sampling.',
       );
+      final errorCode = error is PlatformException ? error.code : null;
+      if (TripTrackingNativeErrorPolicy.isAuthorizationLoss(errorCode)) {
+        final pendingStatus =
+            errorCode == 'trip_tracking_background_location_denied'
+            ? 'background_location_settings_required'
+            : 'permission_required';
+        _platformError = message;
+        _platformStatus = pendingStatus;
+        _pendingNativeSystemPauseStatus = pendingStatus;
+        notifyListeners();
+        _deferPlatformCleanup(
+          () => _handleNativeSystemPause(
+            message: message,
+            health: TripTrackingHealthState.permissionBlocked,
+            platformStatus: pendingStatus,
+            source: 'native_sampling_update',
+            reasonCode: 'native_sampling_update_permission_revoked',
+          ),
+        );
+        return;
+      }
+      if (TripTrackingNativeErrorPolicy.isLocationServicesLoss(errorCode)) {
+        _platformError = message;
+        _platformStatus = 'location_services_required';
+        _pendingNativeSystemPauseStatus = 'location_services_required';
+        notifyListeners();
+        _deferPlatformCleanup(
+          () => _handleNativeSystemPause(
+            message: message,
+            health: TripTrackingHealthState.unavailable,
+            platformStatus: 'location_services_required',
+            source: 'native_sampling_update',
+            reasonCode: 'native_sampling_update_location_services_lost',
+          ),
+        );
+        return;
+      }
+      _platformError = message;
       notifyListeners();
       return;
     }

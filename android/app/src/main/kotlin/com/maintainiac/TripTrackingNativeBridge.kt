@@ -184,7 +184,7 @@ class TripTrackingNativeBridge(
         }
         val allowBackground = call.argument<Boolean>("allowBackground") == true
         if (allowBackground && !hasBackgroundLocation()) {
-            result.error("trip_tracking_location_denied", "Background location permission is required for this tracking mode.", authorizationMap())
+            result.error("trip_tracking_background_location_denied", "Background location permission is required for this tracking mode.", authorizationMap())
             return
         }
         val interval = (call.argument<Number>("intervalMillis")?.toLong() ?: 5000L).coerceIn(1000L, 60000L)
@@ -195,6 +195,10 @@ class TripTrackingNativeBridge(
             putExtra(
                 TripTrackingForegroundService.activityRecognitionEnabledExtra,
                 call.argument<Boolean>("activityRecognitionEnabled") == true,
+            )
+            putExtra(
+                TripTrackingForegroundService.allowBackgroundExtra,
+                allowBackground,
             )
         }
         try {
@@ -237,13 +241,14 @@ class TripTrackingNativeBridge(
         }
         val allowBackground = call.argument<Boolean>("allowBackground") == true
         if (allowBackground && !hasBackgroundLocation()) {
-            result.error("trip_tracking_location_denied", "Background location permission is required for this tracking mode.", authorizationMap())
+            result.error("trip_tracking_background_location_denied", "Background location permission is required for this tracking mode.", authorizationMap())
             return
         }
         val intent = Intent(activity, TripTrackingForegroundService::class.java).apply {
             putExtra(TripTrackingForegroundService.intervalMillisExtra, (call.argument<Number>("intervalMillis")?.toLong() ?: 5000L).coerceIn(1000L, 60000L))
             putExtra(TripTrackingForegroundService.minimumDisplacementExtra, (call.argument<Number>("minimumDisplacementMeters")?.toFloat() ?: 5f).coerceIn(1f, 100f))
             putExtra(TripTrackingForegroundService.activityRecognitionEnabledExtra, call.argument<Boolean>("activityRecognitionEnabled") == true)
+            putExtra(TripTrackingForegroundService.allowBackgroundExtra, allowBackground)
             putExtra(TripTrackingForegroundService.samplingUpdateExtra, true)
         }
         try {

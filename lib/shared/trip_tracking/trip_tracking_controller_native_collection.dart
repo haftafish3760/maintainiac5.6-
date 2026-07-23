@@ -265,6 +265,11 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     try {
       started = await platform.start(request);
     } catch (error) {
+      final errorCode = error is PlatformException ? error.code : null;
+      final authorizationFailure =
+          TripTrackingNativeErrorPolicy.isAuthorizationLoss(errorCode);
+      final locationServicesFailure =
+          TripTrackingNativeErrorPolicy.isLocationServicesLoss(errorCode);
       _clearPendingNativeStart();
       await _platformSubscription?.cancel();
       _platformSubscription = null;
@@ -272,11 +277,32 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
         error,
         fallback: 'The device could not start GPS trip tracking.',
       );
+      _platformStatus = errorCode == 'trip_tracking_background_location_denied'
+          ? 'background_location_settings_required'
+          : authorizationFailure
+          ? 'permission_required'
+          : locationServicesFailure
+          ? 'location_services_required'
+          : _platformStatus;
       await _tryTransitionSession(
-        TripTrackingSessionLifecycleState.failedRecoverable,
-        health: TripTrackingHealthState.unavailable,
+        authorizationFailure || locationServicesFailure
+            ? TripTrackingSessionLifecycleState.permissionRequired
+            : TripTrackingSessionLifecycleState.failedRecoverable,
+        contractState: authorizationFailure
+            ? TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION
+            : locationServicesFailure
+            ? TripTrackingSessionLifecycleContractState
+                  .AWAITING_LOCATION_SERVICES
+            : null,
+        health: authorizationFailure
+            ? TripTrackingHealthState.permissionBlocked
+            : TripTrackingHealthState.unavailable,
         source: 'native_start',
-        reasonCode: 'native_platform_start_failed',
+        reasonCode: authorizationFailure
+            ? 'native_platform_start_authorization_failed'
+            : locationServicesFailure
+            ? 'native_platform_start_location_services_failed'
+            : 'native_platform_start_failed',
       );
       notifyListeners();
       return false;
@@ -323,6 +349,15 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
         nativeStoppedDuringStart ||
         authorizationRevokedDuringStart ||
         nativeErrorDuringStart != null) {
+      final authorizationFailedDuringStart =
+          authorizationRevokedDuringStart ||
+          TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+            nativeErrorDuringStart,
+          );
+      final locationServicesFailedDuringStart =
+          TripTrackingNativeErrorPolicy.isLocationServicesLoss(
+            nativeErrorDuringStart,
+          );
       try {
         await platform.stop();
       } catch (_) {
@@ -333,45 +368,40 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       _platformSubscription = null;
       _platformError = preferenceSaveFailedDuringStart
           ? 'Motion activity became unavailable, and GPS tracking could not save that privacy change locally.'
-          : authorizationRevokedDuringStart
-          ? 'Precise location permission was removed while trip tracking was starting.'
+          : authorizationFailedDuringStart
+          ? TripTrackingNativeErrorPolicy.safeMessage(nativeErrorDuringStart)
           : nativeErrorDuringStart != null
           ? TripTrackingNativeErrorPolicy.safeMessage(nativeErrorDuringStart)
           : 'GPS updates stopped while trip tracking was starting.';
-      final startFailureReason = authorizationRevokedDuringStart
+      _platformStatus = authorizationFailedDuringStart
+          ? nativeErrorDuringStart == 'trip_tracking_background_location_denied'
+                ? 'background_location_settings_required'
+                : 'permission_required'
+          : locationServicesFailedDuringStart
+          ? 'location_services_required'
+          : _platformStatus;
+      final startFailureReason = authorizationFailedDuringStart
           ? 'native_permission_revoked_during_start'
+          : locationServicesFailedDuringStart
+          ? 'native_location_services_lost_during_start'
           : nativeErrorDuringStart != null
           ? 'native_platform_error_during_start'
           : preferenceSaveFailedDuringStart
           ? 'native_collection_preference_failed'
           : 'native_tracking_stopped_during_start';
       await _tryTransitionSession(
-        authorizationRevokedDuringStart ||
-                TripTrackingNativeErrorPolicy.isAuthorizationLoss(
-                  nativeErrorDuringStart,
-                ) ||
-                TripTrackingNativeErrorPolicy.isLocationServicesLoss(
-                  nativeErrorDuringStart,
-                )
+        authorizationFailedDuringStart
+            ? TripTrackingSessionLifecycleState.permissionRequired
+            : locationServicesFailedDuringStart
             ? TripTrackingSessionLifecycleState.permissionRequired
             : TripTrackingSessionLifecycleState.failedRecoverable,
-        contractState:
-            authorizationRevokedDuringStart ||
-                TripTrackingNativeErrorPolicy.isAuthorizationLoss(
-                  nativeErrorDuringStart,
-                )
+        contractState: authorizationFailedDuringStart
             ? TripTrackingSessionLifecycleContractState.AWAITING_PERMISSION
-            : TripTrackingNativeErrorPolicy.isLocationServicesLoss(
-                nativeErrorDuringStart,
-              )
+            : locationServicesFailedDuringStart
             ? TripTrackingSessionLifecycleContractState
                   .AWAITING_LOCATION_SERVICES
             : null,
-        health:
-            authorizationRevokedDuringStart ||
-                TripTrackingNativeErrorPolicy.isAuthorizationLoss(
-                  nativeErrorDuringStart,
-                )
+        health: authorizationFailedDuringStart
             ? TripTrackingHealthState.permissionBlocked
             : TripTrackingHealthState.unavailable,
         source: 'native_start',

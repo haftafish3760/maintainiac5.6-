@@ -10,7 +10,7 @@ void main() {
     );
 
     expect(report.distanceCaseCount, 3);
-    expect(report.eventCaseCount, 10);
+    expect(report.eventCaseCount, 21);
     expect(
       report.categoryCaseCounts.values.every((count) => count > 0),
       isTrue,

@@ -77,7 +77,9 @@ outcomes.
    permission prompts and no empty trip/odometer lock remains after failure.
    On Android 11 or newer, confirm background mode explains that “Allow all
    the time” must be chosen manually, opens only Maintainiac's app-settings
-   page after explicit confirmation, and returns safely when dismissed.
+   page after explicit confirmation, and returns safely when dismissed. Also
+   verify the same user-directed permission preflight is available from GPS
+   settings before a trip is created.
 2. With foreground-only tracking, lock/background the app. Confirm native GPS
    stops and the local trip remains recoverable.
 3. With explicit background tracking enabled and platform approval granted,
@@ -85,6 +87,9 @@ outcomes.
    indicator/notification where required, and battery impact are recorded.
 4. Revoke permission while tracking. Confirm resources are released, the UI
    presents a recoverable error, and a later retry is possible after consent.
+   Test precise-location and background-location withdrawal separately on
+   Android and iOS; the native collector must identify the correct permission
+   loss even while Flutter is background-suspended.
 
 ### 5. Profiles, battery, and odometer reconciliation
 

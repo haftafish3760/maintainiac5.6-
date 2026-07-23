@@ -8,6 +8,7 @@ import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/profiles/user_profile_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
+import 'trip_background_location_settings_action.dart';
 import 'trip_tracking_gps_opt_in_flow.dart';
 
 part 'trip_tracking_settings_map_controls.dart';
@@ -201,6 +202,10 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                   )
                 : null,
           ),
+          if (settings.backgroundTrackingEnabled && tripTracking != null)
+            TripBackgroundLocationSettingsAction(
+              onOpenSettings: tripTracking!.openBackgroundLocationSettings,
+            ),
           _switch(
             title: 'Protect GPS at or below 15% battery',
             detail:

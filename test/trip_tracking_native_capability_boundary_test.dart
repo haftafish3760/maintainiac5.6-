@@ -581,10 +581,13 @@ void main() {
         TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
       );
       expect(controller.nativeTracking, isFalse);
-      expect(controller.platformStatus, 'permission_required');
+      expect(
+        controller.platformStatus,
+        'background_location_settings_required',
+      );
       expect(
         controller.platformError,
-        contains('Background location permission'),
+        'Background GPS permission was removed while tracking.',
       );
       expect(controller.acceptedMeters, 0);
       expect(odometer.confirmedReading, 1000);

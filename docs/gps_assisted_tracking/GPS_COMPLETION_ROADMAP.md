@@ -213,5 +213,6 @@
   durable-storage implementation, Mapbox/maps,
   navigation/route optimization, fleet tracking, OCR, inventory, receipts,
   invoices, and unrelated modules.
-- The simulation/replay/fuzz phase is intentionally deferred until assigned;
-  it is not completed work.
+- Deterministic simulation/replay is now active and covers a bounded
+  production-pipeline corpus. Lifecycle fuzzing, long-session resource
+  evidence, and real-device field routes remain incomplete.

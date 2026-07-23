@@ -608,6 +608,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
               _platformStatus = 'sampling_recovery_required';
             } else {
               bool reapplied;
+              String? reapplyErrorCode;
               try {
                 reapplied = await platform.update(
                   TripTrackingNativeRequest(
@@ -618,20 +619,46 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
                         session.activityRecognitionEnabled,
                   ),
                 );
-              } catch (_) {
+              } catch (error) {
                 reapplied = false;
+                reapplyErrorCode = error is PlatformException
+                    ? error.code
+                    : null;
               }
               if (!reapplied) {
-                _platformError =
-                    'GPS recovery was paused because the device could not reapply its saved tracking settings.';
+                final authorizationLost =
+                    TripTrackingNativeErrorPolicy.isAuthorizationLoss(
+                      reapplyErrorCode,
+                    );
+                final locationServicesLost =
+                    TripTrackingNativeErrorPolicy.isLocationServicesLoss(
+                      reapplyErrorCode,
+                    );
+                _platformError = authorizationLost || locationServicesLost
+                    ? TripTrackingNativeErrorPolicy.safeMessage(
+                        reapplyErrorCode,
+                      )
+                    : 'GPS recovery was paused because the device could not reapply its saved tracking settings.';
                 await _stopNativeTracking(
                   interrupted: true,
-                  interruptionHealth: TripTrackingHealthState.unavailable,
+                  interruptionHealth: authorizationLost
+                      ? TripTrackingHealthState.permissionBlocked
+                      : TripTrackingHealthState.unavailable,
                   interruptionSource: 'session_recovery',
-                  interruptionReasonCode:
-                      'recovery_native_reconfiguration_system_pause',
+                  interruptionReasonCode: authorizationLost
+                      ? 'recovery_permission_revoked_system_pause'
+                      : locationServicesLost
+                      ? 'recovery_location_services_lost_system_pause'
+                      : 'recovery_native_reconfiguration_system_pause',
                 );
-                _platformStatus = 'native_reconfiguration_failed';
+                _platformStatus = authorizationLost
+                    ? reapplyErrorCode ==
+                              'trip_tracking_background_location_denied'
+                          ? 'background_location_settings_required'
+                          : 'permission_required'
+                    : locationServicesLost
+                    ? 'location_services_required'
+                    : 'native_reconfiguration_failed';
               } else {
                 _platformSubscription = _listenToPlatformEvents(platform);
                 try {
