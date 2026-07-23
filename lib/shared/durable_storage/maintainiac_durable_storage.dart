@@ -23,6 +23,8 @@ export '../firebase/maintainiac_firestore_revision_policy.dart';
 export '../firebase/maintainiac_firestore_scope_policy.dart';
 export '../firebase/maintainiac_firestore_upload_queue.dart';
 export '../firebase/maintainiac_hosted_plan_client.dart';
+export '../firebase/maintainiac_hosted_restore_progress.dart';
+export '../firebase/maintainiac_restore_credential_vault.dart';
 export '../firebase/maintainiac_restore_callable_source.dart';
 export '../firebase/maintainiac_restore_plan_client.dart';
 export '../firebase/maintainiac_restore_session_client.dart';

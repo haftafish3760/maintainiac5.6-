@@ -15,18 +15,25 @@ class MaintainiacCloudRestoreStep {
   final bool completed;
 }
 
+abstract interface class MaintainiacRestoreProgressSink {
+  Future<void> reconcile(MaintainiacRestoreSession session);
+}
+
 class MaintainiacCloudRestoreRunner {
   const MaintainiacCloudRestoreRunner({
     required MaintainiacDurableCloudRestoreGateway gateway,
     required MaintainiacRestoreBatchProcessor batches,
     required MaintainiacRestoreSessionStore sessions,
+    MaintainiacRestoreProgressSink? progressSink,
   }) : _gateway = gateway,
        _batches = batches,
-       _sessions = sessions;
+       _sessions = sessions,
+       _progressSink = progressSink;
 
   final MaintainiacDurableCloudRestoreGateway _gateway;
   final MaintainiacRestoreBatchProcessor _batches;
   final MaintainiacRestoreSessionStore _sessions;
+  final MaintainiacRestoreProgressSink? _progressSink;
 
   Future<MaintainiacCloudRestoreStep> processNextPage({
     required String organizationId,
@@ -35,8 +42,18 @@ class MaintainiacCloudRestoreRunner {
     DateTime? nowUtc,
   }) async {
     final session = _sessions.sessionById(sessionId);
-    if (session == null ||
-        session.state != MaintainiacRestoreSessionState.running) {
+    if (session == null) {
+      throw StateError('Restore session is not ready to continue.');
+    }
+    await _progressSink?.reconcile(session);
+    if (session.state == MaintainiacRestoreSessionState.completed) {
+      return MaintainiacCloudRestoreStep(
+        session: session,
+        batchStatus: MaintainiacRestoreBatchStatus.applied,
+        completed: true,
+      );
+    }
+    if (session.state != MaintainiacRestoreSessionState.running) {
       throw StateError('Restore session is not ready to continue.');
     }
     final page = await _gateway.fetchPage(
@@ -84,6 +101,7 @@ class MaintainiacCloudRestoreRunner {
     final result = shouldComplete
         ? await _sessions.complete(batch.session.id, nowUtc: nowUtc)
         : batch.session;
+    await _progressSink?.reconcile(result);
     return MaintainiacCloudRestoreStep(
       session: result,
       batchStatus: batch.status,

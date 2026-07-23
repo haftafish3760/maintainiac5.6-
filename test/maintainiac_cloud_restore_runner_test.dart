@@ -137,6 +137,85 @@ void main() {
       expect(records.recordsFor('settings'), isEmpty);
     },
   );
+
+  test(
+    'hosted completion can retry after local records are committed',
+    () async {
+      const identity = _Identity('user-a');
+      final source = _PagedSource([_document('settings', 'settings-1')]);
+      final gateway = MaintainiacDurableCloudRestoreGateway(
+        source: source,
+        identityProvider: identity,
+      );
+      final plan = await gateway.fetchPage(
+        organizationId: 'org-a',
+        pageSize: 1,
+      );
+      final transferBytes = plan.items.single.transferBytes;
+      final sessions = MaintainiacRestoreSessionStore.memory(
+        storageCheck: ({required operationBytes}) async => AppStorageCheck(
+          availableBytes: 500 * mb,
+          operationBytes: operationBytes,
+          requiredBytes: operationBytes,
+          purpose: AppStoragePurpose.restoreImport,
+        ),
+      );
+      await sessions.prepare(
+        id: 'restore-1',
+        accountScopeId: 'org-a.user-a',
+        deviceId: 'device-a',
+        authorizationId: 'authorization-a',
+        mode: MaintainiacRestoreMode.recordsOnly,
+        storagePlan: MaintainiacRestoreStoragePlan(
+          structuredBytes: transferBytes,
+          thumbnailBytes: 0,
+          proofBytes: 0,
+          temporaryBytes: 0,
+          availableBytes: 500 * mb,
+        ),
+        totalItems: 1,
+      );
+      await sessions.start('restore-1');
+      final records = MaintainiacDurableRecordStore.memory();
+      final progress = _RetryProgressSink(failOnCall: 2);
+      final runner = MaintainiacCloudRestoreRunner(
+        gateway: gateway,
+        sessions: sessions,
+        progressSink: progress,
+        batches: MaintainiacRestoreBatchProcessor(
+          sessions: sessions,
+          applier: MaintainiacRestoreApplier(
+            store: records,
+            accountScopeId: 'org-a.user-a',
+            maximumSupportedSchemaVersion: 1,
+          ),
+        ),
+      );
+
+      await expectLater(
+        runner.processNextPage(
+          organizationId: 'org-a',
+          sessionId: 'restore-1',
+          pageSize: 1,
+        ),
+        throwsStateError,
+      );
+      expect(
+        sessions.sessionById('restore-1')?.state,
+        MaintainiacRestoreSessionState.completed,
+      );
+      expect(records.recordsFor('settings'), hasLength(1));
+
+      final retried = await runner.processNextPage(
+        organizationId: 'org-a',
+        sessionId: 'restore-1',
+        pageSize: 1,
+      );
+      expect(retried.completed, isTrue);
+      expect(progress.calls, 3);
+      expect(records.recordsFor('settings'), hasLength(1));
+    },
+  );
 }
 
 MaintainiacDurableCloudDocument _document(String module, String id) {
@@ -190,4 +269,17 @@ class _Identity implements MaintainiacCloudIdentityProvider {
 
   @override
   final String? currentUid;
+}
+
+class _RetryProgressSink implements MaintainiacRestoreProgressSink {
+  _RetryProgressSink({required this.failOnCall});
+
+  final int failOnCall;
+  int calls = 0;
+
+  @override
+  Future<void> reconcile(MaintainiacRestoreSession session) async {
+    calls += 1;
+    if (calls == failOnCall) throw StateError('simulated hosted outage');
+  }
 }
