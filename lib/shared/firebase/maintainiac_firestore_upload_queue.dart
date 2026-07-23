@@ -16,6 +16,7 @@ import '../storage/app_storage_guard.dart';
 
 part 'maintainiac_firestore_upload_policy.dart';
 part 'maintainiac_firestore_upload_store.dart';
+part 'maintainiac_firestore_upload_support.dart';
 part 'maintainiac_firestore_upload_coordinator.dart';
 
 enum MaintainiacFirestoreUploadStatus {
@@ -37,6 +38,7 @@ class MaintainiacFirestoreUploadResult {
     required this.failedCount,
     this.conflictedCount = 0,
     this.remainingPendingCount = 0,
+    this.hasMoreEligible = false,
     this.reason,
     this.reservationId,
   });
@@ -47,6 +49,7 @@ class MaintainiacFirestoreUploadResult {
   final int failedCount;
   final int conflictedCount;
   final int remainingPendingCount;
+  final bool hasMoreEligible;
   final String? reason;
   final String? reservationId;
 }

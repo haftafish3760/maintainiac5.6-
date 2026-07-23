@@ -185,7 +185,7 @@ class MaintainiacDurableSyncOrchestrator {
       conflicted += batch.conflictedCount;
       reservationId = batch.reservationId ?? reservationId;
       if (batch.status != MaintainiacFirestoreUploadStatus.uploaded ||
-          batch.remainingPendingCount == 0) {
+          !batch.hasMoreEligible) {
         final status =
             batch.status == MaintainiacFirestoreUploadStatus.empty &&
                 uploaded > 0
@@ -198,6 +198,7 @@ class MaintainiacDurableSyncOrchestrator {
           failedCount: failed,
           conflictedCount: conflicted,
           remainingPendingCount: batch.remainingPendingCount,
+          hasMoreEligible: batch.hasMoreEligible,
           reason: batch.reason,
           reservationId: reservationId,
         );
@@ -210,6 +211,7 @@ class MaintainiacDurableSyncOrchestrator {
           failedCount: failed,
           conflictedCount: conflicted,
           remainingPendingCount: batch.remainingPendingCount,
+          hasMoreEligible: batch.hasMoreEligible,
           reason:
               'Cloud sync reached its safe per-attempt batch limit; '
               '${batch.remainingPendingCount} queued records remain.',

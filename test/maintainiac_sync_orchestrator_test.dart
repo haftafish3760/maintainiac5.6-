@@ -136,6 +136,7 @@ void main() {
           uploadedCount: 1,
           failedCount: 0,
           remainingPendingCount: remaining,
+          hasMoreEligible: remaining > 0,
           reservationId: 'reservation-1',
         );
       },
@@ -148,6 +149,36 @@ void main() {
     expect(result.upload?.remainingPendingCount, 0);
     expect(result.checkpoint.revision, 2);
   });
+
+  test(
+    'delayed queued work is preserved without a futile upload loop',
+    () async {
+      await _enable(settings);
+      var uploads = 0;
+      final orchestrator = MaintainiacDurableSyncOrchestrator(
+        settingsStore: settings,
+        checkpointStore: checkpoints,
+        uploadPending: ({limit, path, nowUtc, attemptId}) async {
+          uploads += 1;
+          return const MaintainiacFirestoreUploadResult(
+            status: MaintainiacFirestoreUploadStatus.uploaded,
+            attemptedCount: 1,
+            uploadedCount: 1,
+            failedCount: 0,
+            remainingPendingCount: 1,
+            hasMoreEligible: false,
+          );
+        },
+      );
+
+      final result = await orchestrator.run(_request('attempt-1'));
+
+      expect(uploads, 1);
+      expect(result.outcome, MaintainiacDurableSyncOutcome.succeeded);
+      expect(result.upload?.remainingPendingCount, 1);
+      expect(result.upload?.hasMoreEligible, isFalse);
+    },
+  );
 
   test('safe batch bound leaves remaining work durably failed', () async {
     await _enable(settings);
@@ -163,6 +194,7 @@ void main() {
           uploadedCount: 1,
           failedCount: 0,
           remainingPendingCount: 1,
+          hasMoreEligible: true,
         );
       },
     );

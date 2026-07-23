@@ -628,6 +628,8 @@ void main() {
       ).uploadPending(nowUtc: startedAt.add(const Duration(seconds: 29)));
 
       expect(early.attemptedCount, 0);
+      expect(early.remainingPendingCount, 1);
+      expect(early.hasMoreEligible, isFalse);
       expect(recoverySink.writes, isEmpty);
       expect(queue.pendingRecords, hasLength(1));
     },

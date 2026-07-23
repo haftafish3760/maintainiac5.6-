@@ -138,20 +138,28 @@ class MaintainiacFirestoreUploadCoordinator {
         );
       }
     }
+    bool accountEligible(MaintainiacFirestoreQueuedDocument record) {
+      return authenticatedUid == null ||
+          _maintainiacRecordBelongsToAccount(record, authenticatedUid);
+    }
+
+    int scopedPendingCount() => _queue.pendingRecords.where((record) {
+      return (path == null || record.path == path) && accountEligible(record);
+    }).length;
+
     final batch = _queue.nextBatch(
       limit: limit,
       path: path,
       nowUtc: nowUtc,
-      isEligible: authenticatedUid == null
-          ? null
-          : (record) => _belongsToAccount(record, authenticatedUid!),
+      isEligible: accountEligible,
     );
     if (batch.isEmpty) {
-      return const MaintainiacFirestoreUploadResult(
+      return MaintainiacFirestoreUploadResult(
         status: MaintainiacFirestoreUploadStatus.empty,
         attemptedCount: 0,
         uploadedCount: 0,
         failedCount: 0,
+        remainingPendingCount: scopedPendingCount(),
       );
     }
     MaintainiacHostedSyncReservation? hostedReservation;
@@ -185,8 +193,8 @@ class MaintainiacFirestoreUploadCoordinator {
         try {
           hostedReservation = await hostedReservationProvider(
             attemptId,
-            _batchSha256(batch),
-            _batchBytes(batch),
+            _maintainiacBatchSha256(batch),
+            _maintainiacBatchBytes(batch),
           );
         } catch (_) {
           return const MaintainiacFirestoreUploadResult(
@@ -403,11 +411,15 @@ class MaintainiacFirestoreUploadCoordinator {
     // Original local records remain authoritative. This queue copy is removed
     // only after cloud acknowledgement has itself been saved durably.
     if (uploadedIds.isNotEmpty) await _queue.clearUploaded();
-    final remainingPendingCount = _queue.pendingRecords.where((record) {
-      if (path != null && record.path != path) return false;
-      return authenticatedUid == null ||
-          _belongsToAccount(record, authenticatedUid);
-    }).length;
+    final remainingPendingCount = scopedPendingCount();
+    final hasMoreEligible = _queue
+        .nextBatch(
+          limit: 1,
+          path: path,
+          nowUtc: nowUtc,
+          isEligible: accountEligible,
+        )
+        .isNotEmpty;
 
     final status = conflictedCount > 0 && failedCount == 0 && uploadedCount == 0
         ? MaintainiacFirestoreUploadStatus.conflict
@@ -423,6 +435,7 @@ class MaintainiacFirestoreUploadCoordinator {
       failedCount: failedCount,
       conflictedCount: conflictedCount,
       remainingPendingCount: remainingPendingCount,
+      hasMoreEligible: hasMoreEligible,
       reason: conflictedCount > 0
           ? 'A newer cloud record needs conflict review before backup can continue.'
           : null,
@@ -435,56 +448,4 @@ class MaintainiacFirestoreUploadCoordinator {
     _firestoreUploadTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
-
-  bool _belongsToAccount(
-    MaintainiacFirestoreQueuedDocument record,
-    String authenticatedUid,
-  ) {
-    try {
-      MaintainiacFirestoreScopePolicy.validateWrite(
-        path: record.path,
-        data: record.data,
-        authenticatedUid: authenticatedUid,
-      );
-      return true;
-    } on MaintainiacFirestoreScopeMismatch {
-      return false;
-    }
-  }
-
-  String _batchSha256(List<MaintainiacFirestoreQueuedDocument> batch) {
-    final canonical = [
-      for (final record in batch)
-        {'path': record.path, 'data': _canonicalSyncValue(record.data)},
-    ];
-    return sha256.convert(utf8.encode(jsonEncode(canonical))).toString();
-  }
-
-  int _batchBytes(List<MaintainiacFirestoreQueuedDocument> batch) => utf8
-      .encode(
-        jsonEncode([
-          for (final record in batch)
-            {'path': record.path, 'data': _canonicalSyncValue(record.data)},
-        ]),
-      )
-      .length;
-}
-
-Object? _canonicalSyncValue(Object? value) {
-  if (value == null || value is bool || value is String || value is int) {
-    return value;
-  }
-  if (value is num && value.isFinite) return value;
-  if (value is DateTime) return value.toUtc().toIso8601String();
-  if (value is List) {
-    return value.map(_canonicalSyncValue).toList(growable: false);
-  }
-  if (value is Map) {
-    if (value.keys.any((key) => key is! String)) {
-      throw const FormatException('Cloud sync batch has a non-text field.');
-    }
-    final keys = value.keys.cast<String>().toList()..sort();
-    return {for (final key in keys) key: _canonicalSyncValue(value[key])};
-  }
-  throw const FormatException('Cloud sync batch contains unsupported data.');
 }

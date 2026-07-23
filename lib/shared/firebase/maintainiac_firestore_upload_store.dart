@@ -333,11 +333,11 @@ class MaintainiacFirestoreUploadQueueStore {
   MaintainiacFirestoreQueuedDocument? _latestMatchingPending(
     MaintainiacFirestoreDocumentDraft draft,
   ) {
-    final expected = jsonEncode(_canonicalSyncValue(draft.data));
+    final expected = jsonEncode(_maintainiacCanonicalSyncValue(draft.data));
     final matching = pendingRecords.where(
       (record) =>
           record.path == draft.path &&
-          jsonEncode(_canonicalSyncValue(record.data)) == expected,
+          jsonEncode(_maintainiacCanonicalSyncValue(record.data)) == expected,
     );
     return matching.isEmpty ? null : matching.last;
   }
