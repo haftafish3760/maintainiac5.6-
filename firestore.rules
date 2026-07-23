@@ -145,6 +145,59 @@ service cloud.firestore {
         );
     }
 
+    function isGenericDurableRecord(recordId, orgId) {
+      return request.resource.data.keys().hasOnly([
+          'schema',
+          'recordKey',
+          'module',
+          'localRecordId',
+          'accountScopeId',
+          'recordSchemaVersion',
+          'contentSha256',
+          'privateToOwner',
+          'orgId',
+          'createdByUid',
+          'updatedByUid',
+          'localRevision',
+          'recordState',
+          'createdAt',
+          'updatedAt',
+          'deletedAt',
+          'auditEvents',
+          'recordPayload'
+        ]) &&
+        request.resource.data.schema == 'maintainiac_durable_record_v1' &&
+        request.resource.data.recordKey == recordId &&
+        recordId.matches('[a-f0-9]{64}') &&
+        request.resource.data.orgId == orgId &&
+        request.resource.data.accountScopeId is string &&
+        request.resource.data.module is string &&
+        request.resource.data.module.size() > 0 &&
+        request.resource.data.module.size() <= 80 &&
+        request.resource.data.localRecordId is string &&
+        request.resource.data.localRecordId.size() > 0 &&
+        request.resource.data.localRecordId.size() <= 160 &&
+        request.resource.data.recordSchemaVersion is int &&
+        request.resource.data.recordSchemaVersion >= 1 &&
+        request.resource.data.contentSha256 is string &&
+        request.resource.data.contentSha256.matches('[a-f0-9]{64}') &&
+        request.resource.data.privateToOwner is bool &&
+        request.resource.data.createdAt is string &&
+        request.resource.data.updatedAt is string &&
+        request.resource.data.auditEvents is list &&
+        request.resource.data.auditEvents.size() <= 2000 &&
+        request.resource.data.recordPayload is map &&
+        !request.resource.data.recordPayload.keys().hasAny([
+          'rawReceiptText',
+          'rawOcrText',
+          'ocrText',
+          'importedText',
+          'localPath',
+          'sourceLocalPath'
+        ]) &&
+        hasValidDurableLifecycle();
+    }
+
     function noLocationTrackingFields() {
       return !request.resource.data.keys().hasAny([
         'latitude',
@@ -1494,14 +1547,26 @@ service cloud.firestore {
       }
 
       match /records/{recordId} {
-        allow read: if isActiveMember(orgId) &&
-          resource.data.privateToOwner != true;
+        allow read: if isActiveMember(orgId) && (
+          isOwnerOrAdmin(orgId) ||
+          resource.data.createdByUid == request.auth.uid ||
+          resource.data.privateToOwner != true
+        );
         allow create: if isActiveMember(orgId) &&
           writesOwnCreate() &&
-          noForbiddenSensitiveFields();
+          noForbiddenSensitiveFields() &&
+          createsDurableRecord() &&
+          isGenericDurableRecord(recordId, orgId);
         allow update: if isActiveMember(orgId) &&
           keepsCreator() &&
-          noForbiddenSensitiveFields();
+          noForbiddenSensitiveFields() &&
+          advancesDurableRecord() &&
+          isGenericDurableRecord(recordId, orgId) &&
+          request.resource.data.recordKey == resource.data.recordKey &&
+          request.resource.data.module == resource.data.module &&
+          request.resource.data.localRecordId == resource.data.localRecordId &&
+          request.resource.data.accountScopeId == resource.data.accountScopeId &&
+          request.resource.data.recordSchemaVersion == resource.data.recordSchemaVersion;
         allow delete: if false;
       }
     }

@@ -599,6 +599,40 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 
+  test('generic durable records are private, monotonic, and never hard deleted', async () => {
+    const owner = dbFor('ownerUid');
+    const helper = dbFor('helperUid');
+    const recordId = 'a'.repeat(64);
+    const reference = doc(owner, `orgs/orgA/records/${recordId}`);
+    const durable = genericDurableRecord(recordId);
+
+    await assertSucceeds(setDoc(reference, durable));
+    await assertSucceeds(getDoc(reference));
+    await assertFails(
+      getDoc(doc(helper, `orgs/orgA/records/${recordId}`)),
+    );
+    await assertSucceeds(setDoc(reference, durable));
+    await assertFails(
+      updateDoc(reference, {recordPayload: {theme: 'light'}}),
+    );
+    await assertSucceeds(
+      setDoc(reference, {
+        ...durable,
+        localRevision: 2,
+        updatedAt: '2026-07-22T01:00:00.000Z',
+        contentSha256: 'b'.repeat(64),
+        recordPayload: {theme: 'light'},
+      }),
+    );
+    await assertFails(
+      setDoc(doc(owner, `orgs/orgA/records/${'c'.repeat(64)}`), {
+        ...genericDurableRecord('c'.repeat(64)),
+        recordPayload: {rawOcrText: 'must stay local'},
+      }),
+    );
+    await assertFails(deleteDoc(reference));
+  });
+
   test('invite reads are limited to owner/admin or matching email', async () => {
     const owner = dbFor('ownerUid');
     const invited = dbFor('newEmployeeUid', { email: 'worker@example.com' });
@@ -744,6 +778,29 @@ describe('Firestore rules emulator safety', () => {
     );
   });
 });
+
+function genericDurableRecord(recordId) {
+  return {
+    schema: 'maintainiac_durable_record_v1',
+    recordKey: recordId,
+    module: 'settings',
+    localRecordId: 'settings-1',
+    accountScopeId: 'orgA.ownerUid',
+    recordSchemaVersion: 1,
+    contentSha256: 'a'.repeat(64),
+    privateToOwner: true,
+    orgId: 'orgA',
+    createdByUid: 'ownerUid',
+    updatedByUid: 'ownerUid',
+    localRevision: 1,
+    recordState: 'active',
+    createdAt: '2026-07-22T00:00:00.000Z',
+    updatedAt: '2026-07-22T00:00:00.000Z',
+    deletedAt: null,
+    auditEvents: ['created'],
+    recordPayload: {theme: 'dark'},
+  };
+}
 
 async function seedOrg() {
   await testEnv.withSecurityRulesDisabled(async (context) => {

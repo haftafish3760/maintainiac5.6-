@@ -981,9 +981,9 @@ class MaintainiacFirestoreUploadPolicy {
     if (value is Map) {
       for (final entry in value.entries) {
         final key = entry.key.toString();
-        final blocked = allowPrivateExpenseBackup
-            ? blockedEverywhereKeys.contains(key)
-            : blockedSensitiveKeys.contains(key);
+        final blocked =
+            blockedEverywhereKeys.contains(key) ||
+            (!allowPrivateExpenseBackup && blockedSensitiveKeys.contains(key));
         if (blocked) {
           throw ArgumentError.value(
             key,
