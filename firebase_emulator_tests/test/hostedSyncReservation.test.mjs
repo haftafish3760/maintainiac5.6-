@@ -145,6 +145,36 @@ describe('hosted sync reservations', () => {
 
     assert.equal(blocked.body?.error?.status, 'FAILED_PRECONDITION');
   });
+
+  test('plan downgrade never reports a negative remaining allowance', async () => {
+    const identity = await createIdentity();
+    await seedHostedPlan(identity.uid);
+    for (let attempt = 1; attempt <= 4; attempt += 1) {
+      await reserve(
+        identity.token,
+        `downgrade-${attempt}`,
+        String(attempt),
+        100,
+      );
+    }
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'hostedPlans/freeConfigurable'), {
+        status: 'active',
+        displayName: 'Downgraded test plan',
+        storageQuotaBytes: 100 * 1024 * 1024,
+        dailySyncLimit: 1,
+        immediateSyncAllowed: false,
+        policyVersion: 8,
+        downloadAllowanceBytes: 25 * 1024 * 1024,
+      });
+    });
+
+    const retry = await reserve(identity.token, 'downgrade-1', '1', 100);
+
+    assert.equal(retry.used, 4);
+    assert.equal(retry.limit, 1);
+    assert.equal(retry.remaining, 0);
+  });
 });
 
 function reserve(token, attemptId, hashCharacter, batchBytes) {

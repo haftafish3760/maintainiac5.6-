@@ -149,7 +149,7 @@ function reservationResult(entry, used, limit) {
   return {
     reservationId: entry.id,
     used,
-    remaining: limit - used,
+    remaining: Math.max(0, limit - used),
     limit,
     windowSeconds: DAY_MILLIS / 1000,
     reservedAt: entry.at.toDate().toISOString(),
