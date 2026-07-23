@@ -21,6 +21,9 @@ const {
   buildHostedPlanFunctions,
   loadHostedGrantForUid,
 } = require('./hosted_plans');
+const {
+  buildPersonalWorkspaceFunctions,
+} = require('./personal_workspace');
 
 const runningInFunctionsEmulator = process.env.FUNCTIONS_EMULATOR === 'true';
 initializeApp(
@@ -59,6 +62,11 @@ const hostedPlanFunctions = buildHostedPlanFunctions({
 });
 exports.getHostedUsageGrant = hostedPlanFunctions.getHostedUsageGrant;
 exports.reserveHostedSync = hostedPlanFunctions.reserveHostedSync;
+const personalWorkspaceFunctions = buildPersonalWorkspaceFunctions({
+  enforceAppCheck: enforceCallableAppCheck,
+});
+exports.bootstrapPersonalWorkspace =
+    personalWorkspaceFunctions.bootstrapPersonalWorkspace;
 
 const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
   default: 20 * 1024 * 1024,

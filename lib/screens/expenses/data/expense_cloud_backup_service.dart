@@ -566,10 +566,7 @@ class FirebaseExpenseCloudBackupMirror implements ExpenseCloudBackupMirror {
        _identityProvider =
            identityProvider ?? FirebaseMaintainiacCloudIdentityProvider(),
        _workspaceBootstrapper =
-           workspaceBootstrapper ??
-           MaintainiacOrganizationBootstrapper(
-             writer: FirebaseOrganizationBootstrapWriter(),
-           ) {
+           workspaceBootstrapper ?? MaintainiacOrganizationBootstrapper() {
     appState.addListener(_onVehicleStateChanged);
     workProfiles.addListener(_onWorkProfileStateChanged);
     _rememberReminderRevisions();

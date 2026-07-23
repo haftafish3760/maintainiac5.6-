@@ -32,6 +32,7 @@ const callableNames = [
   'getHostedUsageGrant',
   'reserveHostedSync',
   'commitDurableRecordBatch',
+  'bootstrapPersonalWorkspace',
 ];
 let testEnv;
 
