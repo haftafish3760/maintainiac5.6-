@@ -25,6 +25,7 @@ export '../firebase/maintainiac_firestore_upload_queue.dart';
 export '../firebase/maintainiac_hosted_plan_client.dart';
 export '../firebase/maintainiac_restore_callable_source.dart';
 export '../firebase/maintainiac_restore_plan_client.dart';
+export '../firebase/maintainiac_restore_session_client.dart';
 export '../sync/maintainiac_sync_settings.dart';
 export '../sync/maintainiac_sync_settings_store.dart';
 export '../sync/maintainiac_sync_checkpoint_store.dart';

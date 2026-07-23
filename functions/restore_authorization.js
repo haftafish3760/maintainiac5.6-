@@ -193,7 +193,7 @@ async function beginRestoreSession(request) {
 async function updateRestoreSession(request) {
   const input = restoreSessionInput(request);
   const action = String(request.data?.action || '').trim();
-  if (!['pause', 'cancel', 'complete'].includes(action)) {
+  if (!['progress', 'pause', 'cancel', 'complete'].includes(action)) {
     throw new HttpsError('invalid-argument', 'Invalid restore session action.');
   }
   const completedItems = Number(request.data?.completedItems ?? 0);
@@ -204,7 +204,9 @@ async function updateRestoreSession(request) {
       completedBytes > 1024 * 1024 * 1024 * 1024) {
     throw new HttpsError('invalid-argument', 'Invalid restore progress totals.');
   }
-  const nextStatus = action === 'pause'
+  const nextStatus = action === 'progress'
+    ? 'active'
+    : action === 'pause'
     ? 'paused'
     : action === 'cancel'
       ? 'cancelled'
@@ -228,25 +230,33 @@ async function updateRestoreSession(request) {
     }
     const allowedStates = action === 'cancel'
       ? new Set(['authorized', 'active', 'paused'])
+      : action === 'progress'
+        ? new Set(['active'])
       : new Set(['active', 'paused']);
     const data = requireUsableSession(snapshot, input, {allowedStates});
     const previousItems = Number(data.completedItems || 0);
     const previousBytes = Number(data.completedBytes || 0);
-    if (completedItems < previousItems || completedBytes < previousBytes) {
+    const plannedItems = Number(data.recordCount || 0);
+    const plannedBytes = Number(data.structuredBytes || 0);
+    if (completedItems < previousItems || completedBytes < previousBytes ||
+        completedItems > plannedItems || completedBytes > plannedBytes ||
+        (action === 'complete' &&
+          (completedItems !== plannedItems || completedBytes !== plannedBytes))) {
       throw new HttpsError(
         'failed-precondition',
-        'Restore progress cannot move backward.',
+        'Restore progress is outside the authorized plan.',
       );
     }
     const now = Timestamp.now();
-    transaction.update(sessionRef, {
+    const update = {
       status: nextStatus,
       completedItems,
       completedBytes,
       updatedAt: now,
       lifecycleRevision: Number(data.lifecycleRevision || 0) + 1,
-      [`${nextStatus}At`]: now,
-    });
+    };
+    if (action !== 'progress') update[`${nextStatus}At`] = now;
+    transaction.update(sessionRef, update);
     return {...data, status: nextStatus, completedItems, completedBytes};
   });
   return restoreSessionResult(input.sessionId, result, nextStatus);

@@ -213,9 +213,36 @@ describe('Cloud Functions emulator safety', () => {
     const paused = await callFunction(
       'updateRestoreSession',
       identity.token,
-      {...sessionInput, action: 'pause', completedItems: 2, completedBytes: 512},
+      {
+        ...sessionInput,
+        action: 'progress',
+        completedItems: 1,
+        completedBytes: Math.floor(authorization.structuredBytes / 2),
+      },
     );
-    assert.equal(paused.status, 'paused');
+    assert.equal(paused.status, 'active');
+    const actuallyPaused = await callFunction(
+      'updateRestoreSession',
+      identity.token,
+      {
+        ...sessionInput,
+        action: 'pause',
+        completedItems: 1,
+        completedBytes: Math.floor(authorization.structuredBytes / 2),
+      },
+    );
+    assert.equal(actuallyPaused.status, 'paused');
+    const progressWhilePaused = await callFunctionError(
+      'updateRestoreSession',
+      identity.token,
+      {
+        ...sessionInput,
+        action: 'progress',
+        completedItems: 1,
+        completedBytes: Math.floor(authorization.structuredBytes / 2),
+      },
+    );
+    assert.equal(progressWhilePaused.status, 403);
     const resumed = await callFunction(
       'beginRestoreSession',
       identity.token,
@@ -225,12 +252,22 @@ describe('Cloud Functions emulator safety', () => {
     const completed = await callFunction(
       'updateRestoreSession',
       identity.token,
-      {...sessionInput, action: 'complete', completedItems: 4, completedBytes: 1024},
+      {
+        ...sessionInput,
+        action: 'complete',
+        completedItems: authorization.recordCount,
+        completedBytes: authorization.structuredBytes,
+      },
     );
     const completionRetry = await callFunction(
       'updateRestoreSession',
       identity.token,
-      {...sessionInput, action: 'complete', completedItems: 4, completedBytes: 1024},
+      {
+        ...sessionInput,
+        action: 'complete',
+        completedItems: authorization.recordCount,
+        completedBytes: authorization.structuredBytes,
+      },
     );
     assert.deepEqual(completionRetry, completed);
     assert.equal(completed.status, 'completed');
@@ -253,7 +290,7 @@ describe('Cloud Functions emulator safety', () => {
       assert.equal(session.data()?.uid, identity.uid);
       assert.equal(session.data()?.mode, 'smart');
       assert.equal(session.data()?.status, 'completed');
-      assert.equal(session.data()?.completedItems, 4);
+      assert.equal(session.data()?.completedItems, authorization.recordCount);
       assert.equal(session.data()?.authorizationTokenHash, expectedHash);
       assert.equal(session.data()?.authorizationToken, undefined);
     });
