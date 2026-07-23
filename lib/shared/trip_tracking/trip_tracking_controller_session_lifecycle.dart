@@ -37,6 +37,15 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     if (_isDisposed) {
       return false;
     }
+    final priorStorageError = _platformStatus == 'storage_failed'
+        ? _platformError
+        : null;
+    final preservePriorStorageError =
+        priorStorageError != null &&
+        priorStorageError != 'Could not evaluate local trip recovery data.' &&
+        priorStorageError != 'Could not save the trip locally.' &&
+        priorStorageError !=
+            'Could not read local split-trip ancestry evidence.';
     final effectiveProfileId = profileId?.trim().isNotEmpty == true
         ? profileId!.trim()
         : profile.name;
@@ -269,8 +278,10 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       notifyListeners();
       return false;
     }
-    _platformStatus = null;
-    _platformError = null;
+    if (!preservePriorStorageError) {
+      _platformStatus = null;
+      _platformError = null;
+    }
     notifyListeners();
     return true;
   }

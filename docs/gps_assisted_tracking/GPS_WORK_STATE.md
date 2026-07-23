@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 486 in the current continuation
+- Current pass: 490 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -103,6 +103,9 @@
 - A successful driver-event retry now clears only its matching event-write
   failure. It cannot erase an unrelated review-storage warning, and duplicate
   command IDs remain idempotent across the failed and successful attempts
+- Starting a new durable session no longer erases an unrelated review-history
+  storage warning. The warning remains until that exact history boundary reads
+  successfully, while start-owned transient failures still clear on retry
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair

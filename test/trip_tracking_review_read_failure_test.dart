@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 
 void main() {
@@ -121,6 +122,41 @@ void main() {
     expect(controller.platformStatus, isNull);
     expect(controller.platformError, isNull);
   });
+
+  test(
+    'starting a trip cannot erase an unrelated review-storage warning',
+    () async {
+      final store = _RecoveringReviewStore();
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle-1',
+          initialReading: 12000,
+        ),
+      );
+      addTearDown(controller.dispose);
+
+      expect(controller.latestReview, isNull);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        await controller.start(
+          tripId: 'trip-1',
+          vehicleId: 'vehicle-1',
+          profile: TripTrackingProfile.roadVehicle,
+        ),
+        isTrue,
+      );
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        'Could not read locally saved trip reviews.',
+      );
+
+      store.failPendingReviews = false;
+      expect(controller.latestReview, isNull);
+      expect(controller.platformStatus, isNull);
+    },
+  );
 }
 
 class _UnavailableReviewStore extends TripTrackingSessionStore {
