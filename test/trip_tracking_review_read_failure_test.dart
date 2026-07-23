@@ -84,6 +84,43 @@ void main() {
       expect(controller.activeSession, isNull);
     },
   );
+
+  test('successful review reads clear only their matching storage error', () {
+    final store = _RecoveringReviewStore();
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle-1',
+        initialReading: 12000,
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    expect(controller.latestReview, isNull);
+    expect(controller.platformStatus, 'storage_failed');
+    store.failPendingReviews = false;
+    expect(controller.latestReview, isNull);
+    expect(controller.platformStatus, isNull);
+
+    expect(
+      controller.evaluateOdometerEndReview(
+        reviewId: 'trip-1',
+        endingOdometer: 12001,
+      ),
+      isNull,
+    );
+    expect(controller.platformStatus, 'storage_failed');
+    store.failReview = false;
+    expect(
+      controller.evaluateOdometerEndReview(
+        reviewId: 'trip-1',
+        endingOdometer: 12001,
+      ),
+      isNull,
+    );
+    expect(controller.platformStatus, isNull);
+    expect(controller.platformError, isNull);
+  });
 }
 
 class _UnavailableReviewStore extends TripTrackingSessionStore {
@@ -96,4 +133,23 @@ class _UnavailableReviewStore extends TripTrackingSessionStore {
   @override
   TripTrackingReviewRecord? reviewForTrip(String tripId) =>
       throw StateError('review storage unavailable');
+}
+
+class _RecoveringReviewStore extends TripTrackingSessionStore {
+  _RecoveringReviewStore() : super.memory();
+
+  var failPendingReviews = true;
+  var failReview = true;
+
+  @override
+  List<TripTrackingReviewRecord> get pendingReviews {
+    if (failPendingReviews) throw StateError('review storage unavailable');
+    return super.pendingReviews;
+  }
+
+  @override
+  TripTrackingReviewRecord? reviewForTrip(String tripId) {
+    if (failReview) throw StateError('review storage unavailable');
+    return super.reviewForTrip(tripId);
+  }
 }

@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 458 in the current continuation
+- Current pass: 466 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -84,6 +84,9 @@
 - Calibration refresh, same-weekday mileage anomaly checks, and calibration
   evidence signatures also use that boundary; storage loss cannot crash those
   dashboard-facing advisory calculations or change confirmed odometer truth
+- A successful local-review read now clears only its own matching transient
+  storage warning, preventing a recovered device from displaying a stale error
+  while leaving unrelated failures intact
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair
@@ -115,6 +118,10 @@
   opens the GPS controls successfully, the active device setting is verified as
   `High accuracy (3 sec)`, and the phone was returned to the Dashboard without
   changing any non-Maintainiac setting
+- The S25 Ultra has location services enabled, but Maintainiac location,
+  background-location, notification, and activity-recognition permissions
+  remain denied. This correctly preserves opt-in; the owner must grant the
+  desired permissions in the app before a real route can collect GPS evidence
 - The complete 1,800-plus-test trip-domain gate, Android debug build, and
   generic iOS no-codesign build pass after these changes. The current Android
   build is installed and resumed on the S25 Ultra without a Maintainiac crash

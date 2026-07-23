@@ -375,7 +375,13 @@ class TripTrackingController extends ChangeNotifier {
 
   List<TripTrackingReviewRecord> _readPendingReviewsSafely() {
     try {
-      return _sessionStore.pendingReviews;
+      final reviews = _sessionStore.pendingReviews;
+      if (_platformStatus == 'storage_failed' &&
+          _platformError == 'Could not read locally saved trip reviews.') {
+        _platformStatus = null;
+        _platformError = null;
+      }
+      return reviews;
     } catch (_) {
       _platformStatus = 'storage_failed';
       _platformError = 'Could not read locally saved trip reviews.';
@@ -385,7 +391,13 @@ class TripTrackingController extends ChangeNotifier {
 
   TripTrackingReviewRecord? _readReviewSafely(String tripId) {
     try {
-      return _sessionStore.reviewForTrip(tripId);
+      final review = _sessionStore.reviewForTrip(tripId);
+      if (_platformStatus == 'storage_failed' &&
+          _platformError == 'Could not read the locally saved trip review.') {
+        _platformStatus = null;
+        _platformError = null;
+      }
+      return review;
     } catch (_) {
       _platformStatus = 'storage_failed';
       _platformError = 'Could not read the locally saved trip review.';
