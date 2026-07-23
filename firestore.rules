@@ -1290,7 +1290,9 @@ service cloud.firestore {
       }
 
       match /syncManifests/{manifestId} {
-        allow read: if isActiveMember(orgId);
+        allow read: if isActiveMember(orgId) &&
+          manifestId == request.auth.uid &&
+          resource.data.uid == request.auth.uid;
         allow write: if false;
       }
 

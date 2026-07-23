@@ -18,6 +18,7 @@ function buildRestoreAuthorizationFunctions({enforceAppCheck}) {
     beginRestoreSession: onCall({enforceAppCheck}, beginRestoreSession),
     updateRestoreSession: onCall({enforceAppCheck}, updateRestoreSession),
     fetchRestoreRecordPage: onCall({enforceAppCheck}, fetchRestoreRecordPage),
+    getRestorePlan: onCall({enforceAppCheck}, getRestorePlan),
   };
 }
 
@@ -88,9 +89,10 @@ async function issueRestoreAuthorization(request) {
     );
   }
   const db = getFirestore();
-  const [member, device] = await Promise.all([
+  const [member, device, manifest] = await Promise.all([
     db.doc(`orgs/${organizationId}/members/${uid}`).get(),
     db.doc(`users/${uid}/devices/${deviceId}`).get(),
+    db.doc(`orgs/${organizationId}/syncManifests/${uid}`).get(),
   ]);
   if (member.data()?.status !== 'active' ||
       !device.exists || device.data()?.uid !== uid ||
@@ -118,11 +120,47 @@ async function issueRestoreAuthorization(request) {
     appCheckProtected: true,
     createdAt: now,
     expiresAt,
+    recordCount: Number(manifest.data()?.recordCount || 0),
+    structuredBytes: Number(manifest.data()?.structuredBytes || 0),
+    manifestRevision: Number(manifest.data()?.manifestRevision || 0),
   });
   return {
     sessionId,
     authorizationToken,
     expiresAt: expiresAt.toDate().toISOString(),
+    recordCount: Number(manifest.data()?.recordCount || 0),
+    structuredBytes: Number(manifest.data()?.structuredBytes || 0),
+    manifestRevision: Number(manifest.data()?.manifestRevision || 0),
+  };
+}
+
+async function getRestorePlan(request) {
+  const uid = request.auth?.uid || '';
+  const organizationId = cleanToken(request.data?.organizationId);
+  const deviceId = cleanToken(request.data?.deviceId);
+  if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
+  if (!organizationId || !deviceId) {
+    throw new HttpsError('invalid-argument', 'Invalid restore plan request.');
+  }
+  const db = getFirestore();
+  const [member, device, manifest] = await Promise.all([
+    db.doc(`orgs/${organizationId}/members/${uid}`).get(),
+    db.doc(`users/${uid}/devices/${deviceId}`).get(),
+    db.doc(`orgs/${organizationId}/syncManifests/${uid}`).get(),
+  ]);
+  if (member.data()?.status !== 'active' ||
+      device.data()?.uid !== uid || device.data()?.deviceId !== deviceId ||
+      device.data()?.status !== 'active') {
+    throw new HttpsError(
+      'permission-denied',
+      'An active account and registered device are required.',
+    );
+  }
+  return {
+    recordCount: Number(manifest.data()?.recordCount || 0),
+    structuredBytes: Number(manifest.data()?.structuredBytes || 0),
+    manifestRevision: Number(manifest.data()?.manifestRevision || 0),
+    mediaBytes: 0,
   };
 }
 

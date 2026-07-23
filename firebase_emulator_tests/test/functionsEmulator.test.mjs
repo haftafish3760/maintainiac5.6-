@@ -141,6 +141,29 @@ describe('Cloud Functions emulator safety', () => {
     });
     assert.equal(registered.deviceId, 'restoreDeviceA');
     assert.equal(registered.registrationRevision, 1);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      for (const recordKey of ['3'.repeat(64), '4'.repeat(64)]) {
+        await setDoc(
+          doc(db, `orgs/orgLifecycleA/records/${recordKey}`),
+          {
+            schema: 'maintainiac_durable_record_v1',
+            recordKey,
+            orgId: 'orgLifecycleA',
+            createdByUid: identity.uid,
+            updatedByUid: identity.uid,
+            privateToOwner: true,
+            recordPayload: {value: recordKey.substring(0, 1)},
+          },
+        );
+      }
+    });
+    const restorePlan = await waitForRestorePlan(identity.token, {
+      organizationId: 'orgLifecycleA',
+      deviceId: 'restoreDeviceA',
+    }, 2);
+    assert.equal(restorePlan.recordCount, 2);
+    assert.ok(restorePlan.structuredBytes > 0);
 
     const authorization = await callFunction(
       'issueRestoreAuthorization',
@@ -153,6 +176,8 @@ describe('Cloud Functions emulator safety', () => {
     );
     assert.match(authorization.sessionId, /^[a-f0-9-]{36}$/);
     assert.match(authorization.authorizationToken, /^[a-f0-9]{64}$/);
+    assert.equal(authorization.recordCount, restorePlan.recordCount);
+    assert.equal(authorization.structuredBytes, restorePlan.structuredBytes);
 
     const sessionInput = {
       organizationId: 'orgLifecycleA',
@@ -172,20 +197,6 @@ describe('Cloud Functions emulator safety', () => {
       sessionInput,
     );
     assert.equal(started.status, 'active');
-    await testEnv.withSecurityRulesDisabled(async (context) => {
-      const db = context.firestore();
-      for (const recordKey of ['3'.repeat(64), '4'.repeat(64)]) {
-        await setDoc(
-          doc(db, `orgs/orgLifecycleA/records/${recordKey}`),
-          {
-            recordKey,
-            createdByUid: identity.uid,
-            privateToOwner: true,
-            recordPayload: {value: recordKey.substring(0, 1)},
-          },
-        );
-      }
-    });
     const restorePage = await callFunction(
       'fetchRestoreRecordPage',
       identity.token,
@@ -408,6 +419,15 @@ async function callFunction(name, token, data) {
   assert.equal(result.status, 200, JSON.stringify(result.body));
   assert.ok(result.body.result, `${name} must return a callable result`);
   return result.body.result;
+}
+
+async function waitForRestorePlan(token, data, expectedCount) {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    const plan = await callFunction('getRestorePlan', token, data);
+    if (plan.recordCount === expectedCount) return plan;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error('Timed out waiting for the durable restore manifest.');
 }
 
 async function callFunctionError(name, token, data) {

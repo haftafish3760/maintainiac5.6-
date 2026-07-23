@@ -16,6 +16,7 @@ CORE_TESTS=(
   test/maintainiac_durable_cloud_restore_gateway_test.dart
   test/maintainiac_cloud_restore_runner_test.dart
   test/maintainiac_restore_callable_source_test.dart
+  test/maintainiac_restore_plan_client_test.dart
   test/maintainiac_durable_storage_facade_test.dart
   test/maintainiac_firestore_account_isolation_test.dart
   test/maintainiac_firestore_atomic_batch_test.dart

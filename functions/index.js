@@ -12,6 +12,9 @@ const {
 } = require('./receipt_ai_assist');
 const {buildRestoreAuthorizationFunctions} = require('./restore_authorization');
 const {
+  buildDurableRecordManifestFunctions,
+} = require('./durable_record_manifest');
+const {
   buildHostedPlanFunctions,
   loadHostedGrantForUid,
 } = require('./hosted_plans');
@@ -37,6 +40,10 @@ exports.beginRestoreSession = restoreAuthorizationFunctions.beginRestoreSession;
 exports.updateRestoreSession = restoreAuthorizationFunctions.updateRestoreSession;
 exports.fetchRestoreRecordPage =
     restoreAuthorizationFunctions.fetchRestoreRecordPage;
+exports.getRestorePlan = restoreAuthorizationFunctions.getRestorePlan;
+const durableRecordManifestFunctions = buildDurableRecordManifestFunctions();
+exports.updateDurableRecordManifest =
+    durableRecordManifestFunctions.updateDurableRecordManifest;
 const hostedPlanFunctions = buildHostedPlanFunctions({
   enforceAppCheck: enforceCallableAppCheck,
 });
