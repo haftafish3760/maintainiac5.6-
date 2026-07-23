@@ -7,6 +7,12 @@ abstract class MaintainiacFirestoreDocumentSink {
   });
 }
 
+abstract interface class MaintainiacFirestoreBatchDocumentSink {
+  Future<void> writeDocuments(
+    List<MaintainiacFirestoreDocumentDraft> documents,
+  );
+}
+
 Future<void> _firestoreUploadTail = Future<void>.value();
 
 class MaintainiacFirestoreUploadCoordinator {
@@ -177,34 +183,83 @@ class MaintainiacFirestoreUploadCoordinator {
     var failedCount = 0;
     var conflictedCount = 0;
     final uploadedIds = <String>[];
-    for (final record in batch) {
+    final batchSink = _sink is MaintainiacFirestoreBatchDocumentSink
+        ? _sink as MaintainiacFirestoreBatchDocumentSink
+        : null;
+    if (batchSink != null) {
       try {
-        MaintainiacFirestoreUploadPolicy.validateDraft(
-          MaintainiacFirestoreDocumentDraft(
-            path: record.path,
-            data: record.data,
-          ),
-        );
-        await _sink.writeDocument(
-          path: record.path,
-          data: Map<String, Object?>.unmodifiable(record.data),
-        );
-        uploadedIds.add(record.id);
-        uploadedCount += 1;
+        await batchSink.writeDocuments([
+          for (final record in batch)
+            MaintainiacFirestoreDocumentDraft(
+              path: record.path,
+              data: Map<String, Object?>.unmodifiable(record.data),
+            ),
+        ]);
+        uploadedIds.addAll(batch.map((record) => record.id));
+        uploadedCount = batch.length;
       } on MaintainiacFirestoreRevisionConflict catch (error) {
-        conflictedCount += 1;
-        await _queue.markConflicted(
-          record,
-          error: error.toString(),
-          nowUtc: nowUtc,
-        );
+        final conflicted = batch
+            .where((record) => record.path == error.path)
+            .toList(growable: false);
+        for (final record in conflicted) {
+          conflictedCount += 1;
+          await _queue.markConflicted(
+            record,
+            error: error.toString(),
+            nowUtc: nowUtc,
+          );
+        }
+        if (conflicted.isEmpty) {
+          for (final record in batch) {
+            failedCount += 1;
+            await _queue.markAttempted(
+              record,
+              error:
+                  'Cloud revision conflict identity did not match the batch.',
+              nowUtc: nowUtc,
+            );
+          }
+        }
       } catch (error) {
-        failedCount += 1;
-        await _queue.markAttempted(
-          record,
-          error: error.toString(),
-          nowUtc: nowUtc,
-        );
+        for (final record in batch) {
+          failedCount += 1;
+          await _queue.markAttempted(
+            record,
+            error: error.toString(),
+            nowUtc: nowUtc,
+          );
+        }
+      }
+    } else {
+      for (final record in batch) {
+        try {
+          MaintainiacFirestoreUploadPolicy.validateDraft(
+            MaintainiacFirestoreDocumentDraft(
+              path: record.path,
+              data: record.data,
+            ),
+          );
+          await _sink.writeDocument(
+            path: record.path,
+            data: Map<String, Object?>.unmodifiable(record.data),
+          );
+          uploadedIds.add(record.id);
+          uploadedCount += 1;
+        } on MaintainiacFirestoreRevisionConflict catch (error) {
+          conflictedCount += 1;
+          await _queue.markConflicted(
+            record,
+            error: error.toString(),
+            nowUtc: nowUtc,
+          );
+        } catch (error) {
+          failedCount += 1;
+          await _queue.markAttempted(
+            record,
+            error: error.toString(),
+            nowUtc: nowUtc,
+          );
+        }
       }
     }
     await _queue.markUploaded(uploadedIds, nowUtc: nowUtc);

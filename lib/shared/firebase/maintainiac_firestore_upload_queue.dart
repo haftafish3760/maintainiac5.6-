@@ -59,7 +59,9 @@ typedef MaintainiacHostedSyncReservationProvider =
 /// actual write primitive here prevents Expenses, Trips, and future modules
 /// from inventing competing merge semantics.
 class FirebaseFirestoreDocumentSink
-    implements MaintainiacFirestoreDocumentSink {
+    implements
+        MaintainiacFirestoreDocumentSink,
+        MaintainiacFirestoreBatchDocumentSink {
   FirebaseFirestoreDocumentSink({
     FirebaseFirestore? firestore,
     MaintainiacCloudIdentityProvider? identityProvider,
@@ -103,6 +105,53 @@ class FirebaseFirestoreDocumentSink
         );
       }
       transaction.set(reference, data, SetOptions(merge: false));
+    });
+  }
+
+  @override
+  Future<void> writeDocuments(
+    List<MaintainiacFirestoreDocumentDraft> documents,
+  ) async {
+    if (documents.isEmpty) return;
+    if (documents.length > MaintainiacFirestoreUploadPolicy.maxBatchSize) {
+      throw ArgumentError('Firestore batch exceeds the approved limit.');
+    }
+    for (final document in documents) {
+      MaintainiacFirestoreUploadPolicy.validateDraft(document);
+      MaintainiacFirestoreScopePolicy.validateWrite(
+        path: document.path,
+        data: document.data,
+        authenticatedUid: _identityProvider.currentUid,
+      );
+    }
+    await _firestore.runTransaction<void>((transaction) async {
+      final writes =
+          <(DocumentReference<Map<String, dynamic>>, Map<String, Object?>)>[];
+      for (final document in documents) {
+        final reference = _firestore.doc(document.path);
+        if (!MaintainiacFirestoreRevisionPolicy.isRevisioned(document.data)) {
+          writes.add((reference, document.data));
+          continue;
+        }
+        final snapshot = await transaction.get(reference);
+        final decision = MaintainiacFirestoreRevisionPolicy.decide(
+          incoming: document.data,
+          existing: snapshot.data(),
+        );
+        if (decision.action == MaintainiacFirestoreRevisionAction.conflict) {
+          throw MaintainiacFirestoreRevisionConflict(
+            path: document.path,
+            localRevision: decision.localRevision,
+            remoteRevision: decision.remoteRevision,
+          );
+        }
+        if (decision.action != MaintainiacFirestoreRevisionAction.noOp) {
+          writes.add((reference, document.data));
+        }
+      }
+      for (final write in writes) {
+        transaction.set(write.$1, write.$2, SetOptions(merge: false));
+      }
     });
   }
 }
