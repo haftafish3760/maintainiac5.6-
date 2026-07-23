@@ -22,6 +22,7 @@ export '../firebase/maintainiac_hosted_plan_client.dart';
 export '../sync/maintainiac_sync_settings.dart';
 export '../sync/maintainiac_sync_settings_store.dart';
 export '../sync/maintainiac_sync_checkpoint_store.dart';
+export '../sync/maintainiac_sync_orchestrator.dart';
 export '../records/maintainiac_durable_record_store.dart';
 export '../records/maintainiac_record_lifecycle.dart';
 export '../records/maintainiac_restore_contract.dart';
