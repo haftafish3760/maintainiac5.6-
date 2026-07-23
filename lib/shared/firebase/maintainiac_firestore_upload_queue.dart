@@ -49,6 +49,16 @@ class MaintainiacFirestoreUploadResult {
   final String? reservationId;
 }
 
+class MaintainiacFirestoreQueueIntegrityIssue {
+  const MaintainiacFirestoreQueueIntegrityIssue({
+    required this.entryId,
+    required this.reason,
+  });
+
+  final String entryId;
+  final String reason;
+}
+
 typedef MaintainiacFirestoreQueueStorageCheck =
     Future<AppStorageCheck> Function();
 typedef MaintainiacFirestoreFreeSyncAttemptRecorder =

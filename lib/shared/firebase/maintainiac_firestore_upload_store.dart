@@ -45,6 +45,29 @@ class MaintainiacFirestoreUploadQueueStore {
     return List.unmodifiable(records.where((record) => record.isPendingUpload));
   }
 
+  List<MaintainiacFirestoreQueueIntegrityIssue> get integrityIssues {
+    final issues = <MaintainiacFirestoreQueueIntegrityIssue>[];
+    for (final entry in _box.toMap().entries) {
+      final record = MaintainiacFirestoreQueuedDocument.fromStored(entry.value);
+      if (record.isEmpty) {
+        issues.add(
+          MaintainiacFirestoreQueueIntegrityIssue(
+            entryId: entry.key.toString(),
+            reason: 'Unreadable queued backup evidence was preserved.',
+          ),
+        );
+      } else if (!_isRecoverableQueuedDocument(record)) {
+        issues.add(
+          MaintainiacFirestoreQueueIntegrityIssue(
+            entryId: entry.key.toString(),
+            reason: 'Unsafe queued backup evidence was preserved.',
+          ),
+        );
+      }
+    }
+    return List.unmodifiable(issues);
+  }
+
   Future<MaintainiacFirestoreQueuedDocument> enqueue(
     MaintainiacFirestoreDocumentDraft draft, {
     DateTime? queuedAtUtc,
