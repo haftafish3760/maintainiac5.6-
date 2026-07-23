@@ -59,6 +59,21 @@ class TripFailureClassifier {
         stopTrustedGps: true,
       );
     }
+    // Unavailable evidence and terminal lifecycle state must outrank a stale
+    // degraded/recovering marker. Otherwise the UI can incorrectly describe
+    // unusable GPS as still usable and leave trusted collection running.
+    if (health == TripTrackingHealthState.unavailable ||
+        lifecycle == TripTrackingSessionLifecycleState.failedTerminal) {
+      return _decision(
+        hasUsableGpsEvidence
+            ? TripFailureClassification.recoverable
+            : TripFailureClassification.unusableGpsEvidence,
+        hasUsableGpsEvidence
+            ? 'gps_unavailable_prior_evidence_preserved'
+            : 'gps_evidence_unusable_manual_completion_available',
+        stopTrustedGps: true,
+      );
+    }
     if (lifecycle == TripTrackingSessionLifecycleState.failedRecoverable ||
         lifecycle == TripTrackingSessionLifecycleState.interrupted ||
         lifecycle == TripTrackingSessionLifecycleState.recovering) {
@@ -73,18 +88,6 @@ class TripFailureClassifier {
       return _decision(
         TripFailureClassification.degradedButUsable,
         'degraded_gps_evidence',
-      );
-    }
-    if (health == TripTrackingHealthState.unavailable ||
-        lifecycle == TripTrackingSessionLifecycleState.failedTerminal) {
-      return _decision(
-        hasUsableGpsEvidence
-            ? TripFailureClassification.recoverable
-            : TripFailureClassification.unusableGpsEvidence,
-        hasUsableGpsEvidence
-            ? 'gps_unavailable_prior_evidence_preserved'
-            : 'gps_evidence_unusable_manual_completion_available',
-        stopTrustedGps: true,
       );
     }
     return _decision(TripFailureClassification.none, 'tracking_healthy');

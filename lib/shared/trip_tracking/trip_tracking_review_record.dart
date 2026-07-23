@@ -627,22 +627,18 @@ class TripTrackingReviewRecord {
               )
               .toList(growable: false)
         : const <TripManualEvent>[];
-    final transitionAudits =
-        _transitionAuditsFromMapValue(
-              map['transitionAudits'],
-              sessionId: id,
-              vehicleId: vehicleId,
-              profile: safeProfile,
-              startedAt:
-                  startedAt ??
-                  DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
-            )
-            .where(
-              (event) =>
-                  finishedAt == null ||
-                  !event.eventTimestamp.isAfter(finishedAt),
-            )
-            .toList(growable: false);
+    final transitionAudits = _transitionAuditsFromMapValue(
+      map['transitionAudits'],
+      sessionId: id,
+      vehicleId: vehicleId,
+      profile: safeProfile,
+      startedAt:
+          startedAt ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      latestAt:
+          finishedAt ??
+          startedAt ??
+          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+    ).toList(growable: false);
     final batteryStateSummary = TripTrackingBatteryStateSummary.tryFromMap(
       map['batteryStateSummary'],
     );

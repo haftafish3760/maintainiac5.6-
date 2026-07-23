@@ -12,7 +12,10 @@ class TripDriverPatternReviewAdapter {
     int maximumReviews = 256,
   }) {
     final safeMaximum = maximumReviews.clamp(1, 256);
-    return reviews.take(safeMaximum).map(_fromReview).toList(growable: false);
+    return _mostRecentReviews(
+      reviews,
+      safeMaximum,
+    ).map(_fromReview).toList(growable: false);
   }
 
   static TripDriverPatternObservation _fromReview(
@@ -31,6 +34,28 @@ class TripDriverPatternReviewAdapter {
     userReviewed: review.isOdometerConfirmed,
     odometerConfirmed: review.isOdometerConfirmed,
   );
+}
+
+List<TripTrackingReviewRecord> _mostRecentReviews(
+  Iterable<TripTrackingReviewRecord> reviews,
+  int maximumReviews,
+) {
+  final retained = <TripTrackingReviewRecord>[];
+  for (final review in reviews) {
+    var insertionIndex = retained.indexWhere(
+      (existing) =>
+          review.finishedAt.isAfter(existing.finishedAt) ||
+          (review.finishedAt.isAtSameMomentAs(existing.finishedAt) &&
+              review.id.compareTo(existing.id) < 0),
+    );
+    if (insertionIndex < 0) insertionIndex = retained.length;
+    if (insertionIndex >= maximumReviews && retained.length >= maximumReviews) {
+      continue;
+    }
+    retained.insert(insertionIndex, review);
+    if (retained.length > maximumReviews) retained.removeLast();
+  }
+  return retained;
 }
 
 int _confirmedStopCount(TripTrackingReviewRecord review) {

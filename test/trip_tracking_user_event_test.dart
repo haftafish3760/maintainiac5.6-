@@ -11,15 +11,17 @@ void main() {
   TripManualEvent boundEvent({
     String id = 'user:pickup_1',
     String sessionId = 'trip_1',
+    DateTime? occurredAt,
+    DateTime? recordedAt,
   }) => TripManualEvent(
     id: id,
     type: TripManualEventType.pickup,
-    occurredAt: start,
+    occurredAt: occurredAt ?? start,
     userConfirmed: true,
     sessionId: sessionId,
     vehicleId: 'vehicle_1',
     profileId: 'profile_1',
-    recordedAt: start,
+    recordedAt: recordedAt ?? occurredAt ?? start,
     initiatingSource: 'trip_screen',
   );
 
@@ -144,6 +146,30 @@ void main() {
     expect(validation.isRecoverable, isFalse);
     expect(validation.reasons, contains('foreign_trip_event_in_session'));
   });
+
+  test(
+    'future event cannot be committed beyond the active checkpoint',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final futureEvent = boundEvent(
+        occurredAt: start.add(const Duration(minutes: 1)),
+      );
+      final futureRecording = boundEvent(
+        id: 'future_recording',
+        recordedAt: start.add(const Duration(minutes: 1)),
+      );
+
+      await expectLater(
+        store.save(activeSession(events: [futureEvent])),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.save(activeSession(events: [futureRecording])),
+        throwsArgumentError,
+      );
+      expect(store.activeSession, isNull);
+    },
+  );
 
   test(
     'duplicate event identities are rejected instead of duplicated',

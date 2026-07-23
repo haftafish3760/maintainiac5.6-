@@ -33,18 +33,40 @@ void main() {
 
   test('adapter stays bounded before evaluation', () {
     final now = DateTime.utc(2026, 7, 22, 12);
-    final observations = TripDriverPatternReviewAdapter.fromReviews(
-      List.generate(
-        300,
-        (index) => _review(
-          now: now.subtract(Duration(days: index)),
-          confirmed: true,
-          vehicleId: 'vehicle_1',
-          id: 'trip_$index',
-        ),
+    final shuffledOldestFirst = List.generate(
+      300,
+      (index) => _review(
+        now: now.subtract(Duration(days: 299 - index)),
+        confirmed: true,
+        vehicleId: 'vehicle_1',
+        id: 'trip_$index',
       ),
     );
+    final observations = TripDriverPatternReviewAdapter.fromReviews(
+      shuffledOldestFirst,
+    );
     expect(observations, hasLength(256));
+    expect(observations.first.endedAtUtc, now);
+    expect(
+      observations.last.endedAtUtc,
+      now.subtract(const Duration(days: 255)),
+    );
+  });
+
+  test('invalid review limit stays bounded to one newest review', () {
+    final now = DateTime.utc(2026, 7, 22, 12);
+    final observations = TripDriverPatternReviewAdapter.fromReviews([
+      _review(
+        now: now.subtract(const Duration(days: 1)),
+        confirmed: true,
+        vehicleId: 'vehicle_1',
+        id: 'older',
+      ),
+      _review(now: now, confirmed: true, vehicleId: 'vehicle_1', id: 'newest'),
+    ], maximumReviews: 0);
+
+    expect(observations, hasLength(1));
+    expect(observations.single.sessionId, 'newest');
   });
 }
 

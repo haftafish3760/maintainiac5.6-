@@ -96,6 +96,12 @@ class TripTrackingSessionRecoveryValidation {
     if (!_safeEngineSnapshot(review.engineSnapshot)) {
       reasons.add('unsafe_engine_snapshot');
     }
+    if (_hasForeignReviewAdvisory(review)) {
+      reasons.add('foreign_advisory_in_review');
+    }
+    if (_hasSensitiveAdvisoryText(review.advisories)) {
+      reasons.add('sensitive_advisory_text');
+    }
     if (review.cloudSyncState == TripTrackingCloudSyncState.synced &&
         review.cloudSyncedAt == null) {
       reasons.add('synced_without_timestamp');
@@ -185,16 +191,28 @@ bool _safeEngineSnapshot(TripTrackingEngineSnapshot snapshot) =>
             snapshot.walkingEvidence.isNotEmpty));
 
 bool _hasForeignAdvisory(TripTrackingSessionRecord session) =>
+    _hasDuplicateAdvisoryId(session.advisories) ||
     session.advisories.any(
       (event) =>
+          !_safeIdentifier(event.id) ||
           event.sessionId != session.id ||
           event.vehicleId != session.vehicleId ||
           event.profile != session.profile ||
           event.detectedAt.isBefore(session.startedAt) ||
-          event.detectedAt.isAfter(
-            session.startedAt.add(const Duration(days: 30)),
-          ),
+          event.detectedAt.isAfter(session.updatedAt) ||
+          event.evidenceStartedAt.isBefore(session.startedAt) ||
+          event.evidenceStartedAt.isAfter(session.updatedAt) ||
+          event.evidenceEndedAt.isBefore(event.evidenceStartedAt) ||
+          event.evidenceEndedAt.isAfter(session.updatedAt),
     );
+
+bool _hasDuplicateAdvisoryId(Iterable<TripTrackingAdvisoryEvent> advisories) {
+  final ids = <String>{};
+  for (final advisory in advisories) {
+    if (!ids.add(advisory.id)) return true;
+  }
+  return false;
+}
 
 bool _hasSensitiveAdvisoryText(
   Iterable<TripTrackingAdvisoryEvent> advisories,
@@ -205,15 +223,34 @@ bool _hasSensitiveAdvisoryText(
       _containsSensitiveText(event.tripLogReference),
 );
 
+bool _hasForeignReviewAdvisory(TripTrackingReviewRecord review) =>
+    _hasDuplicateAdvisoryId(review.advisories) ||
+    review.advisories.any(
+      (event) =>
+          !_safeIdentifier(event.id) ||
+          event.sessionId != review.id ||
+          event.vehicleId != review.vehicleId ||
+          event.profile != review.profile ||
+          event.detectedAt.isBefore(review.startedAt) ||
+          event.detectedAt.isAfter(review.finishedAt) ||
+          event.evidenceStartedAt.isBefore(review.startedAt) ||
+          event.evidenceStartedAt.isAfter(review.finishedAt) ||
+          event.evidenceEndedAt.isBefore(event.evidenceStartedAt) ||
+          event.evidenceEndedAt.isAfter(review.finishedAt),
+    );
+
 bool _hasForeignTripEvent(TripTrackingSessionRecord session) =>
     _hasDuplicateTripEventId(session.tripEvents) ||
     session.tripEvents.any(
-      (event) => !event.belongsTo(
-        expectedSessionId: session.id,
-        expectedVehicleId: session.vehicleId,
-        expectedProfileId: session.effectiveProfileId,
-        tripStartedAt: session.startedAt,
-      ),
+      (event) =>
+          !event.belongsTo(
+            expectedSessionId: session.id,
+            expectedVehicleId: session.vehicleId,
+            expectedProfileId: session.effectiveProfileId,
+            tripStartedAt: session.startedAt,
+            tripFinishedAt: session.updatedAt,
+          ) ||
+          event.recordedAt!.isAfter(session.updatedAt),
     );
 
 bool _hasForeignReviewTripEvent(TripTrackingReviewRecord review) =>

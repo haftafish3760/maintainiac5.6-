@@ -2,9 +2,9 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 365 in the current continuation
-- Current objective: harden native permission, location-service, and lifecycle
-  races while preserving the real-device evidence boundary
+- Current pass: 375 in the current continuation
+- Current objective: harden durable recovery evidence and deterministic
+  classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
   `ios/Runner/`, `test/trip_tracking_*.dart`,
   `docs/gps_assisted_tracking/GPS_REAL_DEVICE_TEST_PROTOCOL.md`
@@ -43,6 +43,16 @@
 - Approximate-only permission, its zero-trusted-distance initial fix, and its
   low-confidence state now survive process recovery without becoming mileage;
   a later explicit return to precise access can resume validated sampling
+- Unavailable GPS and terminal lifecycle states now take precedence over stale
+  degraded/recovering markers, so trusted GPS is stopped and unusable evidence
+  is never mislabeled as usable. Driver-pattern review selection remains
+  bounded while deterministically retaining the newest evidence from unsorted
+  input
+- Active and completion-review recovery now reject duplicate, foreign,
+  sensitive, inverted, or future-dated advisory evidence. Manual events and
+  transition audits cannot advance beyond the durable session/review
+  checkpoint, preventing wall-clock anomalies or malformed records from
+  rewriting newer recovery state
 - The complete trip-domain gate, Android debug build, and generic iOS
   no-codesign build pass after these changes. The current Android build is
   installed and resumed on the S25 Ultra without a Maintainiac crash

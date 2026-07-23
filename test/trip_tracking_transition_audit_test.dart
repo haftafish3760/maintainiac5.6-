@@ -99,6 +99,48 @@ void main() {
         TripTrackingSessionRecord.fromMap(futureMap).transitionAudits,
         isEmpty,
       );
+
+      final afterCheckpointMap = Map<String, Object?>.from(
+        controller.activeSession!.toMap(),
+      );
+      final afterCheckpointAudit =
+          Map<String, Object?>.from(
+              (afterCheckpointMap['transitionAudits'] as List).single as Map,
+            )
+            ..['eventTimestamp'] = controller.activeSession!.updatedAt
+                .add(const Duration(seconds: 1))
+                .toIso8601String();
+      afterCheckpointMap['transitionAudits'] = [afterCheckpointAudit];
+      expect(
+        TripTrackingSessionRecord.fromMap(afterCheckpointMap).transitionAudits,
+        isEmpty,
+      );
+
+      final review = TripTrackingReviewRecord(
+        id: controller.activeSession!.id,
+        vehicleId: controller.activeSession!.vehicleId,
+        startingOdometer: controller.activeSession!.startingOdometer,
+        estimatedEndingOdometer: controller.activeSession!.startingOdometer,
+        profile: controller.activeSession!.profile,
+        profileId: controller.activeSession!.effectiveProfileId,
+        startedAt: controller.activeSession!.startedAt,
+        finishedAt: controller.activeSession!.updatedAt,
+        engineSnapshot: controller.activeSession!.engineSnapshot,
+        transitionAudits: controller.activeSession!.transitionAudits,
+      );
+      final reviewMap = Map<String, Object?>.from(review.toMap());
+      final reviewAfterFinishAudit =
+          Map<String, Object?>.from(
+              (reviewMap['transitionAudits'] as List).single as Map,
+            )
+            ..['eventTimestamp'] = review.finishedAt
+                .add(const Duration(seconds: 1))
+                .toIso8601String();
+      reviewMap['transitionAudits'] = [reviewAfterFinishAudit];
+      expect(
+        TripTrackingReviewRecord.fromMap(reviewMap).transitionAudits,
+        isEmpty,
+      );
     },
   );
 

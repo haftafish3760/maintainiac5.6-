@@ -501,6 +501,7 @@ class TripTrackingSessionRecord {
         vehicleId: safeVehicleId,
         profile: safeProfile,
         startedAt: safeStartedAt,
+        latestAt: updatedAt ?? safeStartedAt,
       ),
       ancestry: ancestry,
       persistedContractState: persistedContractState,
@@ -648,6 +649,7 @@ List<TripTrackingSessionTransitionAudit> _transitionAuditsFromMapValue(
   required String vehicleId,
   required TripTrackingProfile profile,
   required DateTime startedAt,
+  required DateTime latestAt,
 }) {
   if (value is! Iterable) return const [];
   final ordered = value
@@ -662,6 +664,7 @@ List<TripTrackingSessionTransitionAudit> _transitionAuditsFromMapValue(
               vehicleId: vehicleId,
               profile: profile,
               startedAt: startedAt,
+              latestAt: latestAt,
             ),
       )
       .toList(growable: false)
@@ -699,6 +702,7 @@ bool _transitionAuditBelongsToSession(
   required String vehicleId,
   required TripTrackingProfile profile,
   required DateTime startedAt,
+  required DateTime latestAt,
 }) {
   if (event.sessionId != sessionId || event.vehicleId != vehicleId) {
     return false;
@@ -711,7 +715,7 @@ bool _transitionAuditBelongsToSession(
   if (eventAt.isBefore(tripStart)) {
     return false;
   }
-  return !eventAt.isAfter(tripStart.add(const Duration(days: 30)));
+  return !eventAt.isAfter(latestAt.toUtc());
 }
 
 List<TripTrackingAdvisoryEvent> _advisoriesFromMapValue(

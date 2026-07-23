@@ -394,6 +394,7 @@ class TripTrackingSessionStore {
         session.vehicleConfigurationRevision < 0 ||
         !_isValidTimeZoneOffset(session.startedTimeZoneOffsetMinutes) ||
         !_isSafeTimeZoneName(session.startedTimeZoneName) ||
+        !_sessionAdvisoriesAreValid(session) ||
         !_sessionTripEventsAreValid(session)) {
       throw ArgumentError.value(
         session.id,
@@ -782,6 +783,7 @@ bool _isSafeStoreIdentifierValue(Object? value) =>
     _safeIdentifier(value) == value;
 
 bool _reviewAdvisoriesAreValid(TripTrackingReviewRecord review) =>
+    _hasUniqueAdvisoryIds(review.advisories) &&
     review.advisories.every(
       (event) =>
           _isSafeStoreIdentifier(event.id) &&
@@ -789,7 +791,27 @@ bool _reviewAdvisoriesAreValid(TripTrackingReviewRecord review) =>
           event.vehicleId == review.vehicleId &&
           event.profile == review.profile &&
           !event.detectedAt.isBefore(review.startedAt) &&
-          !event.detectedAt.isAfter(review.finishedAt),
+          !event.detectedAt.isAfter(review.finishedAt) &&
+          !event.evidenceStartedAt.isBefore(review.startedAt) &&
+          !event.evidenceStartedAt.isAfter(review.finishedAt) &&
+          !event.evidenceEndedAt.isBefore(event.evidenceStartedAt) &&
+          !event.evidenceEndedAt.isAfter(review.finishedAt),
+    );
+
+bool _sessionAdvisoriesAreValid(TripTrackingSessionRecord session) =>
+    _hasUniqueAdvisoryIds(session.advisories) &&
+    session.advisories.every(
+      (event) =>
+          _isSafeStoreIdentifier(event.id) &&
+          event.sessionId == session.id &&
+          event.vehicleId == session.vehicleId &&
+          event.profile == session.profile &&
+          !event.detectedAt.isBefore(session.startedAt) &&
+          !event.detectedAt.isAfter(session.updatedAt) &&
+          !event.evidenceStartedAt.isBefore(session.startedAt) &&
+          !event.evidenceStartedAt.isAfter(session.updatedAt) &&
+          !event.evidenceEndedAt.isBefore(event.evidenceStartedAt) &&
+          !event.evidenceEndedAt.isAfter(session.updatedAt),
     );
 
 bool _reviewTripEventsAreValid(TripTrackingReviewRecord review) =>
@@ -814,18 +836,29 @@ bool _sessionTripEventsAreValid(TripTrackingSessionRecord session) =>
     session.tripEvents.length <= TripManualEvent.maximumPerTrip &&
     _hasUniqueTripEventIds(session.tripEvents) &&
     session.tripEvents.every(
-      (event) => event.belongsTo(
-        expectedSessionId: session.id,
-        expectedVehicleId: session.vehicleId,
-        expectedProfileId: session.effectiveProfileId,
-        tripStartedAt: session.startedAt,
-      ),
+      (event) =>
+          event.belongsTo(
+            expectedSessionId: session.id,
+            expectedVehicleId: session.vehicleId,
+            expectedProfileId: session.effectiveProfileId,
+            tripStartedAt: session.startedAt,
+            tripFinishedAt: session.updatedAt,
+          ) &&
+          !event.recordedAt!.isAfter(session.updatedAt),
     );
 
 bool _hasUniqueTripEventIds(Iterable<TripManualEvent> events) {
   final ids = <String>{};
   for (final event in events) {
     if (!ids.add(event.id)) return false;
+  }
+  return true;
+}
+
+bool _hasUniqueAdvisoryIds(Iterable<TripTrackingAdvisoryEvent> advisories) {
+  final ids = <String>{};
+  for (final advisory in advisories) {
+    if (!ids.add(advisory.id)) return false;
   }
   return true;
 }

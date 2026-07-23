@@ -17,6 +17,7 @@ void main() {
           vehicleMovementObserved: true,
         ),
     List<TripTrackingAdvisoryEvent> advisories = const [],
+    List<TripManualEvent> tripEvents = const [],
   }) => TripTrackingSessionRecord(
     id: id,
     vehicleId: vehicleId,
@@ -26,6 +27,7 @@ void main() {
     updatedAt: updatedAt,
     engineSnapshot: engineSnapshot,
     advisories: advisories,
+    tripEvents: tripEvents,
   );
 
   TripTrackingReviewRecord review({
@@ -35,6 +37,7 @@ void main() {
         TripTrackingCloudSyncState.pending,
     DateTime? cloudSyncedAt,
     String? cloudSyncError,
+    List<TripTrackingAdvisoryEvent> advisories = const [],
   }) => TripTrackingReviewRecord(
     id: id,
     vehicleId: vehicleId,
@@ -51,6 +54,7 @@ void main() {
     cloudSyncState: cloudSyncState,
     cloudSyncedAt: cloudSyncedAt,
     cloudSyncError: cloudSyncError,
+    advisories: advisories,
   );
 
   test('recoverable active session exposes a safe recovery summary', () {
@@ -107,6 +111,33 @@ void main() {
     expect(validation.reasons, contains('foreign_advisory_in_session'));
   });
 
+  test(
+    'duplicate advisory identity is rejected at save and recovery',
+    () async {
+      final advisory = TripTrackingAdvisoryEvent(
+        id: 'advisory_duplicate',
+        type: TripTrackingAdvisoryType.probableStop,
+        sessionId: 'trip_recoverable',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        detectedAt: startedAt.add(const Duration(minutes: 1)),
+        evidenceStartedAt: startedAt,
+        evidenceEndedAt: startedAt.add(const Duration(minutes: 1)),
+        confidence: TripTrackingConfidence.high,
+        suggestedAction: 'reviewStop',
+      );
+      final session = activeSession(advisories: [advisory, advisory]);
+      final store = TripTrackingSessionStore.memory();
+
+      await expectLater(store.save(session), throwsArgumentError);
+      final validation = TripTrackingSessionRecoveryValidation.activeSession(
+        session,
+      );
+      expect(validation.isRecoverable, isFalse);
+      expect(validation.reasons, contains('foreign_advisory_in_session'));
+    },
+  );
+
   test('walking review recovery requires vehicle movement and evidence', () {
     final validation = TripTrackingSessionRecoveryValidation.activeSession(
       activeSession(
@@ -122,6 +153,62 @@ void main() {
     expect(validation.isRecoverable, isFalse);
     expect(validation.reasons, contains('unsafe_engine_snapshot'));
   });
+
+  test(
+    'future advisory and manual events cannot enter recovered state',
+    () async {
+      final futureAt = updatedAt.add(const Duration(minutes: 1));
+      final advisory = TripTrackingAdvisoryEvent(
+        id: 'future_advisory',
+        type: TripTrackingAdvisoryType.probableStop,
+        sessionId: 'trip_recoverable',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        detectedAt: futureAt,
+        evidenceStartedAt: futureAt,
+        evidenceEndedAt: futureAt,
+        confidence: TripTrackingConfidence.high,
+        suggestedAction: 'reviewStop',
+      );
+      final manualEvent = TripManualEvent(
+        id: 'future_manual_event',
+        type: TripManualEventType.stop,
+        occurredAt: futureAt,
+        userConfirmed: true,
+        sessionId: 'trip_recoverable',
+        vehicleId: 'vehicle_1',
+        profileId: TripTrackingProfile.deliveryVehicle.name,
+        recordedAt: futureAt,
+        initiatingSource: 'trip_screen',
+      );
+      final lateRecording = TripManualEvent(
+        id: 'future_manual_recording',
+        type: TripManualEventType.stop,
+        occurredAt: updatedAt,
+        userConfirmed: true,
+        sessionId: 'trip_recoverable',
+        vehicleId: 'vehicle_1',
+        profileId: TripTrackingProfile.deliveryVehicle.name,
+        recordedAt: futureAt,
+        initiatingSource: 'trip_screen',
+      );
+
+      final session = activeSession(
+        advisories: [advisory],
+        tripEvents: [manualEvent, lateRecording],
+      );
+      final validation = TripTrackingSessionRecoveryValidation.activeSession(
+        session,
+      );
+      final store = TripTrackingSessionStore.memory();
+
+      await expectLater(store.save(session), throwsArgumentError);
+
+      expect(validation.isRecoverable, isFalse);
+      expect(validation.reasons, contains('foreign_advisory_in_session'));
+      expect(validation.reasons, contains('foreign_trip_event_in_session'));
+    },
+  );
 
   test('active recovery quarantines future and stale checkpoints', () {
     final recoveredAt = DateTime.utc(2026, 7, 18, 12);
@@ -187,6 +274,33 @@ void main() {
     expect(validation.isRecoverable, isFalse);
     expect(validation.reasons, contains('synced_without_timestamp'));
   });
+
+  test(
+    'review recovery rejects duplicate and out-of-window advisories',
+    () async {
+      final advisory = TripTrackingAdvisoryEvent(
+        id: 'review_advisory',
+        type: TripTrackingAdvisoryType.probableStop,
+        sessionId: 'trip_review_recoverable',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        detectedAt: startedAt.add(const Duration(minutes: 1)),
+        evidenceStartedAt: startedAt,
+        evidenceEndedAt: updatedAt.add(const Duration(minutes: 1)),
+        confidence: TripTrackingConfidence.high,
+        suggestedAction: 'reviewStop',
+      );
+      final malformed = review(advisories: [advisory, advisory]);
+      final store = TripTrackingSessionStore.memory();
+
+      await expectLater(store.saveReview(malformed), throwsArgumentError);
+      final validation = TripTrackingSessionRecoveryValidation.review(
+        malformed,
+      );
+      expect(validation.isRecoverable, isFalse);
+      expect(validation.reasons, contains('foreign_advisory_in_review'));
+    },
+  );
 
   test('sensitive recovery text is quarantined before dashboard rendering', () {
     final validation = TripTrackingSessionRecoveryValidation.review(
