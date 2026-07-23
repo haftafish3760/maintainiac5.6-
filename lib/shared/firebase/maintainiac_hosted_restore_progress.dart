@@ -20,13 +20,16 @@ class MaintainiacHostedRestoreProgress
 
   @override
   Future<void> reconcile(MaintainiacRestoreSession session) async {
-    final issued = await _credentials.load(session.authorizationId);
+    var issued = await _credentials.load(session.authorizationId);
     if (issued == null) {
       if (session.state.isTerminal) return;
       throw StateError('Restore authorization is unavailable.');
     }
-    if (!_nowUtc().toUtc().isBefore(issued.expiresAtUtc) ||
-        issued.recordCount != session.totalItems ||
+    if (!_nowUtc().toUtc().isBefore(issued.expiresAtUtc)) {
+      issued = await _client.refresh(issued.authorization);
+      await _credentials.save(session.authorizationId, issued);
+    }
+    if (issued.recordCount != session.totalItems ||
         issued.structuredBytes != session.transferBytes) {
       throw StateError('Restore authorization no longer matches the plan.');
     }

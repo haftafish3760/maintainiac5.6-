@@ -52,6 +52,34 @@ void main() {
     expect(functions.lastData?['action'], 'progress');
   });
 
+  test(
+    'refresh rotates a credential without sending the expired secret',
+    () async {
+      final functions = _Functions({
+        'refreshRestoreAuthorization': {
+          'sessionId': 'session-a',
+          'authorizationToken': 'b' * 64,
+          'expiresAt': '2026-07-23T00:30:00.000Z',
+          'recordCount': 12,
+          'structuredBytes': 4096,
+          'manifestRevision': 3,
+        },
+      });
+      final refreshed = await MaintainiacRestoreSessionClient(functions)
+          .refresh(
+            const MaintainiacRestoreAuthorization(
+              organizationId: 'org-a',
+              deviceId: 'device-a',
+              sessionId: 'session-a',
+              authorizationToken: token,
+            ),
+          );
+
+      expect(refreshed.authorization.authorizationToken, 'b' * 64);
+      expect(functions.lastData, isNot(contains('authorizationToken')));
+    },
+  );
+
   test('malformed hosted session response fails closed', () async {
     final client = MaintainiacRestoreSessionClient(
       _Functions({'beginRestoreSession': _session('active', -1, 0)}),

@@ -70,6 +70,33 @@ class MaintainiacRestoreSessionClient {
         'mode': mode,
       },
     );
+    return _issued(result, organizationId, deviceId);
+  }
+
+  Future<MaintainiacIssuedRestoreAuthorization> refresh(
+    MaintainiacRestoreAuthorization authorization,
+  ) async {
+    authorization.validate();
+    final result = await _functions.call(
+      name: 'refreshRestoreAuthorization',
+      data: {
+        'organizationId': authorization.organizationId,
+        'deviceId': authorization.deviceId,
+        'sessionId': authorization.sessionId,
+      },
+    );
+    return _issued(
+      result,
+      authorization.organizationId,
+      authorization.deviceId,
+    );
+  }
+
+  MaintainiacIssuedRestoreAuthorization _issued(
+    Map<String, Object?> result,
+    String organizationId,
+    String deviceId,
+  ) {
     final sessionId = _requiredToken(result, 'sessionId');
     final token = _requiredSha(result, 'authorizationToken');
     final expiresAt = _requiredDate(result, 'expiresAt');

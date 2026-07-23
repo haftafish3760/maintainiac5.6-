@@ -56,7 +56,7 @@ void main() {
     },
   );
 
-  test('expired credential fails before any hosted call', () async {
+  test('expired credential rotates securely before hosted progress', () async {
     final values = _SecureValues();
     final vault = MaintainiacRestoreCredentialVault(values: values);
     await vault.save(
@@ -70,11 +70,12 @@ void main() {
       nowUtc: () => now,
     );
 
-    await expectLater(
-      progress.reconcile(_session(MaintainiacRestoreSessionState.running)),
-      throwsStateError,
+    await progress.reconcile(_session(MaintainiacRestoreSessionState.running));
+    expect(functions.names.first, 'refreshRestoreAuthorization');
+    expect(
+      (await vault.load('credential-a'))?.authorization.authorizationToken,
+      _rotatedToken,
     );
-    expect(functions.names, isEmpty);
   });
 
   test(
@@ -102,6 +103,8 @@ void main() {
 
 const _token =
     'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+const _rotatedToken =
+    'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
 
 MaintainiacIssuedRestoreAuthorization _issued(
   DateTime now, {
@@ -173,6 +176,16 @@ class _Functions implements MaintainiacCallableFunctionClient {
     required Map<String, Object?> data,
   }) async {
     names.add(name);
+    if (name == 'refreshRestoreAuthorization') {
+      return {
+        'sessionId': 'server-session-a',
+        'authorizationToken': _rotatedToken,
+        'expiresAt': '2026-07-22T13:00:00.000Z',
+        'recordCount': 2,
+        'structuredBytes': 200,
+        'manifestRevision': 1,
+      };
+    }
     if (name == 'updateRestoreSession') {
       completedItems = data['completedItems']! as int;
       completedBytes = data['completedBytes']! as int;

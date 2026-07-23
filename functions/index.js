@@ -36,6 +36,8 @@ const restoreAuthorizationFunctions = buildRestoreAuthorizationFunctions({
 exports.registerRestoreDevice = restoreAuthorizationFunctions.registerRestoreDevice;
 exports.issueRestoreAuthorization =
     restoreAuthorizationFunctions.issueRestoreAuthorization;
+exports.refreshRestoreAuthorization =
+    restoreAuthorizationFunctions.refreshRestoreAuthorization;
 exports.beginRestoreSession = restoreAuthorizationFunctions.beginRestoreSession;
 exports.updateRestoreSession = restoreAuthorizationFunctions.updateRestoreSession;
 exports.fetchRestoreRecordPage =

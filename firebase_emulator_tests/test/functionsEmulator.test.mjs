@@ -11,11 +11,14 @@ import {
   emulatorProjectId,
   firestoreHost,
   firestorePort,
-  functionsHost,
-  functionsPort,
   storageHost,
   storagePort,
 } from './emulatorGuard.mjs';
+import {
+  callableUrl,
+  callFunction,
+  callFunctionError,
+} from './callableTestClient.mjs';
 import {mutateRestoreRecordsAfterAuthorization} from './restoreSnapshotFixtures.mjs';
 
 const callableNames = [
@@ -23,6 +26,7 @@ const callableNames = [
   'finalizeExpenseProofUpload',
   'registerRestoreDevice',
   'issueRestoreAuthorization',
+  'refreshRestoreAuthorization',
   'beginRestoreSession',
   'updateRestoreSession',
   'getHostedUsageGrant',
@@ -181,7 +185,7 @@ describe('Cloud Functions emulator safety', () => {
     assert.equal(authorization.structuredBytes, restorePlan.structuredBytes);
     await mutateRestoreRecordsAfterAuthorization(testEnv, identity.uid);
 
-    const sessionInput = {
+    let sessionInput = {
       organizationId: 'orgLifecycleA',
       deviceId: 'restoreDeviceA',
       sessionId: authorization.sessionId,
@@ -193,6 +197,21 @@ describe('Cloud Functions emulator safety', () => {
       {...sessionInput, authorizationToken: '0'.repeat(64)},
     );
     assert.equal(badToken.status, 403);
+    const refreshed = await callFunction(
+      'refreshRestoreAuthorization',
+      identity.token,
+      sessionInput,
+    );
+    const rotatedToken = await callFunctionError(
+      'beginRestoreSession',
+      identity.token,
+      sessionInput,
+    );
+    assert.equal(rotatedToken.status, 403);
+    sessionInput = {
+      ...sessionInput,
+      authorizationToken: refreshed.authorizationToken,
+    };
     const started = await callFunction(
       'beginRestoreSession',
       identity.token,
@@ -292,7 +311,7 @@ describe('Cloud Functions emulator safety', () => {
         doc(db, `users/${identity.uid}/devices/restoreDeviceA`),
       );
       const expectedHash = createHash('sha256')
-        .update(authorization.authorizationToken)
+        .update(sessionInput.authorizationToken)
         .digest('hex');
       assert.equal(device.data()?.uid, identity.uid);
       assert.equal(session.data()?.uid, identity.uid);
@@ -410,11 +429,6 @@ describe('Cloud Functions emulator safety', () => {
   });
 });
 
-function callableUrl(name) {
-  return `http://${functionsHost}:${functionsPort}/${emulatorProjectId}` +
-    `/us-central1/${name}`;
-}
-
 async function createEmulatorIdentity() {
   const response = await fetch(
     'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/' +
@@ -466,13 +480,6 @@ async function seedHostedPlan(uid) {
   });
 }
 
-async function callFunction(name, token, data) {
-  const result = await callFunctionError(name, token, data);
-  assert.equal(result.status, 200, JSON.stringify(result.body));
-  assert.ok(result.body.result, `${name} must return a callable result`);
-  return result.body.result;
-}
-
 async function waitForRestorePlan(token, data, expectedCount) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
     const plan = await callFunction('getRestorePlan', token, data);
@@ -480,17 +487,4 @@ async function waitForRestorePlan(token, data, expectedCount) {
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
   throw new Error('Timed out waiting for the durable restore manifest.');
-}
-
-async function callFunctionError(name, token, data) {
-  const response = await fetch(callableUrl(name), {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${token}`,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({data}),
-  });
-  const body = await response.json();
-  return {status: response.status, body};
 }
