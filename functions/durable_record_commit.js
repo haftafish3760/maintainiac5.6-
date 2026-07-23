@@ -19,11 +19,14 @@ const REQUIRED_KEYS = new Set([
   'createdAt', 'updatedAt', 'deletedAt', 'auditEvents', 'recordPayload',
 ]);
 const BLOCKED_KEYS = new Set([
-  'rawReceiptText', 'rawOcrText', 'ocrText', 'importedText', 'localPath',
-  'sourceLocalPath', 'vin', 'VIN', 'vehicleIdentificationNumber',
-  'licensePlate', 'plate', 'plateNumber', 'tagNumber', 'passengerName',
-  'passengerPhone', 'passengerAddress', 'patientName', 'patientPhone',
-  'patientAddress', 'medicalRecordNumber', 'diagnosis', 'dateOfBirth', 'dob',
+  'rawreceipttext', 'receipttext', 'rawocrtext', 'ocrtext', 'importedtext',
+  'localpath', 'sourcelocalpath', 'path', 'merchantname', 'storename',
+  'customername', 'jobname', 'description', 'correcteddescription',
+  'catalogitemname', 'itemname', 'linetext', 'address', 'phone', 'email',
+  'vin', 'vehicleidentificationnumber', 'licenseplate', 'plate',
+  'platenumber', 'tagnumber', 'passengername', 'passengerphone',
+  'passengeraddress', 'patientname', 'patientphone', 'patientaddress',
+  'medicalrecordnumber', 'diagnosis', 'dateofbirth', 'dob',
 ]);
 
 function buildDurableRecordCommitFunctions({enforceAppCheck}) {
@@ -289,7 +292,7 @@ function containsBlockedKey(value) {
   if (Array.isArray(value)) return value.some(containsBlockedKey);
   if (!isPlainObject(value)) return false;
   return Object.entries(value).some(([key, nested]) =>
-    BLOCKED_KEYS.has(key) || containsBlockedKey(nested));
+    BLOCKED_KEYS.has(key.toLowerCase()) || containsBlockedKey(nested));
 }
 
 function canonicalJson(value) {

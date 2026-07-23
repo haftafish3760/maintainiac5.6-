@@ -121,19 +121,25 @@ describe('server committed durable records', () => {
       assert.equal(manifest.data()?.manifestRevision, 2);
     });
 
-    const unsafe = durableDocument(
-      identity.uid,
-      'settings-c',
-      1,
-      'dark',
-    );
-    unsafe.data.recordPayload = {rawOcrText: 'must remain local'};
-    const rejected = await callFunctionError(
-      'commitDurableRecordBatch',
-      identity.token,
-      {attemptId: 'durable-attempt-c', documents: [unsafe]},
-    );
-    assert.equal(rejected.status, 400);
+    for (const [index, payload] of [
+      {RawOcrText: 'must remain local'},
+      {MerchantName: 'private merchant'},
+    ].entries()) {
+      const unsafe = durableDocument(
+        identity.uid,
+        `settings-c-${index}`,
+        1,
+        'dark',
+      );
+      unsafe.data.recordPayload = payload;
+      unsafe.data.contentSha256 = contentHash(unsafe.data);
+      const rejected = await callFunctionError(
+        'commitDurableRecordBatch',
+        identity.token,
+        {attemptId: `durable-attempt-c-${index}`, documents: [unsafe]},
+      );
+      assert.equal(rejected.status, 400);
+    }
   });
 
   test('content, identity, and lifecycle tampering fail before writes', async () => {

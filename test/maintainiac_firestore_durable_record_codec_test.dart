@@ -43,7 +43,7 @@ void main() {
     final record = MaintainiacDurableRecord(
       module: 'settings',
       id: 'settings-1',
-      payload: const {'localPath': '/private/device/file'},
+      payload: const {'LoCaLpAtH': '/private/device/file'},
       lifecycle: MaintainiacRecordLifecycle(
         createdAt: DateTime.utc(2026, 7, 22),
         updatedAt: DateTime.utc(2026, 7, 22),

@@ -85,9 +85,7 @@ class MaintainiacHostedCachePolicy {
     if (value is Map) {
       for (final entry in value.entries) {
         final key = entry.key.toString();
-        if (MaintainiacFirestoreUploadPolicy.blockedSensitiveKeys.contains(
-          key,
-        )) {
+        if (MaintainiacFirestoreUploadPolicy.isBlockedCloudKey(key)) {
           throw ArgumentError.value(
             key,
             parent,

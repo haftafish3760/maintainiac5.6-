@@ -47,10 +47,17 @@ class CallableMaintainiacOrganizationBootstrapGateway
       );
     }
     final planId = response['planId'];
+    if (planId != null &&
+        (planId is! String ||
+            !RegExp(r'^[A-Za-z0-9_.-]{1,80}$').hasMatch(planId))) {
+      throw const FormatException(
+        'Hosted personal workspace plan identity is invalid.',
+      );
+    }
     return MaintainiacOrganizationWorkspace(
       organizationId: organizationId! as String,
       ownerUid: ownerUid! as String,
-      planId: planId is String && planId.trim().isNotEmpty ? planId : null,
+      planId: planId as String?,
     );
   }
 }

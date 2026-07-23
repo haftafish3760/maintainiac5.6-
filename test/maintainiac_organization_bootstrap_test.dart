@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_callable_functions.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_organization_bootstrap.dart';
@@ -59,6 +61,23 @@ void main() {
     );
   });
 
+  test('fails closed when the server returns an unsafe plan identity', () {
+    final expectedId =
+        MaintainiacOrganizationBootstrapper.personalOrganizationIdFor(uid);
+    final gateway = CallableMaintainiacOrganizationBootstrapGateway(
+      client: _RecordingCallableClient({
+        'organizationId': expectedId,
+        'ownerUid': uid,
+        'planId': '../another-plan',
+      }),
+    );
+
+    expect(
+      gateway.ensurePersonalWorkspace(authenticatedUid: uid),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
   test('does not cache a failed bootstrap attempt', () async {
     final gateway = _RetryGateway();
     final bootstrapper = MaintainiacOrganizationBootstrapper(gateway: gateway);
@@ -74,6 +93,26 @@ void main() {
     expect(gateway.attempts, 2);
     expect(workspace.ownerUid, uid);
   });
+
+  test(
+    'coalesces concurrent bootstrap requests for the same account',
+    () async {
+      final gateway = _DelayedGateway();
+      final bootstrapper = MaintainiacOrganizationBootstrapper(
+        gateway: gateway,
+      );
+
+      final first = bootstrapper.ensurePersonalWorkspace(authenticatedUid: uid);
+      final second = bootstrapper.ensurePersonalWorkspace(
+        authenticatedUid: uid,
+      );
+      gateway.release.complete();
+      final workspaces = await Future.wait([first, second]);
+
+      expect(gateway.attempts, 1);
+      expect(identical(workspaces.first, workspaces.last), isTrue);
+    },
+  );
 }
 
 class _RecordingCallableClient implements MaintainiacCallableFunctionClient {
@@ -103,6 +142,26 @@ class _RetryGateway implements MaintainiacOrganizationBootstrapGateway {
   }) async {
     attempts += 1;
     if (attempts == 1) throw StateError('transient failure');
+    return MaintainiacOrganizationWorkspace(
+      organizationId:
+          MaintainiacOrganizationBootstrapper.personalOrganizationIdFor(
+            authenticatedUid,
+          ),
+      ownerUid: authenticatedUid,
+    );
+  }
+}
+
+class _DelayedGateway implements MaintainiacOrganizationBootstrapGateway {
+  final release = Completer<void>();
+  var attempts = 0;
+
+  @override
+  Future<MaintainiacOrganizationWorkspace> ensurePersonalWorkspace({
+    required String authenticatedUid,
+  }) async {
+    attempts += 1;
+    await release.future;
     return MaintainiacOrganizationWorkspace(
       organizationId:
           MaintainiacOrganizationBootstrapper.personalOrganizationIdFor(

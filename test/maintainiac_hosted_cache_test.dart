@@ -127,6 +127,16 @@ void main() {
       );
       await expectLater(
         store.put(
+          path: 'catalogHealth/private_path',
+          data: const {
+            'schema': 'catalog_health_event_v1',
+            'LOCALPATH': '/private/device/file',
+          },
+        ),
+        throwsArgumentError,
+      );
+      await expectLater(
+        store.put(
           path: 'parserHealth/receipt_parser_v1',
           data: const {
             'schema': 'parser_health_snapshot_v1',

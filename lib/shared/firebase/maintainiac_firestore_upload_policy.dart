@@ -76,6 +76,61 @@ class MaintainiacFirestoreUploadPolicy {
     'dob',
   };
 
+  static const _blockedSensitiveKeysLowercase = <String>{
+    'rawreceipttext',
+    'receipttext',
+    'ocrtext',
+    'merchantname',
+    'storename',
+    'customername',
+    'jobname',
+    'description',
+    'correcteddescription',
+    'catalogitemname',
+    'itemname',
+    'linetext',
+    'address',
+    'phone',
+    'email',
+    'vin',
+    'platenumber',
+  };
+
+  static const _blockedEverywhereKeysLowercase = <String>{
+    'rawreceipttext',
+    'rawocrtext',
+    'ocrtext',
+    'importedtext',
+    'localpath',
+    'path',
+    'vin',
+    'vehicleidentificationnumber',
+    'licenseplate',
+    'plate',
+    'platenumber',
+    'tagnumber',
+    'passengername',
+    'passengerphone',
+    'passengeraddress',
+    'patientname',
+    'patientphone',
+    'patientaddress',
+    'medicalrecordnumber',
+    'diagnosis',
+    'dateofbirth',
+    'dob',
+  };
+
+  static bool isBlockedCloudKey(
+    String key, {
+    bool allowPrivateExpenseBackup = false,
+  }) {
+    final normalized = key.toLowerCase();
+    return _blockedEverywhereKeysLowercase.contains(normalized) ||
+        (!allowPrivateExpenseBackup &&
+            _blockedSensitiveKeysLowercase.contains(normalized));
+  }
+
   static const _allowedDashboardModes = <String>{
     'default',
     'gig_driver',
@@ -982,9 +1037,10 @@ class MaintainiacFirestoreUploadPolicy {
     if (value is Map) {
       for (final entry in value.entries) {
         final key = entry.key.toString();
-        final blocked =
-            blockedEverywhereKeys.contains(key) ||
-            (!allowPrivateExpenseBackup && blockedSensitiveKeys.contains(key));
+        final blocked = isBlockedCloudKey(
+          key,
+          allowPrivateExpenseBackup: allowPrivateExpenseBackup,
+        );
         if (blocked) {
           throw ArgumentError.value(
             key,
