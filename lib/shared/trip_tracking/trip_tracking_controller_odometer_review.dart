@@ -13,7 +13,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     bool userAcknowledgedUsageAnomaly = false,
     DateTime? nowUtc,
   }) {
-    final review = _sessionStore.reviewForTrip(reviewId);
+    final review = _readReviewSafely(reviewId);
     if (review == null || review.isOdometerConfirmed) return null;
     final now = (nowUtc ?? _clockNow()).toUtc();
     final entry = TripOdometerEntryValidation.validate(
@@ -32,7 +32,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
       currentOdometerMiles: (endingOdometer - review.startingOdometer)
           .clamp(0, 999999)
           .toDouble(),
-      history: _sessionStore.pendingReviews,
+      history: _readPendingReviewsSafely(),
       vehicleId: review.vehicleId,
       nowUtc: now,
       anomalyAlertsEnabled: anomalyAlertsEnabled,
@@ -211,7 +211,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     DateTime? confirmedAt,
     required bool userAcknowledgedReviewPrompt,
   }) async {
-    final review = _sessionStore.reviewForTrip(reviewId);
+    final review = _readReviewSafely(reviewId);
     if (review == null ||
         !review.hasValidTimeline ||
         review.id.trim().isEmpty ||
@@ -364,7 +364,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
 
   TripTrackingReviewRecord? _previousConfirmedReviewFor(
     TripTrackingReviewRecord review,
-  ) => _sessionStore.pendingReviews
+  ) => _readPendingReviewsSafely()
       .where(
         (candidate) =>
             candidate.id != review.id &&

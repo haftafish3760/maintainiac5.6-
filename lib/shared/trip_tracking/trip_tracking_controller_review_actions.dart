@@ -34,7 +34,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     List<TripManualEvent>? tripEvents,
     TripOdometerUsageDayClassification? usageDayClassification,
   }) async {
-    final review = _sessionStore.reviewForTrip(tripId);
+    final review = _readReviewSafely(tripId);
     if (review == null || review.isOdometerConfirmed) return false;
     if (endingOdometerDraft != null && endingOdometerDraft < 0) return false;
     final adjustments = manualAdjustments ?? review.manualAdjustments;
@@ -256,7 +256,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
   );
 
   Future<bool> _retryTripLogProposal(String tripId) async {
-    final review = _sessionStore.reviewForTrip(tripId);
+    final review = _readReviewSafely(tripId);
     if (review == null || _tripLogProposalSink == null) return false;
     if (review.tripLogProposalState ==
         TripTrackingTripLogProposalState.submitted) {

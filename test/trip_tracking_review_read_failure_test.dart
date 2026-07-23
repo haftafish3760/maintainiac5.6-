@@ -29,6 +29,49 @@ void main() {
     );
     expect(controller.activeSession, isNull);
   });
+
+  test(
+    'review actions return controlled results when storage is unavailable',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: _UnavailableReviewStore(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle-1',
+          initialReading: 12000,
+        ),
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        controller.evaluateOdometerEndReview(
+          reviewId: 'trip-1',
+          endingOdometer: 12001,
+        ),
+        isNull,
+      );
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: 'trip-1',
+          confirmedEndingOdometer: 12001,
+        ),
+        isFalse,
+      );
+      expect(
+        await controller.saveCompletionDraft(
+          tripId: 'trip-1',
+          endingOdometerDraft: 12001,
+        ),
+        isFalse,
+      );
+      expect(await controller.retryTripLogProposal('trip-1'), isFalse);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        'Could not read the locally saved trip review.',
+      );
+      expect(controller.activeSession, isNull);
+    },
+  );
 }
 
 class _UnavailableReviewStore extends TripTrackingSessionStore {
@@ -36,5 +79,9 @@ class _UnavailableReviewStore extends TripTrackingSessionStore {
 
   @override
   List<TripTrackingReviewRecord> get pendingReviews =>
+      throw StateError('review storage unavailable');
+
+  @override
+  TripTrackingReviewRecord? reviewForTrip(String tripId) =>
       throw StateError('review storage unavailable');
 }

@@ -383,6 +383,16 @@ class TripTrackingController extends ChangeNotifier {
     }
   }
 
+  TripTrackingReviewRecord? _readReviewSafely(String tripId) {
+    try {
+      return _sessionStore.reviewForTrip(tripId);
+    } catch (_) {
+      _platformStatus = 'storage_failed';
+      _platformError = 'Could not read the locally saved trip review.';
+      return null;
+    }
+  }
+
   Future<void> retryCloudBackup() async {
     if (_isDisposed) return;
     await _retryDurableReviewedTrips();
