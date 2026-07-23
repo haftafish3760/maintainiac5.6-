@@ -49,26 +49,35 @@ class CloudBackupEntitlement {
     final immediateSyncAllowed = payload['immediateSyncAllowed'];
     final policyVersion = payload['policyVersion'];
     final downloadAllowanceBytes = payload['downloadAllowanceBytes'];
+    const maximumHostedBytes = 1024 * 1024 * 1024 * 1024;
     if (planId is! String ||
-        planId.trim().isEmpty ||
+        !RegExp(r'^[A-Za-z0-9_.-]{1,80}$').hasMatch(planId) ||
         displayName is! String ||
-        displayName.trim().isEmpty ||
+        displayName.trim() != displayName ||
+        displayName.isEmpty ||
+        displayName.length > 120 ||
         quotaBytes is! int ||
         quotaBytes < 0 ||
+        (quotaBytes > 0 && quotaBytes < 1024) ||
+        quotaBytes > maximumHostedBytes ||
         dailySyncLimit is! int ||
         dailySyncLimit < 0 ||
+        dailySyncLimit > 100 ||
         immediateSyncAllowed is! bool ||
         policyVersion is! int ||
-        policyVersion <= 0) {
+        policyVersion <= 0 ||
+        policyVersion > 9007199254740991) {
       return null;
     }
     if (downloadAllowanceBytes != null &&
-        (downloadAllowanceBytes is! int || downloadAllowanceBytes < 0)) {
+        (downloadAllowanceBytes is! int ||
+            downloadAllowanceBytes < 0 ||
+            downloadAllowanceBytes > maximumHostedBytes)) {
       return null;
     }
     return CloudBackupEntitlement(
-      planId: planId.trim(),
-      displayName: displayName.trim(),
+      planId: planId,
+      displayName: displayName,
       quotaBytes: quotaBytes,
       dailySyncLimit: dailySyncLimit,
       immediateSyncAllowed: immediateSyncAllowed,

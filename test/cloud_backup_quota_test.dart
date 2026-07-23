@@ -41,6 +41,35 @@ void main() {
       expect(entitlement, isNull);
     });
 
+    test('fails closed for server plan values outside backend bounds', () {
+      final valid = <String, Object?>{
+        'planId': 'free_configurable',
+        'displayName': 'Free',
+        'storageQuotaBytes': 100 * 1024 * 1024,
+        'dailySyncLimit': 4,
+        'immediateSyncAllowed': false,
+        'policyVersion': 1,
+        'downloadAllowanceBytes': 25 * 1024 * 1024,
+      };
+      final invalidOverrides = <Map<String, Object?>>[
+        {'planId': '../free'},
+        {'displayName': ' Free'},
+        {'storageQuotaBytes': 1},
+        {'storageQuotaBytes': 1024 * 1024 * 1024 * 1024 + 1},
+        {'dailySyncLimit': 101},
+        {'policyVersion': 9007199254740992},
+        {'downloadAllowanceBytes': 1024 * 1024 * 1024 * 1024 + 1},
+      ];
+
+      for (final override in invalidOverrides) {
+        expect(
+          CloudBackupEntitlement.tryParseServerPayload({...valid, ...override}),
+          isNull,
+          reason: override.toString(),
+        );
+      }
+    });
+
     test('local-only mode never treats pending files as cloud uploads', () {
       final check = CloudBackupQuotaPolicy.check(
         entitlement: freeEntitlement,
@@ -149,22 +178,25 @@ void main() {
       expect(allowance.nextEligibleAtUtc, DateTime.utc(2026, 7, 16, 12, 1));
     });
 
-    test('ignores stale attempts but conservatively counts future attempts', () {
-      final now = DateTime.utc(2026, 7, 16, 12);
-      final allowance = CloudBackupSyncAllowance.evaluate(
-        entitlement: entitlement,
-        now: now,
-        attemptedAt: [
-          now.subtract(const Duration(hours: 25)),
-          now.subtract(const Duration(hours: 1)),
-          now.add(const Duration(minutes: 1)),
-        ],
-      );
+    test(
+      'ignores stale attempts but conservatively counts future attempts',
+      () {
+        final now = DateTime.utc(2026, 7, 16, 12);
+        final allowance = CloudBackupSyncAllowance.evaluate(
+          entitlement: entitlement,
+          now: now,
+          attemptedAt: [
+            now.subtract(const Duration(hours: 25)),
+            now.subtract(const Duration(hours: 1)),
+            now.add(const Duration(minutes: 1)),
+          ],
+        );
 
-      expect(allowance.used, 2);
-      expect(allowance.remaining, 2);
-      expect(allowance.allowsAttempt, isTrue);
-    });
+        expect(allowance.used, 2);
+        expect(allowance.remaining, 2);
+        expect(allowance.allowsAttempt, isTrue);
+      },
+    );
 
     test('a clock rollback cannot reclaim an exhausted sync allowance', () {
       final now = DateTime.utc(2026, 7, 16, 12);
