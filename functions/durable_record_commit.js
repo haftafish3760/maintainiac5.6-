@@ -2,6 +2,7 @@ const {createHash} = require('node:crypto');
 const {getFirestore, Timestamp} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {reserveHostedSync} = require('./hosted_plans');
+const {parseDurableManifest} = require('./durable_manifest');
 
 const SHA256 = /^[a-f0-9]{64}$/;
 const TOKEN = /^[A-Za-z0-9_.-]{1,160}$/;
@@ -97,7 +98,7 @@ async function commitDurableRecordBatch(request) {
       writes += 1;
     }
     if (writes > 0) {
-      const currentManifest = validManifest(manifest.data(), {
+      const currentManifest = parseDurableManifest(manifest.data(), {
         organizationId: validated.organizationId,
         uid,
         allowMissing: !manifest.exists,
@@ -131,25 +132,6 @@ async function commitDurableRecordBatch(request) {
     writtenCount,
     batchSha256,
   };
-}
-
-function validManifest(data, {organizationId, uid, allowMissing}) {
-  if (data == null && allowMissing) {
-    return {recordCount: 0, structuredBytes: 0, manifestRevision: 0};
-  }
-  if (data?.schema !== 'maintainiac_sync_manifest_v1' ||
-      data.uid !== uid || data.orgId !== organizationId ||
-      !Number.isSafeInteger(data.recordCount) || data.recordCount < 0 ||
-      !Number.isSafeInteger(data.structuredBytes) ||
-      data.structuredBytes < 0 ||
-      !Number.isSafeInteger(data.manifestRevision) ||
-      data.manifestRevision < 1) {
-    throw new HttpsError(
-      'failed-precondition',
-      'Durable restore manifest requires reconciliation.',
-    );
-  }
-  return data;
 }
 
 function encodedBytes(data) {

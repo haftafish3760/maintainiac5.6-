@@ -18,6 +18,7 @@ const {
   validAuthorizationLifetime,
 } = require('./restore_session_contract');
 const {reserveRestoreAdmission} = require('./restore_admission');
+const {loadDurableManifest} = require('./durable_manifest');
 
 const RESTORE_MODES = new Set(['full', 'smart', 'recordsOnly']);
 const snapshotRetentionSeconds = defineInt(
@@ -117,10 +118,9 @@ async function issueRestoreAuthorization(request) {
   const sessionRef = db.doc(
     `orgs/${organizationId}/restoreSessions/${sessionId}`,
   );
-  const [member, device, manifest, existingSession] = await Promise.all([
+  const [member, device, existingSession] = await Promise.all([
     db.doc(`orgs/${organizationId}/members/${uid}`).get(),
     db.doc(`users/${uid}/devices/${deviceId}`).get(),
-    db.doc(`orgs/${organizationId}/syncManifests/${uid}`).get(),
     sessionRef.get(),
   ]);
   if (member.data()?.status !== 'active' ||
@@ -132,6 +132,7 @@ async function issueRestoreAuthorization(request) {
       'An active account and registered device are required.',
     );
   }
+  const manifest = await loadDurableManifest({db, organizationId, uid});
   const authorizationToken = randomBytes(32).toString('hex');
   if (existingSession.exists) {
     return rotateExistingIssue({
@@ -152,7 +153,7 @@ async function issueRestoreAuthorization(request) {
     deviceId,
     requestId,
     sessionId,
-    estimatedBytes: Number(manifest.data()?.structuredBytes || 0),
+    estimatedBytes: manifest.structuredBytes,
   });
   if (!admission.mayBuild) {
     throw new HttpsError(
@@ -189,8 +190,9 @@ async function issueRestoreAuthorization(request) {
         expiresAt,
         snapshotExpiresAt,
         authorizationRevision: 1,
-        manifestRevision: Number(manifest.data()?.manifestRevision || 0),
+        manifestRevision: manifest.manifestRevision,
       },
+      expectedManifest: manifest,
     });
   } catch (error) {
     if (!isAlreadyExists(error)) throw error;
@@ -212,7 +214,7 @@ async function issueRestoreAuthorization(request) {
     expiresAt: expiresAt.toDate().toISOString(),
     recordCount: snapshot.recordCount,
     structuredBytes: snapshot.structuredBytes,
-    manifestRevision: Number(manifest.data()?.manifestRevision || 0),
+    manifestRevision: manifest.manifestRevision,
   };
 }
 
@@ -333,10 +335,9 @@ async function getRestorePlan(request) {
     throw new HttpsError('invalid-argument', 'Invalid restore plan request.');
   }
   const db = getFirestore();
-  const [member, device, manifest] = await Promise.all([
+  const [member, device] = await Promise.all([
     db.doc(`orgs/${organizationId}/members/${uid}`).get(),
     db.doc(`users/${uid}/devices/${deviceId}`).get(),
-    db.doc(`orgs/${organizationId}/syncManifests/${uid}`).get(),
   ]);
   if (member.data()?.status !== 'active' ||
       device.data()?.uid !== uid || device.data()?.deviceId !== deviceId ||
@@ -346,10 +347,11 @@ async function getRestorePlan(request) {
       'An active account and registered device are required.',
     );
   }
+  const manifest = await loadDurableManifest({db, organizationId, uid});
   return {
-    recordCount: Number(manifest.data()?.recordCount || 0),
-    structuredBytes: Number(manifest.data()?.structuredBytes || 0),
-    manifestRevision: Number(manifest.data()?.manifestRevision || 0),
+    recordCount: manifest.recordCount,
+    structuredBytes: manifest.structuredBytes,
+    manifestRevision: manifest.manifestRevision,
     mediaBytes: 0,
   };
 }

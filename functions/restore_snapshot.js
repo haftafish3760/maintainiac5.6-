@@ -1,4 +1,5 @@
 const {HttpsError} = require('firebase-functions/v2/https');
+const {requireManifestMatchesSnapshot} = require('./durable_manifest');
 
 const SNAPSHOT_SCHEMA = 'maintainiac_restore_snapshot_v1';
 const MAX_RECORDS = 10000;
@@ -13,6 +14,7 @@ async function createRestoreSnapshot({
   uid,
   sessionData,
   expiresAt,
+  expectedManifest,
 }) {
   const source = await db.collection(`orgs/${organizationId}/records`)
     .where('createdByUid', '==', uid)
@@ -62,6 +64,10 @@ async function createRestoreSnapshot({
       'Restore requires too many snapshot chunks.',
     );
   }
+  requireManifestMatchesSnapshot(expectedManifest, {
+    recordCount: source.size,
+    structuredBytes,
+  });
 
   const batch = db.batch();
   batch.create(sessionRef, {
