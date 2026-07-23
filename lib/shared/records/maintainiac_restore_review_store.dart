@@ -6,7 +6,7 @@ import 'package:hive/hive.dart';
 import '../storage/app_storage_guard.dart';
 import 'maintainiac_durable_record_store.dart';
 
-enum MaintainiacRestoreReviewType { conflict, corrupt }
+enum MaintainiacRestoreReviewType { conflict, corrupt, migrationRequired }
 
 enum MaintainiacRestoreReviewState { pending, resolved }
 

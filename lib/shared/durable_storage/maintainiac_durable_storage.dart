@@ -43,6 +43,7 @@ export '../records/maintainiac_draft_reminder_coordinator.dart';
 export '../records/maintainiac_draft_retention_policy.dart';
 export '../records/maintainiac_record_lifecycle.dart';
 export '../records/maintainiac_restore_contract.dart';
+export '../records/maintainiac_restore_migration_registry.dart';
 export '../records/maintainiac_restore_applier.dart';
 export '../records/maintainiac_restore_batch_processor.dart';
 export '../records/maintainiac_restore_review_store.dart';

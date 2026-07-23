@@ -57,6 +57,7 @@ void main() {
           applier: MaintainiacRestoreApplier(
             store: records,
             reviewStore: MaintainiacRestoreReviewStore.memory(),
+            migrations: MaintainiacRestoreMigrationRegistry(const []),
             accountScopeId: 'org-a.user-a',
             maximumSupportedSchemaVersion: 1,
           ),
@@ -122,6 +123,7 @@ void main() {
           applier: MaintainiacRestoreApplier(
             store: records,
             reviewStore: MaintainiacRestoreReviewStore.memory(),
+            migrations: MaintainiacRestoreMigrationRegistry(const []),
             accountScopeId: 'org-a.user-a',
             maximumSupportedSchemaVersion: 1,
           ),
@@ -177,6 +179,7 @@ void main() {
         applier: MaintainiacRestoreApplier(
           store: MaintainiacDurableRecordStore.memory(),
           reviewStore: MaintainiacRestoreReviewStore.memory(),
+          migrations: MaintainiacRestoreMigrationRegistry(const []),
           accountScopeId: 'org-a.user-a',
           maximumSupportedSchemaVersion: 1,
         ),
@@ -240,6 +243,7 @@ void main() {
           applier: MaintainiacRestoreApplier(
             store: records,
             reviewStore: MaintainiacRestoreReviewStore.memory(),
+            migrations: MaintainiacRestoreMigrationRegistry(const []),
             accountScopeId: 'org-a.user-a',
             maximumSupportedSchemaVersion: 1,
           ),

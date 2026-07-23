@@ -39,6 +39,7 @@ void main() {
     applier = MaintainiacRestoreApplier(
       store: store,
       reviewStore: reviews,
+      migrations: MaintainiacRestoreMigrationRegistry(const []),
       accountScopeId: 'account-a',
       maximumSupportedSchemaVersion: 2,
     );

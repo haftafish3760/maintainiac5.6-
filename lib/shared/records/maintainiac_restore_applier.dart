@@ -4,6 +4,7 @@ import 'package:crypto/crypto.dart';
 
 import 'maintainiac_durable_record_store.dart';
 import 'maintainiac_restore_contract.dart';
+import 'maintainiac_restore_migration_registry.dart';
 import 'maintainiac_restore_review_store.dart';
 
 class MaintainiacRestoreEnvelope {
@@ -50,18 +51,21 @@ class MaintainiacRestoreApplyResult {
 }
 
 class MaintainiacRestoreApplier {
-  const MaintainiacRestoreApplier({
+  MaintainiacRestoreApplier({
     required MaintainiacDurableRecordStore store,
     required MaintainiacRestoreReviewStore reviewStore,
+    required MaintainiacRestoreMigrationRegistry migrations,
     required String accountScopeId,
     required int maximumSupportedSchemaVersion,
   }) : _store = store,
        _reviewStore = reviewStore,
+       _migrations = migrations,
        _accountScopeId = accountScopeId,
        _maximumSupportedSchemaVersion = maximumSupportedSchemaVersion;
 
   final MaintainiacDurableRecordStore _store;
   final MaintainiacRestoreReviewStore _reviewStore;
+  final MaintainiacRestoreMigrationRegistry _migrations;
   final String _accountScopeId;
   final int _maximumSupportedSchemaVersion;
 
@@ -79,7 +83,40 @@ class MaintainiacRestoreApplier {
         disposition: MaintainiacRestoreDisposition.rejectCorrupt,
       );
     }
-    final local = _store.recordFor(remote.record.module, remote.record.id);
+    late final MaintainiacRestoreMigrationResult migration;
+    try {
+      migration = _migrations.migrate(
+        record: remote.record,
+        fromVersion: remote.schemaVersion,
+        targetVersion: _maximumSupportedSchemaVersion,
+      );
+    } catch (_) {
+      await _reviewStore.record(
+        type: MaintainiacRestoreReviewType.migrationRequired,
+        remote: _reviewRecord(remote),
+      );
+      return const MaintainiacRestoreApplyResult(
+        disposition: MaintainiacRestoreDisposition.rejectCorrupt,
+      );
+    }
+    if (migration.status == MaintainiacRestoreMigrationStatus.missing) {
+      await _reviewStore.record(
+        type: MaintainiacRestoreReviewType.migrationRequired,
+        remote: _reviewRecord(remote),
+      );
+      return const MaintainiacRestoreApplyResult(
+        disposition: MaintainiacRestoreDisposition.rejectCorrupt,
+      );
+    }
+    final candidate = MaintainiacRestoreEnvelope.forRecord(
+      accountScopeId: remote.accountScopeId,
+      record: migration.record,
+      schemaVersion: migration.schemaVersion,
+    );
+    final local = _store.recordFor(
+      candidate.record.module,
+      candidate.record.id,
+    );
     final localVersion = local == null
         ? null
         : MaintainiacRestoreRecordVersion(
@@ -92,7 +129,7 @@ class MaintainiacRestoreApplier {
             isDeleted: local.lifecycle.isDeleted,
           );
     final disposition = MaintainiacRestoreConflictPolicy.decide(
-      remote: remote.version,
+      remote: candidate.version,
       local: localVersion,
       maximumSupportedSchemaVersion: _maximumSupportedSchemaVersion,
     );
@@ -100,12 +137,12 @@ class MaintainiacRestoreApplier {
       if (disposition == MaintainiacRestoreDisposition.conflict) {
         await _reviewStore.record(
           type: MaintainiacRestoreReviewType.conflict,
-          remote: _reviewRecord(remote),
+          remote: _reviewRecord(candidate),
           local: _reviewRecord(
             MaintainiacRestoreEnvelope.forRecord(
               accountScopeId: _accountScopeId,
               record: local!,
-              schemaVersion: remote.schemaVersion,
+              schemaVersion: candidate.schemaVersion,
             ),
           ),
         );
@@ -117,7 +154,7 @@ class MaintainiacRestoreApplier {
     }
     try {
       final applied = await _store.applyRestoredRecord(
-        remote.record,
+        candidate.record,
         expectedLocalRevision: local?.lifecycle.revision,
       );
       return MaintainiacRestoreApplyResult(

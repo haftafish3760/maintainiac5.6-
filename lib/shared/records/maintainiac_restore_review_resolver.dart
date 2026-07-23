@@ -23,9 +23,9 @@ class MaintainiacRestoreReviewResolver {
       if (issue.resolution == resolution) return issue;
       throw StateError('Restore review issue already has another resolution.');
     }
-    if (issue.type == MaintainiacRestoreReviewType.corrupt) {
+    if (issue.type != MaintainiacRestoreReviewType.conflict) {
       if (resolution != MaintainiacRestoreResolution.keepLocal) {
-        throw StateError('A corrupt cloud record cannot replace local data.');
+        throw StateError('An unsafe cloud record cannot replace local data.');
       }
       return _reviews.resolve(issue.id, resolution, nowUtc: nowUtc);
     }
