@@ -11,6 +11,7 @@ enum AppStoragePurpose {
   receiptPdfImport,
   exportFile,
   backupCache,
+  restoreImport,
 }
 
 typedef AppFreeStorageReader = Future<double?> Function();
@@ -118,6 +119,7 @@ class AppStorageGuard {
       AppStoragePurpose.receiptPdfImport => receiptProofSaveBytes,
       AppStoragePurpose.exportFile => exportFileBytes,
       AppStoragePurpose.backupCache => backupCacheBytes,
+      AppStoragePurpose.restoreImport => backupCacheBytes,
     };
   }
 
@@ -132,6 +134,7 @@ class AppStorageGuard {
       AppStoragePurpose.receiptPdfImport => 'save this PDF receipt proof',
       AppStoragePurpose.exportFile => 'create this export file',
       AppStoragePurpose.backupCache => 'prepare backup data',
+      AppStoragePurpose.restoreImport => 'restore saved records',
     };
   }
 

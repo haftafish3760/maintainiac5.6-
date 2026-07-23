@@ -16,4 +16,6 @@ export '../firebase/maintainiac_firestore_scope_policy.dart';
 export '../firebase/maintainiac_firestore_upload_queue.dart';
 export '../records/maintainiac_durable_record_store.dart';
 export '../records/maintainiac_record_lifecycle.dart';
+export '../records/maintainiac_restore_contract.dart';
+export '../records/maintainiac_restore_session_store.dart';
 export '../storage/app_storage_guard.dart';
