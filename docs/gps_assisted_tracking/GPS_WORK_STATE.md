@@ -2,7 +2,7 @@
 
 - Current phase: 17 — deterministic replay expansion and real-device evidence
   hardening
-- Current pass: 490 in the current continuation
+- Current pass: 494 in the current continuation
 - Current objective: harden durable recovery evidence and deterministic
   classification while preserving the real-device evidence boundary
 - Relevant files: `lib/shared/trip_tracking/`, `android/app/src/main/`,
@@ -106,6 +106,10 @@
 - Starting a new durable session no longer erases an unrelated review-history
   storage warning. The warning remains until that exact history boundary reads
   successfully, while start-owned transient failures still clear on retry
+- Bluetooth vehicle identity lookup now falls back to explicit manual choice
+  when its local link store is unavailable. It cannot switch vehicles, expose
+  the opaque device identifier, or affect odometer truth; a later successful
+  link read clears only that Bluetooth storage warning
 - Terminal review-write and checkpoint-cleanup faults retain their source
   checkpoint, retry idempotently, and never fabricate a replacement review.
   Malformed terminal evidence fails closed for explicit repair

@@ -246,10 +246,27 @@ class TripTrackingController extends ChangeNotifier {
         safeReason: 'bluetooth_vehicle_storage_state_unknown',
       );
     }
+    TripTrackingBluetoothVehicleLink? link;
+    try {
+      link = linkStore.linkForDevice(deviceId);
+      if (_platformStatus == 'bluetooth_link_storage_failed') {
+        _platformStatus = null;
+        _platformError = null;
+      }
+    } catch (_) {
+      _platformStatus = 'bluetooth_link_storage_failed';
+      _platformError =
+          'Could not read the local Bluetooth vehicle link. Select the vehicle manually.';
+      return const BluetoothVehicleMatchDecision(
+        disposition: BluetoothVehicleMatchDisposition.noMatch,
+        vehicleId: null,
+        safeReason: 'bluetooth_vehicle_link_storage_unavailable',
+      );
+    }
     final activeVehicleId = _session?.vehicleId ?? storedSession?.vehicleId;
     return resolveBluetoothVehicleMatchDecision(
       settings: settings,
-      link: linkStore.linkForDevice(deviceId),
+      link: link,
       hasActiveGpsTrip: _session != null,
       hasUnfinishedStoredSession: _session == null && storedSession != null,
       activeVehicleId: activeVehicleId,

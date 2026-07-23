@@ -240,4 +240,56 @@ void main() {
     );
     expect(decision.canSwitchVehicle, isFalse);
   });
+
+  test(
+    'Bluetooth link storage failure falls back to manual vehicle choice',
+    () {
+      final links = _RecoveringBluetoothLinkStore();
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+      );
+      addTearDown(controller.dispose);
+      const settings = TripTrackingSettings(
+        bluetoothVehicleRecognitionEnabled: true,
+        automaticVehicleSwitchEnabled: true,
+      );
+
+      final failed = controller.evaluateBluetoothVehicleIdentity(
+        deviceId: 'head-unit-1',
+        settings: settings,
+        linkStore: links,
+      );
+      expect(failed.disposition, BluetoothVehicleMatchDisposition.noMatch);
+      expect(failed.canSwitchVehicle, isFalse);
+      expect(failed.safeReason, 'bluetooth_vehicle_link_storage_unavailable');
+      expect(controller.platformStatus, 'bluetooth_link_storage_failed');
+
+      links.fail = false;
+      final recovered = controller.evaluateBluetoothVehicleIdentity(
+        deviceId: 'head-unit-1',
+        settings: settings,
+        linkStore: links,
+      );
+      expect(recovered.disposition, BluetoothVehicleMatchDisposition.noMatch);
+      expect(controller.platformStatus, isNull);
+      expect(controller.platformError, isNull);
+    },
+  );
+}
+
+class _RecoveringBluetoothLinkStore
+    extends TripTrackingBluetoothVehicleLinkStore {
+  _RecoveringBluetoothLinkStore() : super.memory();
+
+  var fail = true;
+
+  @override
+  TripTrackingBluetoothVehicleLink? linkForDevice(String deviceId) {
+    if (fail) throw StateError('Bluetooth link storage unavailable');
+    return super.linkForDevice(deviceId);
+  }
 }
