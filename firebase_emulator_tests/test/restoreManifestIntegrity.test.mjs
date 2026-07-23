@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {after, before, describe, test} from 'node:test';
 
 import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
-import {doc, setDoc} from 'firebase/firestore';
+import {collection, doc, getDocs, setDoc} from 'firebase/firestore';
 
 import {callFunction, callFunctionError} from './callableTestClient.mjs';
 import {
@@ -110,6 +111,87 @@ describe('restore manifest integrity', () => {
     assert.equal(result.status, 400);
     assert.equal(result.body?.error?.status, 'FAILED_PRECONDITION');
   });
+
+  test('large restore snapshots use bounded Firestore commits', async () => {
+    const identity = await createIdentity('large');
+    const organizationId = 'orgManifestLarge';
+    await seedPrincipal(identity.uid, organizationId);
+    const structuredBytes = await seedLargeRecordSet(
+      identity.uid,
+      organizationId,
+    );
+    await seedManifest(identity.uid, organizationId, 16, structuredBytes);
+    const authorization = await callFunction(
+      'issueRestoreAuthorization',
+      identity.token,
+      {
+        organizationId,
+        deviceId: 'restoreDevice',
+        mode: 'recordsOnly',
+        requestId: 'large-snapshot-request',
+      },
+    );
+    assert.equal(authorization.recordCount, 16);
+    assert.equal(authorization.structuredBytes, structuredBytes);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const chunks = await getDocs(collection(
+        context.firestore(),
+        `orgs/${organizationId}/restoreSessions/` +
+          `${authorization.sessionId}/snapshotChunks`,
+      ));
+      assert.equal(chunks.size, 16);
+    });
+  });
+
+  test('stale preparing snapshots are rebuilt after admission lease', async () => {
+    const identity = await createIdentity('resume');
+    const organizationId = 'orgManifestResume';
+    const requestId = 'resume-snapshot-request';
+    await seedPrincipal(identity.uid, organizationId);
+    const data = await seedRecord(identity.uid, organizationId);
+    const structuredBytes = Buffer.byteLength(JSON.stringify(data), 'utf8');
+    await seedManifest(identity.uid, organizationId, 1, structuredBytes);
+    const sessionId = restoreSessionId(
+      identity.uid,
+      organizationId,
+      'restoreDevice',
+      requestId,
+    );
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      const sessionPath = `orgs/${organizationId}/restoreSessions/${sessionId}`;
+      await setDoc(doc(db, sessionPath), {
+        uid: identity.uid,
+        orgId: organizationId,
+        deviceId: 'restoreDevice',
+        requestId,
+        mode: 'recordsOnly',
+        status: 'preparing',
+      });
+      await setDoc(doc(db, `${sessionPath}/snapshotChunks/stale`), {
+        partial: true,
+      });
+    });
+    const authorization = await callFunction(
+      'issueRestoreAuthorization',
+      identity.token,
+      {
+        organizationId,
+        deviceId: 'restoreDevice',
+        mode: 'recordsOnly',
+        requestId,
+      },
+    );
+    assert.equal(authorization.sessionId, sessionId);
+    assert.equal(authorization.recordCount, 1);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const chunks = await getDocs(collection(
+        context.firestore(),
+        `orgs/${organizationId}/restoreSessions/${sessionId}/snapshotChunks`,
+      ));
+      assert.deepEqual(chunks.docs.map((chunk) => chunk.id), ['000000']);
+    });
+  });
 });
 
 async function seedPrincipal(uid, organizationId) {
@@ -147,6 +229,48 @@ async function seedRecord(uid, organizationId) {
   return data;
 }
 
+async function seedLargeRecordSet(uid, organizationId) {
+  let structuredBytes = 0;
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    for (let index = 0; index < 16; index += 1) {
+      const recordKey = index.toString(16).padStart(64, '0');
+      const data = {
+        schema: 'maintainiac_durable_record_v1',
+        recordKey,
+        orgId: organizationId,
+        createdByUid: uid,
+        updatedByUid: uid,
+        privateToOwner: true,
+        recordPayload: {
+          value: String.fromCharCode(65 + index).repeat(600 * 1024),
+        },
+      };
+      structuredBytes += Buffer.byteLength(JSON.stringify(data), 'utf8');
+      await setDoc(
+        doc(context.firestore(), `orgs/${organizationId}/records/${recordKey}`),
+        data,
+      );
+    }
+  });
+  return structuredBytes;
+}
+
+async function seedManifest(uid, organizationId, recordCount, structuredBytes) {
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(
+      doc(context.firestore(), `orgs/${organizationId}/syncManifests/${uid}`),
+      {
+        schema: 'maintainiac_sync_manifest_v1',
+        uid,
+        orgId: organizationId,
+        recordCount,
+        structuredBytes,
+        manifestRevision: 1,
+      },
+    );
+  });
+}
+
 async function createIdentity(label) {
   const response = await fetch(
     'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/' +
@@ -164,4 +288,10 @@ async function createIdentity(label) {
   assert.equal(response.status, 200);
   const body = await response.json();
   return {uid: body.localId, token: body.idToken};
+}
+
+function restoreSessionId(uid, organizationId, deviceId, requestId) {
+  const value = `${uid}\u0000${organizationId}\u0000${deviceId}\u0000${requestId}`;
+  const digest = createHash('sha256').update(value).digest('hex');
+  return `restore_${digest.substring(0, 48)}`;
 }

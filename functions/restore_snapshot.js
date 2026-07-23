@@ -6,6 +6,8 @@ const MAX_RECORDS = 10000;
 const MAX_STRUCTURED_BYTES = 64 * 1024 * 1024;
 const MAX_CHUNK_BYTES = 700 * 1024;
 const MAX_CHUNKS = 400;
+const MAX_BATCH_BYTES = 8 * 1024 * 1024;
+const MAX_BATCH_WRITES = 450;
 
 async function createRestoreSnapshot({
   db,
@@ -69,18 +71,76 @@ async function createRestoreSnapshot({
     structuredBytes,
   });
 
-  const batch = db.batch();
-  batch.create(sessionRef, {
+  const finalSession = {
     ...sessionData,
     snapshotSchema: SNAPSHOT_SCHEMA,
     snapshotChunkCount: chunks.length,
     recordCount: source.size,
     structuredBytes,
+  };
+  await prepareSnapshotSession({
+    db,
+    sessionRef,
+    sessionData,
+    finalSession,
   });
-  chunks.forEach((documents, index) => {
+  await writeSnapshotChunks({
+    db,
+    sessionRef,
+    organizationId,
+    uid,
+    chunks,
+    expiresAt,
+  });
+  await sessionRef.set(finalSession, {merge: false});
+  return {recordCount: source.size, structuredBytes, chunkCount: chunks.length};
+}
+
+async function prepareSnapshotSession({
+  db,
+  sessionRef,
+  sessionData,
+  finalSession,
+}) {
+  const existing = await sessionRef.get();
+  if (existing.exists) {
+    const current = existing.data();
+    if (current.status !== 'preparing' ||
+        current.uid !== sessionData.uid || current.orgId !== sessionData.orgId ||
+        current.deviceId !== sessionData.deviceId ||
+        current.requestId !== sessionData.requestId ||
+        current.mode !== sessionData.mode) {
+      throw new HttpsError(
+        'already-exists',
+        'Restore snapshot already exists.',
+      );
+    }
+    await deleteRestoreSnapshot({db, sessionRef});
+  }
+  await sessionRef.set({
+    ...finalSession,
+    status: 'preparing',
+    snapshotSchema: null,
+    snapshotChunkCount: 0,
+  }, {merge: false});
+}
+
+async function writeSnapshotChunks({
+  db,
+  sessionRef,
+  organizationId,
+  uid,
+  chunks,
+  expiresAt,
+}) {
+  let batch = db.batch();
+  let batchBytes = 0;
+  let batchWrites = 0;
+  for (let index = 0; index < chunks.length; index += 1) {
+    const documents = chunks[index];
     const reference = sessionRef.collection('snapshotChunks')
       .doc(String(index).padStart(6, '0'));
-    batch.create(reference, {
+    const data = {
       schema: SNAPSHOT_SCHEMA,
       uid,
       orgId: organizationId,
@@ -91,10 +151,21 @@ async function createRestoreSnapshot({
       recordCount: documents.length,
       expiresAt,
       documents,
-    });
-  });
-  await batch.commit();
-  return {recordCount: source.size, structuredBytes, chunkCount: chunks.length};
+    };
+    const documentBytes = Buffer.byteLength(JSON.stringify(data), 'utf8');
+    if (batchWrites > 0 &&
+        (batchWrites >= MAX_BATCH_WRITES ||
+          batchBytes + documentBytes > MAX_BATCH_BYTES)) {
+      await batch.commit();
+      batch = db.batch();
+      batchBytes = 0;
+      batchWrites = 0;
+    }
+    batch.set(reference, data, {merge: false});
+    batchBytes += documentBytes;
+    batchWrites += 1;
+  }
+  if (batchWrites > 0) await batch.commit();
 }
 
 async function fetchRestoreSnapshotPage({

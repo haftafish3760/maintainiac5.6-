@@ -134,7 +134,8 @@ async function issueRestoreAuthorization(request) {
   }
   const manifest = await loadDurableManifest({db, organizationId, uid});
   const authorizationToken = randomBytes(32).toString('hex');
-  if (existingSession.exists) {
+  if (existingSession.exists &&
+      existingSession.data()?.status !== 'preparing') {
     return rotateExistingIssue({
       db,
       sessionRef,
