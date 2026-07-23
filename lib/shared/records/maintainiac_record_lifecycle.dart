@@ -79,6 +79,20 @@ class MaintainiacRecordLifecycle {
     );
   }
 
+  /// Advances a recoverable draft without treating each autosave as a user
+  /// audit event. Confirmed record changes continue to use [saved].
+  MaintainiacRecordLifecycle checkpointed(DateTime now) {
+    final time = _nextLifecycleTime(now);
+    return MaintainiacRecordLifecycle(
+      createdAt: createdAt,
+      updatedAt: time,
+      revision: revision + 1,
+      state: state,
+      deletedAt: deletedAt,
+      auditEvents: auditEvents,
+    );
+  }
+
   MaintainiacRecordLifecycle deleted(DateTime now, {required String event}) {
     final time = _nextLifecycleTime(now);
     return MaintainiacRecordLifecycle(
@@ -311,7 +325,7 @@ class MaintainiacRecordDraftStore {
           )
         : existing.lifecycle.isDeleted
         ? existing.lifecycle.restored(time, event: 'restored and saved draft')
-        : existing.lifecycle.saved(time, event: 'saved draft');
+        : existing.lifecycle.checkpointed(time);
     final draft = MaintainiacRecordDraft(
       module: module,
       id: id,

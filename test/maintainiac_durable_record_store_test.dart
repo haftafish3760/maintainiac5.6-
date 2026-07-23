@@ -245,4 +245,25 @@ void main() {
       );
     },
   );
+
+  test(
+    'frequent draft checkpoints do not create per-keystroke audit bloat',
+    () async {
+      final drafts = MaintainiacRecordDraftStore.memory();
+      final started = DateTime.utc(2026, 7, 15);
+      for (var index = 0; index < 1000; index += 1) {
+        await drafts.save(
+          module: 'invoices',
+          id: 'invoice-1',
+          payload: {'text': 'edit-$index'},
+          now: started.add(Duration(microseconds: index)),
+        );
+      }
+
+      final draft = drafts.draftFor('invoices', 'invoice-1')!;
+      expect(draft.lifecycle.revision, 1000);
+      expect(draft.lifecycle.auditEvents, hasLength(1));
+      expect(draft.payload['text'], 'edit-999');
+    },
+  );
 }
