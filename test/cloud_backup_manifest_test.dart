@@ -70,7 +70,7 @@ void main() {
             displayName: 'logo.png',
             mimeType: 'image/png',
             byteSize: 1500,
-            fileHash: 'logo-hash',
+            fileHash: _hash('a'),
             backupPolicy: AppMediaAssetBackupPolicy.cloudEligible,
           ),
           AppMediaAsset(
@@ -79,7 +79,7 @@ void main() {
             purpose: AppMediaAssetPurpose.companyLogo,
             createdAt: DateTime(2026, 6, 16),
             byteSize: 1500,
-            fileHash: 'local-hash',
+            fileHash: _hash('b'),
             backupPolicy: AppMediaAssetBackupPolicy.localOnly,
           ),
         ],
@@ -103,7 +103,7 @@ void main() {
         'purpose': ' receiptProof ',
         'createdAt': DateTime(2026, 6, 16).toIso8601String(),
         'byteSize': '2,048',
-        'fileHash': 'receipt-proof-hash',
+        'fileHash': _hash('c'),
         'backupPolicy': ' cloudEligible ',
       });
       final manifest = CloudBackupManifest.fromDocuments(
@@ -190,6 +190,71 @@ void main() {
     expect(entry.estimatedCloudBytes, lessThan(entry.byteSize));
     expect(entry.toMap()['cloudBackupAction'], 'useOptimizedCopy');
   });
+
+  test('cloud serialization excludes every local-only metadata field', () {
+    final manifest = CloudBackupManifest.fromDocuments(
+      documents: [
+        _document(
+          id: 'DOC-safe-cloud',
+          kind: AppDocumentKind.otherDocument,
+          attachment: _attachment(id: 'safe-cloud-proof', bytes: 2048),
+        ),
+      ],
+      createdAt: DateTime(2026, 6, 16),
+    );
+
+    final cloud = manifest.toMap();
+    final local = manifest.toLocalMap();
+    expect(cloud.toString(), isNot(contains('/app/')));
+    expect(cloud.toString(), isNot(contains('localPath')));
+    expect(cloud.toString(), isNot(contains('displayName')));
+    expect(local.toString(), contains('/app/safe-cloud-proof.pdf'));
+
+    final restored = CloudBackupManifestEntry.fromCloudMap(
+      (cloud['entries'] as List).single as Map,
+    );
+    expect(restored.localPath, isEmpty);
+    expect(restored.fileHashSha256, _hash('d'));
+  });
+
+  test(
+    'invalid hashes and injected local paths cannot enter cloud manifests',
+    () {
+      final invalid = CloudBackupManifest.fromDocuments(
+        documents: [
+          _document(
+            id: 'DOC-invalid-hash',
+            kind: AppDocumentKind.otherDocument,
+            attachment: ReceiptAttachmentRecord(
+              id: 'bad-proof',
+              path: '/app/bad-proof.pdf',
+              kind: ReceiptAttachmentKind.pdf,
+              dataSaverLevel: ReceiptDataSaverLevel.original,
+              createdAt: DateTime(2026, 6, 16),
+              byteSize: 100,
+              fileHash: 'not-a-sha256',
+            ),
+          ),
+        ],
+      );
+      expect(invalid.entries, isEmpty);
+      expect(
+        () => CloudBackupManifestEntry.fromCloudMap({
+          'id': 'entryA',
+          'localPath': '/private/device/path',
+          'module': 'receipts',
+          'recordId': 'recordA',
+          'kind': 'proof',
+          'byteSize': 10,
+          'estimatedCloudBytes': 10,
+          'fileHashSha256': _hash('a'),
+          'privacyScope': 'normal',
+          'cloudBackupAction': 'uploadAsIs',
+        }),
+        throwsFormatException,
+      );
+    },
+  );
 }
 
 AppDocumentRecord _document({
@@ -223,7 +288,9 @@ ReceiptAttachmentRecord _attachment({
     displayName: '$id.pdf',
     mimeType: 'application/pdf',
     byteSize: bytes,
-    fileHash: '$id-hash',
+    fileHash: _hash('d'),
     pageCount: pageCount,
   );
 }
+
+String _hash(String character) => List.filled(64, character).join();

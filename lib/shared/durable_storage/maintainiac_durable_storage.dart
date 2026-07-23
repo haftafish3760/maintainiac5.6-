@@ -5,6 +5,10 @@
 /// revision conflicts, and Firebase transport boundaries shared by all modules.
 library;
 
+export '../backup/cloud_backup_manifest.dart';
+export '../backup/cloud_backup_quota.dart';
+export '../backup/cloud_backup_service.dart';
+export '../backup/cloud_backup_status.dart';
 export '../firebase/hosted_sync_scope.dart';
 export '../firebase/hosted_usage_limits.dart';
 export '../firebase/maintainiac_callable_functions.dart';
