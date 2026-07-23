@@ -1,6 +1,9 @@
 const {getFirestore, Timestamp} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
+const {defineInt} = require('firebase-functions/params');
 const {SHA256, cleanToken} = require('./restore_session_contract');
+
+const maxActiveDevices = defineInt('RESTORE_MAX_ACTIVE_DEVICES', {default: 5});
 
 function buildDeviceRegistrationFunctions({enforceAppCheck}) {
   return {
@@ -25,6 +28,7 @@ async function registerRestoreDevice(request) {
   }
   const db = getFirestore();
   const deviceRef = db.doc(`users/${uid}/devices/${deviceId}`);
+  const activeDeviceLimit = Math.max(1, maxActiveDevices.value());
   return db.runTransaction(async (transaction) => {
     const existing = await transaction.get(deviceRef);
     const data = existing.data();
@@ -39,6 +43,19 @@ async function registerRestoreDevice(request) {
         'failed-precondition',
         'This device identity is already bound to another installation.',
       );
+    }
+    if (!existing.exists) {
+      const activeDevices = await transaction.get(
+        db.collection(`users/${uid}/devices`)
+          .where('status', '==', 'active')
+          .limit(activeDeviceLimit),
+      );
+      if (activeDevices.size >= activeDeviceLimit) {
+        throw new HttpsError(
+          'resource-exhausted',
+          'This account has reached its active device limit.',
+        );
+      }
     }
     const currentRevision = safeRevision(data?.registrationRevision);
     if (existing.exists && currentRevision > 0 &&
