@@ -20,6 +20,7 @@ CORE_TESTS=(
   test/maintainiac_restore_applier_test.dart
   test/maintainiac_restore_batch_processor_test.dart
   test/maintainiac_restore_session_store_test.dart
+  test/maintainiac_record_ordering_test.dart
   test/maintainiac_sync_orchestrator_test.dart
   test/maintainiac_sync_settings_test.dart
 )

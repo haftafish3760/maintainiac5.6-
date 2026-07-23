@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../storage/app_storage_guard.dart';
 import 'maintainiac_record_lifecycle.dart';
+import 'maintainiac_record_ordering.dart';
 
 typedef MaintainiacDurableStorageCheck = Future<AppStorageCheck> Function();
 
@@ -57,7 +58,14 @@ class MaintainiacDurableRecordStore {
       }
     }
     records.sort(
-      (a, b) => b.lifecycle.updatedAt.compareTo(a.lifecycle.updatedAt),
+      (a, b) => compareMaintainiacRecordsNewestFirst(
+        leftUpdatedAt: a.lifecycle.updatedAt,
+        leftRevision: a.lifecycle.revision,
+        leftId: a.id,
+        rightUpdatedAt: b.lifecycle.updatedAt,
+        rightRevision: b.lifecycle.revision,
+        rightId: b.id,
+      ),
     );
     return List.unmodifiable(records);
   }

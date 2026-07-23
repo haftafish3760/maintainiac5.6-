@@ -1,6 +1,7 @@
 import 'package:hive/hive.dart';
 
 import '../storage/app_storage_guard.dart';
+import 'maintainiac_record_ordering.dart';
 
 /// The one lifecycle vocabulary used by durable Maintainiac records.
 enum MaintainiacRecordState {
@@ -273,7 +274,14 @@ class MaintainiacRecordDraftStore {
       }
     }
     drafts.sort(
-      (a, b) => b.lifecycle.updatedAt.compareTo(a.lifecycle.updatedAt),
+      (a, b) => compareMaintainiacRecordsNewestFirst(
+        leftUpdatedAt: a.lifecycle.updatedAt,
+        leftRevision: a.lifecycle.revision,
+        leftId: a.id,
+        rightUpdatedAt: b.lifecycle.updatedAt,
+        rightRevision: b.lifecycle.revision,
+        rightId: b.id,
+      ),
     );
     return drafts;
   }
