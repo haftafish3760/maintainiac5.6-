@@ -62,6 +62,28 @@ class MaintainiacDurableRecordStore {
     return List.unmodifiable(records);
   }
 
+  List<MaintainiacStoredRecordIntegrityIssue> integrityIssues({
+    String? module,
+  }) {
+    final box = _box;
+    final entries = box == null ? _memory.entries : box.toMap().entries;
+    final issues = <MaintainiacStoredRecordIntegrityIssue>[];
+    for (final entry in entries) {
+      final key = entry.key.toString();
+      if (module != null && !key.startsWith('$module:')) continue;
+      final value = entry.value;
+      if (value is! Map || _decode(value) == null) {
+        issues.add(
+          MaintainiacStoredRecordIntegrityIssue(
+            storageKey: key,
+            kind: MaintainiacStoredRecordKind.confirmed,
+          ),
+        );
+      }
+    }
+    return List.unmodifiable(issues);
+  }
+
   Future<MaintainiacDurableRecord> save({
     required String module,
     required String id,
@@ -72,6 +94,11 @@ class MaintainiacDurableRecordStore {
     _validateKey(module, id);
     await _ensureSpace();
     final existing = recordFor(module, id);
+    if (existing == null && _containsStoredValue(module, id)) {
+      throw StateError(
+        'The existing record is unreadable and was preserved for recovery.',
+      );
+    }
     if (existing?.lifecycle.isDeleted ?? false) {
       throw StateError('Restore a removed record before changing it.');
     }
@@ -187,6 +214,11 @@ class MaintainiacDurableRecordStore {
       AppStorageGuard.check(AppStoragePurpose.smallRecordWrite);
 
   static String _key(String module, String id) => '$module:$id';
+  bool _containsStoredValue(String module, String id) {
+    final key = _key(module, id);
+    return _box?.containsKey(key) ?? _memory.containsKey(key);
+  }
+
   static bool _validKey(String module, String id) =>
       module.trim().isNotEmpty &&
       id.trim().isNotEmpty &&
@@ -203,9 +235,9 @@ class MaintainiacDurableRecordStore {
   static MaintainiacDurableRecord? _decode(Map<dynamic, dynamic> map) {
     try {
       return MaintainiacDurableRecord.fromMap(map);
-    // Device storage is untrusted at recovery time. A partially written or
-    // legacy-corrupt value must be skipped rather than crashing the module
-    // that is attempting to recover its other valid records.
+      // Device storage is untrusted at recovery time. A partially written or
+      // legacy-corrupt value must be skipped rather than crashing the module
+      // that is attempting to recover its other valid records.
     } catch (_) {
       return null;
     }

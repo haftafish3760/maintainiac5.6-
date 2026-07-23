@@ -15,6 +15,18 @@ enum MaintainiacRecordState {
   }
 }
 
+enum MaintainiacStoredRecordKind { confirmed, draft }
+
+class MaintainiacStoredRecordIntegrityIssue {
+  const MaintainiacStoredRecordIntegrityIssue({
+    required this.storageKey,
+    required this.kind,
+  });
+
+  final String storageKey;
+  final MaintainiacStoredRecordKind kind;
+}
+
 /// Immutable, local-first lifecycle metadata shared by record modules.
 class MaintainiacRecordLifecycle {
   MaintainiacRecordLifecycle({
@@ -252,6 +264,27 @@ class MaintainiacRecordDraftStore {
     return drafts;
   }
 
+  List<MaintainiacStoredRecordIntegrityIssue> integrityIssues({
+    String? module,
+  }) {
+    final box = _box;
+    final entries = box == null ? _memory.entries : box.toMap().entries;
+    final issues = <MaintainiacStoredRecordIntegrityIssue>[];
+    for (final entry in entries) {
+      final key = entry.key.toString();
+      if (module != null && !key.startsWith('$module:')) continue;
+      if (_decodeStoredDraft(entry.value) == null) {
+        issues.add(
+          MaintainiacStoredRecordIntegrityIssue(
+            storageKey: key,
+            kind: MaintainiacStoredRecordKind.draft,
+          ),
+        );
+      }
+    }
+    return List.unmodifiable(issues);
+  }
+
   Future<MaintainiacRecordDraft> save({
     required String module,
     required String id,
@@ -262,6 +295,11 @@ class MaintainiacRecordDraftStore {
     await _ensureStorageForDraftSave();
     final time = now ?? DateTime.now();
     final existing = _storedDraftFor(module, id);
+    if (existing == null && _containsStoredDraft(module, id)) {
+      throw StateError(
+        'The existing draft is unreadable and was preserved for recovery.',
+      );
+    }
     if (existing != null && time.isBefore(existing.lifecycle.updatedAt)) {
       return existing;
     }
@@ -315,6 +353,11 @@ class MaintainiacRecordDraftStore {
       id == id.trim() &&
       !module.contains(':') &&
       !id.contains(':');
+
+  bool _containsStoredDraft(String module, String id) {
+    final key = '$module:$id';
+    return _box?.containsKey(key) ?? _memory.containsKey(key);
+  }
 
   Future<void> remove(String module, String id, {DateTime? now}) =>
       _enqueue(() async {

@@ -156,6 +156,26 @@ void main() {
 
       expect(records.recordFor('expenses', 'record-1'), isNull);
       expect(drafts.draftFor('expenses', 'record-1'), isNull);
+      expect(records.integrityIssues(module: 'expenses'), hasLength(1));
+      expect(drafts.integrityIssues(module: 'expenses'), hasLength(1));
+      await expectLater(
+        records.save(
+          module: 'expenses',
+          id: 'record-1',
+          payload: const {'replacement': true},
+        ),
+        throwsStateError,
+      );
+      await expectLater(
+        drafts.save(
+          module: 'expenses',
+          id: 'record-1',
+          payload: const {'replacement': true},
+        ),
+        throwsStateError,
+      );
+      expect(recordsBox.get('expenses:record-1'), malformed);
+      expect(draftsBox.get('expenses:record-1'), malformed);
     },
   );
 
