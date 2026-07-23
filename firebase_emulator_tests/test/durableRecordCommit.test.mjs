@@ -157,9 +157,62 @@ describe('server committed durable records', () => {
       assert.equal(rejected.status, 400);
     }
   });
+
+  test('record schema upgrades are monotonic and revision bound', async () => {
+    const identity = await createIdentity();
+    await seedHostedAccount(identity.uid);
+    const first = durableDocument(identity.uid, 'schema-upgrade', 1, 'dark');
+    await callFunction('commitDurableRecordBatch', identity.token, {
+      attemptId: 'schema-migration-attempt',
+      documents: [first],
+    });
+    const upgraded = durableDocument(
+      identity.uid,
+      'schema-upgrade',
+      2,
+      'light',
+      2,
+    );
+    const result = await callFunction(
+      'commitDurableRecordBatch',
+      identity.token,
+      {
+        attemptId: 'schema-migration-attempt',
+        documents: [upgraded],
+      },
+    );
+    assert.equal(result.writtenCount, 1);
+    const downgraded = durableDocument(
+      identity.uid,
+      'schema-upgrade',
+      3,
+      'unsafe-downgrade',
+      1,
+    );
+    const rejected = await callFunctionError(
+      'commitDurableRecordBatch',
+      identity.token,
+      {
+        attemptId: 'schema-migration-attempt',
+        documents: [downgraded],
+      },
+    );
+    assert.equal(rejected.body?.error?.status, 'FAILED_PRECONDITION');
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const stored = await getDoc(doc(context.firestore(), upgraded.path));
+      assert.equal(stored.data()?.recordSchemaVersion, 2);
+      assert.equal(stored.data()?.localRevision, 2);
+    });
+  });
 });
 
-function durableDocument(uid, localRecordId, revision, theme) {
+function durableDocument(
+  uid,
+  localRecordId,
+  revision,
+  theme,
+  schemaVersion = 1,
+) {
   const recordKey = sha256(`settings\u0000${localRecordId}`);
   const document = {
     path: `orgs/orgCommit/records/${recordKey}`,
@@ -169,7 +222,7 @@ function durableDocument(uid, localRecordId, revision, theme) {
       module: 'settings',
       localRecordId,
       accountScopeId: `orgCommit.${uid}`,
-      recordSchemaVersion: 1,
+      recordSchemaVersion: schemaVersion,
       contentSha256: '',
       privateToOwner: true,
       orgId: 'orgCommit',

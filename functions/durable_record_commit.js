@@ -198,7 +198,9 @@ function validateRevisionAdvance(path, incoming, current) {
       incoming.module !== current.module ||
       incoming.localRecordId !== current.localRecordId ||
       incoming.accountScopeId !== current.accountScopeId ||
-      incoming.recordSchemaVersion !== current.recordSchemaVersion ||
+      !Number.isInteger(current.recordSchemaVersion) ||
+      current.recordSchemaVersion < 1 ||
+      incoming.recordSchemaVersion < current.recordSchemaVersion ||
       incoming.createdAt !== current.createdAt ||
       !Number.isInteger(current.localRevision) ||
       incoming.localRevision < current.localRevision ||
