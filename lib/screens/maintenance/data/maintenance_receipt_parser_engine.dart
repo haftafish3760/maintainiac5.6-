@@ -65,6 +65,7 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final hasUnscopedNotCompletedSignal = rows.any(
     (row) =>
         _notCompletedLine.hasMatch(row.comparisonText) &&
+        !_notCompletedSectionHeading.hasMatch(row.comparisonText) &&
         !_itemDefinitions.any(
           (definition) => _definitionMatchesText(
             definition,
@@ -97,6 +98,7 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
 
     final itemNotCompleted =
         hasUnscopedNotCompletedSignal ||
+        matchingRows.any((row) => _rowFollowsNotCompletedSection(rows, row)) ||
         matchingRows.any(
           (row) => _notCompletedLine.hasMatch(row.comparisonText),
         );
@@ -354,4 +356,17 @@ bool _isReturnOrExchangeText(String text) {
   return _returnOrExchangeLine.hasMatch(text) &&
       !_coreAdjustmentLine.hasMatch(text) &&
       !_transactionPolicyLine.hasMatch(text);
+}
+
+bool _rowFollowsNotCompletedSection(
+  List<_SourceRow> rows,
+  _SourceRow matchingRow,
+) {
+  final rowIndex = rows.indexOf(matchingRow);
+  for (var index = rowIndex - 1; index >= 0; index--) {
+    final text = rows[index].comparisonText;
+    if (_notCompletedSectionHeading.hasMatch(text)) return true;
+    if (_completedSectionHeading.hasMatch(text)) return false;
+  }
+  return false;
 }

@@ -242,6 +242,12 @@ final _explicitCompletionSignal = RegExp(
 final _notCompletedLine = RegExp(
   r'\b(?:declined|deferred|recommended|recommendation|estimate|estimated|quote|quoted|proposed|not performed|customer refused|future service)\b',
 );
+final _notCompletedSectionHeading = RegExp(
+  r'^(?:declined|deferred|recommended|recommendations|estimate|estimated|quoted|proposed)(?: services?| work| items?)?\s*:?\s*$',
+);
+final _completedSectionHeading = RegExp(
+  r'^(?:service performed|performed services?|work completed|completed services?)\s*:?\s*$',
+);
 final _returnOrExchangeLine = RegExp(
   r'\b(?:return(?:ed)?|refund(?:ed)?|exchange(?:d)?|voided item)\b',
 );

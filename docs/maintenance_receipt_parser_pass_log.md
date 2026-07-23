@@ -151,11 +151,20 @@ required checks pass.
     manual entry. The first focused run used an incorrect ambiguity expectation
     for `07.23.26` and was not counted. The corrected temporal, schedule, and
     parser-safety suite passed, followed by the 180-check full maintenance gate.
+50. Deterministic service-status sections. Explicit `SERVICE PERFORMED`,
+    `WORK COMPLETED`, `DECLINED SERVICES`, and recommendation headings now
+    scope status only to following candidate rows until another explicit status
+    heading resets the section. Completed work before a declined section and
+    completed work after a declined/recommended section can remain completed-
+    service suggestions, while declined/recommended candidates stay manual.
+    Ambiguous document-level estimates remain receipt-wide manual review.
+    Focused analysis and 32 parser/service-safety checks passed, followed by the
+    182-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **49**
-- Next pass: **50**
+- Last accepted pass: **50**
+- Next pass: **51**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

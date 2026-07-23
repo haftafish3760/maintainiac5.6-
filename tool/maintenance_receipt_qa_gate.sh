@@ -72,6 +72,7 @@ dart format --output=none --set-exit-if-changed \
   test/maintenance_receipt_parser_test.dart \
   test/maintenance_receipt_parser_safety_test.dart \
   test/maintenance_receipt_schedule_date_test.dart \
+  test/maintenance_receipt_service_sections_test.dart \
   test/maintenance_receipt_temporal_safety_test.dart \
   test/maintenance_receipt_review_test.dart \
   test/maintenance_receipt_review_screen_test.dart \
@@ -107,6 +108,7 @@ dart analyze \
   test/maintenance_receipt_parser_test.dart \
   test/maintenance_receipt_parser_safety_test.dart \
   test/maintenance_receipt_schedule_date_test.dart \
+  test/maintenance_receipt_service_sections_test.dart \
   test/maintenance_receipt_temporal_safety_test.dart \
   test/maintenance_receipt_review_test.dart \
   test/maintenance_receipt_review_screen_test.dart \
@@ -128,6 +130,7 @@ flutter test \
   test/maintenance_receipt_parser_test.dart \
   test/maintenance_receipt_parser_safety_test.dart \
   test/maintenance_receipt_schedule_date_test.dart \
+  test/maintenance_receipt_service_sections_test.dart \
   test/maintenance_receipt_temporal_safety_test.dart \
   test/maintenance_receipt_review_test.dart \
   test/maintenance_receipt_review_screen_test.dart \

@@ -251,7 +251,7 @@ REFUND TO CARD 49.99
     },
   );
 
-  test('separate declined heading cannot create completed service', () {
+  test('separate declined heading scopes only the following service', () {
     final result = parseMaintenanceReceipt(
       const MaintenanceReceiptParserInput(
         activeVehicleId: 'vehicle_1',
@@ -267,27 +267,22 @@ FRONT BRAKE PADS 249.99
       ),
     );
 
+    final candidates = {
+      for (final candidate in result.candidates) candidate.itemName: candidate,
+    };
+    expect(candidates.keys, {'Engine Oil', 'Brake Pads'});
     expect(
-      result.candidates,
-      everyElement(
-        isA<MaintenanceReceiptCandidate>()
-            .having(
-              (candidate) => candidate.completedServiceIndicated,
-              'completed',
-              isFalse,
-            )
-            .having(
-              (candidate) => candidate.action,
-              'action',
-              MaintenanceReceiptAction.manualReview,
-            )
-            .having(
-              (candidate) => candidate.notCompletedIndicated,
-              'not completed',
-              isTrue,
-            ),
-      ),
+      candidates['Engine Oil']!.action,
+      MaintenanceReceiptAction.reviewCompletedService,
     );
+    expect(candidates['Engine Oil']!.completedServiceIndicated, isTrue);
+    expect(candidates['Engine Oil']!.notCompletedIndicated, isFalse);
+    expect(
+      candidates['Brake Pads']!.action,
+      MaintenanceReceiptAction.manualReview,
+    );
+    expect(candidates['Brake Pads']!.completedServiceIndicated, isFalse);
+    expect(candidates['Brake Pads']!.notCompletedIndicated, isTrue);
     expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
   });
 
