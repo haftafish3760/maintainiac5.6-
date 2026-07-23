@@ -30,6 +30,22 @@ class MaintainiacDurableCloudBackupGateway {
     DateTime? queuedAtUtc,
   }) async {
     final uid = _authenticatedUid();
+    return _queueRecordForUid(
+      organizationId: organizationId,
+      uid: uid,
+      record: record,
+      schemaVersion: schemaVersion,
+      queuedAtUtc: queuedAtUtc,
+    );
+  }
+
+  Future<MaintainiacFirestoreQueuedDocument?> _queueRecordForUid({
+    required String organizationId,
+    required String uid,
+    required MaintainiacDurableRecord record,
+    required int schemaVersion,
+    required DateTime? queuedAtUtc,
+  }) async {
     final draft = MaintainiacFirestoreDurableRecordCodec.encode(
       organizationId: organizationId,
       uid: uid,
@@ -50,17 +66,49 @@ class MaintainiacDurableCloudBackupGateway {
     required String module,
     int schemaVersion = 1,
     DateTime? queuedAtUtc,
+  }) => queueModules(
+    organizationId: organizationId,
+    modules: [module],
+    schemaVersions: {module: schemaVersion},
+    queuedAtUtc: queuedAtUtc,
+  );
+
+  /// Stages multiple module snapshots before one user-authorized sync. The
+  /// upload coordinator can then send their records in bounded shared batches
+  /// instead of each screen creating a separate sync engine or network event.
+  Future<List<MaintainiacFirestoreQueuedDocument>> queueModules({
+    required String organizationId,
+    required Iterable<String> modules,
+    Map<String, int> schemaVersions = const {},
+    DateTime? queuedAtUtc,
   }) async {
-    final records = _records.recordsFor(module, includeDeleted: true);
+    final uid = _authenticatedUid();
+    final uniqueModules = <String>{};
+    for (final module in modules) {
+      if (module.trim() != module ||
+          module.isEmpty ||
+          module.length > 80 ||
+          module.contains(':')) {
+        throw ArgumentError.value(module, 'modules');
+      }
+      uniqueModules.add(module);
+      if (uniqueModules.length > 100) {
+        throw ArgumentError('A backup request contains too many modules.');
+      }
+    }
+    final queuedAt = (queuedAtUtc ?? DateTime.now().toUtc()).toUtc();
     final queued = <MaintainiacFirestoreQueuedDocument>[];
-    for (final record in records) {
-      final pending = await queueRecord(
-        organizationId: organizationId,
-        record: record,
-        schemaVersion: schemaVersion,
-        queuedAtUtc: queuedAtUtc,
-      );
-      if (pending != null) queued.add(pending);
+    for (final module in uniqueModules) {
+      for (final record in _records.recordsFor(module, includeDeleted: true)) {
+        final pending = await _queueRecordForUid(
+          organizationId: organizationId,
+          uid: uid,
+          record: record,
+          schemaVersion: schemaVersions[module] ?? 1,
+          queuedAtUtc: queuedAt,
+        );
+        if (pending != null) queued.add(pending);
+      }
     }
     return List.unmodifiable(queued);
   }

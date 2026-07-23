@@ -128,6 +128,51 @@ void main() {
     expect(queue.pendingRecords.single.data['recordState'], 'deleted');
   });
 
+  test('multiple modules stage one bounded shared sync payload', () async {
+    final records = MaintainiacDurableRecordStore.memory();
+    final queue = await MaintainiacFirestoreUploadQueueStore.create();
+    await records.save(
+      module: 'invoices',
+      id: 'invoice-1',
+      payload: const {'totalCents': 12500},
+      now: DateTime.utc(2026, 7, 23),
+    );
+    await records.save(
+      module: 'expenses',
+      id: 'expense-1',
+      payload: const {'totalCents': 2500},
+      now: DateTime.utc(2026, 7, 23),
+    );
+    final gateway = MaintainiacDurableCloudBackupGateway(
+      records: records,
+      queue: queue,
+      identityProvider: const _Identity('user-a'),
+    );
+
+    final queued = await gateway.queueModules(
+      organizationId: 'org-a',
+      modules: const ['invoices', 'expenses', 'invoices'],
+      schemaVersions: const {'invoices': 2},
+      queuedAtUtc: DateTime.utc(2026, 7, 23, 1),
+    );
+
+    expect(queued, hasLength(2));
+    expect(queue.pendingRecords, hasLength(2));
+    expect(queued.map((record) => record.queuedAtUtc).toSet(), {
+      DateTime.utc(2026, 7, 23, 1),
+    });
+    expect(queued.map((record) => record.data['module']).toSet(), {
+      'invoices',
+      'expenses',
+    });
+    expect(
+      queued
+          .singleWhere((record) => record.data['module'] == 'invoices')
+          .data['recordSchemaVersion'],
+      2,
+    );
+  });
+
   test(
     'acknowledged unchanged records generate zero later queue writes',
     () async {
