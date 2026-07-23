@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../records/maintainiac_restore_applier.dart';
@@ -56,14 +58,31 @@ class FirebaseMaintainiacDurableCloudRecordSource
 
 class MaintainiacDurableCloudRestorePage {
   const MaintainiacDurableCloudRestorePage({
-    required this.records,
+    required this.items,
     required this.hasMore,
     this.nextCursor,
   });
 
-  final List<MaintainiacRestoreEnvelope> records;
+  final List<MaintainiacDurableCloudRestoreItem> items;
   final bool hasMore;
   final String? nextCursor;
+
+  List<MaintainiacRestoreEnvelope> get records =>
+      List.unmodifiable(items.map((item) => item.envelope));
+
+  String? get lastRecordKey => items.isEmpty ? null : items.last.recordKey;
+}
+
+class MaintainiacDurableCloudRestoreItem {
+  const MaintainiacDurableCloudRestoreItem({
+    required this.recordKey,
+    required this.envelope,
+    required this.transferBytes,
+  });
+
+  final String recordKey;
+  final MaintainiacRestoreEnvelope envelope;
+  final int transferBytes;
 }
 
 class MaintainiacDurableCloudRestoreGateway {
@@ -112,18 +131,22 @@ class MaintainiacDurableCloudRestoreGateway {
     final hasMore = sorted.length > pageSize;
     final page = sorted.take(pageSize).toList(growable: false);
     final accountScopeId = '$organizationId.$uid';
-    final records = [
+    final items = [
       for (final document in page)
-        MaintainiacFirestoreDurableRecordCodec.decode(
-          expectedOrganizationId: organizationId,
-          expectedUid: uid,
-          expectedAccountScopeId: accountScopeId,
-          documentId: document.id,
-          data: document.data,
+        MaintainiacDurableCloudRestoreItem(
+          recordKey: document.id,
+          envelope: MaintainiacFirestoreDurableRecordCodec.decode(
+            expectedOrganizationId: organizationId,
+            expectedUid: uid,
+            expectedAccountScopeId: accountScopeId,
+            documentId: document.id,
+            data: document.data,
+          ),
+          transferBytes: utf8.encode(jsonEncode(document.data)).length,
         ),
     ];
     return MaintainiacDurableCloudRestorePage(
-      records: List.unmodifiable(records),
+      items: List.unmodifiable(items),
       hasMore: hasMore,
       nextCursor: hasMore && page.isNotEmpty ? page.last.id : null,
     );

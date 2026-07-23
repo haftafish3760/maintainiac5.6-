@@ -28,6 +28,7 @@ export '../sync/maintainiac_sync_settings_store.dart';
 export '../sync/maintainiac_sync_checkpoint_store.dart';
 export '../sync/maintainiac_sync_orchestrator.dart';
 export '../records/maintainiac_durable_record_store.dart';
+export '../records/maintainiac_cloud_restore_runner.dart';
 export '../records/maintainiac_draft_autosave_coordinator.dart';
 export '../records/maintainiac_draft_notification_dispatcher.dart';
 export '../records/maintainiac_draft_reminder_coordinator.dart';

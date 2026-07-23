@@ -42,7 +42,7 @@ class MaintainiacRestoreSession {
     }
     final session = MaintainiacRestoreSession(
       id: _requiredToken(map, 'id'),
-      accountScopeId: _requiredToken(map, 'accountScopeId'),
+      accountScopeId: _requiredAccountScope(map, 'accountScopeId'),
       deviceId: _requiredToken(map, 'deviceId'),
       authorizationId: _requiredToken(map, 'authorizationId'),
       mode: mode.single,
@@ -83,7 +83,7 @@ class MaintainiacRestoreSession {
 
   void validate() {
     if (!_validToken(id) ||
-        !_validToken(accountScopeId) ||
+        !_validAccountScope(accountScopeId) ||
         !_validToken(deviceId) ||
         !_validToken(authorizationId) ||
         completedItems > totalItems ||
@@ -386,9 +386,20 @@ class MaintainiacRestoreSessionStore {
 bool _validToken(String value) =>
     RegExp(r'^[A-Za-z0-9_-]{1,160}$').hasMatch(value);
 
+bool _validAccountScope(String value) =>
+    RegExp(r'^[A-Za-z0-9_.-]{1,160}$').hasMatch(value);
+
 String _requiredToken(Map<dynamic, dynamic> map, String key) {
   final value = map[key];
   if (value is! String || !_validToken(value)) {
+    throw FormatException('Restore session has invalid $key.');
+  }
+  return value;
+}
+
+String _requiredAccountScope(Map<dynamic, dynamic> map, String key) {
+  final value = map[key];
+  if (value is! String || !_validAccountScope(value)) {
     throw FormatException('Restore session has invalid $key.');
   }
   return value;
