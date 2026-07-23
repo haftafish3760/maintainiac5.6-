@@ -1,4 +1,4 @@
-const {createHash, randomBytes, randomUUID} = require('node:crypto');
+const {randomBytes} = require('node:crypto');
 const {getFirestore, Timestamp} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {defineInt} = require('firebase-functions/params');
@@ -7,14 +7,18 @@ const {
   deleteRestoreSnapshot,
   fetchRestoreSnapshotPage,
 } = require('./restore_snapshot');
+const {
+  SHA256,
+  cleanToken,
+  requireCurrentRestorePrincipal,
+  requireUsableSession,
+  restoreSessionInput,
+  restoreSessionResult,
+  sha256,
+  validAuthorizationLifetime,
+} = require('./restore_session_contract');
 
-const TOKEN = /^[A-Za-z0-9_-]{1,160}$/;
-const SHA256 = /^[a-f0-9]{64}$/;
 const RESTORE_MODES = new Set(['full', 'smart', 'recordsOnly']);
-const authorizationLifetimeSeconds = defineInt(
-  'RESTORE_AUTHORIZATION_LIFETIME_SECONDS',
-  {default: 15 * 60},
-);
 const snapshotRetentionSeconds = defineInt(
   'RESTORE_SNAPSHOT_RETENTION_SECONDS',
   {default: 7 * 24 * 60 * 60},
@@ -88,9 +92,11 @@ async function issueRestoreAuthorization(request) {
   const uid = request.auth?.uid || '';
   const organizationId = cleanToken(request.data?.organizationId);
   const deviceId = cleanToken(request.data?.deviceId);
+  const requestId = cleanToken(request.data?.requestId);
   const mode = String(request.data?.mode || '').trim();
   if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
-  if (!organizationId || !deviceId || !RESTORE_MODES.has(mode)) {
+  if (!organizationId || !deviceId || !requestId ||
+      !RESTORE_MODES.has(mode)) {
     throw new HttpsError('invalid-argument', 'Invalid restore request.');
   }
   const lifetimeSeconds = validAuthorizationLifetime();
@@ -104,10 +110,17 @@ async function issueRestoreAuthorization(request) {
     );
   }
   const db = getFirestore();
-  const [member, device, manifest] = await Promise.all([
+  const sessionId = `restore_${sha256(
+    `${uid}\u0000${organizationId}\u0000${deviceId}\u0000${requestId}`,
+  ).substring(0, 48)}`;
+  const sessionRef = db.doc(
+    `orgs/${organizationId}/restoreSessions/${sessionId}`,
+  );
+  const [member, device, manifest, existingSession] = await Promise.all([
     db.doc(`orgs/${organizationId}/members/${uid}`).get(),
     db.doc(`users/${uid}/devices/${deviceId}`).get(),
     db.doc(`orgs/${organizationId}/syncManifests/${uid}`).get(),
+    sessionRef.get(),
   ]);
   if (member.data()?.status !== 'active' ||
       !device.exists || device.data()?.uid !== uid ||
@@ -119,8 +132,20 @@ async function issueRestoreAuthorization(request) {
     );
   }
   const authorizationToken = randomBytes(32).toString('hex');
+  if (existingSession.exists) {
+    return rotateExistingIssue({
+      db,
+      sessionRef,
+      uid,
+      organizationId,
+      deviceId,
+      requestId,
+      mode,
+      authorizationToken,
+      lifetimeSeconds,
+    });
+  }
   const authorizationTokenHash = sha256(authorizationToken);
-  const sessionId = randomUUID();
   const now = Timestamp.now();
   const expiresAt = Timestamp.fromMillis(
     now.toMillis() + lifetimeSeconds * 1000,
@@ -128,30 +153,44 @@ async function issueRestoreAuthorization(request) {
   const snapshotExpiresAt = Timestamp.fromMillis(
     now.toMillis() + retentionSeconds * 1000,
   );
-  const sessionRef = db.doc(
-    `orgs/${organizationId}/restoreSessions/${sessionId}`,
-  );
-  const snapshot = await createRestoreSnapshot({
-    db,
-    sessionRef,
-    organizationId,
-    uid,
-    expiresAt: snapshotExpiresAt,
-    sessionData: {
+  let snapshot;
+  try {
+    snapshot = await createRestoreSnapshot({
+      db,
+      sessionRef,
+      organizationId,
       uid,
-      orgId: organizationId,
+      expiresAt: snapshotExpiresAt,
+      sessionData: {
+        uid,
+        orgId: organizationId,
+        deviceId,
+        requestId,
+        mode,
+        status: 'authorized',
+        authorizationTokenHash,
+        appCheckProtected: true,
+        createdAt: now,
+        expiresAt,
+        snapshotExpiresAt,
+        authorizationRevision: 1,
+        manifestRevision: Number(manifest.data()?.manifestRevision || 0),
+      },
+    });
+  } catch (error) {
+    if (!isAlreadyExists(error)) throw error;
+    return rotateExistingIssue({
+      db,
+      sessionRef,
+      uid,
+      organizationId,
       deviceId,
+      requestId,
       mode,
-      status: 'authorized',
-      authorizationTokenHash,
-      appCheckProtected: true,
-      createdAt: now,
-      expiresAt,
-      snapshotExpiresAt,
-      authorizationRevision: 1,
-      manifestRevision: Number(manifest.data()?.manifestRevision || 0),
-    },
-  });
+      authorizationToken,
+      lifetimeSeconds,
+    });
+  }
   return {
     sessionId,
     authorizationToken,
@@ -160,6 +199,61 @@ async function issueRestoreAuthorization(request) {
     structuredBytes: snapshot.structuredBytes,
     manifestRevision: Number(manifest.data()?.manifestRevision || 0),
   };
+}
+
+async function rotateExistingIssue({
+  db,
+  sessionRef,
+  uid,
+  organizationId,
+  deviceId,
+  requestId,
+  mode,
+  authorizationToken,
+  lifetimeSeconds,
+}) {
+  const input = {uid, organizationId, deviceId};
+  const data = await db.runTransaction(async (transaction) => {
+    const snapshot = await transaction.get(sessionRef);
+    await requireCurrentRestorePrincipal(transaction, input, db);
+    const current = snapshot.data();
+    if (!snapshot.exists || current.uid !== uid ||
+        current.orgId !== organizationId || current.deviceId !== deviceId ||
+        current.requestId !== requestId || current.mode !== mode ||
+        !new Set(['authorized', 'active', 'paused']).has(current.status) ||
+        (current.snapshotExpiresAt?.toMillis?.() || 0) <= Date.now()) {
+      throw new HttpsError(
+        'failed-precondition',
+        'Restore request ID can no longer be reused.',
+      );
+    }
+    const now = Timestamp.now();
+    const expiresAt = Timestamp.fromMillis(
+      now.toMillis() + lifetimeSeconds * 1000,
+    );
+    transaction.update(sessionRef, {
+      authorizationTokenHash: sha256(authorizationToken),
+      expiresAt,
+      refreshedAt: now,
+      updatedAt: now,
+      authorizationRevision:
+        Number(current.authorizationRevision || 1) + 1,
+    });
+    return {...current, expiresAt};
+  });
+  return {
+    sessionId: sessionRef.id,
+    authorizationToken,
+    expiresAt: data.expiresAt.toDate().toISOString(),
+    recordCount: Number(data.recordCount || 0),
+    structuredBytes: Number(data.structuredBytes || 0),
+    manifestRevision: Number(data.manifestRevision || 0),
+  };
+}
+
+function isAlreadyExists(error) {
+  return error?.code === 6 || error?.code === 'already-exists' ||
+    String(error?.message || '').includes('ALREADY_EXISTS');
 }
 
 async function refreshRestoreAuthorization(request) {
@@ -373,95 +467,6 @@ async function fetchRestoreRecordPage(request) {
       limit,
     }),
   };
-}
-
-async function requireCurrentRestorePrincipal(transaction, input, db) {
-  const [member, device] = await Promise.all([
-    transaction.get(
-      db.doc(`orgs/${input.organizationId}/members/${input.uid}`),
-    ),
-    transaction.get(
-      db.doc(`users/${input.uid}/devices/${input.deviceId}`),
-    ),
-  ]);
-  if (member.data()?.status !== 'active' ||
-      device.data()?.uid !== input.uid ||
-      device.data()?.deviceId !== input.deviceId ||
-      device.data()?.status !== 'active') {
-    throw new HttpsError(
-      'permission-denied',
-      'Restore account or device is no longer active.',
-    );
-  }
-}
-
-function restoreSessionInput(request) {
-  const uid = request.auth?.uid || '';
-  const organizationId = cleanToken(request.data?.organizationId);
-  const deviceId = cleanToken(request.data?.deviceId);
-  const sessionId = cleanToken(request.data?.sessionId);
-  const authorizationToken = String(
-    request.data?.authorizationToken || '',
-  ).trim();
-  if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
-  if (!organizationId || !deviceId || !sessionId ||
-      !/^[a-f0-9]{64}$/.test(authorizationToken)) {
-    throw new HttpsError('invalid-argument', 'Invalid restore authorization.');
-  }
-  return {uid, organizationId, deviceId, sessionId, authorizationToken};
-}
-
-function requireUsableSession(
-  snapshot,
-  input,
-  {allowedStates, allowExpiredTerminal = false},
-) {
-  const data = snapshot.data();
-  const expiresAt = data?.expiresAt?.toMillis?.() || 0;
-  if (!snapshot.exists || data.uid !== input.uid ||
-      data.orgId !== input.organizationId ||
-      data.deviceId !== input.deviceId ||
-      data.authorizationTokenHash !== sha256(input.authorizationToken) ||
-      !allowedStates.has(data.status) ||
-      (!allowExpiredTerminal && expiresAt <= Date.now())) {
-    throw new HttpsError(
-      'permission-denied',
-      'Restore authorization is invalid or expired.',
-    );
-  }
-  return data;
-}
-
-function restoreSessionResult(sessionId, data, status) {
-  return {
-    sessionId,
-    mode: data.mode,
-    status,
-    completedItems: Number(data.completedItems || 0),
-    completedBytes: Number(data.completedBytes || 0),
-    expiresAt: data.expiresAt.toDate().toISOString(),
-  };
-}
-
-function cleanToken(value) {
-  const token = String(value || '').trim();
-  return TOKEN.test(token) ? token : '';
-}
-
-function sha256(value) {
-  return createHash('sha256').update(value).digest('hex');
-}
-
-function validAuthorizationLifetime() {
-  const lifetimeSeconds = authorizationLifetimeSeconds.value();
-  if (!Number.isInteger(lifetimeSeconds) ||
-      lifetimeSeconds < 5 * 60 || lifetimeSeconds > 60 * 60) {
-    throw new HttpsError(
-      'failed-precondition',
-      'Restore authorization configuration is invalid.',
-    );
-  }
-  return lifetimeSeconds;
 }
 
 module.exports = {buildRestoreAuthorizationFunctions};

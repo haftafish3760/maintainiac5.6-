@@ -61,13 +61,18 @@ class MaintainiacRestoreSessionClient {
     required String organizationId,
     required String deviceId,
     required String mode,
+    required String requestId,
   }) async {
+    if (!RegExp(r'^[A-Za-z0-9_-]{1,160}$').hasMatch(requestId)) {
+      throw ArgumentError.value(requestId, 'requestId');
+    }
     final result = await _functions.call(
       name: 'issueRestoreAuthorization',
       data: {
         'organizationId': organizationId,
         'deviceId': deviceId,
         'mode': mode,
+        'requestId': requestId,
       },
     );
     return _issued(result, organizationId, deviceId);

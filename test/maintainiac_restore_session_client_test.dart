@@ -16,14 +16,18 @@ void main() {
         'manifestRevision': 3,
       },
     });
-    final issued = await MaintainiacRestoreSessionClient(
-      functions,
-    ).issue(organizationId: 'org-a', deviceId: 'device-a', mode: 'recordsOnly');
+    final issued = await MaintainiacRestoreSessionClient(functions).issue(
+      organizationId: 'org-a',
+      deviceId: 'device-a',
+      mode: 'recordsOnly',
+      requestId: 'restore-request-a',
+    );
 
     expect(issued.recordCount, 12);
     expect(issued.structuredBytes, 4096);
     expect(issued.authorization.sessionId, 'session-a');
     expect(issued.authorization.authorizationToken, token);
+    expect(functions.lastData?['requestId'], 'restore-request-a');
   });
 
   test('begin and progress always carry the server credential', () async {

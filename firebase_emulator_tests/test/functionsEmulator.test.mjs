@@ -166,12 +166,29 @@ describe('Cloud Functions emulator safety', () => {
         organizationId: 'orgLifecycleA',
         deviceId: 'restoreDeviceA',
         mode: 'smart',
+        requestId: 'restore-request-a',
       },
     );
-    assert.match(authorization.sessionId, /^[a-f0-9-]{36}$/);
+    const retriedAuthorization = await callFunction(
+      'issueRestoreAuthorization',
+      identity.token,
+      {
+        organizationId: 'orgLifecycleA',
+        deviceId: 'restoreDeviceA',
+        mode: 'smart',
+        requestId: 'restore-request-a',
+      },
+    );
+    assert.match(authorization.sessionId, /^restore_[a-f0-9]{48}$/);
     assert.match(authorization.authorizationToken, /^[a-f0-9]{64}$/);
     assert.equal(authorization.recordCount, restorePlan.recordCount);
     assert.equal(authorization.structuredBytes, restorePlan.structuredBytes);
+    assert.equal(retriedAuthorization.sessionId, authorization.sessionId);
+    assert.notEqual(
+      retriedAuthorization.authorizationToken,
+      authorization.authorizationToken,
+    );
+    authorization.authorizationToken = retriedAuthorization.authorizationToken;
     await mutateRestoreRecordsAfterAuthorization(testEnv, identity.uid);
 
     let sessionInput = {
@@ -339,6 +356,7 @@ describe('Cloud Functions emulator safety', () => {
         organizationId: 'orgLifecycleA',
         deviceId: 'restoreDeviceA',
         mode: 'smart',
+        requestId: 'outsider-restore-request',
       },
     );
     assert.equal(denied.status, 403);
