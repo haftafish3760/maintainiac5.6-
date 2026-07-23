@@ -45,6 +45,7 @@ class CallableMaintainiacDurableCloudRecordSource
     String? afterRecordKey,
   }) async {
     if (organizationId != _authorization.organizationId ||
+        !_token(uid) ||
         limit < 1 ||
         limit > 10 ||
         (afterRecordKey != null &&
@@ -66,18 +67,28 @@ class CallableMaintainiacDurableCloudRecordSource
     if (rawDocuments is! List || rawDocuments.length > limit) {
       throw const FormatException('Restore page response is malformed.');
     }
-    return List.unmodifiable([
-      for (final raw in rawDocuments)
-        if (raw is Map && raw['data'] is Map)
-          MaintainiacDurableCloudDocument(
-            id: raw['id']?.toString() ?? '',
-            data: Map<String, Object?>.unmodifiable(
-              Map<String, Object?>.from(raw['data'] as Map),
-            ),
-          )
-        else
-          throw const FormatException('Restore document is malformed.'),
-    ]);
+    final documents = <MaintainiacDurableCloudDocument>[];
+    for (final raw in rawDocuments) {
+      if (raw is! Map ||
+          raw.keys.any((key) => key is! String) ||
+          raw.keys.toSet().difference(const {'id', 'data'}).isNotEmpty ||
+          raw.keys.length != 2 ||
+          raw['id'] is! String ||
+          !RegExp(r'^[a-f0-9]{64}$').hasMatch(raw['id'] as String) ||
+          raw['data'] is! Map ||
+          (raw['data'] as Map).keys.any((key) => key is! String)) {
+        throw const FormatException('Restore document is malformed.');
+      }
+      documents.add(
+        MaintainiacDurableCloudDocument(
+          id: raw['id'] as String,
+          data: Map<String, Object?>.unmodifiable(
+            Map<String, Object?>.from(raw['data'] as Map),
+          ),
+        ),
+      );
+    }
+    return List.unmodifiable(documents);
   }
 }
 

@@ -38,6 +38,9 @@ class MaintainiacHostedRestoreSession {
 class MaintainiacRestoreSessionClient {
   const MaintainiacRestoreSessionClient(this._functions);
 
+  static const int maximumRestoreRecords = 100000;
+  static const int maximumStructuredBytes = 64 * 1024 * 1024;
+
   final MaintainiacCallableFunctionClient _functions;
 
   Future<void> registerDevice({
@@ -115,15 +118,20 @@ class MaintainiacRestoreSessionClient {
       result,
       authorization.organizationId,
       authorization.deviceId,
+      expectedSessionId: authorization.sessionId,
     );
   }
 
   MaintainiacIssuedRestoreAuthorization _issued(
     Map<String, Object?> result,
     String organizationId,
-    String deviceId,
-  ) {
+    String deviceId, {
+    String? expectedSessionId,
+  }) {
     final sessionId = _requiredToken(result, 'sessionId');
+    if (expectedSessionId != null && sessionId != expectedSessionId) {
+      throw const FormatException('Restore response is malformed.');
+    }
     final token = _requiredSha(result, 'authorizationToken');
     final expiresAt = _requiredDate(result, 'expiresAt');
     return MaintainiacIssuedRestoreAuthorization(
@@ -134,8 +142,16 @@ class MaintainiacRestoreSessionClient {
         authorizationToken: token,
       ),
       expiresAtUtc: expiresAt,
-      recordCount: _nonNegativeInt(result, 'recordCount'),
-      structuredBytes: _nonNegativeInt(result, 'structuredBytes'),
+      recordCount: _boundedNonNegativeInt(
+        result,
+        'recordCount',
+        maximumRestoreRecords,
+      ),
+      structuredBytes: _boundedNonNegativeInt(
+        result,
+        'structuredBytes',
+        maximumStructuredBytes,
+      ),
       manifestRevision: _nonNegativeInt(result, 'manifestRevision'),
     );
   }
@@ -176,11 +192,23 @@ class MaintainiacRestoreSessionClient {
         ...extra,
       },
     );
+    final sessionId = _requiredToken(result, 'sessionId');
+    if (sessionId != authorization.sessionId) {
+      throw const FormatException('Restore response is malformed.');
+    }
     return MaintainiacHostedRestoreSession(
-      sessionId: _requiredToken(result, 'sessionId'),
+      sessionId: sessionId,
       status: _requiredStatus(result),
-      completedItems: _nonNegativeInt(result, 'completedItems'),
-      completedBytes: _nonNegativeInt(result, 'completedBytes'),
+      completedItems: _boundedNonNegativeInt(
+        result,
+        'completedItems',
+        maximumRestoreRecords,
+      ),
+      completedBytes: _boundedNonNegativeInt(
+        result,
+        'completedBytes',
+        maximumStructuredBytes,
+      ),
       expiresAtUtc: _requiredDate(result, 'expiresAt'),
     );
   }
@@ -219,6 +247,14 @@ String _requiredSha(Map<String, Object?> map, String key) {
 int _nonNegativeInt(Map<String, Object?> map, String key) {
   final value = map[key];
   if (value is! int || value < 0) {
+    throw const FormatException('Restore response is malformed.');
+  }
+  return value;
+}
+
+int _boundedNonNegativeInt(Map<String, Object?> map, String key, int maximum) {
+  final value = _nonNegativeInt(map, key);
+  if (value > maximum) {
     throw const FormatException('Restore response is malformed.');
   }
   return value;

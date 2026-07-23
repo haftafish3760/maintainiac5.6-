@@ -145,6 +145,73 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test('mismatched refresh and session identities fail closed', () async {
+    const authorization = MaintainiacRestoreAuthorization(
+      organizationId: 'org-a',
+      deviceId: 'device-a',
+      sessionId: 'session-a',
+      authorizationToken: token,
+    );
+    final refreshClient = MaintainiacRestoreSessionClient(
+      _Functions({
+        'refreshRestoreAuthorization': {
+          'sessionId': 'session-other',
+          'authorizationToken': 'b' * 64,
+          'expiresAt': '2026-07-23T00:30:00.000Z',
+          'recordCount': 12,
+          'structuredBytes': 4096,
+          'manifestRevision': 3,
+        },
+      }),
+    );
+    final sessionClient = MaintainiacRestoreSessionClient(
+      _Functions({
+        'beginRestoreSession': {
+          ..._session('active', 0, 0),
+          'sessionId': 'session-other',
+        },
+      }),
+    );
+
+    await expectLater(
+      refreshClient.refresh(authorization),
+      throwsFormatException,
+    );
+    await expectLater(
+      sessionClient.begin(authorization),
+      throwsFormatException,
+    );
+  });
+
+  test(
+    'restore response totals remain within bounded session limits',
+    () async {
+      final client = MaintainiacRestoreSessionClient(
+        _Functions({
+          'issueRestoreAuthorization': {
+            'sessionId': 'session-a',
+            'authorizationToken': token,
+            'expiresAt': '2026-07-23T00:30:00.000Z',
+            'recordCount':
+                MaintainiacRestoreSessionClient.maximumRestoreRecords + 1,
+            'structuredBytes': 4096,
+            'manifestRevision': 3,
+          },
+        }),
+      );
+
+      await expectLater(
+        client.issue(
+          organizationId: 'org-a',
+          deviceId: 'device-a',
+          mode: 'recordsOnly',
+          requestId: 'restore-request-a',
+        ),
+        throwsFormatException,
+      );
+    },
+  );
 }
 
 Map<String, Object?> _session(String status, int items, int bytes) => {

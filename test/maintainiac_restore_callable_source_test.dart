@@ -59,6 +59,10 @@ void main() {
         source.fetchPage(organizationId: 'org-a', uid: 'user-a', limit: 11),
         throwsFormatException,
       );
+      await expectLater(
+        source.fetchPage(organizationId: 'org-a', uid: '../user', limit: 1),
+        throwsFormatException,
+      );
       expect(functions.calls, 0);
     },
   );
@@ -94,6 +98,39 @@ void main() {
       throwsFormatException,
     );
   });
+
+  test(
+    'callable source rejects malformed document identity and shape',
+    () async {
+      for (final raw in <Object?>[
+        {
+          'id': 'not-a-record-key',
+          'data': {'schema': 'maintainiac_durable_record_v1'},
+        },
+        {
+          'id': List.filled(64, 'b').join(),
+          'data': {7: 'non-text-key'},
+        },
+        {
+          'id': List.filled(64, 'b').join(),
+          'data': {'schema': 'maintainiac_durable_record_v1'},
+          'unexpected': true,
+        },
+      ]) {
+        final source = CallableMaintainiacDurableCloudRecordSource(
+          functions: _Functions({
+            'documents': [raw],
+          }),
+          authorization: authorization,
+        );
+
+        await expectLater(
+          source.fetchPage(organizationId: 'org-a', uid: 'user-a', limit: 1),
+          throwsFormatException,
+        );
+      }
+    },
+  );
 }
 
 class _Functions implements MaintainiacCallableFunctionClient {
