@@ -118,4 +118,67 @@ PAID IN FULL 0.00
     expect(brakes.completedServiceIndicated, isTrue);
     expect(brakes.notCompletedIndicated, isFalse);
   });
+
+  test('customer request section cannot inherit completed status', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+REPAIR ORDER 223
+WORK COMPLETED
+ENGINE OIL CHANGE 59.99
+CUSTOMER REQUESTED SERVICES
+CABIN AIR FILTER 49.99
+PAID IN FULL 59.99
+''',
+      ),
+    );
+
+    final candidates = {
+      for (final candidate in result.candidates) candidate.itemName: candidate,
+    };
+    expect(
+      candidates['Engine Oil']!.action,
+      MaintenanceReceiptAction.reviewCompletedService,
+    );
+    expect(
+      candidates['Cabin Air Filter']!.action,
+      MaintenanceReceiptAction.manualReview,
+    );
+    expect(candidates['Cabin Air Filter']!.notCompletedIndicated, isTrue);
+  });
+
+  test('completed heading resets a customer concern section', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+REPAIR ORDER 224
+CUSTOMER CONCERNS
+FRONT BRAKE PADS 249.99
+SERVICE PERFORMED
+TIRE ROTATION 29.99
+PAID IN FULL 29.99
+''',
+      ),
+    );
+
+    final candidates = {
+      for (final candidate in result.candidates) candidate.itemName: candidate,
+    };
+    expect(
+      candidates['Brake Pads']!.action,
+      MaintenanceReceiptAction.manualReview,
+    );
+    expect(candidates['Brake Pads']!.notCompletedIndicated, isTrue);
+    expect(
+      candidates['Tire Rotation']!.action,
+      MaintenanceReceiptAction.reviewCompletedService,
+    );
+    expect(candidates['Tire Rotation']!.notCompletedIndicated, isFalse);
+  });
 }

@@ -223,11 +223,20 @@ required checks pass.
     suggestion. Added exact service, mixed-unit schedule, and positive-mile
     contracts. Focused analysis and 19 distance/odometer checks passed,
     followed by the 203-check full maintenance gate.
+59. Customer-request section safety. `CUSTOMER REQUESTED SERVICES`,
+    `CUSTOMER REQUEST`, customer concern/state headings, and generic requested-
+    service headings now start review-only sections. Items beneath them cannot
+    inherit completed status from an earlier performed-work section, while a
+    later explicit performed/completed heading safely resets the section.
+    Added exact mixed-operation request-after-completion and
+    concern-before-completion contracts. Focused analysis and 36
+    service-section/parser/review checks passed, followed by the 205-check full
+    maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **58**
-- Next pass: **59**
+- Last accepted pass: **59**
+- Next pass: **60**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 
