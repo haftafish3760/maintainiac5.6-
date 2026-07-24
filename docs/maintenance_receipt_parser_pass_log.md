@@ -241,11 +241,20 @@ required checks pass.
     finding-before-completion contracts. Focused analysis and 38
     service-section/parser/review checks passed, followed by the 207-check full
     maintenance gate.
+61. Pending-parts and diagnostic-section safety. Pending/future service, work,
+    or repair headings, parts-on-order/awaiting-parts headings, and diagnostic
+    result/finding headings now start review-only sections. Items beneath them
+    cannot inherit completed status from earlier work, while a later explicit
+    performed/completed heading resets the section. Added exact
+    parts-after-completion, findings-after-completion, and pending-before-
+    completion contracts. Focused analysis and 41
+    service-section/parser/review checks passed, followed by the 210-check full
+    maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **60**
-- Next pass: **61**
+- Last accepted pass: **61**
+- Next pass: **62**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 
