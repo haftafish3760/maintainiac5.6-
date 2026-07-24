@@ -216,11 +216,18 @@ required checks pass.
     mile-service, due, and interval contracts. Focused analysis and 25
     distance/odometer/schedule checks passed, followed by the 200-check full
     maintenance gate.
+58. Dot- and apostrophe-grouped distance normalization. Row-scoped distance
+    comparison now recognizes `160.000 KM` and `170'000 KM` without truncating
+    either value to its leading digits or bypassing the kilometer safeguard.
+    Matching dot- or apostrophe-grouped mile evidence remains an editable
+    suggestion. Added exact service, mixed-unit schedule, and positive-mile
+    contracts. Focused analysis and 19 distance/odometer checks passed,
+    followed by the 203-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **57**
-- Next pass: **58**
+- Last accepted pass: **58**
+- Next pass: **59**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

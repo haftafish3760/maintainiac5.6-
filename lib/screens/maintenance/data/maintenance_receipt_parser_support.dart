@@ -276,7 +276,7 @@ int? _readingFor(String text, RegExp pattern) {
 String _distanceComparisonText(String text) {
   return text
       .replaceAll(',', '')
-      .replaceAll(RegExp(r'(?<=\d)\s+(?=\d{3}(?:\D|$))'), '');
+      .replaceAll(RegExp(r"(?<=\d)[\s.']+(?=\d{3}(?:\D|$))"), '');
 }
 
 int? _serviceOdometerFor(String text) {
