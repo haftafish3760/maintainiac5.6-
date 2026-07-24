@@ -207,11 +207,20 @@ required checks pass.
     mixed-unit due, and interval contracts. Focused analysis and 22
     distance/odometer/schedule checks passed, followed by the 197-check full
     maintenance gate.
+57. Row-scoped space-grouped distance normalization. Values such as
+    `160 000 KM` are now normalized within their original OCR row for both unit
+    detection and numeric extraction, preventing a truncated `160`-mile
+    suggestion. A matching `100 000 MI` value remains an editable 100,000-mile
+    suggestion. Normalization occurs before rows are joined so unrelated
+    numbers on adjacent lines cannot be merged. Added exact kilometer-service,
+    mile-service, due, and interval contracts. Focused analysis and 25
+    distance/odometer/schedule checks passed, followed by the 200-check full
+    maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **56**
-- Next pass: **57**
+- Last accepted pass: **57**
+- Next pass: **58**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

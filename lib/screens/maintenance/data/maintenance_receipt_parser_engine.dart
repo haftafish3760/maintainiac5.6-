@@ -26,15 +26,14 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final receiptDate = dateRead.date;
   final dueDateRead = _nextDueDate(rows, input.locale);
   final dueDate = dueDateRead.date;
-  final distanceComparison = lower.replaceAll(',', '');
-  final hasServiceKilometers = rows.any(
+  final distanceRows = rows
+      .map((row) => _distanceComparisonText(row.comparisonText))
+      .toList(growable: false);
+  final distanceComparison = distanceRows.join(' ');
+  final hasServiceKilometers = distanceRows.any(
     (row) =>
-        _serviceOdometerKilometersPattern.hasMatch(
-          row.comparisonText.replaceAll(',', ''),
-        ) &&
-        !_dueOdometerKilometersPattern.hasMatch(
-          row.comparisonText.replaceAll(',', ''),
-        ),
+        _serviceOdometerKilometersPattern.hasMatch(row) &&
+        !_dueOdometerKilometersPattern.hasMatch(row),
   );
   final hasDueKilometers = _dueOdometerKilometersPattern.hasMatch(
     distanceComparison,
@@ -42,15 +41,24 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final hasIntervalKilometers = _intervalKilometersPattern.hasMatch(
     distanceComparison,
   );
-  final serviceOdometerIn = _readingFor(lower, _serviceOdometerInPattern);
-  final serviceOdometerOut = _readingFor(lower, _serviceOdometerOutPattern);
+  final serviceOdometerIn = _readingFor(
+    distanceComparison,
+    _serviceOdometerInPattern,
+  );
+  final serviceOdometerOut = _readingFor(
+    distanceComparison,
+    _serviceOdometerOutPattern,
+  );
   final serviceOdometer = hasServiceKilometers
       ? null
-      : _serviceOdometerFor(lower);
+      : _serviceOdometerFor(distanceComparison);
   final dueOdometer = hasDueKilometers
       ? null
-      : _readingFor(lower, _dueOdometerPattern);
-  final explicitInterval = _readingFor(lower, _intervalMilesPattern);
+      : _readingFor(distanceComparison, _dueOdometerPattern);
+  final explicitInterval = _readingFor(
+    distanceComparison,
+    _intervalMilesPattern,
+  );
   final inferredInterval =
       serviceOdometer != null &&
           dueOdometer != null &&

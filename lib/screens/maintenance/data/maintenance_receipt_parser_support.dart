@@ -273,6 +273,12 @@ int? _readingFor(String text, RegExp pattern) {
   return value == null || value < 0 || value > 99999999 ? null : value;
 }
 
+String _distanceComparisonText(String text) {
+  return text
+      .replaceAll(',', '')
+      .replaceAll(RegExp(r'(?<=\d)\s+(?=\d{3}(?:\D|$))'), '');
+}
+
 int? _serviceOdometerFor(String text) {
   return _readingFor(text, _serviceOdometerOutPattern) ??
       _readingFor(text, _serviceOdometerInPattern) ??

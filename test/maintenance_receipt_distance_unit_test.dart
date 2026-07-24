@@ -232,4 +232,77 @@ EVERY 10,000 KM
     expect(result.warnings, contains(_kilometerWarning));
     expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
   });
+
+  test('space-grouped kilometer odometer cannot populate miles', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER OUT 160 000 KM
+ENGINE OIL CHANGE 59.99
+''',
+      ),
+    );
+
+    expect(result.candidates.single.serviceOdometer, isNull);
+    expect(result.warnings, contains(_kilometerWarning));
+    expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
+  });
+
+  test('space-grouped mile odometer remains an editable suggestion', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER OUT 100 000 MI
+ENGINE OIL CHANGE 59.99
+''',
+      ),
+    );
+
+    expect(result.candidates.single.serviceOdometer, 100000);
+    expect(result.warnings, isNot(contains(_kilometerWarning)));
+    expect(result.mayMutateMaintenance, isFalse);
+  });
+
+  test('space-grouped kilometer due and interval remain unset', () {
+    final dueResult = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER 100 000 MI
+ENGINE OIL CHANGE 59.99
+NEXT DUE 170 000 KM
+''',
+      ),
+    );
+    final intervalResult = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER 100 000 MI
+TIRE ROTATION 29.99
+EVERY 10 000 KM
+''',
+      ),
+    );
+
+    expect(dueResult.candidates.single.dueOdometer, isNull);
+    expect(dueResult.candidates.single.intervalMiles, isNull);
+    expect(dueResult.warnings, contains(_kilometerWarning));
+    expect(intervalResult.candidates.single.intervalMiles, isNull);
+    expect(intervalResult.warnings, contains(_kilometerWarning));
+  });
 }
