@@ -185,11 +185,18 @@ required checks pass.
     preserves OCR lines without deduplication. Added exact service, mixed-unit,
     and interval contracts. Focused analysis and 26 related regression checks
     passed, followed by the 189-check full maintenance gate.
+54. Kilometer-labeled odometer in/out safety. Common service-invoice forms such
+    as `ODOMETER OUT 160000 KM`, `ODOMETER IN`, and abbreviated `ODO IN` now
+    trigger the same miles-only manual-conversion safeguard as a plain
+    odometer label. These readings cannot leak through the older in/out
+    extraction precedence into a mile field. Added exact full-word and
+    abbreviated contracts. Focused analysis and seven distance/odometer checks
+    passed, followed by the 191-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **53**
-- Next pass: **54**
+- Last accepted pass: **54**
+- Next pass: **55**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

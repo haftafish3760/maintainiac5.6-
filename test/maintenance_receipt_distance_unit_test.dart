@@ -71,4 +71,43 @@ EVERY 10000 KM
     expect(result.warnings, contains(_kilometerWarning));
     expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
   });
+
+  test('kilometer odometer out cannot populate a mile field', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER IN 159990 KM
+ODOMETER OUT 160000 KM
+ENGINE OIL CHANGE 59.99
+''',
+      ),
+    );
+
+    expect(result.candidates.single.serviceOdometer, isNull);
+    expect(result.warnings, contains(_kilometerWarning));
+    expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
+  });
+
+  test('abbreviated kilometer odometer in requires manual conversion', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODO IN: 160000 KILOMETRES
+TIRE ROTATION 29.99
+''',
+      ),
+    );
+
+    expect(result.candidates.single.serviceOdometer, isNull);
+    expect(result.warnings, contains(_kilometerWarning));
+    expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
+  });
 }
