@@ -192,11 +192,18 @@ required checks pass.
     extraction precedence into a mile field. Added exact full-word and
     abbreviated contracts. Focused analysis and seven distance/odometer checks
     passed, followed by the 191-check full maintenance gate.
+55. Plural kilometer-abbreviation safety. Receipt labels ending in `KMS` now
+    receive the same miles-only safeguard as `KM` and full
+    kilometer/kilometre words for service odometers, next-due odometers, and
+    mileage intervals. This prevents generic numeric extraction from treating
+    a plural-abbreviation value as miles. Added exact service, mixed-unit due,
+    and interval contracts. Focused analysis and 19 distance/odometer/schedule
+    checks passed, followed by the 194-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **54**
-- Next pass: **55**
+- Last accepted pass: **55**
+- Next pass: **56**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

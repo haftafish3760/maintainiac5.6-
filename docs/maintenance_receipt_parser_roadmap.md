@@ -64,8 +64,8 @@ Canonical checkout: `/Users/rbbie/Documents/Maintainiac_5.7_Active`
   an isolated test file. The ordered maintenance UI and isolated draft-resume
   files now pass together without removing assertions.
 - Verified 2026-07-23 evidence: 30 maintenance persistence/draft/UI/history
-  tests, 69 selected vehicle/global-odometer tests, and the 191-check maintenance
-  receipt gate passed. The receipt gate includes 185 parser/review/draft/UI/
+  tests, 69 selected vehicle/global-odometer tests, and the 194-check maintenance
+  receipt gate passed. The receipt gate includes 188 parser/review/draft/UI/
   application tests, one manual-prefill check, four shared adapter-contract
   checks, and the legacy expense-to-maintenance non-mutation regression.
   Focused maintenance analysis reported no issues. This is source/test
@@ -375,8 +375,8 @@ field, and recognized-text damage class.
    stronger model before expanding the corpus.
 
 Pass numbering and accepted-pass evidence live in
-`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 54;
-the next bundled app-work pass is 55. Duplicate-line cleanup remains OCR-owned,
+`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 55;
+the next bundled app-work pass is 56. Duplicate-line cleanup remains OCR-owned,
 not parser-owned.
 
 ## Handoff instructions for another Codex model
