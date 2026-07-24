@@ -281,6 +281,15 @@ final _dueOdometerPattern = RegExp(
 final _intervalMilesPattern = RegExp(
   r'\b(?:due in|interval|every|next service in)\D{0,16}(\d{3,6})\s*(?:mi|mile|miles)\b',
 );
+final _serviceOdometerKilometersPattern = RegExp(
+  r'\b(?:odometer|odo|vehicle mileage|mileage(?:\s*(?:in|out))?)\s*[:#]?\s*\d{3,8}\s*(?:km|kilomet(?:er|re)s?)\b',
+);
+final _dueOdometerKilometersPattern = RegExp(
+  r'\b(?:next service due|next service|next due|due at|service due at|next oil change)\D{0,24}\d{4,8}\s*(?:km|kilomet(?:er|re)s?)\b',
+);
+final _intervalKilometersPattern = RegExp(
+  r'\b(?:due in|interval|every|next service in)\D{0,16}\d{3,6}\s*(?:km|kilomet(?:er|re)s?)\b',
+);
 final _intervalMonthsPattern = RegExp(
   r'\b(?:due in|interval|every|next service in)\D{0,16}(\d{1,2})\s*(?:mo|month|months)\b',
 );

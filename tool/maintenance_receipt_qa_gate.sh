@@ -66,6 +66,7 @@ dart format --output=none --set-exit-if-changed \
   test/maintenance_receipt_catalog_contract_test.dart \
   test/maintenance_receipt_corpus_test.dart \
   test/maintenance_receipt_duplicate_application_test.dart \
+  test/maintenance_receipt_distance_unit_test.dart \
   test/maintenance_receipt_dirty_text_test.dart \
   test/maintenance_receipt_layout_corpus_test.dart \
   test/maintenance_receipt_mixed_transaction_test.dart \
@@ -103,6 +104,7 @@ dart analyze \
   test/maintenance_receipt_catalog_contract_test.dart \
   test/maintenance_receipt_corpus_test.dart \
   test/maintenance_receipt_duplicate_application_test.dart \
+  test/maintenance_receipt_distance_unit_test.dart \
   test/maintenance_receipt_dirty_text_test.dart \
   test/maintenance_receipt_layout_corpus_test.dart \
   test/maintenance_receipt_mixed_transaction_test.dart \
@@ -126,6 +128,7 @@ flutter test \
   test/maintenance_receipt_catalog_contract_test.dart \
   test/maintenance_receipt_corpus_test.dart \
   test/maintenance_receipt_duplicate_application_test.dart \
+  test/maintenance_receipt_distance_unit_test.dart \
   test/maintenance_receipt_dirty_text_test.dart \
   test/maintenance_receipt_layout_corpus_test.dart \
   test/maintenance_receipt_mixed_transaction_test.dart \

@@ -26,10 +26,21 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final receiptDate = dateRead.date;
   final dueDateRead = _nextDueDate(rows, input.locale);
   final dueDate = dueDateRead.date;
+  final hasServiceKilometers = rows.any(
+    (row) =>
+        _serviceOdometerKilometersPattern.hasMatch(row.comparisonText) &&
+        !_dueOdometerKilometersPattern.hasMatch(row.comparisonText),
+  );
+  final hasDueKilometers = _dueOdometerKilometersPattern.hasMatch(lower);
+  final hasIntervalKilometers = _intervalKilometersPattern.hasMatch(lower);
   final serviceOdometerIn = _readingFor(lower, _serviceOdometerInPattern);
   final serviceOdometerOut = _readingFor(lower, _serviceOdometerOutPattern);
-  final serviceOdometer = _serviceOdometerFor(lower);
-  final dueOdometer = _readingFor(lower, _dueOdometerPattern);
+  final serviceOdometer = hasServiceKilometers
+      ? null
+      : _serviceOdometerFor(lower);
+  final dueOdometer = hasDueKilometers
+      ? null
+      : _readingFor(lower, _dueOdometerPattern);
   final explicitInterval = _readingFor(lower, _intervalMilesPattern);
   final inferredInterval =
       serviceOdometer != null &&
@@ -244,9 +255,12 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
         serviceOdometer > input.currentOdometer!)
       'The receipt odometer is above the selected vehicle current odometer.',
     if (serviceOdometerIn != null &&
+        !hasServiceKilometers &&
         serviceOdometerOut != null &&
         serviceOdometerOut < serviceOdometerIn)
       'The receipt mileage out is below mileage in; confirm the service odometer.',
+    if (hasServiceKilometers || hasDueKilometers || hasIntervalKilometers)
+      'Receipt distance evidence is in kilometers, but maintenance currently stores miles; enter converted values manually.',
     if (serviceOdometer != null &&
         dueOdometer != null &&
         dueOdometer <= serviceOdometer)
@@ -265,6 +279,7 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
           (warning) =>
               warning.contains('above the selected') ||
               warning.contains('mileage out is below') ||
+              warning.contains('distance evidence is in kilometers') ||
               warning.contains('not above') ||
               warning.contains('Estimate or quote') ||
               warning.contains('Recommended, declined') ||

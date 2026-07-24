@@ -176,11 +176,20 @@ required checks pass.
     never changes global odometer truth. Added exact reversed-pair and
     historical-versus-current contracts. Focused analysis and 44 parser/review
     safety checks passed, followed by the 186-check full maintenance gate.
+53. Kilometer evidence cannot populate mile fields. Service odometer, next-due
+    odometer, and interval values explicitly labeled in kilometers now remain
+    unset for manual conversion and review because canonical maintenance
+    storage is currently miles-only. A separately proven mile service reading
+    remains available when only the due value is in kilometers. No conversion
+    is guessed, no receipt value changes global odometer truth, and the parser
+    preserves OCR lines without deduplication. Added exact service, mixed-unit,
+    and interval contracts. Focused analysis and 26 related regression checks
+    passed, followed by the 189-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **52**
-- Next pass: **53**
+- Last accepted pass: **53**
+- Next pass: **54**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

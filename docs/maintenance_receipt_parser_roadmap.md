@@ -64,8 +64,8 @@ Canonical checkout: `/Users/rbbie/Documents/Maintainiac_5.7_Active`
   an isolated test file. The ordered maintenance UI and isolated draft-resume
   files now pass together without removing assertions.
 - Verified 2026-07-23 evidence: 30 maintenance persistence/draft/UI/history
-  tests, 69 selected vehicle/global-odometer tests, and the 186-check maintenance
-  receipt gate passed. The receipt gate includes 180 parser/review/draft/UI/
+  tests, 69 selected vehicle/global-odometer tests, and the 189-check maintenance
+  receipt gate passed. The receipt gate includes 183 parser/review/draft/UI/
   application tests, one manual-prefill check, four shared adapter-contract
   checks, and the legacy expense-to-maintenance non-mutation regression.
   Focused maintenance analysis reported no issues. This is source/test
@@ -297,7 +297,10 @@ estimates remain manual-review only. Explicit completed sections also support
 terse zero-dollar warranty/comeback item rows without inventing completion from
 `NO CHARGE` alone. Odometer out, in, and clearly historical readings now have
 deterministic precedence; reversed in/out evidence forces review and never
-mutates canonical odometer state. Real multi-operation invoice validation,
+mutates canonical odometer state. Because canonical maintenance values are
+currently miles-only, kilometer-labeled service, due, and interval evidence is
+kept out of mile fields and requires manual conversion/review; a separately
+proven mile reading remains usable. Real multi-operation invoice validation,
 labor/part grouping, and broader warranty/comeback coverage remain open.
 
 ### Phase 5 - Review and manual-flow integration
@@ -372,8 +375,8 @@ field, and recognized-text damage class.
    stronger model before expanding the corpus.
 
 Pass numbering and accepted-pass evidence live in
-`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 52;
-the next bundled app-work pass is 53. Duplicate-line cleanup remains OCR-owned,
+`docs/maintenance_receipt_parser_pass_log.md`. The current accepted pass is 53;
+the next bundled app-work pass is 54. Duplicate-line cleanup remains OCR-owned,
 not parser-owned.
 
 ## Handoff instructions for another Codex model
