@@ -63,7 +63,7 @@ void main() {
       broadcast.status,
       TripTrackingLiveOdometerBroadcastStatus.renderable,
     );
-    expect(broadcast.displayValue, '0001003');
+    expect(broadcast.displayValue, '1003');
     expect(safe['globalOdometerScopeMustNotifyListeners'], isTrue);
     expect(safe['liveUiMustRefreshOnProjectionChange'], isTrue);
     expect(safe['singleLiveOdometerSnapshotRequired'], isTrue);

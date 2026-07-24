@@ -49,10 +49,10 @@ class TripTrackingDashboardGuidance {
   bool get shouldShowOdometerReview => enabled && !odometerAnomalyAlertsActive;
 
   List<String> get dashboardBadges {
-    final badges = <String>[profileLabel, syncStatus];
-    if (activityRecognitionActive) badges.add('Motion assist on');
-    if (backgroundTrackingActive) badges.add('Background GPS on');
-    if (lowBatteryProtectionActive) badges.add('Battery guard on');
+    final badges = <String>[profileLabel];
+    if (activityRecognitionActive) badges.add('Stop suggestions on');
+    if (backgroundTrackingActive) badges.add('Works with screen locked');
+    if (lowBatteryProtectionActive) badges.add('Battery protection on');
     if (odometerAnomalyAlertsActive) badges.add('Odometer alerts on');
     if (gpsOdometerCalibrationAssistActive) {
       badges.add('Odometer calibration assist on');
@@ -144,8 +144,8 @@ class TripTrackingDashboardGuidance {
       profileLabel: profileLabel,
       modeToken: strategy.dashboardModeToken,
       primaryStatus: enabled
-          ? 'GPS assist is ready for ${profileLabel.toLowerCase()} work.'
-          : 'GPS assist is off until you enable it in this dashboard.',
+          ? 'Phone location is ready for ${profileLabel.toLowerCase()} work.'
+          : 'Phone location is off until you choose to turn it on.',
       safetyStatus: _safetyStatus(
         enabled: enabled,
         lowBatteryProtection: settings.lowBatteryGpsProtectionEnabled,
@@ -208,10 +208,10 @@ String _safetyStatus({
   required bool lowBatteryProtection,
   required bool backgroundTracking,
 }) {
-  if (!enabled) return 'Battery guard is staged but GPS is off.';
-  if (!lowBatteryProtection) return 'Battery guard is off by user choice.';
+  if (!enabled) return 'Battery protection is ready if location is turned on.';
+  if (!lowBatteryProtection) return 'Battery protection is off by user choice.';
   if (backgroundTracking) {
-    return 'Battery guard stays on while background tracking is allowed.';
+    return 'Battery protection stays on while screen-locked tracking is allowed.';
   }
-  return 'Battery guard will ask before GPS starts below the safety threshold.';
+  return 'Battery protection will ask before location starts when power is low.';
 }

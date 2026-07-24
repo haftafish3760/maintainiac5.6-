@@ -42,7 +42,7 @@ void main() {
 
     expect(validation.isRenderable, isTrue);
     expect(validation.status, 'renderable');
-    expect(validation.displayValue, '0001203');
+    expect(validation.displayValue, '1203');
     expect(validation.reasons, isEmpty);
     expect(safeBroadcastMap()['odometerIsGlobalTruth'], isTrue);
     expect(
@@ -72,7 +72,7 @@ void main() {
 
     expect(validation.isRenderable, isTrue);
     expect(validation.status, 'liveRenderable');
-    expect(validation.displayValue, '0001203');
+    expect(validation.displayValue, '1203');
     expect(validation.reasons, isEmpty);
     expect(safeRenderMap()['odometerIsGlobalTruth'], isTrue);
     expect(
@@ -209,7 +209,7 @@ void main() {
         safeRenderMap()..addAll({
           'schemaVersion': 2,
           'status': 'forceRender',
-          'displayValue': '1203',
+          'displayValue': '01203',
           'confirmedDisplayValue': '00012A3',
           'displayValueValidated': false,
           'confirmedDisplayValueValidated': false,

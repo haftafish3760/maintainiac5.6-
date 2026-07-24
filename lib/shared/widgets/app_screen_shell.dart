@@ -16,11 +16,13 @@ import '../odometer/open_odometer_entry.dart';
 import '../odometer/odometer_vehicle_snapshot.dart';
 import '../state/app_state.dart';
 import '../state/global_odometer.dart';
+import '../trip_tracking/trip_tracking_controller.dart';
 import 'app_banner_ad_reserve.dart';
 import 'industrial_panel_surface.dart';
 
 part 'app_textured_background.dart';
 part 'global_odometer_header.dart';
+part 'global_vehicle_picker.dart';
 part 'app_bottom_navigation.dart';
 part 'app_section_routes.dart';
 part 'app_background_painter.dart';

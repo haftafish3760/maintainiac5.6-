@@ -32,3 +32,16 @@ operations work.
 The active vehicle block belongs at the top of the dashboard home and dashboard
 calendar views. Weekly totals, profit, fuel, expenses, pay, trips, and similar
 secondary pages must remain reachable from the dashboard.
+
+Source: visible user message, 2026-07-23 trip tracking command-center pass
+
+- Dashboard home must act as the daily command center. Trip tracking stops,
+  expense entries, fuel stops, materials/inventory activity, and helper time
+  must surface on the dashboard day view when they happen during a workday.
+- Dashboard needs distinct before-day and during-day states. Before the day
+  starts, Start Day must begin with the physical odometer flow. During the day,
+  the dashboard must show active workday controls and the day's recorded stops.
+- Driver/gig and contractor users need different dashboard elements, while the
+  dashboard remains customizable through dashboard settings.
+- Global export/tax/CPA actions belong in the hamburger menu, not the screen
+  gear. The gear remains contextual to dashboard/trip settings.

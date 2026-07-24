@@ -559,18 +559,19 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   /// Core Location can keep running while Dart is background-suspended.
-  /// Mirror the hard below-ten-percent safety rule without changing TripLog
-  /// history or the authoritative odometer.
+  /// Mirror the hard below-ten-percent safety rule while unplugged without
+  /// changing TripLog history or the authoritative odometer.
   private func stopForCriticalBatteryIfNeeded() -> Bool {
     let snapshot = batterySnapshot()
-    guard let percent = snapshot["batteryPercent"] as? Int,
+    guard snapshot["isCharging"] as? Bool != true,
+          let percent = snapshot["batteryPercent"] as? Int,
           percent >= 0,
           percent < 10 else { return false }
     stopNativeCollection()
     emit([
       "type": "error",
       "errorCode": "trip_tracking_battery_critical",
-      "errorMessage": "Battery is critically low. GPS-assisted tracking is paused below 10%.",
+      "errorMessage": "Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.",
     ])
     return true
   }

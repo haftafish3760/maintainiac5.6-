@@ -129,3 +129,11 @@ OCR work. Inventory parsing begins only after OCR hands off normalized text,
 optional line candidates/confidence, merchant hints, and receipt metadata. Do
 not change camera, image cleanup, stitching, OCR recognition, or OCR output
 semantics from the inventory-parser lane."
+Source: visible user message, 2026-07-23 trip tracking command-center pass
+
+- Materials/work supplies activity that happens during a normal workday should
+  be able to appear as a dashboard/trip day entry when it represents a stop,
+  purchase, pickup, delivery, or workday event.
+- Product language should move toward Materials where user-facing wording is
+  clearer for contractors, while preserving existing work-supply/inventory code
+  ownership until a deliberate rename/migration pass is approved.

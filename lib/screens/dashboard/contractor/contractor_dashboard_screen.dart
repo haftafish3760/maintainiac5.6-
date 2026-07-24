@@ -3,10 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
-import '../../../shared/widgets/app_back_button.dart';
+import '../../../shared/jobs/maintainiac_job_store.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
-import '../../expenses/home/expenses_home_screen.dart';
+import '../../expenses/data/expense_ledger_store.dart';
+import '../../expenses/data/expense_ledger_models.dart';
 import '../../expenses/data/expense_work_profile_store.dart';
+import '../../expenses/entry/expense_receipt_entry_screen.dart';
+import '../../profiles/employee_permissions_screen.dart';
+import '../../invoices/data/invoice_ledger_store.dart';
 import '../../invoices/home/invoice_workspace_screen.dart';
 import '../../invoices/home/invoice_home_models.dart';
 import '../../invoices/home/invoice_info_screens.dart';
@@ -15,11 +19,20 @@ import '../../work_supplies/work_supply_screen.dart';
 import '../../../shared/calendar/calendar.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/state/global_odometer.dart';
+import '../../../shared/odometer/open_odometer_entry.dart';
+import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
+import '../active_workday_screen.dart';
 import '../data/active_workday_store.dart';
+import '../start_day_confirmation_sheet.dart';
+import '../vehicle_profile_widgets.dart';
+import '../workday_note_sheet.dart';
 import 'contractor_active_shift_panel.dart';
 import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_pulse.dart';
 import 'contractor_dashboard_sections.dart';
+import 'contractor_dashboard_snapshot.dart';
+
+part 'contractor_dashboard_actions.dart';
 
 class ContractorDashboardScreen extends StatefulWidget {
   const ContractorDashboardScreen({super.key});
@@ -30,7 +43,6 @@ class ContractorDashboardScreen extends StatefulWidget {
 }
 
 class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
-  var _dayStarted = false;
   DateTime _now = DateTime.now();
   Timer? _timer;
 
@@ -53,25 +65,30 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     final activeWorkday = ActiveWorkdayScope.maybeOf(context);
     final activeSession = activeWorkday?.activeSession;
     final odometer = GlobalOdometerScope.of(context);
-    final dayStarted = activeSession?.isActive == true || _dayStarted;
-    final dayPaused = activeSession?.isPaused == true;
+    final appState = AppStateScope.of(context);
+    final dayStarted = activeSession != null;
+    final milesToday = activeSession?.milesSoFar(odometer.reading) ?? 0;
+    final snapshot = ContractorDashboardSnapshot.fromControllers(
+      now: _now,
+      vehicleCount: appState.vehicles.length,
+      milesToday: milesToday,
+      dayStarted: dayStarted,
+      jobs: MaintainiacJobScope.maybeOf(context),
+      expenses: ExpenseLedgerScope.maybeOf(context),
+      invoices: InvoiceLedgerScope.maybeOf(context),
+    );
     return AppScreenShell(
       section: AppSection.dashboard,
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: AppScreenHeader(title: 'Contractor Command Center'),
-          ),
-          const SizedBox(height: 8),
           const GlobalOdometerHeader(),
           const SizedBox(height: 10),
-          const ContractorScaleStrip(),
+          ContractorScaleStrip(metrics: snapshot.scaleMetrics),
           const SizedBox(height: 10),
-          const ContractorOperationsPulse(),
+          ContractorOperationsPulse(items: snapshot.operationsMetrics),
           const SizedBox(height: 10),
-          const ContractorAttentionPanel(),
+          ContractorAttentionPanel(items: snapshot.attentionItems),
           const SizedBox(height: 10),
           if (dayStarted) ...[
             AnimatedBuilder(
@@ -95,10 +112,8 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
             const SizedBox(height: 10),
             ContractorDayControlPanel(
               dayStarted: true,
-              dayPaused: dayPaused,
               onStartDay: _startContractorDay,
-              onPauseDay: _toggleContractorDayPause,
-              onEndDay: _endContractorDay,
+              onOpenDay: _openActiveWorkday,
             ),
           ] else ...[
             ContractorDayControlPanel(
@@ -112,9 +127,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
             ),
           ],
           const SizedBox(height: 10),
-          const ContractorJobsPanel(),
+          ContractorJobsPanel(jobs: snapshot.jobsToday),
           const SizedBox(height: 10),
-          const ContractorMetricsStrip(),
+          ContractorMetricsStrip(metrics: snapshot.businessMetrics),
           const SizedBox(height: 76),
           const ContractorCalendar(),
           const SizedBox(height: 18),
@@ -126,27 +141,58 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
   Future<void> _startContractorDay() async {
     final activeWorkday = ActiveWorkdayScope.maybeOf(context);
     if (activeWorkday == null) {
-      setState(() => _dayStarted = true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Workday records are unavailable. Close and reopen Maintainiac, then try again.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
-    if (activeWorkday.activeSession?.isActive == true) {
-      setState(() => _dayStarted = true);
+    if (activeWorkday.activeSession != null) {
+      _openActiveWorkday();
       return;
     }
     try {
       final odometer = GlobalOdometerScope.of(context);
       final activeVehicle = AppStateScope.of(context).activeVehicle;
+      if (activeVehicle == null) {
+        _showActiveDayRequired('Start Day');
+        return;
+      }
       final activeWorkProfile = ExpenseWorkProfileScope.of(
         context,
       ).activeWorkProfile;
+      var confirmedStartOdometer = odometer.confirmedReading;
+      while (mounted) {
+        final savedReading = await openOdometerEntryResult(
+          context,
+          title: 'Starting Odometer',
+          saveLabel: 'Review Start Day',
+        );
+        if (savedReading == null || !mounted) return;
+        confirmedStartOdometer = savedReading;
+        final action = await openStartDayConfirmationSheet(
+          context,
+          vehicleLabel: activeVehicle.nickname,
+          workProfileName: activeWorkProfile.name,
+          startingOdometer: confirmedStartOdometer,
+        );
+        if (!mounted || action == null) return;
+        if (action == StartDayReviewAction.editOdometer) continue;
+        break;
+      }
+      if (!mounted) return;
       await activeWorkday.startDay(
         vehicleId: odometer.vehicleId,
-        vehicleLabel: activeVehicle?.nickname ?? 'Active vehicle',
+        vehicleLabel: activeVehicle.nickname,
         workProfileId: activeWorkProfile.id,
-        startOdometer: odometer.reading,
+        startOdometer: confirmedStartOdometer,
       );
       if (!mounted) return;
-      setState(() => _dayStarted = true);
+      _openActiveWorkday();
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -158,40 +204,52 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     }
   }
 
-  Future<void> _toggleContractorDayPause() async {
-    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
-    final session = activeWorkday?.activeSession;
-    if (activeWorkday == null || session == null) return;
-    await _recordContractorDayEvent(
-      activeWorkday,
-      session.isPaused
-          ? ActiveWorkdayEventType.resumed
-          : ActiveWorkdayEventType.paused,
-    );
-  }
-
-  Future<void> _endContractorDay() async {
-    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
-    if (activeWorkday == null || activeWorkday.activeSession == null) {
-      setState(() => _dayStarted = false);
+  void _openActiveWorkday() {
+    final activeVehicle = AppStateScope.of(context).activeVehicle;
+    if (activeVehicle == null) {
+      _showActiveDayRequired('Open Workday');
       return;
     }
-    final ended = await _recordContractorDayEvent(
-      activeWorkday,
-      ActiveWorkdayEventType.ended,
+    final activeWorkProfile = ExpenseWorkProfileScope.of(
+      context,
+    ).activeWorkProfile;
+    final odometer = GlobalOdometerScope.of(context);
+    Navigator.of(context).push(
+      appSlideRoute<void>(
+        ActiveWorkdayScreen(
+          activeVehicle: VehicleProfilePreview(
+            id: activeVehicle.id,
+            nickname: activeVehicle.nickname,
+            year: activeVehicle.year,
+            make: activeVehicle.make,
+            model: activeVehicle.model,
+            odometer: odometer.displayValue,
+            status: 'ACTIVE',
+            usage: activeVehicle.usage,
+          ),
+          workProfileName: activeWorkProfile.name,
+          promptForTripTrackingSetup:
+              TripTrackingSettingsScope.maybeOf(
+                context,
+              )?.settings.tripTrackingSetupCompleted ==
+              false,
+        ),
+      ),
     );
-    if (ended && mounted) setState(() => _dayStarted = false);
   }
 
   Future<bool> _recordContractorDayEvent(
     ActiveWorkdayController activeWorkday,
-    ActiveWorkdayEventType type,
-  ) async {
+    ActiveWorkdayEventType type, {
+    int? odometerReading,
+    String? note,
+  }) async {
     try {
       final odometer = GlobalOdometerScope.of(context);
       final updated = await activeWorkday.addEvent(
         type: type,
-        odometerReading: odometer.reading,
+        odometerReading: odometerReading ?? odometer.reading,
+        note: note,
       );
       if (!mounted) return updated != null;
       setState(() {});
@@ -221,65 +279,6 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
   }) {
     if (session == null) return '0';
     return session.milesSoFar(odometerReading).toString();
-  }
-
-  Future<void> _handleCommand(ContractorCommand command) async {
-    switch (command.target) {
-      case ContractorCommandTarget.createJob:
-      case ContractorCommandTarget.jobs:
-        _open(const WorkSupplyJobsScreen());
-      case ContractorCommandTarget.addReceipt:
-      case ContractorCommandTarget.addExpense:
-        _open(const ExpensesScreen());
-      case ContractorCommandTarget.materials:
-        _open(const WorkSupplyScreen());
-      case ContractorCommandTarget.createInvoice:
-        _open(
-          const InvoiceWorkspaceScreen(mode: InvoiceWorkspaceMode.invoices),
-        );
-      case ContractorCommandTarget.estimate:
-        _open(
-          const InvoiceWorkspaceScreen(mode: InvoiceWorkspaceMode.estimates),
-        );
-      case ContractorCommandTarget.recordPayment:
-        _open(const InvoicePaymentScreen());
-      case ContractorCommandTarget.addStop:
-      case ContractorCommandTarget.note:
-        await _recordQuickActiveDayEvent(command);
-    }
-  }
-
-  Future<void> _recordQuickActiveDayEvent(ContractorCommand command) async {
-    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
-    final session = activeWorkday?.activeSession;
-    if (activeWorkday == null || session == null) {
-      _showActiveDayRequired(command.label);
-      return;
-    }
-    final type = command.target == ContractorCommandTarget.addStop
-        ? ActiveWorkdayEventType.stop
-        : ActiveWorkdayEventType.note;
-    final updated = await _recordContractorDayEvent(activeWorkday, type);
-    if (!updated || !mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${command.label} saved to the active contractor day.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _open(Widget screen) {
-    Navigator.of(context).push(appNativeRoute<void>(context, screen));
-  }
-
-  void _showActiveDayRequired(String label) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Start your contractor day before using $label.'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 }
 

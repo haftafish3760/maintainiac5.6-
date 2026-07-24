@@ -55,7 +55,7 @@ class _QuickActionButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(5),
+      borderRadius: BorderRadius.circular(25),
       child: Column(
         children: [
           Container(
@@ -64,7 +64,7 @@ class _QuickActionButton extends StatelessWidget {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: action.color,
-              borderRadius: BorderRadius.circular(5),
+              shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
                   color: action.color.withValues(alpha: 0.42),
@@ -73,10 +73,7 @@ class _QuickActionButton extends StatelessWidget {
                 ),
               ],
             ),
-            child: Text(
-              action.emoji,
-              style: const TextStyle(fontSize: 29, height: 1),
-            ),
+            child: Icon(action.icon, color: Colors.white, size: 29),
           ),
           const SizedBox(height: 4),
           Text(
@@ -180,4 +177,17 @@ class _SectionLabel extends StatelessWidget {
       ),
     );
   }
+}
+
+String _plainCapabilityLabel(TripTrackingCapabilityReadiness readiness) {
+  return switch (readiness) {
+    TripTrackingCapabilityReadiness.unavailable => 'Location unavailable',
+    TripTrackingCapabilityReadiness.locationOnly ||
+    TripTrackingCapabilityReadiness.foregroundReady => 'Location ready',
+    TripTrackingCapabilityReadiness.backgroundReady =>
+      'Screen-lock tracking ready',
+    TripTrackingCapabilityReadiness.motionReady => 'Stop suggestions available',
+    TripTrackingCapabilityReadiness.fullSafetyAssist =>
+      'Location and stop suggestions ready',
+  };
 }

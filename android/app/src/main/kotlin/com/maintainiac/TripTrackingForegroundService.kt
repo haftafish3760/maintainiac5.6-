@@ -377,7 +377,7 @@ class TripTrackingForegroundService : Service() {
     }
 
     /// Flutter may be suspended while Android keeps this foreground collector
-    /// alive. Enforce the hard below-ten-percent cutoff here as well. The
+    /// alive. Enforce the hard below-ten-percent cutoff while unplugged. The
     /// emitted event cannot close a TripLog day or alter the odometer.
     private fun stopForCriticalBatteryIfNeeded(): Boolean {
         if (!isBatteryCriticallyLow()) return false
@@ -385,7 +385,7 @@ class TripTrackingForegroundService : Service() {
             mapOf(
                 "type" to "error",
                 "errorCode" to "trip_tracking_battery_critical",
-                "errorMessage" to "Battery is critically low. GPS-assisted tracking is paused below 10%.",
+                "errorMessage" to "Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.",
             ),
         )
         stopSelf()
@@ -394,6 +394,13 @@ class TripTrackingForegroundService : Service() {
 
     private fun isBatteryCriticallyLow(): Boolean {
         val battery = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return false
+        val status = battery.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+        val plugged = battery.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+        val charging =
+            status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL ||
+                plugged != 0
+        if (charging) return false
         val level = battery.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
         val scale = battery.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
         if (level < 0 || scale <= 0) return false

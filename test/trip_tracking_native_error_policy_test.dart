@@ -106,6 +106,12 @@ void main() {
     );
     expect(
       TripTrackingNativeErrorPolicy.safeMessage(
+        'trip_tracking_battery_critical',
+      ),
+      'Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.',
+    );
+    expect(
+      TripTrackingNativeErrorPolicy.safeMessage(
         'trip_tracking_activity_unavailable',
       ),
       'Walking-assisted stop evidence is unavailable. GPS tracking continues without it.',

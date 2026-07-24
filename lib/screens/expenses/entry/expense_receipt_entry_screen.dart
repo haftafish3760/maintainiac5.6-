@@ -157,6 +157,7 @@ class ExpenseReceiptEntryScreen extends StatefulWidget {
     this.mode = ExpenseReceiptFlowMode.general,
     this.initialCategory,
     this.initialDate,
+    this.initialOdometerReading,
     this.initialAttachments = const [],
     this.initialImportedText = '',
     this.draftId,
@@ -169,6 +170,7 @@ class ExpenseReceiptEntryScreen extends StatefulWidget {
   final ExpenseReceiptFlowMode mode;
   final String? initialCategory;
   final DateTime? initialDate;
+  final int? initialOdometerReading;
   final List<ReceiptAttachmentRecord> initialAttachments;
   final String initialImportedText;
   final String? draftId;

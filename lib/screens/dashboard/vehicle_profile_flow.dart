@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/navigation/app_page_routes.dart';
+import '../../shared/odometer/odometer_vehicle_snapshot.dart';
 import '../../shared/state/app_state.dart';
+import '../../shared/state/global_odometer.dart';
 import '../../shared/theme/app_action_colors.dart';
 import '../../shared/widgets/app_back_button.dart';
 import 'vehicle_profile_detail.dart';
@@ -189,6 +191,25 @@ class _SavedVehiclesScreenState extends State<SavedVehiclesScreen> {
       (vehicle) => vehicle.id == _selectedVehicle.id,
       orElse: () => AppStateScope.of(context).activeVehicle!,
     );
+    final odometer = GlobalOdometerScope.of(context);
+    final targetOdometerVehicleId = odometerVehicleIdForVehicleId(
+      selected.id,
+      fallbackLabel: selected.nickname,
+    );
+    if (odometer.vehicleId != targetOdometerVehicleId) {
+      final switched = await odometer.switchVehicleById(
+        targetOdometerVehicleId,
+      );
+      if (!mounted) return;
+      if (!switched) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Review the active trip before switching vehicles.'),
+          ),
+        );
+        return;
+      }
+    }
     await AppStateScope.of(context).selectVehicle(selected);
     if (!mounted) return;
     Navigator.of(context).pop(_selectedVehicle);

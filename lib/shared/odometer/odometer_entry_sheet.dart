@@ -164,6 +164,18 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                 ),
               ),
             ),
+            const SizedBox(height: 8),
+            const Text(
+              'Use the physical odometer. If this adds miles since the last '
+              'reading, choose how those miles should be counted before the '
+              'reading is saved.',
+              style: TextStyle(
+                color: Color(0xFF101416),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
             if (tripReconciliation != null) ...[
               const SizedBox(height: 12),
               _TripGpsReconciliationPanel(reconciliation: tripReconciliation),
@@ -207,7 +219,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
               runSpacing: 8,
               children: [
                 TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
+                  onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Cancel'),
                 ),
                 FilledButton(

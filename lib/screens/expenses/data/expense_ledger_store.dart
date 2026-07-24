@@ -460,4 +460,10 @@ class ExpenseLedgerScope extends InheritedNotifier<ExpenseLedgerController> {
     assert(scope != null, 'ExpenseLedgerScope is missing above this context.');
     return scope!.notifier!;
   }
+
+  static ExpenseLedgerController? maybeOf(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<ExpenseLedgerScope>()
+        ?.notifier;
+  }
 }

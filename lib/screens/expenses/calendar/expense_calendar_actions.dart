@@ -53,7 +53,7 @@ Future<void> _editFullReceipt(
     categoryGroup: receipt.lines.isEmpty ? null : receipt.lines.first.category,
   );
   await Navigator.of(context).push(
-    appNativeRoute<void>(
+    appNativeRoute<Object>(
       context,
       ExpenseReceiptEntryScreen(
         mode: receipt.sourceScreen == 'materials_expense_receipt'

@@ -9,7 +9,7 @@ void _openReceipt(
   bool showInterruptedCaptureRecovery = false,
 }) {
   Navigator.of(context).push(
-    appNativeRoute<void>(
+    appNativeRoute<Object>(
       context,
       ExpenseReceiptEntryScreen(
         mode: mode,
@@ -89,7 +89,7 @@ void _showCategoryEntries(
   String rangeLabel,
 ) {
   Navigator.of(context).push(
-    appNativeRoute<void>(
+    appNativeRoute<Object>(
       context,
       _ExpenseCategoryEntriesScreen(
         category: category,

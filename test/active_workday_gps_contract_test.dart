@@ -75,10 +75,13 @@ void main() {
       'lib/screens/dashboard/active_workday_screen.dart',
     ).readAsStringSync();
 
-    expect(source, contains('confirmed odometer stays official'));
+    expect(source, contains('your odometer stays official'));
     expect(source, contains('controller!.acceptedMiles.toStringAsFixed(2)'));
-    expect(source, contains(r'GPS estimate: ${display.displayValue}'));
-    expect(source, contains(r'Confirmed: ${display.confirmedDisplayValue}'));
+    expect(source, contains(r'Location estimate: ${display.displayValue}'));
+    expect(
+      source,
+      contains(r'Last confirmed: ${display.confirmedDisplayValue}'),
+    );
     expect(source, isNot(contains('odometer is live')));
   });
 
@@ -94,7 +97,7 @@ void main() {
 
     expect(liveOdometer, greaterThanOrEqualTo(0));
     expect(liveWarning, greaterThan(liveOdometer));
-    expect(source, contains('if (liveTrackingWarning != null)'));
+    expect(source, contains('if (showLiveTrackingWarning)'));
     expect(
       source,
       contains('awaitingInitialFix: controller?.awaitingInitialFix'),

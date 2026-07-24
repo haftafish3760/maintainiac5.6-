@@ -12,8 +12,8 @@ void main() {
     expect(guidance.enabled, isFalse);
     expect(guidance.profileLabel, 'Road vehicle');
     expect(guidance.modeToken, 'default');
-    expect(guidance.primaryStatus, contains('GPS assist is off'));
-    expect(guidance.safetyStatus, contains('GPS is off'));
+    expect(guidance.primaryStatus, contains('Phone location is off'));
+    expect(guidance.safetyStatus, contains('Battery protection'));
     expect(
       guidance.syncStatus,
       'Sync: Wi-Fi or mobile data; free sync usage pending',
@@ -23,7 +23,7 @@ void main() {
     expect(guidance.dashboardBadges, contains('Road vehicle'));
     expect(
       guidance.dashboardBadges,
-      contains('Sync: Wi-Fi or mobile data; free sync usage pending'),
+      isNot(contains('Sync: Wi-Fi or mobile data; free sync usage pending')),
     );
     expect(guidance.shouldShowActivityRecognitionRecommendation, isFalse);
     expect(guidance.shouldShowOdometerReview, isFalse);
@@ -42,7 +42,7 @@ void main() {
     expect(guidance.modeToken, 'gig_driver');
     expect(guidance.primaryStatus, contains('delivery'));
     expect(guidance.mapStatus, 'GPS assist is running without maps.');
-    expect(guidance.stopDetectionStatus, contains('walking evidence'));
+    expect(guidance.stopDetectionStatus, contains('begin walking'));
     expect(guidance.recommendsActivityRecognition, isTrue);
     expect(guidance.activityRecognitionActive, isFalse);
     expect(guidance.shouldShowActivityRecognitionRecommendation, isTrue);
@@ -62,8 +62,8 @@ void main() {
     expect(guidance.profileLabel, 'Rideshare');
     expect(guidance.modeToken, 'gig_driver');
     expect(guidance.syncStatus, contains('Sync: Wi-Fi only'));
-    expect(guidance.stopDetectionStatus, contains('driver often stays'));
-    expect(guidance.dashboardBadges, contains('Battery guard on'));
+    expect(guidance.stopDetectionStatus, contains('stay in the vehicle'));
+    expect(guidance.dashboardBadges, contains('Battery protection on'));
   });
 
   test('contractor guidance reflects active motion and background choices', () {
@@ -84,9 +84,9 @@ void main() {
     expect(guidance.odometerAnomalyAlertsActive, isTrue);
     expect(guidance.shouldShowActivityRecognitionRecommendation, isFalse);
     expect(guidance.shouldShowOdometerReview, isFalse);
-    expect(guidance.safetyStatus, contains('background tracking'));
-    expect(guidance.dashboardBadges, contains('Motion assist on'));
-    expect(guidance.dashboardBadges, contains('Background GPS on'));
+    expect(guidance.safetyStatus, contains('screen-locked tracking'));
+    expect(guidance.dashboardBadges, contains('Stop suggestions on'));
+    expect(guidance.dashboardBadges, contains('Works with screen locked'));
     expect(guidance.dashboardBadges, contains('Odometer alerts on'));
   });
 
@@ -106,11 +106,11 @@ void main() {
     expect(guidance.recommendsActivityRecognition, isFalse);
     expect(guidance.activityRecognitionActive, isFalse);
     expect(guidance.shouldShowActivityRecognitionRecommendation, isFalse);
-    expect(guidance.stopDetectionStatus, contains('ignores walking-stop'));
-    expect(guidance.dashboardBadges, isNot(contains('Motion assist on')));
+    expect(guidance.stopDetectionStatus, contains('does not create'));
+    expect(guidance.dashboardBadges, isNot(contains('Stop suggestions on')));
   });
 
-  test('dashboard badges reflect battery guard user choice safely', () {
+  test('dashboard badges reflect battery protection user choice safely', () {
     final guidance = TripTrackingDashboardGuidance.fromSettings(
       const TripTrackingSettings(
         gpsAssistedTrackingEnabled: true,
@@ -121,7 +121,7 @@ void main() {
     expect(guidance.lowBatteryProtectionActive, isFalse);
     expect(guidance.shouldShowBatterySafety, isFalse);
     expect(guidance.safetyStatus, contains('off by user choice'));
-    expect(guidance.dashboardBadges, isNot(contains('Battery guard on')));
+    expect(guidance.dashboardBadges, isNot(contains('Battery protection on')));
   });
 
   test('dashboard guidance can include verified free sync context', () {
@@ -139,7 +139,7 @@ void main() {
     expect(guidance.syncReason, 'Backup sync is ready.');
     expect(
       guidance.dashboardBadges,
-      contains('Sync: Wi-Fi only; 1 free sync left'),
+      isNot(contains('Sync: Wi-Fi only; 1 free sync left')),
     );
   });
 

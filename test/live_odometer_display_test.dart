@@ -11,15 +11,15 @@ void main() {
     );
 
     expect(snapshot.label, 'Odometer');
-    expect(snapshot.displayValue, '0001000');
+    expect(snapshot.displayValue, '1000');
     expect(snapshot.deltaMiles, isZero);
     expect(snapshot.deltaLabel, isNull);
     expect(snapshot.statusLabelAt(DateTime.utc(2026)), isNull);
     expect(snapshot.toSafeDashboardMap(DateTime.utc(2026)), {
       'schemaVersion': 1,
       'label': 'Odometer',
-      'displayValue': '0001000',
-      'confirmedDisplayValue': '0001000',
+      'displayValue': '1000',
+      'confirmedDisplayValue': '1000',
       'isLive': false,
       'deltaMiles': 0,
       'statusLabel': null,
@@ -55,7 +55,7 @@ void main() {
       'routeGeometryIncluded': false,
       'mapboxMayOverrideOdometer': false,
     });
-    expect(snapshot.semanticsLabelAt(DateTime.utc(2026)), 'Odometer 0001000');
+    expect(snapshot.semanticsLabelAt(DateTime.utc(2026)), 'Odometer 1000');
   });
 
   test('live odometer display exposes only advisory delta text', () {
@@ -68,10 +68,10 @@ void main() {
     );
 
     expect(snapshot.label, 'Live GPS odometer');
-    expect(snapshot.displayValue, '0001003');
+    expect(snapshot.displayValue, '1003');
     expect(snapshot.deltaMiles, 3);
     expect(snapshot.deltaLabel, '+3 mi live');
-    expect(snapshot.confirmedDisplayValue, '0001000');
+    expect(snapshot.confirmedDisplayValue, '1000');
     expect(snapshot.manualEntryBlocked, isTrue);
     expect(
       snapshot.advisoryLabel,
@@ -95,7 +95,7 @@ void main() {
     );
     expect(
       snapshot.semanticsLabelAt(updatedAt.add(const Duration(minutes: 1))),
-      'Live GPS odometer, 0001003, +3 mi live, confirmed 0001000',
+      'Live GPS odometer, 1003, +3 mi live, confirmed 1000',
     );
   });
 
@@ -116,8 +116,8 @@ void main() {
     expect(snapshot.toSafeDashboardMap(now), {
       'schemaVersion': 1,
       'label': 'Live GPS odometer',
-      'displayValue': '0001004',
-      'confirmedDisplayValue': '0001000',
+      'displayValue': '1004',
+      'confirmedDisplayValue': '1000',
       'isLive': true,
       'deltaMiles': 4,
       'statusLabel': 'Live GPS paused',
@@ -215,7 +215,7 @@ void main() {
       'GPS-assisted odometer is live; confirmed mileage has not changed.',
     );
     expect(snapshot.safeDisplayReading, 1000);
-    expect(snapshot.displayValue, '0001000');
+    expect(snapshot.displayValue, '1000');
   });
 
   test('live odometer dashboard map bounds clock skew and long gaps', () {
@@ -240,7 +240,7 @@ void main() {
   test('global odometer publishes a reusable live display snapshot', () {
     final controller = GlobalOdometerController(initialReading: 1000);
 
-    expect(controller.liveDisplaySnapshot.displayValue, '0001000');
+    expect(controller.liveDisplaySnapshot.displayValue, '1000');
     expect(controller.liveDisplaySnapshot.label, 'Odometer');
     expect(
       controller.beginLiveTripProjection(
@@ -260,7 +260,7 @@ void main() {
     final live = controller.liveDisplaySnapshot;
 
     expect(live.label, 'Live GPS odometer');
-    expect(live.displayValue, '0001002');
+    expect(live.displayValue, '1002');
     expect(live.deltaMiles, 2);
     expect(live.deltaLabel, '+2 mi live');
     expect(live.liveUpdatedAt, isNotNull);

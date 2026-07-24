@@ -2,6 +2,17 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
   Future<void> _saveReceipt() async {
+    if (_expenseOdometerReading == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Add the vehicle odometer reading before saving this expense.',
+          ),
+        ),
+      );
+      await _editExpenseOdometerReading();
+      return;
+    }
     if (_lines.isEmpty) {
       ExpenseScreenTelemetryRecorder.record(
         context,
@@ -176,7 +187,7 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
       );
     }
     if (!mounted) return;
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(saved);
   }
 
   ExpenseReceiptRecord _buildReceiptForSave() {

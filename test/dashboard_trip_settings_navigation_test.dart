@@ -13,7 +13,7 @@ void main() {
       contains("import '../settings/trip_tracking_settings_screen.dart'"),
     );
     expect(source, contains('const TripTrackingSettingsScreen()'));
-    expect(source, contains("child: const Text('GPS & MOTION SETTINGS')"));
+    expect(source, contains("child: const Text('PHONE LOCATION SETTINGS')"));
     expect(
       source,
       contains('onOpenSettings: () => Navigator.of(context).push('),
@@ -47,6 +47,6 @@ void main() {
       contains('settings.copyWith(activityRecognitionEnabled: value)'),
     );
     expect(source, contains("title: 'GPS update preset'"));
-    expect(source, contains("'High accuracy (3 sec)'"));
+    expect(source, contains("'High accuracy (2 sec)'"));
   });
 }

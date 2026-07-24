@@ -52,7 +52,7 @@ class TripTrackingNativeErrorPolicy {
       'GPS is unavailable on this device right now.',
     'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
     'trip_tracking_battery_critical' =>
-      'Battery is critically low. GPS-assisted tracking is paused below 10%.',
+      'Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.',
     'trip_tracking_activity_unavailable' =>
       'Walking-assisted stop evidence is unavailable. GPS tracking continues without it.',
     'trip_tracking_sampling_update_failed' =>

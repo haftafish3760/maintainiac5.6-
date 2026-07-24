@@ -9,11 +9,11 @@ class TripTrackingDashboardLiveStatusPolicy {
   static const bool odometerIsGlobalTruth = true;
 
   static const _staleSignalFallback =
-      'GPS has not produced a location fix recently. Keep your trip open; '
-      'review the gap before confirming mileage.';
+      'Your phone has not reported a recent location. Keep the trip open and '
+      'review the mileage before ending your day.';
   static const _awaitingInitialFixFallback =
-      'Waiting for a current GPS fix. Your true trip start time is preserved, '
-      'and the confirmed odometer remains official.';
+      'Waiting for your current location. Your start time and confirmed '
+      'odometer are saved.';
 
   static String? warning({
     required bool tracking,
@@ -29,15 +29,15 @@ class TripTrackingDashboardLiveStatusPolicy {
     if (platformStatus == 'paused' ||
         platformStatus == 'recovery_paused_by_user') {
       return safeError ??
-          'GPS assistance is paused by you. The trip and its explicit gap are preserved until you resume or complete it.';
+          'Location tracking is paused. Your trip is saved until you resume or finish it.';
     }
     final initialFixFallback = switch (platformStatus) {
       'initial_fix_stale' =>
-        'GPS returned an old cached location. The original trip start time is preserved while a current fix is requested.',
+        'Your phone has not provided a current location yet. Your original start time is saved.',
       'initial_fix_approximate' =>
-        'Only approximate location is available. GPS assistance remains degraded; the confirmed odometer stays official.',
+        'Only an approximate location is available. Your confirmed odometer stays official.',
       'initial_fix_unavailable' || 'initial_fix_rejected' =>
-        'A reliable starting location is not available yet. The trip can continue with degraded GPS assistance.',
+        'A reliable starting location is not available yet. You can continue and enter the odometer manually.',
       _ => null,
     };
     if (initialFixFallback != null) return safeError ?? initialFixFallback;

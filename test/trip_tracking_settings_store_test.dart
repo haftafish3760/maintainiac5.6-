@@ -8,6 +8,7 @@ void main() {
     () {
       const settings = TripTrackingSettings();
 
+      expect(settings.tripTrackingSetupCompleted, isFalse);
       expect(settings.gpsAssistedTrackingEnabled, isFalse);
       expect(
         settings.samplingPreset,
@@ -34,6 +35,16 @@ void main() {
       );
     },
   );
+
+  test('first trip tracking setup choice is persisted separately from GPS', () {
+    final skipped = const TripTrackingSettings().copyWith(
+      tripTrackingSetupCompleted: true,
+    );
+    final restored = TripTrackingSettings.fromMap(skipped.toMap());
+
+    expect(restored.tripTrackingSetupCompleted, isTrue);
+    expect(restored.gpsAssistedTrackingEnabled, isFalse);
+  });
 
   test('automatic start assistance requires GPS opt-in', () {
     const settings = TripTrackingSettings();

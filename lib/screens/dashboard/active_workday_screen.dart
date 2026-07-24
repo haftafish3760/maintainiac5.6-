@@ -6,11 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../shared/device_capabilities/device_capability_scope.dart';
+import '../../shared/context/operational_context_models.dart';
 import '../../shared/context/operational_context_store.dart';
 import '../../shared/navigation/app_page_routes.dart';
-import '../../shared/odometer/odometer_vehicle_snapshot.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
-import '../../shared/state/app_state.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
@@ -21,30 +20,36 @@ import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_session_store.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
-import '../../shared/widgets/flow_placeholder_screen.dart';
 import '../expenses/entry/expense_receipt_entry_screen.dart';
-import '../expenses/profiles/expense_work_profile_screen.dart';
+import '../expenses/data/expense_ledger_models.dart';
+import '../expenses/reminders/expense_reminder_screen.dart';
+import '../invoices/data/invoice_ledger_models.dart';
+import '../invoices/home/invoice_form_screen.dart';
+import '../invoices/home/invoice_info_screens.dart';
 import '../settings/trip_tracking_settings_screen.dart';
 import 'active_workday_actions.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_store.dart';
 import 'trip_background_location_settings_prompt.dart';
-import 'vehicle_profile_flow.dart';
+import 'trip_tracking_setup_sheet.dart';
 import 'vehicle_profile_widgets.dart';
+import 'workday_note_sheet.dart';
 
 part 'active_workday_context_bar.dart';
 part 'active_workday_session_widgets.dart';
-part 'active_workday_navigation_helpers.dart';
+part 'active_workday_expense_actions.dart';
 
 class ActiveWorkdayScreen extends StatefulWidget {
   const ActiveWorkdayScreen({
     super.key,
     required this.activeVehicle,
     required this.workProfileName,
+    this.promptForTripTrackingSetup = false,
   });
 
   final VehicleProfilePreview activeVehicle;
   final String workProfileName;
+  final bool promptForTripTrackingSetup;
 
   @override
   State<ActiveWorkdayScreen> createState() => _ActiveWorkdayScreenState();
@@ -55,7 +60,6 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   final Random _tripIdRandom = Random.secure();
   Timer? _timer;
   var _elapsed = Duration.zero;
-  late var _activeVehicle = widget.activeVehicle;
   var _gpsStartInFlight = false;
   var _gpsStopInFlight = false;
   var _gpsCancelInFlight = false;
@@ -67,6 +71,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       setState(() => _elapsed = DateTime.now().difference(_startedAt));
     });
+    if (widget.promptForTripTrackingSetup) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _startGpsTrip();
+      });
+    }
   }
 
   @override
@@ -99,12 +108,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Column(
               children: [
-                _WorkdayContextBar(
-                  activeVehicle: _activeVehicle,
-                  workProfileName: widget.workProfileName,
-                  onVehicleChanged: _handleVehicleChanged,
-                  onOpenWorkProfiles: _openWorkProfiles,
-                ),
+                _WorkdayContextBar(workProfileName: widget.workProfileName),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -222,98 +226,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       const WorkdayQuickActionSpec(
         kind: WorkdayQuickActionKind.resumeDay,
         icon: Icons.play_arrow_rounded,
-        emoji: '▶️',
         label: 'Resume Day',
         color: Color(0xFF2AA875),
-        flowTitle: 'Resume Workday',
-        flowSummary: 'Resume the current workday without creating a new day.',
       ),
       ...actionLayout.activeActions.where(
         (action) => action.kind != WorkdayQuickActionKind.pauseDay,
       ),
     ];
-  }
-
-  Future<void> _handleVehicleChanged(VehicleProfilePreview vehicle) async {
-    final appState = AppStateScope.of(context);
-    final odometer = GlobalOdometerScope.of(context);
-    final operationalContext = OperationalContextScope.maybeOf(context);
-    final targetOdometerVehicleId = odometerVehicleIdForVehicleId(
-      vehicle.id,
-      fallbackLabel: vehicle.nickname,
-    );
-    final workday = ActiveWorkdayScope.of(context).activeSession;
-    if (workday != null && workday.vehicleId != targetOdometerVehicleId) {
-      await _restoreAppStateVehicle(appState, _activeVehicle.id);
-      if (!mounted) return;
-      _showGpsMessage(
-        'End the current workday before switching vehicles. Its odometer and trip history remain preserved.',
-      );
-      return;
-    }
-    if (odometer.vehicleId != targetOdometerVehicleId) {
-      final switched = await odometer.switchVehicleById(
-        targetOdometerVehicleId,
-      );
-      if (!mounted) return;
-      if (!switched) {
-        await _restoreAppStateVehicle(appState, _activeVehicle.id);
-        if (!mounted) return;
-        _showGpsMessage(
-          'End or review the active GPS trip before switching vehicles.',
-        );
-        return;
-      }
-    }
-    VehicleProfile? selectedVehicle;
-    for (final candidate in appState.vehicles) {
-      if (candidate.id == vehicle.id) {
-        selectedVehicle = candidate;
-        break;
-      }
-    }
-    if (selectedVehicle == null) {
-      await _restoreAppStateVehicle(appState, _activeVehicle.id);
-      if (!mounted) return;
-      _showGpsMessage('The selected vehicle is no longer available.');
-      return;
-    }
-    await appState.selectVehicle(selectedVehicle);
-    if (operationalContext != null) {
-      await operationalContext.setActiveVehicle(
-        vehicleId: odometer.vehicleId,
-        vehicleLabel: selectedVehicle.nickname,
-        usage: selectedVehicle.usage,
-      );
-    }
-    if (!mounted) return;
-    setState(() => _activeVehicle = vehicle);
-  }
-
-  Future<void> _openWorkProfiles() async {
-    final workday = ActiveWorkdayScope.of(context).activeSession;
-    final tripTracking = TripTrackingScope.maybeOf(context);
-    if (workday != null || tripTracking?.isTracking == true) {
-      _showGpsMessage(
-        'End the current workday before switching work profiles. Its trip, odometer, and profile history remain preserved.',
-      );
-      return;
-    }
-    await Navigator.of(
-      context,
-    ).push(appNativeRoute<void>(context, const ExpenseWorkProfileScreen()));
-  }
-
-  Future<void> _restoreAppStateVehicle(
-    AppStateController appState,
-    String vehicleId,
-  ) async {
-    for (final candidate in appState.vehicles) {
-      if (candidate.id == vehicleId) {
-        await appState.selectVehicle(candidate);
-        return;
-      }
-    }
   }
 
   Future<void> _handleQuickAction(WorkdayQuickActionSpec action) async {
@@ -360,18 +279,24 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         );
         if (saved && mounted) Navigator.of(context).pop();
       case WorkdayQuickActionKind.addFuel:
-        await Navigator.of(context).push(
-          appNativeRoute<void>(
-            context,
-            const ExpenseReceiptEntryScreen(initialCategory: 'Fuel'),
-          ),
+        await _openExpenseAndRecord(
+          title: 'Fuel Stop Odometer',
+          saveLabel: 'Continue to Fuel',
+          category: 'Fuel',
+          eventType: ActiveWorkdayEventType.fuel,
         );
-        await _recordStoredEvent(ActiveWorkdayEventType.fuel);
       case WorkdayQuickActionKind.expense:
-        await Navigator.of(context).push(
-          appNativeRoute<void>(context, const ExpenseReceiptEntryScreen()),
+        await _openExpenseAndRecord(
+          title: 'Expense Odometer',
+          saveLabel: 'Continue to Expense',
+          eventType: ActiveWorkdayEventType.expense,
         );
-        await _recordStoredEvent(ActiveWorkdayEventType.expense);
+      case WorkdayQuickActionKind.receipt:
+        await _openExpenseAndRecord(
+          title: 'Receipt Odometer',
+          saveLabel: 'Continue to Receipt',
+          eventType: ActiveWorkdayEventType.expense,
+        );
       case WorkdayQuickActionKind.addStop:
         await _openStopDialog('Stop', ActiveWorkdayEventType.stop);
       case WorkdayQuickActionKind.addPickup:
@@ -379,20 +304,32 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       case WorkdayQuickActionKind.addDropOff:
         await _openStopDialog('Drop-off', ActiveWorkdayEventType.dropOff);
       case WorkdayQuickActionKind.payment:
-      case WorkdayQuickActionKind.invoice:
-      case WorkdayQuickActionKind.maintenance:
-      case WorkdayQuickActionKind.materials:
-      case WorkdayQuickActionKind.receipt:
-      case WorkdayQuickActionKind.reminder:
-      case WorkdayQuickActionKind.estimate:
-      case WorkdayQuickActionKind.note:
-        _openFlow(
+        await Navigator.of(
           context,
-          title: action.flowTitle,
-          icon: action.icon,
-          summary: action.flowSummary,
-          requiresOdometer: action.requiresOdometer,
+        ).push(appNativeRoute<void>(context, const InvoicePaymentScreen()));
+      case WorkdayQuickActionKind.invoice:
+        await Navigator.of(
+          context,
+        ).push(appNativeRoute<void>(context, const InvoiceFormScreen()));
+      case WorkdayQuickActionKind.maintenance:
+        openAppSectionRoot(context, AppSection.maintenance);
+      case WorkdayQuickActionKind.materials:
+        openAppSectionRoot(context, AppSection.materials);
+      case WorkdayQuickActionKind.reminder:
+        await Navigator.of(
+          context,
+        ).push(appNativeRoute<void>(context, const ExpenseReminderScreen()));
+      case WorkdayQuickActionKind.estimate:
+        await Navigator.of(context).push(
+          appNativeRoute<void>(
+            context,
+            const InvoiceFormScreen(documentType: InvoiceDocumentType.estimate),
+          ),
         );
+      case WorkdayQuickActionKind.note:
+        final note = await openWorkdayNoteSheet(context);
+        if (!mounted || note == null) return;
+        await _recordStoredEvent(ActiveWorkdayEventType.note, note: note);
     }
   }
 
@@ -401,23 +338,29 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     required String saveLabel,
     required ActiveWorkdayEventType type,
   }) async {
-    final saved = await openOdometerEntry(
-      context,
+    final reading = await _recordOdometerReading(
       title: title,
       saveLabel: saveLabel,
     );
     if (!mounted) return false;
-    if (saved) {
-      await ActiveWorkdayScope.of(context).addEvent(
-        type: type,
-        odometerReading: GlobalOdometerScope.of(context).reading,
-      );
+    if (reading != null) {
+      await ActiveWorkdayScope.of(
+        context,
+      ).addEvent(type: type, odometerReading: reading);
     }
-    return saved;
+    return reading != null;
+  }
+
+  Future<int?> _recordOdometerReading({
+    required String title,
+    required String saveLabel,
+  }) {
+    return openOdometerEntryResult(context, title: title, saveLabel: saveLabel);
   }
 
   Future<void> _recordStoredEvent(
     ActiveWorkdayEventType type, {
+    int? odometerReading,
     String? note,
     bool confirmGpsStopCandidate = false,
   }) async {
@@ -426,7 +369,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     final tripTracking = TripTrackingScope.maybeOf(context);
     final updatedWorkday = await activeWorkday.addEvent(
       type: type,
-      odometerReading: GlobalOdometerScope.of(context).reading,
+      odometerReading:
+          odometerReading ?? GlobalOdometerScope.of(context).reading,
       note: note,
     );
     if (type == ActiveWorkdayEventType.stop ||
@@ -523,8 +467,14 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
     if (!mounted) return;
     if (saved == true) {
+      final odometerReading = await _recordOdometerReading(
+        title: '$kind Odometer',
+        saveLabel: 'Save $kind',
+      );
+      if (!mounted || odometerReading == null) return;
       await _recordStoredEvent(
         type,
+        odometerReading: odometerReading,
         note: note.trim(),
         confirmGpsStopCandidate: confirmGpsStopCandidate,
       );
@@ -643,10 +593,23 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     }
     final settings = settingsController.settings;
     if (!settings.gpsAssistedTrackingEnabled) {
-      _showGpsMessage(
-        'Enable GPS-assisted tracking in Dashboard Settings first.',
+      final setup = await openTripTrackingSetupSheet(
+        context,
+        currentSettings: settings,
       );
-      return;
+      if (!mounted || setup == null) return;
+      await settingsController.update(setup.settings);
+      if (!mounted) return;
+      await _applySetupDashboardMode(setup.settings.defaultProfile);
+      if (!mounted) return;
+      if (setup.action == TripTrackingSetupAction.skip) return;
+      if (setup.action == TripTrackingSetupAction.openSettings) {
+        await Navigator.of(context).push(
+          appNativeRoute<void>(context, const TripTrackingSettingsScreen()),
+        );
+        return;
+      }
+      return _startGpsTripImpl();
     }
     // GPS is heavy work. Refresh the shared runtime profile only after the
     // driver has actually opted in, so a disabled setting never wakes the
@@ -747,6 +710,28 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           ? 'GPS-assisted trip tracking started.'
           : (tripTracking.platformError ?? 'GPS tracking could not start.'),
     );
+  }
+
+  Future<void> _applySetupDashboardMode(TripTrackingProfile profile) async {
+    final operationalContext = OperationalContextScope.maybeOf(context);
+    if (operationalContext == null) return;
+    final currentMode = operationalContext.context.dashboardMode;
+    if (currentMode != OperationalDashboardMode.gigDriver &&
+        currentMode != OperationalDashboardMode.soloContractor) {
+      return;
+    }
+    final selectedMode = switch (profile) {
+      TripTrackingProfile.contractorVehicle =>
+        OperationalDashboardMode.soloContractor,
+      TripTrackingProfile.deliveryVehicle ||
+      TripTrackingProfile.rideshareVehicle =>
+        OperationalDashboardMode.gigDriver,
+      TripTrackingProfile.roadVehicle ||
+      TripTrackingProfile.lowSpeedEquipment => null,
+    };
+    if (selectedMode != null && selectedMode != currentMode) {
+      await operationalContext.setDashboardMode(selectedMode);
+    }
   }
 
   bool _gpsBatteryChoiceRequired(String? status) {
@@ -856,16 +841,16 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF101719),
         title: const Text(
-          'Cancel GPS Trip?',
+          'Stop Location Tracking?',
           style: TextStyle(
             color: Color(0xFFF0F4F2),
             fontWeight: FontWeight.w900,
           ),
         ),
         content: const Text(
-          'GPS collection will stop. Existing locations, distance evidence, '
-          'stops, and diagnostics will be preserved as a cancelled trip for '
-          'review. Your workday and odometer will not be changed.',
+          'Phone location will stop. The distance and possible stops already '
+          'recorded will stay available for review. Your workday and odometer '
+          'will not change.',
           style: TextStyle(
             color: Color(0xFFC8D0D3),
             fontWeight: FontWeight.w700,
@@ -881,7 +866,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF8D2D2D),
             ),
-            child: const Text('Cancel GPS Trip'),
+            child: const Text('Stop Location Tracking'),
           ),
         ],
       ),
@@ -894,8 +879,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       _showGpsMessage(
         review == null
             ? (tripTracking.platformError ??
-                  'The GPS trip could not be cancelled safely.')
-            : 'GPS trip cancelled and preserved for review. Your workday remains active.',
+                  'Location tracking could not be stopped safely.')
+            : 'Location tracking stopped. Your workday remains active.',
       );
     } finally {
       if (mounted) {
@@ -1127,8 +1112,11 @@ class _LiveOdometerPanelLine extends StatelessWidget {
       builder: (context, _) {
         final display = odometer.liveDisplaySnapshot;
         final status = display.statusLabelAt(DateTime.now());
+        final plainStatus = status == 'Live GPS paused'
+            ? 'Location paused'
+            : status;
         return Text(
-          'GPS estimate: ${display.displayValue} • Confirmed: ${display.confirmedDisplayValue}${status == null ? '' : ' • $status'}',
+          'Location estimate: ${display.displayValue} • Last confirmed: ${display.confirmedDisplayValue}${plainStatus == null ? '' : ' • $plainStatus'}',
           style: const TextStyle(
             color: Color(0xFF9CC7E8),
             fontSize: 12,
@@ -1201,6 +1189,7 @@ class _GpsTripPanel extends StatelessWidget {
         : null;
     final tracking = controller?.isTracking == true;
     final nativeTracking = controller?.nativeTracking == true;
+    final gpsEnabled = settings?.gpsAssistedTrackingEnabled == true;
     final pendingStopReviewCount = controller?.pendingStopReviewCount ?? 0;
     final latestVehicleReview = controller?.latestReviewForVehicle(
       GlobalOdometerScope.of(context).vehicleId,
@@ -1211,6 +1200,10 @@ class _GpsTripPanel extends StatelessWidget {
       platformError: controller?.platformError,
       awaitingInitialFix: controller?.awaitingInitialFix == true,
     );
+    final showLiveTrackingWarning =
+        liveTrackingWarning != null &&
+        liveTrackingWarning !=
+            'Location tracking stays paused until you tap Resume.';
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
       decoration: BoxDecoration(
@@ -1238,7 +1231,7 @@ class _GpsTripPanel extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'GPS-ASSISTED TRIP',
+                  'TRIP TRACKING',
                   style: TextStyle(
                     color: Color(0xFFE2E8EA),
                     fontSize: 13,
@@ -1248,12 +1241,14 @@ class _GpsTripPanel extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   nativeTracking
-                      ? 'GPS assist ${controller!.acceptedMiles.toStringAsFixed(2)} mi; confirmed odometer stays official.'
+                      ? 'Phone location shows ${controller!.acceptedMiles.toStringAsFixed(2)} mi; your odometer stays official.'
                       : tracking
-                      ? 'Trip is recoverable. Resume GPS when ready.'
+                      ? 'Location tracking is paused. Your workday and odometer record are saved.'
+                      : !gpsEnabled
+                      ? 'Set up phone location to help track this trip.'
                       : guidance?.enabled == true
                       ? guidance!.primaryStatus
-                      : 'Off in trip tracking settings.',
+                      : 'Ready when you start tracking.',
                   style: const TextStyle(
                     color: Color(0xFFCAD2D5),
                     fontSize: 12,
@@ -1264,7 +1259,7 @@ class _GpsTripPanel extends StatelessWidget {
                   const SizedBox(height: 3),
                   const _LiveOdometerPanelLine(),
                 ],
-                if (liveTrackingWarning != null) ...[
+                if (showLiveTrackingWarning) ...[
                   const SizedBox(height: 3),
                   Text(
                     liveTrackingWarning,
@@ -1275,28 +1270,16 @@ class _GpsTripPanel extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (capabilityGuidance != null) ...[
+                if (gpsEnabled && capabilityGuidance != null) ...[
                   const SizedBox(height: 3),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      _GpsTripBadge(
-                        label: capabilityGuidance.dashboardBadge,
-                        active:
-                            capabilityGuidance.readiness !=
-                            TripTrackingCapabilityReadiness.unavailable,
-                      ),
-                      _GpsTripBadge(
-                        label: capabilityGuidance.safeStatus,
-                        active:
-                            capabilityGuidance.readiness ==
-                            TripTrackingCapabilityReadiness.fullSafetyAssist,
-                      ),
-                    ],
+                  _GpsTripBadge(
+                    label: _plainCapabilityLabel(capabilityGuidance.readiness),
+                    active:
+                        capabilityGuidance.readiness !=
+                        TripTrackingCapabilityReadiness.unavailable,
                   ),
                 ],
-                if (guidance != null && !tracking) ...[
+                if (gpsEnabled && guidance != null && !tracking) ...[
                   const SizedBox(height: 3),
                   Text(
                     guidance.stopDetectionStatus,
@@ -1320,26 +1303,16 @@ class _GpsTripPanel extends StatelessWidget {
                         .toList(growable: false),
                   ),
                 ],
-                if (guidance?.shouldShowActivityRecognitionRecommendation ==
-                    true) ...[
+                if (gpsEnabled &&
+                    guidance?.shouldShowActivityRecognitionRecommendation ==
+                        true) ...[
                   const SizedBox(height: 3),
                   const Text(
-                    'Motion assist is recommended for this work profile, but it remains opt-in.',
+                    'Turn on stop suggestions if you want help noticing possible stops.',
                     style: TextStyle(
                       color: Color(0xFFFFD166),
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-                if (guidance?.shouldShowOdometerReview == true) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    guidance!.odometerStatus,
-                    style: const TextStyle(
-                      color: Color(0xFFCAD2D5),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ],
@@ -1365,7 +1338,8 @@ class _GpsTripPanel extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (driverPattern?.dashboardSuggestion != null) ...[
+                if (gpsEnabled &&
+                    driverPattern?.dashboardSuggestion != null) ...[
                   const SizedBox(height: 3),
                   Text(
                     driverPattern!.dashboardSuggestion!,
@@ -1403,7 +1377,7 @@ class _GpsTripPanel extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (controller?.cloudMirrorError != null) ...[
+                if (gpsEnabled && controller?.cloudMirrorError != null) ...[
                   const SizedBox(height: 3),
                   Text(
                     controller!.cloudMirrorError!,
@@ -1449,7 +1423,7 @@ class _GpsTripPanel extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 3, right: 8),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text('VIEW GPS FIELD SUMMARY'),
+                      child: const Text('VIEW TRIP DETAILS'),
                     ),
                   ),
                 if (tracking)
@@ -1466,7 +1440,9 @@ class _GpsTripPanel extends StatelessWidget {
                         foregroundColor: const Color(0xFFFF9F9F),
                       ),
                       child: Text(
-                        cancelInFlight ? 'CANCELLING TRIP' : 'CANCEL GPS TRIP',
+                        cancelInFlight
+                            ? 'STOPPING LOCATION'
+                            : 'STOP LOCATION TRACKING',
                       ),
                     ),
                   ),
@@ -1479,7 +1455,7 @@ class _GpsTripPanel extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 3, right: 8),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    child: const Text('GPS & MOTION SETTINGS'),
+                    child: const Text('PHONE LOCATION SETTINGS'),
                   ),
                 ),
               ],
@@ -1496,6 +1472,14 @@ class _GpsTripPanel extends StatelessWidget {
               backgroundColor: nativeTracking
                   ? const Color(0xFF8D2D2D)
                   : const Color(0xFF1976B9),
+              foregroundColor: Colors.white,
+              disabledForegroundColor: const Color(0xFFD8E0E3),
+              minimumSize: const Size(94, 48),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              textStyle: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+              ),
             ),
             child: Text(
               startInFlight
@@ -1506,7 +1490,9 @@ class _GpsTripPanel extends StatelessWidget {
                   ? 'STOP'
                   : tracking
                   ? 'RESUME'
-                  : 'START',
+                  : gpsEnabled
+                  ? 'START'
+                  : 'SET UP',
             ),
           ),
         ],

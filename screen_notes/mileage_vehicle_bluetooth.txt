@@ -44,3 +44,30 @@ each of these apps."
 "I'm sure, as you already know, each vehicle gets its own mileage and
 maintenance, all that good stuff."
 
+Source: visible user message, 2026-07-23 commercial UX/manual-first pass
+
+- Bluetooth vehicle identification is opt-in assistance. The phone may detect a
+  configured vehicle Bluetooth connection and suggest or switch the active
+  vehicle according to the user's setup, but the user must be able to review and
+  correct the vehicle.
+- Automatic trip starting based on Bluetooth/GPS context is a future opt-in
+  assistance mode. It must never be required for manual mileage tracking and
+  must not silently create trusted odometer records.
+- GPS-assisted trip tracking should suggest what mileage could be, while the
+  physical odometer remains the confirmed source of truth.
+
+Source: visible user message, 2026-07-23 first GPS setup and device policy pass
+
+- Trip tracking must use device detection/capability information when choosing
+  GPS sampling behavior. Battery level, charging state, device capability, and
+  user-selected accuracy mode must influence how often location is requested.
+- Users can choose high/precise accuracy, with clear battery tradeoffs. If the
+  phone is plugged in, higher accuracy can be less restrictive, but it still
+  requires explicit user opt-in.
+- Low-battery protection should stop or avoid GPS when the phone is below the
+  configured threshold, unless the user has explicitly allowed tracking below
+  that threshold or the device is charging according to the approved policy.
+- Do not require the battery to charge back above 15% before GPS can work when
+  the phone is already plugged in and the user has opted into tracking. Avoid
+  punishing users with confusing battery gates.
+

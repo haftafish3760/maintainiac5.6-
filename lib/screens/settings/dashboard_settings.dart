@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/widgets/app_screen_shell.dart';
-import 'master_export_screen.dart';
 import 'trip_tracking_settings_screen.dart';
 
 class DashboardSettingsScreen extends StatelessWidget {
@@ -69,15 +68,6 @@ class _DashboardSettingsPanel extends StatelessWidget {
             onTap: () => Navigator.of(
               context,
             ).push(appSlideRoute(const TripTrackingSettingsScreen())),
-          ),
-          _DashboardSettingRow(
-            title: 'Master Export',
-            detail:
-                'Export expenses now. Materials, maintenance, and invoices plug in here as they are finished.',
-            icon: Icons.file_download_rounded,
-            onTap: () => Navigator.of(
-              context,
-            ).push(appSlideRoute(const MasterExportScreen())),
           ),
           const _DashboardSettingRow(
             title: 'Dashboard Layout',

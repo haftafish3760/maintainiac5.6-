@@ -281,7 +281,7 @@ String? _safeReason(Object? value) {
 }
 
 bool _displayValueSafe(Object? value) {
-  return value is String && RegExp(r'^\d{7}$').hasMatch(value);
+  return value is String && RegExp(r'^(0|[1-9]\d{0,6})$').hasMatch(value);
 }
 
 bool _looksSensitive(Object? value) {

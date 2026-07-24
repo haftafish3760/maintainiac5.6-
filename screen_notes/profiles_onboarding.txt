@@ -51,3 +51,14 @@ Source: visible user message, 2026-07-11 Batch 2
   a user who prefers manual entry.
 - Camera settings are task-specific and belong inside the receipt-camera
   workflow. They must not be confused with global App Settings.
+
+Source: visible user message, 2026-07-23 commercial UX/manual-first pass
+
+- Onboarding can introduce AI assistance, ChatGPT/OpenAI connection, GPS
+  assistance, and Bluetooth vehicle identification, but every one of those must
+  be optional. The core app must work manually first.
+- If a user skips onboarding, the related setup flows must still be reachable
+  later from the appropriate user action or settings area.
+- OpenAI/ChatGPT account connection is future opt-in assistance and should talk
+  through the approved backend/durable storage design. It must not be required
+  for local-first records.

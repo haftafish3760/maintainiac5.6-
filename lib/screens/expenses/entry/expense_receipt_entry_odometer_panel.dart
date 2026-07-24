@@ -12,15 +12,15 @@ class _ExpenseOdometerPanel extends StatelessWidget {
       children: [
         ListTile(
           contentPadding: EdgeInsets.zero,
-          title: const Text('Optional vehicle odometer'),
+          title: const Text('Expense odometer'),
           subtitle: Text(
             reading == null
-                ? 'No reading added to this expense'
+                ? 'Required before saving this expense'
                 : '${reading.toString()} miles',
           ),
           trailing: OutlinedButton(
             onPressed: onEdit,
-            child: Text(reading == null ? 'Add' : 'Edit'),
+            child: Text(reading == null ? 'Add Reading' : 'Edit'),
           ),
         ),
       ],

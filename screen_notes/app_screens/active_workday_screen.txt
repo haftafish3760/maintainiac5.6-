@@ -16,3 +16,31 @@ somebody that owns 20 or 30 trucks, they might not need the start my day button
 unless they need to keep up with the miles on their vehicle. for business
 purposes."
 
+Source: visible user message, 2026-07-23 trip tracking command-center pass
+
+- Start Day must never bypass the physical odometer reading. First-use GPS setup
+  is a follow-on assistance flow for users who skipped onboarding, not a
+  replacement for odometer entry.
+- GPS/location permission setup must be available when the user enables
+  GPS-assisted trip tracking. Permission setup must be user-directed and must
+  leave manual Start Day and manual stop entry usable if denied or unavailable.
+- Every workday stop type should be able to appear in the trip tracking day
+  timeline when it belongs to that workday, including fuel, expense, pickup,
+  delivery, general stop, materials/work-supply stop, and helper/employee time
+  events where applicable.
+- Fuel stops are both expense records and trip/day stop records. They must ask
+  for odometer when entered and must surface in both the expense dashboard and
+  the trip tracking/dashboard day view.
+
+Source: visible user message, 2026-07-23 first GPS setup and device policy pass
+
+- Start Day needs a conditional first-use GPS setup path. If the user skipped
+  onboarding or never completed GPS setup, the app must know that state and
+  offer a fast, clear setup flow after the required starting odometer step.
+- First-use GPS setup must be explanatory without being slow. It should explain
+  accuracy, battery impact, and user control in everyday language.
+- GPS must remain opt-in. Start Day and manual mileage must still work when GPS
+  setup is skipped, denied, unsupported, or unavailable.
+- The first Start Day sequence should remain: physical odometer first, then
+  optional phone-location setup if GPS onboarding/setup has not been completed.
+

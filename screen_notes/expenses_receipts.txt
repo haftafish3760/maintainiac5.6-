@@ -78,3 +78,14 @@ Source: visible user message, 2026-07-16 Camera storage thresholds
 - Storage pressure must never block completion of the current receipt task.
   Below 250 MB is emergency/minimum-support territory and uses the safest
   local fallback while preserving completion.
+Source: visible user message, 2026-07-23 trip tracking command-center pass
+
+- Every expense entry must ask for the odometer reading. The expense must appear
+  on the expense dashboard and, when entered during a workday, also appear as a
+  daily entry on the trip tracking/dashboard day view.
+- Fuel is part of Expenses and also part of the user's workday stops. Fuel
+  parsing is not the current assignment, but the fuel stop/workday connection
+  and odometer-first entry behavior are required.
+- Expense records that happen during the day must retain enough context to link
+  to active vehicle, work profile, workday/trip day, and dashboard calendar
+  records.

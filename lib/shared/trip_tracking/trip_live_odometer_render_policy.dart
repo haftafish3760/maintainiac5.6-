@@ -317,7 +317,7 @@ class TripLiveOdometerRenderSummaryValidation {
 }
 
 bool _displayValueSafe(String? value) =>
-    value == null || RegExp(r'^\d{7}$').hasMatch(value);
+    value == null || RegExp(r'^(0|[1-9]\d{0,6})$').hasMatch(value);
 
 class TripLiveOdometerRenderPolicy {
   const TripLiveOdometerRenderPolicy._();

@@ -22,7 +22,7 @@ void main() {
           platformStatus: 'gps_signal_stale',
           platformError: '   ',
         ),
-        contains('has not produced a location fix recently'),
+        contains('has not reported a recent location'),
       );
     },
   );
@@ -49,7 +49,10 @@ void main() {
         platformStatus: 'tracking',
         awaitingInitialFix: true,
       ),
-      allOf(contains('Waiting for a current GPS fix'), contains('start time')),
+      allOf(
+        contains('Waiting for your current location'),
+        contains('start time'),
+      ),
     );
   });
 
@@ -59,9 +62,9 @@ void main() {
         tracking: true,
         platformStatus: status,
       );
-      expect(warning, contains('paused by you'));
-      expect(warning, contains('explicit gap'));
-      expect(warning, contains('resume or complete'));
+      expect(warning, contains('Location tracking is paused'));
+      expect(warning, contains('trip is saved'));
+      expect(warning, contains('resume or finish'));
     }
   });
 
@@ -74,7 +77,7 @@ void main() {
           platformStatus: 'initial_fix_stale',
           awaitingInitialFix: true,
         ),
-        allOf(contains('old cached location'), contains('start time')),
+        allOf(contains('current location'), contains('start time')),
       );
       expect(
         TripTrackingDashboardLiveStatusPolicy.warning(
@@ -82,7 +85,7 @@ void main() {
           platformStatus: 'initial_fix_approximate',
           awaitingInitialFix: true,
         ),
-        allOf(contains('degraded'), contains('odometer')),
+        allOf(contains('approximate location'), contains('odometer')),
       );
     },
   );

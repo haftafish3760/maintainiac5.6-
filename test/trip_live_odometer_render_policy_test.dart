@@ -23,7 +23,7 @@ void main() {
     expect(decision.shouldRender, isTrue);
     expect(decision.shouldNotifyListeners, isTrue);
     expect(decision.reviewRequired, isFalse);
-    expect(decision.displayValue, '0001000');
+    expect(decision.displayValue, '1000');
     expect(safe['manualConfirmationRequired'], isFalse);
     expect(safe['calendarReviewUsesConfirmedTruth'], isTrue);
     expect(safe['odometerIsGlobalTruth'], isTrue);
@@ -60,7 +60,7 @@ void main() {
     expect(decision.status, TripLiveOdometerRenderStatus.liveRenderable);
     expect(decision.shouldRender, isTrue);
     expect(decision.shouldNotifyListeners, isTrue);
-    expect(decision.displayValue, '0001003');
+    expect(decision.displayValue, '1003');
     expect(safe['liveUiMustRefreshOnProjectionChange'], isTrue);
     expect(safe['singleLiveOdometerSnapshotRequired'], isTrue);
     expect(safe['allDashboardSurfacesUseSameSnapshot'], isTrue);
@@ -383,7 +383,7 @@ void main() {
     expect(
       TripLiveOdometerRenderSummaryValidation.fromSummary({
         ...safe,
-        'displayValue': '1000',
+        'displayValue': '01000',
       }).reasons,
       contains('invalid_display_value'),
     );

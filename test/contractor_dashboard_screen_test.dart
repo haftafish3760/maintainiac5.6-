@@ -41,20 +41,24 @@ void main() {
     await tester.tap(find.text('Contractor Dashboard'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Contractor Command Center'), findsOneWidget);
+    expect(find.text('Back'), findsNothing);
+    expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
     expect(find.text('Mode'), findsOneWidget);
     expect(find.text('Contractor'), findsOneWidget);
     expect(find.text('Operations Pulse'), findsOneWidget);
-    expect(find.text('Vehicles Active'), findsOneWidget);
-    expect(find.text('Employees Active'), findsOneWidget);
-    expect(find.text('Needs Attention'), findsOneWidget);
+    expect(find.text('Day status'), findsOneWidget);
+    expect(find.text('Jobs today'), findsOneWidget);
+    expect(find.text('Receipts to review'), findsOneWidget);
+    expect(find.text('Unpaid invoices'), findsOneWidget);
+    expect(find.text('Employees Active'), findsNothing);
     await tester.scrollUntilVisible(
-      find.text('Money In'),
+      find.text('Payments this week'),
       360,
       scrollable: find.byType(Scrollable).last,
     );
-    expect(find.text('Money In'), findsOneWidget);
-    expect(find.text('Money Out'), findsOneWidget);
+    expect(find.text('Payments this week'), findsOneWidget);
+    expect(find.text('Expenses this week'), findsOneWidget);
+    expect(find.text('No jobs are scheduled for today.'), findsOneWidget);
   });
 
   testWidgets('contractor dashboard exposes active day tools', (tester) async {
@@ -74,39 +78,22 @@ void main() {
       220,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.text('Start Day'));
-    await tester.pumpAndSettle();
+    await _completeContractorStartDay(tester);
 
-    expect(find.text('Active Contractor Day'), findsOneWidget);
     expect(activeWorkday.activeSession, isNotNull);
     expect(activeWorkday.activeSession?.vehicleId, odometer.vehicleId);
-    expect(find.text('Shift Time'), findsOneWidget);
+    expect(find.text('Shift Timer'), findsOneWidget);
     expect(find.text('Miles Today'), findsOneWidget);
     expect(find.text('14.2'), findsNothing);
     expect(find.text('Add Stop'), findsOneWidget);
-    expect(find.text('Job Note'), findsOneWidget);
-    expect(find.text('Use Materials'), findsOneWidget);
-    expect(find.text('Add Expense'), findsOneWidget);
-    expect(find.text('Create Invoice'), findsOneWidget);
-    expect(find.text('Record Payment'), findsOneWidget);
+    expect(find.text('Add Fuel'), findsOneWidget);
+    expect(find.text('Expense'), findsOneWidget);
+    expect(find.text('Invoice'), findsOneWidget);
+    expect(find.text('Payment'), findsOneWidget);
     expect(find.text('Proof Photo'), findsNothing);
-
-    await tester.tap(find.text('Add Stop'));
-    await tester.pumpAndSettle();
-    expect(
-      activeWorkday.activeSession?.events.last.type,
-      ActiveWorkdayEventType.stop,
-    );
-
-    await tester.tap(find.text('Job Note'));
-    await tester.pumpAndSettle();
-    expect(
-      activeWorkday.activeSession?.events.last.type,
-      ActiveWorkdayEventType.note,
-    );
   });
 
-  testWidgets('contractor day controls persist pause resume and end events', (
+  testWidgets('canonical workday owns contractor pause and end controls', (
     tester,
   ) async {
     final activeWorkday = ActiveWorkdayController.memory();
@@ -125,22 +112,11 @@ void main() {
       220,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.text('Start Day'));
-    await tester.pumpAndSettle();
+    await _completeContractorStartDay(tester);
 
-    await tester.tap(find.text('Pause Day'));
-    await tester.pumpAndSettle();
-    expect(activeWorkday.activeSession?.status, ActiveWorkdayStatus.paused);
-    expect(find.text('Resume Day'), findsOneWidget);
-
-    await tester.tap(find.text('Resume Day'));
-    await tester.pumpAndSettle();
+    expect(find.text('Pause Day'), findsOneWidget);
+    expect(find.text('End Day'), findsOneWidget);
     expect(activeWorkday.activeSession?.status, ActiveWorkdayStatus.active);
-
-    await tester.tap(find.text('End Day'));
-    await tester.pumpAndSettle();
-    expect(activeWorkday.activeSession, isNull);
-    expect(find.text('Start Contractor Day'), findsOneWidget);
   });
 
   testWidgets('contractor record payment opens the payment workflow', (
@@ -162,17 +138,16 @@ void main() {
       220,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.text('Start Day'));
-    await tester.pumpAndSettle();
+    await _completeContractorStartDay(tester);
 
-    await tester.tap(find.text('Record Payment'));
+    await tester.tap(find.text('Payment'));
     await tester.pumpAndSettle();
 
     expect(find.text('Payments'), findsWidgets);
     expect(find.text('Payment Amount'), findsOneWidget);
   });
 
-  testWidgets('contractor quick stop requires a persisted active day', (
+  testWidgets('contractor cannot create a UI-only day without storage', (
     tester,
   ) async {
     await _pumpDashboard(tester, appState, odometer, workProfiles);
@@ -187,13 +162,11 @@ void main() {
     await tester.tap(find.text('Start Day'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Add Stop'));
-    await tester.pumpAndSettle();
-
     expect(
-      find.text('Start your contractor day before using Add Stop.'),
+      find.textContaining('Workday records are unavailable'),
       findsOneWidget,
     );
+    expect(find.text('Start Contractor Day'), findsOneWidget);
   });
 
   testWidgets('active workday miles redraw from live GPS odometer projection', (
@@ -342,7 +315,7 @@ void main() {
     expect(odometer.confirmedReading, 1000);
     expect(find.text((odometer.reading - 1000).toString()), findsOneWidget);
     expect(
-      find.textContaining('GPS estimate: ${odometer.displayValue}'),
+      find.textContaining('Location estimate: ${odometer.displayValue}'),
       findsOneWidget,
     );
 
@@ -358,11 +331,11 @@ void main() {
     await tester.pump();
 
     expect(
-      find.textContaining('GPS estimate: $priorLiveDisplay'),
+      find.textContaining('Location estimate: $priorLiveDisplay'),
       findsNothing,
     );
     expect(
-      find.textContaining('GPS estimate: ${odometer.displayValue}'),
+      find.textContaining('Location estimate: ${odometer.displayValue}'),
       findsOneWidget,
     );
   });
@@ -437,14 +410,17 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.text('GPS-ASSISTED TRIP'));
-    expect(find.text('GPS assist is ready for delivery work.'), findsOneWidget);
-    expect(find.textContaining('walking evidence'), findsOneWidget);
+    await tester.ensureVisible(find.text('TRIP TRACKING'));
+    expect(
+      find.text('Phone location is ready for delivery work.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('begin walking'), findsOneWidget);
     expect(find.text('Delivery'), findsWidgets);
-    expect(find.textContaining('Sync: Wi-Fi only'), findsOneWidget);
-    expect(find.text('Battery guard on'), findsOneWidget);
-    expect(find.textContaining('Motion assist is recommended'), findsOneWidget);
-    expect(find.textContaining('Odometer remains'), findsOneWidget);
+    expect(find.textContaining('Sync: Wi-Fi only'), findsNothing);
+    expect(find.text('Battery protection on'), findsOneWidget);
+    expect(find.textContaining('Turn on stop suggestions'), findsOneWidget);
+    expect(find.textContaining('Odometer remains'), findsNothing);
   });
 
   testWidgets('active day asks before starting GPS below 20 percent battery', (
@@ -1439,6 +1415,17 @@ class _DashboardTripNativeGateway implements TripTrackingNativeGateway {
 
   @override
   Future<bool> get isTracking async => _tracking;
+}
+
+Future<void> _completeContractorStartDay(WidgetTester tester) async {
+  await tester.tap(find.text('Start Day'));
+  await tester.pumpAndSettle();
+  expect(find.text('Starting Odometer'), findsOneWidget);
+  await tester.tap(find.text('Review Start Day'));
+  await tester.pumpAndSettle();
+  expect(find.text('Ready to Start Day'), findsOneWidget);
+  await tester.tap(find.text('Start Workday'));
+  await tester.pumpAndSettle();
 }
 
 Future<void> _pumpDashboard(

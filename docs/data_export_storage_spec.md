@@ -66,6 +66,11 @@ For Work Supplies inventory, the first export layer is:
 - If space is too low, show a plain warning with the approximate minimum space needed.
 - Maintaniac must not delete user files to make room.
 - Cleanup may remove documented app-created temporary working files only.
+- Trip tracking and durable storage must not overwrite, reorganize, or assume
+  ownership of a user's existing folder style on the phone or provider storage.
+  If local storage is too low and backup is off, the app must explain that trip
+  history capacity will be limited and offer user-controlled cleanup/export or
+  backup setup rather than silently failing.
 
 ## Future Cloud Sync
 

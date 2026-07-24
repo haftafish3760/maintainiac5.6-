@@ -637,15 +637,14 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
                     ? TripTrackingNativeErrorPolicy.safeMessage(
                         'trip_tracking_battery_critical',
                       )
-                    : 'GPS assistance remains paused until you explicitly resume this trip.',
+                    : 'Location tracking stays paused until you tap Resume.',
               TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE =>
                 criticalBatteryResumeRequired
                     ? TripTrackingNativeErrorPolicy.safeMessage(
                         'trip_tracking_battery_critical',
                       )
-                    : 'GPS assistance could not continue and needs an explicit retry.',
-              _ =>
-                'GPS assistance remains paused until you explicitly resume this trip.',
+                    : 'Location tracking stopped. Tap Resume to try again.',
+              _ => 'Location tracking stays paused until you tap Resume.',
             };
           } catch (_) {
             _platformStatus = 'recoverable';
@@ -846,15 +845,14 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
                   ? TripTrackingNativeErrorPolicy.safeMessage(
                       'trip_tracking_battery_critical',
                     )
-                  : 'GPS assistance remains paused until you explicitly resume this trip.',
+                  : 'Location tracking stays paused until you tap Resume.',
             TripTrackingSessionLifecycleContractState.FAILED_RECOVERABLE =>
               criticalBatteryResumeRequired
                   ? TripTrackingNativeErrorPolicy.safeMessage(
                       'trip_tracking_battery_critical',
                     )
-                  : 'GPS assistance could not continue and needs an explicit retry.',
-            _ =>
-              'GPS assistance remains paused until you explicitly resume this trip.',
+                  : 'Location tracking stopped. Tap Resume to try again.',
+            _ => 'Location tracking stays paused until you tap Resume.',
           };
         } else if (session.lifecycleState ==
                 TripTrackingSessionLifecycleState.active ||

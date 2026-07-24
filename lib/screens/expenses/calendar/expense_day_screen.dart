@@ -115,7 +115,7 @@ class _ExpenseDayScreenState extends State<ExpenseDayScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.of(context).push(
-            appNativeRoute<void>(
+            appNativeRoute<Object>(
               context,
               ExpenseReceiptEntryScreen(initialDate: _day),
             ),

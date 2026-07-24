@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../expenses/data/expense_ledger_store.dart';
+import '../invoices/data/invoice_ledger_models.dart';
+import '../invoices/data/invoice_ledger_store.dart';
 import 'dashboard_shortcuts.dart';
 
 class PreDayStartContent extends StatelessWidget {
-  const PreDayStartContent({super.key, required this.onStartDay});
+  const PreDayStartContent({
+    super.key,
+    required this.onStartDay,
+    this.hasActiveDay = false,
+  });
 
   final VoidCallback onStartDay;
+  final bool hasActiveDay;
 
   @override
   Widget build(BuildContext context) {
@@ -18,10 +26,10 @@ class PreDayStartContent extends StatelessWidget {
           const SizedBox(height: 10),
           const _TopReadouts(),
           const SizedBox(height: 12),
-          const Text(
-            'READY TO TRACK',
+          Text(
+            hasActiveDay ? 'DAY IN PROGRESS' : 'READY TO TRACK',
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Color(0xFFE2E8EA),
               fontSize: 13,
               fontWeight: FontWeight.w900,
@@ -29,11 +37,15 @@ class PreDayStartContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Center(child: _RoundStartDayButton(onPressed: onStartDay)),
+          Center(
+            child: _RoundStartDayButton(
+              onPressed: onStartDay,
+              topLabel: hasActiveDay ? 'RESUME' : 'START',
+              bottomLabel: 'DAY',
+            ),
+          ),
           const SizedBox(height: 14),
-          const FastRecordGrid(),
-          const SizedBox(height: 12),
-          const WeeklyDetailLinks(),
+          FastRecordGrid(onStartTrip: onStartDay),
         ],
       ),
     );
@@ -87,22 +99,69 @@ class _TopReadouts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    final now = DateTime.now();
+    final expenseLedger = ExpenseLedgerScope.maybeOf(context);
+    final invoiceLedger = InvoiceLedgerScope.maybeOf(context);
+    final businessExpenseCents =
+        expenseLedger?.summaryForWeek(now).businessCents ?? 0;
+    final weekStart = DateTime(
+      now.year,
+      now.month,
+      now.day - (now.weekday - DateTime.monday),
+    );
+    final weekEnd = weekStart.add(const Duration(days: 7));
+    final paymentCents =
+        invoiceLedger?.records
+            .where(
+              (record) =>
+                  record.isInvoice &&
+                  record.status != InvoiceRecordStatus.voided &&
+                  record.meta.deletedAt == null,
+            )
+            .expand((record) => record.payments)
+            .where(
+              (payment) =>
+                  !payment.paidAt.isBefore(weekStart) &&
+                  payment.paidAt.isBefore(weekEnd),
+            )
+            .fold<int>(
+              0,
+              (total, payment) => total + (payment.amount * 100).round(),
+            ) ??
+        0;
+    final netCents = paymentCents - businessExpenseCents;
+    return Row(
       children: [
         Expanded(
           child: _MetricReadout(
-            label: 'Profit',
-            value: r'$1,763',
-            color: _green,
+            label: 'Net recorded',
+            value: _formatDashboardMoney(netCents),
+            color: netCents < 0 ? _red : _green,
           ),
         ),
-        SizedBox(width: 12),
+        const SizedBox(width: 12),
         Expanded(
-          child: _MetricReadout(label: 'Pay', value: r'$2,184', color: _green),
+          child: _MetricReadout(
+            label: 'Payments',
+            value: _formatDashboardMoney(paymentCents),
+            color: _green,
+          ),
         ),
       ],
     );
   }
+}
+
+String _formatDashboardMoney(int cents) {
+  final negative = cents < 0;
+  final absolute = cents.abs();
+  final dollars = (absolute ~/ 100).toString();
+  final grouped = dollars.replaceAllMapped(
+    RegExp(r'\B(?=(\d{3})+(?!\d))'),
+    (_) => ',',
+  );
+  final fraction = (absolute % 100).toString().padLeft(2, '0');
+  return '${negative ? '-' : ''}\$$grouped.$fraction';
 }
 
 class _MetricReadout extends StatelessWidget {
@@ -170,9 +229,15 @@ class _MetricReadout extends StatelessWidget {
 }
 
 class _RoundStartDayButton extends StatefulWidget {
-  const _RoundStartDayButton({required this.onPressed});
+  const _RoundStartDayButton({
+    required this.onPressed,
+    required this.topLabel,
+    required this.bottomLabel,
+  });
 
   final VoidCallback onPressed;
+  final String topLabel;
+  final String bottomLabel;
 
   @override
   State<_RoundStartDayButton> createState() => _RoundStartDayButtonState();
@@ -191,7 +256,7 @@ class _RoundStartDayButtonState extends State<_RoundStartDayButton> {
 
     return Semantics(
       button: true,
-      label: 'Start day',
+      label: widget.topLabel == 'RESUME' ? 'Resume day' : 'Start day',
       child: Material(
         color: Colors.transparent,
         shape: const CircleBorder(),
@@ -243,16 +308,20 @@ class _RoundStartDayButtonState extends State<_RoundStartDayButton> {
                     ),
                   ],
                 ),
-                child: const Column(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _StartButtonText(
-                      'START',
-                      color: Color(0xFFF2F6F7),
+                      widget.topLabel,
+                      color: const Color(0xFFF2F6F7),
                       fontSize: 20,
                     ),
-                    SizedBox(height: 4),
-                    _StartButtonText('DAY', color: _green, fontSize: 23),
+                    const SizedBox(height: 4),
+                    _StartButtonText(
+                      widget.bottomLabel,
+                      color: _green,
+                      fontSize: 23,
+                    ),
                   ],
                 ),
               ),
@@ -298,3 +367,4 @@ class _StartButtonText extends StatelessWidget {
 
 const _green = Color(0xFF20F060);
 const _blue = Color(0xFF34A9E8);
+const _red = Color(0xFFFF5750);

@@ -111,13 +111,7 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
           const SizedBox(height: 12),
           const _ExpenseStorageStatusPanel(),
           const SizedBox(height: 12),
-          _OdometerPromptSettingsPanel(
-            settings: settings,
-            categories: {
-              ..._allExpenseCategories.map((category) => category.category),
-              ...settings.customCategoryNames,
-            }.toList()..sort(),
-          ),
+          const _OdometerPromptSettingsPanel(),
           const SizedBox(height: 12),
           _SettingsSwitchPanel(
             title: 'Receipts And OCR',

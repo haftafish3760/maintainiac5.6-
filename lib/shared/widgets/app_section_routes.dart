@@ -23,7 +23,7 @@ void openAppSectionRoot(BuildContext context, AppSection section) {
 class _AppNavItem {
   const _AppNavItem(this.icon, this.label, this.section, [this.screen]);
 
-  final String icon;
+  final IconData icon;
   final String label;
   final AppSection section;
   final Widget? screen;

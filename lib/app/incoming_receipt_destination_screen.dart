@@ -244,7 +244,7 @@ class _IncomingReceiptDestinationScreenState
   }) {
     _handedOffAttachments = true;
     Navigator.of(context).pushReplacement(
-      appNativeRoute<void>(
+      appNativeRoute<Object>(
         context,
         ExpenseReceiptEntryScreen(
           mode: mode,

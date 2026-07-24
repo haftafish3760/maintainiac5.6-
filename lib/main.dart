@@ -26,6 +26,7 @@ import 'shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'shared/context/operational_context_store.dart';
 import 'shared/device_capabilities/device_capabilities.dart';
 import 'shared/jobs/maintainiac_job_store.dart';
+import 'shared/maps/mapbox_runtime.dart';
 import 'shared/profiles/user_profile_store.dart';
 import 'shared/records/maintainiac_durable_record_store.dart';
 import 'shared/signatures/app_signature_store.dart';
@@ -51,6 +52,7 @@ const maintaniacSystemUiStyle = SystemUiOverlayStyle(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MaintainiacMapRuntime.initializeFromEnvironment();
   final firebaseSupported = await MaintainiacFirebase.initializeIfSupported();
   await Hive.initFlutter();
   final installationIdentity = await AppInstallationIdentityStore()

@@ -107,7 +107,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Location stays on this device for active-trip recovery and review. It does not start until you choose Start GPS Trip.',
+            'Location stays on this device for workday recovery and review. It only starts when you press Start during an active workday.',
             style: TextStyle(
               color: Color(0xFFCAD2D5),
               fontSize: 13,
@@ -209,7 +209,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           _switch(
             title: 'Protect GPS at or below 15% battery',
             detail:
-                'On by default. Below 20%, GPS warns. At or below 15%, GPS asks before continuing. Below 10%, GPS stays off to preserve emergency battery.',
+                'On by default. Below 20%, the app warns you. At or below 15%, it asks before continuing. Below 10%, location pauses unless the phone is charging.',
             value: settings.lowBatteryGpsProtectionEnabled,
             onChanged: (value) => onChanged(
               settings.copyWith(lowBatteryGpsProtectionEnabled: value),
@@ -218,7 +218,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           _switch(
             title: 'Allow GPS at or below 15% battery',
             detail:
-                'Off by default. This can continue GPS from 10% to 15% when you accept the battery drain risk; GPS remains off below 10%.',
+                'Off by default. This can continue location from 10% to 15% when you accept the battery use. Below 10%, location pauses unless the phone is charging.',
             value: settings.lowBatteryGpsOverrideEnabled,
             onChanged: (value) => onChanged(
               settings.copyWith(lowBatteryGpsOverrideEnabled: value),
@@ -590,7 +590,7 @@ class _CalibrationAcceptancePanel extends StatelessWidget {
 
 String _samplingPresetLabel(TripTrackingSamplingPreset preset) =>
     switch (preset) {
-      TripTrackingSamplingPreset.highAccuracy => 'High accuracy (3 sec)',
+      TripTrackingSamplingPreset.highAccuracy => 'High accuracy (2 sec)',
       TripTrackingSamplingPreset.enhancedAccuracy => 'Enhanced (8 sec)',
       TripTrackingSamplingPreset.balanced => 'Balanced (15 sec)',
       TripTrackingSamplingPreset.batterySaver => 'Battery saver (30 sec)',
@@ -616,13 +616,13 @@ String _profileLabel(TripTrackingProfile profile) => switch (profile) {
 
 String _profileTrackingDetail(TripTrackingProfile profile) => switch (profile) {
   TripTrackingProfile.rideshareVehicle =>
-    'Uses stronger stop evidence because the driver often stays in the vehicle. Long lights should not become delivery-style stops.',
+    'Because you may stay in the vehicle, Maintainiac waits for clearer signs before suggesting a stop.',
   TripTrackingProfile.deliveryVehicle =>
-    'Uses walking evidence as a review-only stop clue after vehicle movement so porch or pickup walks are not counted as vehicle miles.',
+    'After you stop driving and begin walking, Maintainiac can suggest a pickup or delivery stop for you to review.',
   TripTrackingProfile.contractorVehicle =>
-    'Uses walking evidence as a review-only jobsite stop clue while keeping confirmed odometer entries authoritative.',
+    'After you stop driving and begin walking, Maintainiac can suggest a jobsite or supplier stop for you to review.',
   TripTrackingProfile.lowSpeedEquipment =>
-    'Ignores walking-stop evidence so low-speed equipment routes do not become false stops.',
+    'Walking does not create stop suggestions while using the equipment profile.',
   TripTrackingProfile.roadVehicle =>
-    'Uses conservative walking evidence for review-only stop assistance without changing confirmed odometer mileage.',
+    'After driving, walking can suggest a possible stop for you to review.',
 };

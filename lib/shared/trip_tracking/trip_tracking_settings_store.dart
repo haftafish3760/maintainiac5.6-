@@ -35,6 +35,7 @@ extension TripTrackingBackupNetworkPolicyDecision
 
 class TripTrackingSettings {
   const TripTrackingSettings({
+    this.tripTrackingSetupCompleted = false,
     this.gpsAssistedTrackingEnabled = false,
     this.samplingPreset = TripTrackingSamplingPreset.enhancedAccuracy,
     this.customIntervalSeconds = 15,
@@ -62,6 +63,7 @@ class TripTrackingSettings {
 
   static const schemaVersion = 2;
 
+  final bool tripTrackingSetupCompleted;
   final bool gpsAssistedTrackingEnabled;
   final TripTrackingSamplingPreset samplingPreset;
   final int customIntervalSeconds;
@@ -86,6 +88,7 @@ class TripTrackingSettings {
   final TripTrackingBackupNetworkPolicy backupNetworkPolicy;
 
   TripTrackingSettings copyWith({
+    bool? tripTrackingSetupCompleted,
     bool? gpsAssistedTrackingEnabled,
     TripTrackingSamplingPreset? samplingPreset,
     int? customIntervalSeconds,
@@ -122,6 +125,8 @@ class TripTrackingSettings {
         gpsEnabled &&
         (odometerAnomalyAlertsEnabled ?? this.odometerAnomalyAlertsEnabled);
     return TripTrackingSettings(
+      tripTrackingSetupCompleted:
+          tripTrackingSetupCompleted ?? this.tripTrackingSetupCompleted,
       gpsAssistedTrackingEnabled: gpsEnabled,
       samplingPreset: samplingPreset ?? this.samplingPreset,
       customIntervalSeconds: _validCustomInterval(
@@ -184,6 +189,7 @@ class TripTrackingSettings {
 
   Map<String, Object?> toMap() => {
     'schemaVersion': schemaVersion,
+    'tripTrackingSetupCompleted': tripTrackingSetupCompleted,
     'gpsAssistedTrackingEnabled': gpsAssistedTrackingEnabled,
     'samplingPreset': samplingPreset.name,
     'customIntervalSeconds': _validCustomInterval(customIntervalSeconds),
@@ -216,6 +222,7 @@ class TripTrackingSettings {
     final safe = TripTrackingSettings.fromMap(toMap());
     return {
       'schemaVersion': schemaVersion,
+      'tripTrackingSetupCompleted': safe.tripTrackingSetupCompleted,
       'gpsAssistedTrackingEnabled': safe.gpsAssistedTrackingEnabled,
       'samplingPreset': safe.samplingPreset.name,
       'customIntervalSeconds': _validCustomInterval(safe.customIntervalSeconds),
@@ -291,6 +298,7 @@ class TripTrackingSettings {
     final odometerAlerts =
         gpsEnabled && map['odometerAnomalyAlertsEnabled'] == true;
     return TripTrackingSettings(
+      tripTrackingSetupCompleted: map['tripTrackingSetupCompleted'] == true,
       gpsAssistedTrackingEnabled: gpsEnabled,
       samplingPreset: _presetFromMap(map),
       customIntervalSeconds: _validCustomInterval(

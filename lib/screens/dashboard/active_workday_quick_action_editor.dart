@@ -29,8 +29,6 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(12, 16, 12, 18),
           children: [
             const AppScreenHeader(title: 'Edit Quick Actions'),
-            const SizedBox(height: 12),
-            const _EditorIntroPanel(),
             const SizedBox(height: 14),
             const _EditorSectionTitle('ACTIVE BUTTONS'),
             const SizedBox(height: 8),
@@ -56,32 +54,6 @@ class ActiveWorkdayQuickActionEditor extends StatelessWidget {
               },
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EditorIntroPanel extends StatelessWidget {
-  const _EditorIntroPanel();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFAAB4B9),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF101416), width: 1.3),
-      ),
-      child: const Text(
-        'Choose the quick actions you want on the active workday screen. Later this screen will support long-press reorder, remove, and add behavior.',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: Color(0xFF2F383D),
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
-          height: 1.24,
         ),
       ),
     );
@@ -178,10 +150,7 @@ class _EditorActionTile extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Text(
-                action.emoji,
-                style: const TextStyle(fontSize: 24, height: 1),
-              ),
+              child: Icon(action.icon, color: Colors.white, size: 24),
             ),
             const SizedBox(height: 6),
             Text(

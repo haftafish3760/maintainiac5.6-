@@ -156,7 +156,7 @@ void main() {
     ).readAsStringSync();
     final ios = File(
       'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    ).readAsStringSync().replaceAll('\r\n', '\n');
 
     expect(
       android,
@@ -276,12 +276,12 @@ void main() {
     expect(ios, contains('"type": "activity"'));
     expect(ios, contains('"mockedLocation": simulated'));
     expect(ios, contains('isSimulatedBySoftware'));
-    expect(
-      ios.indexOf(
-        'tracking = true\n    locationManager.startUpdatingLocation()',
-      ),
-      greaterThanOrEqualTo(0),
+    final trackingEnabledIndex = ios.indexOf('tracking = true');
+    final locationUpdatesStartedIndex = ios.indexOf(
+      'locationManager.startUpdatingLocation()',
     );
+    expect(trackingEnabledIndex, greaterThanOrEqualTo(0));
+    expect(locationUpdatesStartedIndex, greaterThan(trackingEnabledIndex));
   });
 
   test('native capabilities expose battery and low-power availability', () {
@@ -451,7 +451,7 @@ void main() {
     ).readAsStringSync();
     final ios = File(
       'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    ).readAsStringSync().replaceAll('\r\n', '\n');
 
     expect(android, contains('trip_tracking_location_denied'));
     expect(android, contains('trip_tracking_gps_disabled'));
@@ -480,10 +480,18 @@ void main() {
     expect(android, contains('override fun onDestroy()'));
     expect(android, contains('fusedLocationClient.removeLocationUpdates(it)'));
     expect(android, contains('removeActivityUpdates(pendingIntent)'));
-    expect(
-      android.indexOf('retireForExplicitStop()\n        stopHeartbeat()'),
-      greaterThanOrEqualTo(0),
+    final onDestroyIndex = android.indexOf('override fun onDestroy()');
+    final retireCollectorIndex = android.indexOf(
+      'retireForExplicitStop()',
+      onDestroyIndex,
     );
+    final stopHeartbeatIndex = android.indexOf(
+      'stopHeartbeat()',
+      onDestroyIndex,
+    );
+    expect(onDestroyIndex, greaterThanOrEqualTo(0));
+    expect(retireCollectorIndex, greaterThan(onDestroyIndex));
+    expect(stopHeartbeatIndex, greaterThan(retireCollectorIndex));
     expect(
       android,
       contains('"status" to if (userPauseRequested) "paused" else "stopped"'),
@@ -701,6 +709,8 @@ void main() {
       expect(android, contains('private fun stopForCriticalBatteryIfNeeded()'));
       expect(android, contains('private fun isBatteryCriticallyLow()'));
       expect(android, contains('Intent.ACTION_BATTERY_CHANGED'));
+      expect(android, contains('BatteryManager.EXTRA_PLUGGED'));
+      expect(android, contains('if (charging) return false'));
       expect(android, contains('level * 100 / scale < 10'));
       expect(android, contains('"trip_tracking_battery_critical"'));
       expect(android, contains('if (stopForCriticalBatteryIfNeeded()) return'));
@@ -708,6 +718,7 @@ void main() {
         ios,
         contains('private func stopForCriticalBatteryIfNeeded() -> Bool'),
       );
+      expect(ios, contains('snapshot["isCharging"] as? Bool != true'));
       expect(ios, contains('percent < 10'));
       expect(ios, contains('"trip_tracking_battery_critical"'));
       expect(

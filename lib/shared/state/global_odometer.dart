@@ -92,7 +92,7 @@ class GlobalOdometerController extends ChangeNotifier {
       )
       .toList(growable: false);
 
-  String get displayValue => reading.toString().padLeft(7, '0');
+  String get displayValue => reading.toString();
   bool get drivingPatternReviewEnabled => _drivingPatternReviewEnabled;
 
   OdometerVehicleSnapshot get snapshot => OdometerVehicleSnapshot(

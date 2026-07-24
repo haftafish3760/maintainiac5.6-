@@ -202,7 +202,7 @@ class TripTrackingProfileStrategy {
         quickActionTokens: const ['add_pay', 'end_trip', 'review_mileage'],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
-            'Passenger-service trips require stronger stop evidence because the driver often stays in the vehicle.',
+            'Because you may stay in the vehicle, Maintainiac waits for clearer signs before suggesting a stop.',
       ),
       TripTrackingProfile.deliveryVehicle => TripTrackingProfileStrategy(
         profile: profile,
@@ -230,7 +230,7 @@ class TripTrackingProfileStrategy {
         ],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
-            'Delivery trips can use walking evidence as a strong stop clue after vehicle movement.',
+            'After you stop driving and begin walking, Maintainiac can suggest a pickup or delivery stop.',
       ),
       TripTrackingProfile.contractorVehicle => TripTrackingProfileStrategy(
         profile: profile,
@@ -259,7 +259,7 @@ class TripTrackingProfileStrategy {
         ],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
-            'Contractor trips can use walking evidence to identify job-site stops without changing odometer truth.',
+            'After you stop driving and begin walking, Maintainiac can suggest a jobsite or supplier stop.',
       ),
       TripTrackingProfile.lowSpeedEquipment => TripTrackingProfileStrategy(
         profile: profile,
@@ -279,7 +279,7 @@ class TripTrackingProfileStrategy {
         quickActionTokens: const ['start_trip', 'end_trip', 'maintenance_log'],
         recommendedActivityRecognition: false,
         stopDetectionSummary:
-            'Low-speed equipment ignores walking-stop evidence so mower and equipment routes do not become false stops.',
+            'Walking does not create stop suggestions while using the equipment profile.',
       ),
       TripTrackingProfile.roadVehicle => TripTrackingProfileStrategy(
         profile: profile,
@@ -299,7 +299,7 @@ class TripTrackingProfileStrategy {
         quickActionTokens: const ['start_trip', 'end_trip', 'review_mileage'],
         recommendedActivityRecognition: true,
         stopDetectionSummary:
-            'General road trips use conservative walking evidence as review-only stop assistance.',
+            'After driving, walking can suggest a possible stop for you to review.',
       ),
     };
   }

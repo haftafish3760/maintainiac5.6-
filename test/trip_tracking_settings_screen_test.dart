@@ -113,6 +113,10 @@ void main() {
     expect(find.text('Protect GPS at or below 15% battery'), findsOneWidget);
     expect(find.text('Allow GPS at or below 15% battery'), findsOneWidget);
     expect(find.text('Remember low-battery GPS choice'), findsOneWidget);
+    expect(
+      find.textContaining('unless the phone is charging'),
+      findsNWidgets(2),
+    );
     expect(find.text('Mileage backup network'), findsOneWidget);
     expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
     expect(find.text('Recognize a linked vehicle by Bluetooth'), findsNothing);
@@ -192,7 +196,7 @@ void main() {
     expect(find.bySemanticsLabel('GPS update preset'), findsOneWidget);
     await tester.tap(find.text('Enhanced (8 sec)'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('High accuracy (3 sec)').last);
+    await tester.tap(find.text('High accuracy (2 sec)').last);
     await tester.pumpAndSettle();
     expect(
       settings.settings.samplingPreset,
@@ -360,10 +364,7 @@ void main() {
       settings.settings.defaultProfile,
       TripTrackingProfile.rideshareVehicle,
     );
-    expect(
-      find.textContaining('driver often stays in the vehicle'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('stay in the vehicle'), findsOneWidget);
   });
 
   testWidgets('low battery GPS settings are reversible', (tester) async {

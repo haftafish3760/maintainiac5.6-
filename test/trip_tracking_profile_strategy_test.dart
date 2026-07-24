@@ -52,7 +52,10 @@ void main() {
       expect(rideshare.stopEvidenceTier, 'strong_debounce_review');
       expect(rideshare.recommendedActivityRecognition, isTrue);
       expect(rideshare.requiresStrongerStopDebounce, isTrue);
-      expect(rideshare.stopDetectionSummary, contains('stays in the vehicle'));
+      expect(
+        rideshare.stopDetectionSummary,
+        contains('may stay in the vehicle'),
+      );
     },
   );
 

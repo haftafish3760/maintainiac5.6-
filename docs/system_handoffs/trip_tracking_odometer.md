@@ -47,3 +47,13 @@ settings, Dashboard summary, Mapbox assistance, and global odometer exist.
   QA pending.
 - 2026-07-22: Repaired same-revision cloud review transitions without allowing
   stale evidence to overwrite newer local state; 66 focused tests passed.
+- 2026-07-23: Product owner clarified that Start Day and all stop/fuel/expense
+  day entries must stay odometer-first and manual-first. GPS and Bluetooth are
+  optional assistance only; AI/OpenAI integration must attach to completed
+  manual records rather than replacing them.
+- 2026-07-23: Product owner clarified first-use GPS setup behavior: when GPS
+  onboarding was skipped or incomplete, Start Day must still ask for the
+  physical odometer first, then offer a clear opt-in setup flow. Device
+  capability, battery level, charging state, and selected accuracy mode should
+  drive sampling policy. Low-battery protection must be understandable and must
+  not block a plugged-in, opted-in user with an arbitrary recharge gate.

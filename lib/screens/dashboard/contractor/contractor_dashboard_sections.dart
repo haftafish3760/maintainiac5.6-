@@ -7,7 +7,9 @@ import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_tiles.dart';
 
 class ContractorMetricsStrip extends StatelessWidget {
-  const ContractorMetricsStrip({super.key});
+  const ContractorMetricsStrip({required this.metrics, super.key});
+
+  final List<ContractorMetric> metrics;
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +19,13 @@ class ContractorMetricsStrip extends StatelessWidget {
         label: 'Business Snapshot',
         child: GridView.count(
           crossAxisCount: 2,
-          childAspectRatio: 2.45,
+          mainAxisExtent: contractorMetricTileExtent(context),
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            for (final metric in contractorMetrics)
-              ContractorMetricTile(metric: metric),
+            for (final metric in metrics) ContractorMetricTile(metric: metric),
           ],
         ),
       ),
@@ -33,7 +34,9 @@ class ContractorMetricsStrip extends StatelessWidget {
 }
 
 class ContractorScaleStrip extends StatelessWidget {
-  const ContractorScaleStrip({super.key});
+  const ContractorScaleStrip({required this.metrics, super.key});
+
+  final List<ContractorMetric> metrics;
 
   @override
   Widget build(BuildContext context) {
@@ -45,24 +48,19 @@ class ContractorScaleStrip extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: const Color(0xFF5B6A70), width: 1.4),
         ),
-        child: const Padding(
-          padding: EdgeInsets.fromLTRB(10, 9, 10, 10),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
           child: Row(
             children: [
-              Expanded(
-                child: ContractorShiftReadout(
-                  label: 'Mode',
-                  value: 'Contractor',
+              for (var index = 0; index < metrics.length; index++) ...[
+                if (index > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: ContractorShiftReadout(
+                    label: metrics[index].label,
+                    value: metrics[index].value,
+                  ),
                 ),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: ContractorShiftReadout(label: 'Employees', value: '7'),
-              ),
-              SizedBox(width: 8),
-              Expanded(
-                child: ContractorShiftReadout(label: 'Vehicles', value: '4'),
-              ),
+              ],
             ],
           ),
         ),
@@ -75,17 +73,13 @@ class ContractorDayControlPanel extends StatelessWidget {
   const ContractorDayControlPanel({
     required this.dayStarted,
     required this.onStartDay,
-    this.dayPaused = false,
-    this.onPauseDay,
-    this.onEndDay,
+    this.onOpenDay,
     super.key,
   });
 
   final bool dayStarted;
-  final bool dayPaused;
   final VoidCallback onStartDay;
-  final VoidCallback? onPauseDay;
-  final VoidCallback? onEndDay;
+  final VoidCallback? onOpenDay;
 
   @override
   Widget build(BuildContext context) {
@@ -126,9 +120,7 @@ class ContractorDayControlPanel extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       dayStarted
-                          ? dayPaused
-                                ? 'Resume the shift, end the day, or keep reviewing job records above.'
-                                : 'Pause the shift, end the day, or keep adding job records above.'
+                          ? 'Open the workday to pause, resume, review GPS, add stops, or end with the vehicle odometer.'
                           : 'Begin mileage, jobs, receipts, materials, and invoices for this vehicle.',
                       style: const TextStyle(
                         color: Color(0xFFF1F7F3),
@@ -142,27 +134,14 @@ class ContractorDayControlPanel extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               if (dayStarted)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AppButton(
-                      label: dayPaused ? 'Resume Day' : 'Pause Day',
-                      compact: true,
-                      icon: const Icon(
-                        Icons.pause_rounded,
-                        color: Colors.white,
-                      ),
-                      onPressed: onPauseDay,
-                    ),
-                    const SizedBox(height: 7),
-                    AppButton(
-                      label: 'End Day',
-                      compact: true,
-                      tone: AppButtonTone.destructive,
-                      icon: const Icon(Icons.stop_rounded, color: Colors.white),
-                      onPressed: onEndDay,
-                    ),
-                  ],
+                AppButton(
+                  label: 'Open Workday',
+                  compact: true,
+                  icon: const Icon(
+                    Icons.open_in_new_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: onOpenDay,
                 )
               else
                 AppButton(
@@ -183,7 +162,9 @@ class ContractorDayControlPanel extends StatelessWidget {
 }
 
 class ContractorAttentionPanel extends StatelessWidget {
-  const ContractorAttentionPanel({super.key});
+  const ContractorAttentionPanel({required this.items, super.key});
+
+  final List<ContractorAttentionItem> items;
 
   @override
   Widget build(BuildContext context) {
@@ -191,26 +172,37 @@ class ContractorAttentionPanel extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: const Color(0xFF2A170A),
+          color: items.isEmpty
+              ? const Color(0xFF0E2518)
+              : const Color(0xFF2A170A),
           borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0xFFFFC44D), width: 1.6),
+          border: Border.all(
+            color: items.isEmpty
+                ? const Color(0xFF55D68A)
+                : const Color(0xFFFFC44D),
+            width: 1.6,
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Row(
+              Row(
                 children: [
                   Icon(
-                    Icons.priority_high_rounded,
-                    color: Color(0xFFFFC44D),
+                    items.isEmpty
+                        ? Icons.check_circle_rounded
+                        : Icons.priority_high_rounded,
+                    color: items.isEmpty
+                        ? const Color(0xFF55D68A)
+                        : const Color(0xFFFFC44D),
                     size: 22,
                   ),
-                  SizedBox(width: 7),
-                  Expanded(
+                  const SizedBox(width: 7),
+                  const Expanded(
                     child: Text(
-                      'Needs Attention',
+                      'Record Review',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -221,11 +213,21 @@ class ContractorAttentionPanel extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 8),
-              for (final item in contractorAttentionItems) ...[
-                _AttentionRow(item: item),
-                if (item != contractorAttentionItems.last)
-                  const Divider(height: 12, color: Color(0x66FFC44D)),
-              ],
+              if (items.isEmpty)
+                const Text(
+                  'No expense or invoice records need attention right now.',
+                  style: TextStyle(
+                    color: Color(0xFFF1F7F3),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                )
+              else
+                for (final item in items) ...[
+                  _AttentionRow(item: item),
+                  if (item != items.last)
+                    const Divider(height: 12, color: Color(0x66FFC44D)),
+                ],
             ],
           ),
         ),
@@ -235,7 +237,9 @@ class ContractorAttentionPanel extends StatelessWidget {
 }
 
 class ContractorJobsPanel extends StatelessWidget {
-  const ContractorJobsPanel({super.key});
+  const ContractorJobsPanel({required this.jobs, super.key});
+
+  final List<ContractorJobPreview> jobs;
 
   @override
   Widget build(BuildContext context) {
@@ -245,11 +249,24 @@ class ContractorJobsPanel extends StatelessWidget {
         label: 'Today Work Queue',
         child: Column(
           children: [
-            for (final job in contractorJobsToday) ...[
-              _JobRow(job: job),
-              if (job != contractorJobsToday.last)
-                const Divider(height: 12, color: Color(0x668B9089)),
-            ],
+            if (jobs.isEmpty)
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'No jobs are scheduled for today.',
+                  style: TextStyle(
+                    color: Color(0xFFC7D0D4),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              )
+            else
+              for (final job in jobs) ...[
+                _JobRow(job: job),
+                if (job != jobs.last)
+                  const Divider(height: 12, color: Color(0x668B9089)),
+              ],
           ],
         ),
       ),
@@ -360,7 +377,7 @@ class _JobRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                job.customer,
+                job.title,
                 style: const TextStyle(
                   color: AppColors.text,
                   fontSize: 13.5,
@@ -381,26 +398,13 @@ class _JobRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              job.amount,
-              style: const TextStyle(
-                color: AppColors.green,
-                fontSize: 13,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            Text(
-              job.status,
-              style: const TextStyle(
-                color: Color(0xFFE8ECEE),
-                fontSize: 10.5,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
+        Text(
+          job.status,
+          style: const TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ],
     );

@@ -1,91 +1,98 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/navigation/app_page_routes.dart';
-import 'dashboard_detail_screen.dart';
+import '../../shared/odometer/open_odometer_entry.dart';
+import '../expenses/data/expense_ledger_models.dart';
+import '../expenses/entry/expense_receipt_entry_screen.dart';
+import '../invoices/home/invoice_info_screens.dart';
+import 'data/active_workday_store.dart';
 
 class FastRecordGrid extends StatelessWidget {
-  const FastRecordGrid({super.key});
+  const FastRecordGrid({super.key, required this.onStartTrip});
+
+  final VoidCallback onStartTrip;
 
   @override
   Widget build(BuildContext context) {
-    return const DashboardShortcutGrid(
+    return DashboardShortcutGrid(
       title: 'Fast record',
       shortcuts: [
         DashboardShortcut(
           title: 'Fuel',
-          subtitle: r'$126 this week',
+          subtitle: 'Odometer + receipt',
           icon: Icons.local_gas_station_rounded,
           color: _red,
-          kind: DashboardDetailKind.fuel,
+          onTap: () => _openExpense(context, category: 'Fuel'),
           startsInAddMode: true,
         ),
         DashboardShortcut(
           title: 'Expense',
-          subtitle: r'$421 this week',
+          subtitle: 'Odometer + details',
           icon: Icons.receipt_long_rounded,
           color: _yellow,
-          kind: DashboardDetailKind.expenses,
+          onTap: () => _openExpense(context),
           startsInAddMode: true,
         ),
         DashboardShortcut(
-          title: 'Pay',
-          subtitle: r'$44.80 per hr',
+          title: 'Payment',
+          subtitle: 'Record money received',
           icon: Icons.payments_rounded,
           color: _green,
-          kind: DashboardDetailKind.pay,
+          onTap: () => Navigator.of(
+            context,
+          ).push(appNativeRoute<void>(context, const InvoicePaymentScreen())),
           startsInAddMode: true,
         ),
         DashboardShortcut(
-          title: 'Trip',
-          subtitle: '386 mi this week',
+          title: 'Start Trip',
+          subtitle: 'Odometer first',
           icon: Icons.route_rounded,
           color: _blue,
-          kind: DashboardDetailKind.trips,
+          onTap: onStartTrip,
           startsInAddMode: true,
         ),
       ],
     );
   }
-}
 
-class WeeklyDetailLinks extends StatelessWidget {
-  const WeeklyDetailLinks({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const DashboardShortcutGrid(
-      title: 'Weekly totals',
-      shortcuts: [
-        DashboardShortcut(
-          title: 'Profit',
-          subtitle: r'$1,763 net',
-          icon: Icons.trending_up_rounded,
-          color: _green,
-          kind: DashboardDetailKind.profit,
-        ),
-        DashboardShortcut(
-          title: 'Fuel',
-          subtitle: r'$126 spent',
-          icon: Icons.local_gas_station_rounded,
-          color: _red,
-          kind: DashboardDetailKind.fuel,
-        ),
-        DashboardShortcut(
-          title: 'Expenses',
-          subtitle: r'$421 total',
-          icon: Icons.receipt_long_rounded,
-          color: _yellow,
-          kind: DashboardDetailKind.expenses,
-        ),
-        DashboardShortcut(
-          title: 'Trips',
-          subtitle: '64 stops',
-          icon: Icons.route_rounded,
-          color: _blue,
-          kind: DashboardDetailKind.trips,
-        ),
-      ],
+  Future<void> _openExpense(BuildContext context, {String? category}) async {
+    final reading = await openOdometerEntryResult(
+      context,
+      title: category == 'Fuel' ? 'Fuel Stop Odometer' : 'Expense Odometer',
+      saveLabel: category == 'Fuel'
+          ? 'Continue to Fuel'
+          : 'Continue to Expense',
     );
+    if (reading == null || !context.mounted) return;
+    final saved = await Navigator.of(context).push<ExpenseReceiptRecord>(
+      appNativeRoute<ExpenseReceiptRecord>(
+        context,
+        ExpenseReceiptEntryScreen(
+          initialCategory: category,
+          initialOdometerReading: reading,
+        ),
+      ),
+    );
+    if (saved == null || !context.mounted) return;
+    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
+    if (activeWorkday?.activeSession != null) {
+      final updated = await activeWorkday!.addEvent(
+        type: category == 'Fuel'
+            ? ActiveWorkdayEventType.fuel
+            : ActiveWorkdayEventType.expense,
+        odometerReading: saved.odometerReading ?? reading,
+        note: category == 'Fuel' ? 'Fuel expense saved' : 'Expense saved',
+      );
+      if (updated == null && context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'The expense saved, but it could not be added to today. Open the expense to try again.',
+            ),
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -142,7 +149,7 @@ class _ShortcutTile extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => _openDetail(context),
+        onTap: shortcut.onTap,
         borderRadius: BorderRadius.circular(6),
         child: Ink(
           padding: const EdgeInsets.fromLTRB(10, 8, 9, 9),
@@ -206,18 +213,6 @@ class _ShortcutTile extends StatelessWidget {
       ),
     );
   }
-
-  void _openDetail(BuildContext context) {
-    Navigator.of(context).push(
-      appNativeRoute<void>(
-        context,
-        DashboardDetailScreen(
-          kind: shortcut.kind,
-          startsInAddMode: shortcut.startsInAddMode,
-        ),
-      ),
-    );
-  }
 }
 
 class DashboardShortcut {
@@ -226,7 +221,7 @@ class DashboardShortcut {
     required this.subtitle,
     required this.icon,
     required this.color,
-    required this.kind,
+    this.onTap,
     this.startsInAddMode = false,
   });
 
@@ -234,7 +229,7 @@ class DashboardShortcut {
   final String subtitle;
   final IconData icon;
   final Color color;
-  final DashboardDetailKind kind;
+  final VoidCallback? onTap;
   final bool startsInAddMode;
 }
 

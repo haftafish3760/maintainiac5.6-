@@ -34,6 +34,13 @@ void main() {
     }
 
     expect(intervals, hasLength(5));
+    final highAccuracy = TripTrackingSamplingPresetPolicy.planFor(
+      preset: TripTrackingSamplingPreset.highAccuracy,
+      customIntervalSeconds: 15,
+      capabilities: sensorAssisted,
+    );
+    expect(highAccuracy.sampling.interval, const Duration(seconds: 2));
+    expect(highAccuracy.sampling.minimumDisplacementMeters, 1);
   });
 
   test('capability tier controls evidence availability, not user cadence', () {
@@ -68,6 +75,7 @@ void main() {
     );
 
     expect(fast.sampling.interval, const Duration(seconds: 3));
+    expect(fast.sampling.minimumDisplacementMeters, 8);
     expect(sparse.sampling.interval, const Duration(seconds: 60));
   });
 
@@ -93,45 +101,51 @@ void main() {
     },
   );
 
-  test('adaptive sampling cannot raise GPS power mode behind a battery-saver selection', () {
-    final plan = TripTrackingSamplingPresetPolicy.planFor(
-      preset: TripTrackingSamplingPreset.batterySaver,
-      customIntervalSeconds: 15,
-      capabilities: sensorAssisted,
-    );
+  test(
+    'adaptive sampling cannot raise GPS power mode behind a battery-saver selection',
+    () {
+      final plan = TripTrackingSamplingPresetPolicy.planFor(
+        preset: TripTrackingSamplingPreset.batterySaver,
+        customIntervalSeconds: 15,
+        capabilities: sensorAssisted,
+      );
 
-    final constrained = plan.constrainAdaptive(
-      const TripSamplingRecommendation(
-        mode: TripSamplingMode.precision,
-        interval: Duration(seconds: 60),
-        minimumDisplacementMeters: 30,
-      ),
-    );
+      final constrained = plan.constrainAdaptive(
+        const TripSamplingRecommendation(
+          mode: TripSamplingMode.precision,
+          interval: Duration(seconds: 60),
+          minimumDisplacementMeters: 30,
+        ),
+      );
 
-    expect(constrained.mode, TripSamplingMode.economy);
-    expect(constrained.interval, const Duration(seconds: 60));
-    expect(constrained.minimumDisplacementMeters, 30);
-  });
+      expect(constrained.mode, TripSamplingMode.economy);
+      expect(constrained.interval, const Duration(seconds: 60));
+      expect(constrained.minimumDisplacementMeters, 30);
+    },
+  );
 
-  test('adaptive sampling may reduce power mode when its cadence stays within the user plan', () {
-    final plan = TripTrackingSamplingPresetPolicy.planFor(
-      preset: TripTrackingSamplingPreset.balanced,
-      customIntervalSeconds: 15,
-      capabilities: sensorAssisted,
-    );
+  test(
+    'adaptive sampling may reduce power mode when its cadence stays within the user plan',
+    () {
+      final plan = TripTrackingSamplingPresetPolicy.planFor(
+        preset: TripTrackingSamplingPreset.balanced,
+        customIntervalSeconds: 15,
+        capabilities: sensorAssisted,
+      );
 
-    final constrained = plan.constrainAdaptive(
-      const TripSamplingRecommendation(
-        mode: TripSamplingMode.economy,
-        interval: Duration(seconds: 30),
-        minimumDisplacementMeters: 20,
-      ),
-    );
+      final constrained = plan.constrainAdaptive(
+        const TripSamplingRecommendation(
+          mode: TripSamplingMode.economy,
+          interval: Duration(seconds: 30),
+          minimumDisplacementMeters: 20,
+        ),
+      );
 
-    expect(constrained.mode, TripSamplingMode.economy);
-    expect(constrained.interval, const Duration(seconds: 30));
-    expect(constrained.minimumDisplacementMeters, 20);
-  });
+      expect(constrained.mode, TripSamplingMode.economy);
+      expect(constrained.interval, const Duration(seconds: 30));
+      expect(constrained.minimumDisplacementMeters, 20);
+    },
+  );
 
   test('safe diagnostics exclude location, identity, and authority', () {
     final safe = TripTrackingSamplingPresetPolicy.planFor(

@@ -25,3 +25,8 @@ Dashboard settings, and trip settings exist.
 ## Rolling Log
 
 - 2026-07-22: Created as the shared device/settings system record.
+- 2026-07-23: Product owner clarified that trip tracking setup and GPS sampling
+  must use battery level, charging state, device capability, and user-selected
+  accuracy mode. Low-battery protection can stop GPS below the configured
+  threshold, but plugged-in behavior and explicit user opt-in must be handled
+  clearly without arbitrary recharge requirements.

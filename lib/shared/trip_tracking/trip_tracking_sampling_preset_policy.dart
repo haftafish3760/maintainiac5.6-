@@ -30,8 +30,8 @@ class TripTrackingSamplingPresetPolicy {
   }) => switch (preset) {
     TripTrackingSamplingPreset.highAccuracy => const TripSamplingRecommendation(
       mode: TripSamplingMode.precision,
-      interval: Duration(seconds: 3),
-      minimumDisplacementMeters: 3,
+      interval: Duration(seconds: 2),
+      minimumDisplacementMeters: 1,
     ),
     TripTrackingSamplingPreset.enhancedAccuracy =>
       const TripSamplingRecommendation(

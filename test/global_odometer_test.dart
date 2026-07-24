@@ -865,8 +865,8 @@ void main() {
       final dashboardMap = controller.liveDisplaySnapshot.toSafeDashboardMap(
         DateTime.now(),
       );
-      expect(dashboardMap['displayValue'], '0001002');
-      expect(dashboardMap['confirmedDisplayValue'], '0001000');
+      expect(dashboardMap['displayValue'], '1002');
+      expect(dashboardMap['confirmedDisplayValue'], '1000');
       expect(dashboardMap['confirmedReadingIsCanonical'], isTrue);
       expect(dashboardMap['liveUiMustRefreshOnProjectionChange'], isTrue);
       expect(dashboardMap['remoteProjectionRequiresMatchingTripId'], isTrue);
@@ -1049,7 +1049,7 @@ void main() {
     expect(controller.reading, 1004);
     expect(controller.confirmedReading, 1000);
     expect(controller.liveTripUpdatedAt, updatedAt);
-    expect(controller.liveDisplaySnapshot.displayValue, '0001004');
+    expect(controller.liveDisplaySnapshot.displayValue, '1004');
     expect(notifications, 2);
   });
 
@@ -1114,7 +1114,7 @@ void main() {
 
     expect(controller.liveTripUpdatedAt, start.add(const Duration(minutes: 5)));
     expect(controller.liveTripProjectionRevision, 1);
-    expect(controller.liveDisplaySnapshot.displayValue, '0001000');
+    expect(controller.liveDisplaySnapshot.displayValue, '1000');
   });
 
   test(

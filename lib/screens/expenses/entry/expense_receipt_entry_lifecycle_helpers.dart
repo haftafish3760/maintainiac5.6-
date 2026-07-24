@@ -4,6 +4,7 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     on _ExpenseReceiptEntryScreenState {
   void _initReceiptEntryState() {
     _screenOpenedAtUtc = DateTime.now().toUtc();
+    _expenseOdometerReading = widget.initialOdometerReading;
     _draftId =
         widget.draftId ??
         (widget.receiptId == null

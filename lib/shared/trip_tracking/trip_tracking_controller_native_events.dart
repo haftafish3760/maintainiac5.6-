@@ -13,7 +13,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
 
   String _gpsBatteryMessageFor(TripGpsBatteryDecision decision) {
     if (decision.reasonCode == 'battery_critical_gps_blocked') {
-      return 'Battery is critically low. GPS-assisted tracking is paused below 10% to preserve your device and local TripLog.';
+      return 'Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.';
     }
     final lowPowerMode = decision.reasonCode.startsWith('low_power_mode');
     final prompt =

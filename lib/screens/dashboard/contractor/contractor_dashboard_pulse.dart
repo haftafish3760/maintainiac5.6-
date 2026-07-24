@@ -5,7 +5,9 @@ import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_tiles.dart';
 
 class ContractorOperationsPulse extends StatelessWidget {
-  const ContractorOperationsPulse({super.key});
+  const ContractorOperationsPulse({required this.items, super.key});
+
+  final List<ContractorMetric> items;
 
   @override
   Widget build(BuildContext context) {
@@ -15,14 +17,13 @@ class ContractorOperationsPulse extends StatelessWidget {
         label: 'Operations Pulse',
         child: GridView.count(
           crossAxisCount: 2,
-          childAspectRatio: 2.55,
+          mainAxisExtent: contractorMetricTileExtent(context),
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            for (final item in contractorOperationsPulse)
-              ContractorMetricTile(metric: item),
+            for (final item in items) ContractorMetricTile(metric: item),
           ],
         ),
       ),

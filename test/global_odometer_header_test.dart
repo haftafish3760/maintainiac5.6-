@@ -34,7 +34,7 @@ void main() {
       ),
     );
 
-    expect(find.text('0001000'), findsOneWidget);
+    expect(find.text('1000'), findsOneWidget);
     expect(
       odometer.beginLiveTripProjection(
         tripId: 'trip_1',
@@ -51,7 +51,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('0001002'), findsOneWidget);
+    expect(find.text('1002'), findsOneWidget);
     expect(find.text('+2 mi live'), findsOneWidget);
   });
 
@@ -77,7 +77,7 @@ void main() {
       ),
     );
 
-    expect(find.text('0001000'), findsOneWidget);
+    expect(find.text('1000'), findsOneWidget);
     expect(
       await tripController.start(
         tripId: 'trip_accepted_gps_ui',
@@ -91,10 +91,88 @@ void main() {
     await tripController.ingest(sample(-79.965, 90));
     await tester.pump();
 
-    expect(find.text('0001000'), findsNothing);
+    expect(find.text('1000'), findsNothing);
     expect(find.text(odometer.displayValue), findsOneWidget);
-    expect(find.text('+${odometer.liveTripDeltaMiles} mi live'), findsOneWidget);
+    expect(
+      find.text('+${odometer.liveTripDeltaMiles} mi live'),
+      findsOneWidget,
+    );
     expect(odometer.reading, greaterThan(1000));
     expect(odometer.confirmedReading, 1000);
+  });
+
+  testWidgets('shared odometer header fits a complete live reading on phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final odometer = GlobalOdometerController(initialReading: 328434);
+    expect(
+      odometer.beginLiveTripProjection(
+        tripId: 'trip_header_fit',
+        startingOdometer: 328434,
+      ),
+      isTrue,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppStateScope(
+          controller: AppStateController(),
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: const Scaffold(body: GlobalOdometerHeader()),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('328434'), findsOneWidget);
+    expect(find.text('GPS live'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('shared header does not call a stopped GPS estimate live', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(initialReading: 328434);
+    final tripController = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+    );
+    addTearDown(tripController.dispose);
+    expect(
+      odometer.beginLiveTripProjection(
+        tripId: 'trip_paused_header',
+        startingOdometer: 328434,
+      ),
+      isTrue,
+    );
+    expect(
+      odometer.updateLiveTripProjection(
+        tripId: 'trip_paused_header',
+        estimatedOdometer: 328443,
+      ),
+      isTrue,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppStateScope(
+          controller: AppStateController(),
+          child: TripTrackingScope(
+            controller: tripController,
+            child: GlobalOdometerScope(
+              controller: odometer,
+              child: const Scaffold(body: GlobalOdometerHeader()),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('328443'), findsOneWidget);
+    expect(find.text('GPS paused'), findsOneWidget);
+    expect(find.text('+9 mi live'), findsNothing);
   });
 }

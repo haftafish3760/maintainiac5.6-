@@ -13,27 +13,31 @@ class _AppBottomNavigationState extends State<AppBottomNavigation> {
   @override
   Widget build(BuildContext context) {
     final items = [
-      const _AppNavItem('🏠', 'Dashboard', AppSection.dashboard),
       const _AppNavItem(
-        '🧾',
+        Icons.dashboard_rounded,
+        'Dashboard',
+        AppSection.dashboard,
+      ),
+      const _AppNavItem(
+        Icons.receipt_long_rounded,
         'Expenses',
         AppSection.expenses,
         ExpensesScreen(),
       ),
       const _AppNavItem(
-        '📄',
+        Icons.description_rounded,
         'Invoices',
         AppSection.invoices,
         InvoicesScreen(),
       ),
       const _AppNavItem(
-        '📦',
+        Icons.inventory_2_rounded,
         'Materials',
         AppSection.materials,
         WorkSupplyScreen(),
       ),
       const _AppNavItem(
-        '🛠️',
+        Icons.build_rounded,
         'Maintenance',
         AppSection.maintenance,
         MaintenanceScreen(),
@@ -63,12 +67,12 @@ class _AppBottomNavigationState extends State<AppBottomNavigation> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
+                              Icon(
                                 item.icon,
-                                style: TextStyle(
-                                  fontSize: iconSize + 4,
-                                  height: 1,
-                                ),
+                                size: iconSize,
+                                color: item.section == widget.currentSection
+                                    ? const Color(0xFF55D68A)
+                                    : const Color(0xFFD3DBDE),
                               ),
                               const SizedBox(height: 3),
                               SizedBox(

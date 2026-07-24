@@ -106,8 +106,8 @@ extension _ExpenseReceiptDuplicateDialog on _ExpenseReceiptEntryScreenState {
     if (!mounted) return;
     final receipt = candidate.receipt;
     if (receipt != null) {
-      await Navigator.of(context).push<void>(
-        appNativeRoute(
+      await Navigator.of(context).push<Object>(
+        appNativeRoute<Object>(
           context,
           ExpenseReceiptEntryScreen(receiptId: receipt.id),
         ),

@@ -132,9 +132,17 @@ class TripTrackingPolicy {
     required bool lowBatteryWarningDismissed,
   }) {
     final percent = batteryPercent;
+    if (isCharging) {
+      return _batteryDecision(
+        status: TripGpsBatteryDecisionStatus.allowed,
+        reasonCode: 'device_charging',
+        batteryPercent: batteryPercent,
+        cutoffPercent: lowBatteryGpsCutoffPercent,
+      );
+    }
     // Below this reserve, GPS is disabled even when the user previously chose
-    // to continue or the device reports external power. The app must protect
-    // the device's ability to place calls and retain the local TripLog.
+    // to continue. Charging is checked first because external power can safely
+    // sustain the optional collector while preserving the local TripLog.
     if (percent != null && percent >= 0 && percent < _hardGpsShutdownPercent) {
       return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.blocked,
@@ -147,14 +155,6 @@ class TripTrackingPolicy {
       return _batteryDecision(
         status: TripGpsBatteryDecisionStatus.allowed,
         reasonCode: 'battery_protection_disabled',
-        batteryPercent: batteryPercent,
-        cutoffPercent: lowBatteryGpsCutoffPercent,
-      );
-    }
-    if (isCharging) {
-      return _batteryDecision(
-        status: TripGpsBatteryDecisionStatus.allowed,
-        reasonCode: 'device_charging',
         batteryPercent: batteryPercent,
         cutoffPercent: lowBatteryGpsCutoffPercent,
       );

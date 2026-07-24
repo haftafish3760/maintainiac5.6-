@@ -1312,17 +1312,17 @@ void main() {
       expect(native.startedRequest?.sampling.mode, TripSamplingMode.precision);
       expect(
         native.startedRequest?.sampling.interval,
-        const Duration(seconds: 3),
+        const Duration(seconds: 2),
       );
-      expect(native.startedRequest?.sampling.minimumDisplacementMeters, 3);
+      expect(native.startedRequest?.sampling.minimumDisplacementMeters, 1);
       expect(native.startedRequest?.activityRecognitionEnabled, isTrue);
       expect(
         store.activeSession?.nativeSampling?.interval,
-        const Duration(seconds: 3),
+        const Duration(seconds: 2),
       );
       expect(
         store.activeSession?.samplingCeiling?.interval,
-        const Duration(seconds: 3),
+        const Duration(seconds: 2),
       );
       expect(store.activeSession?.adaptiveSamplingEnabled, isFalse);
     },
@@ -2414,7 +2414,7 @@ void main() {
       expect(restored.platformStatus, 'battery_critical_gps_blocked');
       expect(
         restored.platformError,
-        'Battery is critically low. GPS-assisted tracking is paused below 10%.',
+        'Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.',
       );
     },
   );
@@ -2496,7 +2496,7 @@ void main() {
       expect(restored.platformStatus, 'recoverable');
       expect(
         restored.platformError,
-        'GPS assistance could not continue and needs an explicit retry.',
+        'Location tracking stopped. Tap Resume to try again.',
       );
       expect(
         restored.activeSession?.effectiveContractState,
@@ -5213,7 +5213,7 @@ void main() {
     expect(restored.platformStatus, 'battery_critical_gps_blocked');
     expect(
       restored.platformError,
-      'Battery is critically low. GPS-assisted tracking is paused below 10%.',
+      'Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.',
     );
     expect(
       restored.activeSession?.effectiveContractState,

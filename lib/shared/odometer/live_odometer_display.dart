@@ -40,11 +40,9 @@ class LiveOdometerDisplaySnapshot {
       ? confirmedReading
       : displayReading;
 
-  String get displayValue =>
-      _safeReading(safeDisplayReading).toString().padLeft(7, '0');
+  String get displayValue => _safeReading(safeDisplayReading).toString();
 
-  String get confirmedDisplayValue =>
-      _safeReading(confirmedReading).toString().padLeft(7, '0');
+  String get confirmedDisplayValue => _safeReading(confirmedReading).toString();
 
   String? get deltaLabel {
     if (!isLive) return null;

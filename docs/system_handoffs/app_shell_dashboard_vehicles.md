@@ -31,3 +31,8 @@ system-wide QA claim is recorded.
 
 - 2026-07-22: Created from current screen inventory; implementation is present,
   but no fresh end-to-end Dashboard QA was claimed.
+- 2026-07-23: Product owner clarified that dashboard/trip/expense/materials
+  workflows need one commercial UI pattern, manual-first records, optional AI,
+  optional GPS assistance, optional Bluetooth vehicle identification, and
+  dashboard command-center visibility for workday entries. Current code remains
+  present but unverified against that full cross-screen UX standard.

@@ -2,6 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'contractor_dashboard_models.dart';
 
+double contractorMetricTileExtent(BuildContext context) {
+  final textScaler = MediaQuery.textScalerOf(context);
+  final contentHeight =
+      textScaler.scale(12.5) * 1.25 + textScaler.scale(24) * 1.2 + 40;
+  return contentHeight.clamp(82, 150).toDouble();
+}
+
 class ContractorMetricTile extends StatelessWidget {
   const ContractorMetricTile({required this.metric, super.key});
 
