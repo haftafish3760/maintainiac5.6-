@@ -232,11 +232,20 @@ required checks pass.
     concern-before-completion contracts. Focused analysis and 36
     service-section/parser/review checks passed, followed by the 205-check full
     maintenance gate.
+60. Authorization and inspection-result section safety. Authorized/approved
+    service, work, or repair headings and inspection result/finding headings
+    now start review-only sections. Items beneath them cannot inherit completed
+    status from earlier work, because authorization and a finding do not prove
+    performance. A later explicit performed/completed heading resets the
+    section. Added exact authorization-after-completion and
+    finding-before-completion contracts. Focused analysis and 38
+    service-section/parser/review checks passed, followed by the 207-check full
+    maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **59**
-- Next pass: **60**
+- Last accepted pass: **60**
+- Next pass: **61**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 
