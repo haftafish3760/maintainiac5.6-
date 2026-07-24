@@ -250,11 +250,20 @@ required checks pass.
     completion contracts. Focused analysis and 41
     service-section/parser/review checks passed, followed by the 210-check full
     maintenance gate.
+62. Scoped refusal, unauthorized, and cancellation sections. Standalone
+    customer-declined/refused, not-authorized/not-approved, cancelled service/
+    work/repair, and no-work-performed headings now affect only following
+    items. This prevents both forward completion leakage and receipt-wide
+    downgrading of valid earlier work. Inline unauthorized or cancelled item
+    language also remains not completed. Added exact declined-after-completed,
+    unauthorized-after-completed, and cancelled-before-completed contracts.
+    Focused analysis and 44 service-section/parser/review checks passed,
+    followed by the 213-check full maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **61**
-- Next pass: **62**
+- Last accepted pass: **62**
+- Next pass: **63**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 

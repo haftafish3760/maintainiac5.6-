@@ -240,10 +240,10 @@ final _explicitCompletionSignal = RegExp(
   r'\b(?:service performed|work completed|paid in full|installed|replaced|renewed|inspection passed)\b',
 );
 final _notCompletedLine = RegExp(
-  r'\b(?:declined|deferred|recommended|recommendation|estimate|estimated|quote|quoted|proposed|not performed|customer refused|future service)\b',
+  r'\b(?:declined|deferred|recommended|recommendation|estimate|estimated|quote|quoted|proposed|not performed|not authorized|not approved|cancel(?:ed|led)|customer refused|future service)\b',
 );
 final _notCompletedSectionHeading = RegExp(
-  r'^(?:(?:declined|deferred|recommended|recommendations|estimate|estimated|quoted|proposed)(?: services?| work| items?)?|requested services?|customer (?:request(?:s|ed)?(?: services?)?|concerns?|states?)|(?:authorized|approved)(?: services?| work| repairs?)|inspection (?:results?|findings?)|(?:pending|future)(?: services?| work| repairs?)|parts on order|awaiting parts|diagnos(?:is|tic (?:results?|findings?)))\s*:?\s*$',
+  r'^(?:(?:declined|deferred|recommended|recommendations|estimate|estimated|quoted|proposed)(?: services?| work| items?)?|requested services?|customer (?:request(?:s|ed)?(?: services?)?|concerns?|states?|declined|refused)|(?:authorized|approved)(?: services?| work| repairs?)|not (?:authorized|approved)|cancel(?:ed|led)(?: services?| work| repairs?)|no work performed|inspection (?:results?|findings?)|(?:pending|future)(?: services?| work| repairs?)|parts on order|awaiting parts|diagnos(?:is|tic (?:results?|findings?)))\s*:?\s*$',
 );
 final _completedSectionHeading = RegExp(
   r'^(?:service performed|performed services?|work completed|completed services?)\s*:?\s*$',

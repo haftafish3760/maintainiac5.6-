@@ -338,4 +338,99 @@ PAID IN FULL 29.99
     );
     expect(candidates['Tire Rotation']!.notCompletedIndicated, isFalse);
   });
+
+  test('customer declined heading scopes only following work', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+REPAIR ORDER 230
+WORK COMPLETED
+ENGINE OIL CHANGE 59.99
+CUSTOMER DECLINED
+FRONT BRAKE PADS 249.99
+PAID IN FULL 59.99
+''',
+      ),
+    );
+
+    final candidates = {
+      for (final candidate in result.candidates) candidate.itemName: candidate,
+    };
+    expect(
+      candidates['Engine Oil']!.action,
+      MaintenanceReceiptAction.reviewCompletedService,
+    );
+    expect(candidates['Engine Oil']!.notCompletedIndicated, isFalse);
+    expect(
+      candidates['Brake Pads']!.action,
+      MaintenanceReceiptAction.manualReview,
+    );
+    expect(candidates['Brake Pads']!.notCompletedIndicated, isTrue);
+  });
+
+  test('not authorized heading cannot inherit completed status', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+REPAIR ORDER 231
+WORK COMPLETED
+TIRE ROTATION 29.99
+NOT AUTHORIZED
+AUTOMOTIVE BATTERY 199.99
+PAID IN FULL 29.99
+''',
+      ),
+    );
+
+    final candidates = {
+      for (final candidate in result.candidates) candidate.itemName: candidate,
+    };
+    expect(
+      candidates['Tire Rotation']!.action,
+      MaintenanceReceiptAction.reviewCompletedService,
+    );
+    expect(
+      candidates['Battery']!.action,
+      MaintenanceReceiptAction.manualReview,
+    );
+    expect(candidates['Battery']!.notCompletedIndicated, isTrue);
+  });
+
+  test('completed heading resets a cancelled-services section', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+REPAIR ORDER 232
+CANCELLED SERVICES
+CABIN AIR FILTER 49.99
+SERVICE PERFORMED
+TIRE ROTATION 29.99
+PAID IN FULL 29.99
+''',
+      ),
+    );
+
+    final candidates = {
+      for (final candidate in result.candidates) candidate.itemName: candidate,
+    };
+    expect(
+      candidates['Cabin Air Filter']!.action,
+      MaintenanceReceiptAction.manualReview,
+    );
+    expect(candidates['Cabin Air Filter']!.notCompletedIndicated, isTrue);
+    expect(
+      candidates['Tire Rotation']!.action,
+      MaintenanceReceiptAction.reviewCompletedService,
+    );
+    expect(candidates['Tire Rotation']!.notCompletedIndicated, isFalse);
+  });
 }
