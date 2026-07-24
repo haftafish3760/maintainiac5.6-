@@ -171,4 +171,65 @@ EVERY 10000 KMS
     expect(result.warnings, contains(_kilometerWarning));
     expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
   });
+
+  test('comma-formatted kilometer odometer cannot populate miles', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER OUT 160,000 KM
+ENGINE OIL CHANGE 59.99
+''',
+      ),
+    );
+
+    expect(result.candidates.single.serviceOdometer, isNull);
+    expect(result.warnings, contains(_kilometerWarning));
+    expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
+  });
+
+  test('comma-formatted kilometer due value cannot populate miles', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER 100,000 MI
+ENGINE OIL CHANGE 59.99
+NEXT DUE 170,000 KM
+''',
+      ),
+    );
+
+    final oil = result.candidates.single;
+    expect(oil.serviceOdometer, 100000);
+    expect(oil.dueOdometer, isNull);
+    expect(oil.intervalMiles, isNull);
+    expect(result.warnings, contains(_kilometerWarning));
+  });
+
+  test('comma-formatted kilometer interval cannot populate miles', () {
+    final result = parseMaintenanceReceipt(
+      const MaintenanceReceiptParserInput(
+        activeVehicleId: 'vehicle_1',
+        sourceText: '''
+MAIN STREET AUTO
+07/23/2026
+WORK COMPLETED
+ODOMETER 100,000 MI
+TIRE ROTATION 29.99
+EVERY 10,000 KM
+''',
+      ),
+    );
+
+    expect(result.candidates.single.intervalMiles, isNull);
+    expect(result.warnings, contains(_kilometerWarning));
+    expect(result.reviewStatus, MaintenanceReceiptReviewStatus.needsDetails);
+  });
 }

@@ -26,13 +26,22 @@ MaintenanceReceiptParserResult parseMaintenanceReceipt(
   final receiptDate = dateRead.date;
   final dueDateRead = _nextDueDate(rows, input.locale);
   final dueDate = dueDateRead.date;
+  final distanceComparison = lower.replaceAll(',', '');
   final hasServiceKilometers = rows.any(
     (row) =>
-        _serviceOdometerKilometersPattern.hasMatch(row.comparisonText) &&
-        !_dueOdometerKilometersPattern.hasMatch(row.comparisonText),
+        _serviceOdometerKilometersPattern.hasMatch(
+          row.comparisonText.replaceAll(',', ''),
+        ) &&
+        !_dueOdometerKilometersPattern.hasMatch(
+          row.comparisonText.replaceAll(',', ''),
+        ),
   );
-  final hasDueKilometers = _dueOdometerKilometersPattern.hasMatch(lower);
-  final hasIntervalKilometers = _intervalKilometersPattern.hasMatch(lower);
+  final hasDueKilometers = _dueOdometerKilometersPattern.hasMatch(
+    distanceComparison,
+  );
+  final hasIntervalKilometers = _intervalKilometersPattern.hasMatch(
+    distanceComparison,
+  );
   final serviceOdometerIn = _readingFor(lower, _serviceOdometerInPattern);
   final serviceOdometerOut = _readingFor(lower, _serviceOdometerOutPattern);
   final serviceOdometer = hasServiceKilometers

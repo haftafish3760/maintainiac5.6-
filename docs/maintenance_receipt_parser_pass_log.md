@@ -199,11 +199,19 @@ required checks pass.
     a plural-abbreviation value as miles. Added exact service, mixed-unit due,
     and interval contracts. Focused analysis and 19 distance/odometer/schedule
     checks passed, followed by the 194-check full maintenance gate.
+56. Thousands-separated kilometer safety. Kilometer detection now uses the
+    same comma-normalized comparison as numeric odometer extraction, so values
+    such as `160,000 KM`, `NEXT DUE 170,000 KM`, and `EVERY 10,000 KM` cannot
+    bypass the unit safeguard and enter miles-only fields. A separately proven
+    comma-formatted mile reading remains available. Added exact service,
+    mixed-unit due, and interval contracts. Focused analysis and 22
+    distance/odometer/schedule checks passed, followed by the 197-check full
+    maintenance gate.
 
 ## Current counter
 
-- Last accepted pass: **55**
-- Next pass: **56**
+- Last accepted pass: **56**
+- Next pass: **57**
 - Architecture/drift review due: after Pass 200 at the earliest, and no later
   than after Pass 300.
 
