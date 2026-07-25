@@ -287,6 +287,139 @@ void main() {
     );
   });
 
+  test('recovery rejects transition acceptance that contradicts policy', () {
+    TripTrackingSessionTransitionAudit audit({
+      required String id,
+      required TripTrackingSessionLifecycleState from,
+      required TripTrackingSessionLifecycleState to,
+      bool accepted = true,
+      TripTrackingSessionLifecycleContractState? fromContract,
+      TripTrackingSessionLifecycleContractState? toContract,
+    }) => TripTrackingSessionTransitionAudit(
+      id: id,
+      sessionId: 'trip_recoverable',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      profileId: TripTrackingProfile.deliveryVehicle.name,
+      fromState: from,
+      toState: to,
+      fromContractState: fromContract,
+      toContractState: toContract,
+      eventTimestamp: startedAt,
+      sequenceNumber: 1,
+      reasonCode: accepted
+          ? 'gps_session_transition_allowed'
+          : 'illegal_gps_session_transition',
+      initiatingSource: 'recovery',
+      revision: 2,
+      permissionState: 'permission_granted',
+      confidenceState: 'healthy',
+      trackingQualityMode: 'high_quality',
+      accepted: accepted,
+    );
+
+    final falseAcceptance = TripTrackingSessionRecoveryValidation.activeSession(
+      activeSession(
+        transitionAudits: [
+          audit(
+            id: 'false_acceptance',
+            from: TripTrackingSessionLifecycleState.completed,
+            to: TripTrackingSessionLifecycleState.active,
+          ),
+        ],
+      ),
+    );
+    final falseRejection = TripTrackingSessionRecoveryValidation.activeSession(
+      activeSession(
+        transitionAudits: [
+          audit(
+            id: 'false_rejection',
+            from: TripTrackingSessionLifecycleState.ready,
+            to: TripTrackingSessionLifecycleState.starting,
+            accepted: false,
+          ),
+        ],
+      ),
+    );
+    final contractContradiction =
+        TripTrackingSessionRecoveryValidation.activeSession(
+          activeSession(
+            transitionAudits: [
+              audit(
+                id: 'contract_contradiction',
+                from: TripTrackingSessionLifecycleState.ready,
+                to: TripTrackingSessionLifecycleState.starting,
+                fromContract:
+                    TripTrackingSessionLifecycleContractState.PREPARING,
+                toContract: TripTrackingSessionLifecycleContractState.COMPLETED,
+              ),
+            ],
+          ),
+        );
+
+    for (final validation in [
+      falseAcceptance,
+      falseRejection,
+      contractContradiction,
+    ]) {
+      expect(validation.isRecoverable, isFalse);
+      expect(
+        validation.reasons,
+        contains('foreign_transition_audit_in_session'),
+      );
+    }
+  });
+
+  test('recovery rejects discontinuous transition audit history', () {
+    TripTrackingSessionTransitionAudit audit({
+      required String id,
+      required TripTrackingSessionLifecycleState from,
+      required TripTrackingSessionLifecycleState to,
+      required int sequence,
+      required int revision,
+    }) => TripTrackingSessionTransitionAudit(
+      id: id,
+      sessionId: 'trip_recoverable',
+      vehicleId: 'vehicle_1',
+      profile: TripTrackingProfile.deliveryVehicle,
+      profileId: TripTrackingProfile.deliveryVehicle.name,
+      fromState: from,
+      toState: to,
+      eventTimestamp: startedAt.add(Duration(seconds: sequence)),
+      sequenceNumber: sequence,
+      reasonCode: 'gps_session_transition_allowed',
+      initiatingSource: 'recovery',
+      revision: revision,
+      permissionState: 'permission_granted',
+      confidenceState: 'healthy',
+      trackingQualityMode: 'high_quality',
+    );
+
+    final validation = TripTrackingSessionRecoveryValidation.activeSession(
+      activeSession(
+        transitionAudits: [
+          audit(
+            id: 'preparing',
+            from: TripTrackingSessionLifecycleState.ready,
+            to: TripTrackingSessionLifecycleState.starting,
+            sequence: 1,
+            revision: 2,
+          ),
+          audit(
+            id: 'disconnected_pause',
+            from: TripTrackingSessionLifecycleState.active,
+            to: TripTrackingSessionLifecycleState.paused,
+            sequence: 2,
+            revision: 3,
+          ),
+        ],
+      ),
+    );
+
+    expect(validation.isRecoverable, isFalse);
+    expect(validation.reasons, contains('foreign_transition_audit_in_session'));
+  });
+
   test('active recovery quarantines future and stale checkpoints', () {
     final recoveredAt = DateTime.utc(2026, 7, 18, 12);
     final futureSession =

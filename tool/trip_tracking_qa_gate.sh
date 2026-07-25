@@ -8,7 +8,7 @@ usage() {
 Usage:
   trip_tracking_qa_gate.sh [options] [paths...]
 
-  No args       Run every trip-domain test (test/trip_*_test.dart)
+  No args       Run trip-domain tests plus production dashboard wiring tests
   --all         Same as no args
   --simulations [iterations]
                 Run deterministic simulation/fuzz tests and the safe benchmark
@@ -24,6 +24,16 @@ log_file="${TMPDIR:-/tmp}/maintainiac_trip_qa_$(date +%s).log"
 collect_trip_tracking_tests() {
   local -a tests=(
     test/trip_*_test.dart
+    test/active_workday_gps_start_integration_test.dart
+    test/active_workday_trip_event_handoff_test.dart
+    test/contractor_dashboard_trip_stop_handoff_test.dart
+    test/dashboard_round_start_gps_integration_test.dart
+    test/dashboard_live_odometer_block_test.dart
+    test/dashboard_mode_routing_test.dart
+    test/dashboard_trip_settings_navigation_test.dart
+    test/dashboard_trip_cancellation_wiring_test.dart
+    test/dashboard_walking_stop_review_wiring_test.dart
+    test/vehicle_profile_live_odometer_test.dart
   )
   if [ ${#tests[@]} -eq 0 ]; then
     echo "TRIP_QA_FAIL no_trip_tracking_tests_found"
@@ -34,7 +44,7 @@ collect_trip_tracking_tests() {
 
 if [ "$#" -eq 0 ]; then
   test_targets=($(collect_trip_tracking_tests))
-  command=(flutter test "${test_targets[@]}" --reporter compact)
+  command=(flutter test --concurrency=1 "${test_targets[@]}" --reporter compact)
 elif [ "$1" = "--all" ]; then
   shift
   if [ "$#" -ne 0 ]; then
@@ -42,7 +52,7 @@ elif [ "$1" = "--all" ]; then
     exit 64
   fi
   test_targets=($(collect_trip_tracking_tests))
-  command=(flutter test "${test_targets[@]}" --reporter compact)
+  command=(flutter test --concurrency=1 "${test_targets[@]}" --reporter compact)
 elif [ "$1" = "--help" ] || [ "$1" = "-h" ]; then
   usage
   exit 64

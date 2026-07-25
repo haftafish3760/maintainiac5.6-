@@ -379,6 +379,47 @@ class TripTrackingScenarioLibrary {
     ),
   ];
 
+  List<SimulatedTripPoint> tunnelSignalLossAndRecovery() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 12)),
+    SimulatedTripPoint(roadPoint(-79.999, 10, speed: 12)),
+    SimulatedTripPoint(roadPoint(-79.998, 20, speed: 12)),
+    // No fabricated samples inside the tunnel. The first recovered fix is
+    // deliberately plausible in speed but outside the continuity window.
+    SimulatedTripPoint(roadPoint(-79.980, 200, speed: 12)),
+    SimulatedTripPoint(roadPoint(-79.979, 210, speed: 12)),
+    SimulatedTripPoint(roadPoint(-79.978, 220, speed: 12)),
+  ];
+
+  List<SimulatedTripPoint> urbanBuildingCanyonRecovery() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.999, 15, speed: 8)),
+    // Reflections among tall buildings can report broad, wandering fixes.
+    // These remain diagnostics only and cannot move the mileage anchor.
+    SimulatedTripPoint(
+      roadPoint(-79.995, 30, accuracy: 110, speed: 2),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-80.004, 45, accuracy: 140, speed: 1),
+    ),
+    SimulatedTripPoint(
+      roadPoint(-79.992, 60, accuracy: 95, speed: 3),
+    ),
+    SimulatedTripPoint(roadPoint(-79.998, 75, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.997, 90, speed: 8)),
+    SimulatedTripPoint(roadPoint(-79.996, 105, speed: 8)),
+  ];
+
+  List<SimulatedTripPoint> ruralIntermittentCoverageRecovery() => [
+    SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.998, 20, speed: 9)),
+    // Each first fix after a dead zone re-anchors without awarding the unknown
+    // section; subsequent continuous fixes resume advisory distance.
+    SimulatedTripPoint(roadPoint(-79.980, 240, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.978, 260, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.960, 500, speed: 9)),
+    SimulatedTripPoint(roadPoint(-79.958, 520, speed: 9)),
+  ];
+
   List<SimulatedTripPoint> deliveryStopWithWellSpacedWalkingEvidence() => [
     SimulatedTripPoint(roadPoint(-80, 0, speed: 9)),
     SimulatedTripPoint(roadPoint(-79.999, 20, speed: 9)),

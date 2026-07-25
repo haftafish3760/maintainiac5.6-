@@ -19,6 +19,7 @@ import '../../shared/trip_tracking/trip_tracking_field_trial_summary.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_session_store.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
+import '../../shared/trip_tracking/trip_tracking_signal_quality.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../expenses/entry/expense_receipt_entry_screen.dart';
 import '../expenses/data/expense_ledger_models.dart';
@@ -29,6 +30,7 @@ import '../invoices/home/invoice_info_screens.dart';
 import '../settings/trip_tracking_settings_screen.dart';
 import 'active_workday_actions.dart';
 import 'active_workday_quick_action_editor.dart';
+import 'data/active_workday_elapsed_clock.dart';
 import 'data/active_workday_store.dart';
 import 'trip_background_location_settings_prompt.dart';
 import 'trip_tracking_setup_sheet.dart';
@@ -45,21 +47,23 @@ class ActiveWorkdayScreen extends StatefulWidget {
     required this.activeVehicle,
     required this.workProfileName,
     this.promptForTripTrackingSetup = false,
+    this.startGpsWhenOpened = false,
   });
 
   final VehicleProfilePreview activeVehicle;
   final String workProfileName;
   final bool promptForTripTrackingSetup;
+  final bool startGpsWhenOpened;
 
   @override
   State<ActiveWorkdayScreen> createState() => _ActiveWorkdayScreenState();
 }
 
 class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
-  late final DateTime _startedAt;
   final Random _tripIdRandom = Random.secure();
+  final ActiveWorkdayElapsedClock _elapsedClock =
+      ActiveWorkdayElapsedClock.runtime();
   Timer? _timer;
-  var _elapsed = Duration.zero;
   var _gpsStartInFlight = false;
   var _gpsStopInFlight = false;
   var _gpsCancelInFlight = false;
@@ -67,11 +71,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   @override
   void initState() {
     super.initState();
-    _startedAt = DateTime.now();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() => _elapsed = DateTime.now().difference(_startedAt));
+      if (mounted) setState(() {});
     });
-    if (widget.promptForTripTrackingSetup) {
+    if (widget.promptForTripTrackingSetup || widget.startGpsWhenOpened) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _startGpsTrip();
       });
@@ -92,10 +95,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         WorkdayQuickActionLayoutScope.maybeOf(context)?.layout ??
         WorkdayQuickActionLayout.defaults();
     final quickActions = _quickActionsFor(session, actionLayout);
+    final quickActionTileHeight =
+        66 + (MediaQuery.textScalerOf(context).scale(10) * 2.4);
     final odometer = GlobalOdometerScope.of(context);
-    final elapsed = session == null
-        ? _elapsed
-        : session.elapsedWorkTimeAt(DateTime.now());
+    final elapsed = _elapsedClock.elapsedFor(session, wallNow: DateTime.now());
 
     return AppScreenShell(
       section: AppSection.dashboard,
@@ -140,6 +143,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   onStop: _stopGpsTrip,
                   onCancel: _cancelGpsTrip,
                   onReviewLatest: _reviewLatestGpsTrip,
+                  onRetryTripLogProposal: _retryLatestTripLogProposal,
                   onReviewWalkingStop: _reviewWalkingStop,
                   onViewFieldSummary: _showLatestGpsFieldSummary,
                   onOpenSettings: () => Navigator.of(context).push(
@@ -176,11 +180,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: quickActions.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     mainAxisSpacing: 10,
                     crossAxisSpacing: 10,
-                    mainAxisExtent: 72,
+                    mainAxisExtent: quickActionTileHeight,
                   ),
                   itemBuilder: (context, index) {
                     return _QuickActionButton(
@@ -262,9 +266,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             missingTripMessage: 'GPS trip could not be reviewed before ending.',
           );
           if (!mounted) return;
-          if (tripTracking.isTracking) return;
-        }
-        if (confirmedTripEndingOdometer != null) {
+          // Stopping GPS creates a durable completion-pending review. If the
+          // driver dismisses that review, keep the workday open instead of
+          // bypassing it with a second generic ending-odometer sheet.
+          if (tripTracking.isTracking || confirmedTripEndingOdometer == null) {
+            return;
+          }
           final ended = await ActiveWorkdayScope.of(context).addEvent(
             type: ActiveWorkdayEventType.ended,
             odometerReading: confirmedTripEndingOdometer,
@@ -467,14 +474,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
     if (!mounted) return;
     if (saved == true) {
-      final odometerReading = await _recordOdometerReading(
-        title: '$kind Odometer',
-        saveLabel: 'Save $kind',
-      );
-      if (!mounted || odometerReading == null) return;
       await _recordStoredEvent(
         type,
-        odometerReading: odometerReading,
+        odometerReading: GlobalOdometerScope.of(context).confirmedReading,
         note: note.trim(),
         confirmGpsStopCandidate: confirmGpsStopCandidate,
       );
@@ -617,6 +619,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     // grants permission nor silently changes the selected sampling preset.
     await DeviceCapabilityScope.refreshForHeavyWork(context);
     if (!mounted) return;
+    final deviceIntervalFloorSeconds = DeviceCapabilityScope.maybeOf(
+      context,
+    )?.profile?.budget.tripLocationIntervalSeconds;
+    if (tripTracking.nativeTracking) {
+      _showGpsMessage('GPS-assisted trip tracking is already active.');
+      return;
+    }
     var startedNewTrip = false;
     if (!tripTracking.isTracking) {
       startedNewTrip = await tripTracking.start(
@@ -642,7 +651,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       lowBatteryProtectionEnabled: settings.lowBatteryGpsProtectionEnabled,
       lowBatteryOverrideEnabled: settings.lowBatteryGpsOverrideEnabled,
       lowBatteryWarningDismissed: settings.lowBatteryGpsWarningDismissed,
+      deviceIntervalFloorSeconds: deviceIntervalFloorSeconds ?? 1,
     );
+    final nativeStartFailureMessage = started
+        ? null
+        : tripTracking.lastKnownCapabilities?.locationAvailable == false
+        ? 'Device location is unavailable. Your workday is active and manual mileage is still available.'
+        : tripTracking.platformError;
     if (!started && _gpsBatteryChoiceRequired(tripTracking.platformStatus)) {
       final choice = await _openLowBatteryGpsDialog(
         lowPowerMode:
@@ -669,17 +684,23 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                 settings.lowBatteryGpsProtectionEnabled,
             lowBatteryOverrideEnabled: true,
             lowBatteryWarningDismissed: choice.rememberChoice,
+            deviceIntervalFloorSeconds: deviceIntervalFloorSeconds ?? 1,
           );
+          final retryFailureMessage = retryStarted
+              ? null
+              : tripTracking.platformError;
+          var discardedEmptyTrip = true;
           if (!retryStarted && startedNewTrip) {
-            await tripTracking.discardEmptyTrip();
+            discardedEmptyTrip = await tripTracking.discardEmptyTrip();
           }
           if (!mounted) return;
-          _showGpsMessage(
-            retryStarted
-                ? 'GPS-assisted trip tracking started.'
-                : (tripTracking.platformError ??
-                      'GPS tracking could not start.'),
-          );
+          final retryMessage = retryStarted
+              ? _gpsStartedMessage(tripTracking)
+              : !discardedEmptyTrip
+              ? (tripTracking.platformError ??
+                    'GPS tracking stopped, but its empty local session still needs review.')
+              : (retryFailureMessage ?? 'GPS tracking could not start.');
+          _showGpsMessage(retryMessage);
           return;
         }
       }
@@ -688,8 +709,18 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         !started &&
         defaultTargetPlatform == TargetPlatform.android &&
         tripTracking.platformStatus == 'background_location_settings_required';
-    if (!started && startedNewTrip) await tripTracking.discardEmptyTrip();
+    var discardedEmptyTrip = true;
+    if (!started && startedNewTrip) {
+      discardedEmptyTrip = await tripTracking.discardEmptyTrip();
+    }
     if (!mounted) return;
+    if (!discardedEmptyTrip) {
+      _showGpsMessage(
+        tripTracking.platformError ??
+            'GPS tracking stopped, but its empty local session still needs review.',
+      );
+      return;
+    }
     if (backgroundSettingsRequired) {
       final openSettings = await showTripBackgroundLocationSettingsPrompt(
         context,
@@ -707,9 +738,18 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     }
     _showGpsMessage(
       started
-          ? 'GPS-assisted trip tracking started.'
-          : (tripTracking.platformError ?? 'GPS tracking could not start.'),
+          ? _gpsStartedMessage(tripTracking)
+          : (nativeStartFailureMessage ?? 'GPS tracking could not start.'),
     );
+  }
+
+  String _gpsStartedMessage(TripTrackingController controller) {
+    final interval = controller.nativeSamplingIntervalSeconds;
+    if (!controller.deviceAdjustedSampling || interval == null) {
+      return 'GPS-assisted trip tracking started.';
+    }
+    return 'GPS-assisted trip tracking started with a device-safe '
+        '$interval-second location interval.';
   }
 
   Future<void> _applySetupDashboardMode(TripTrackingProfile profile) async {
@@ -983,6 +1023,23 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
   }
 
+  Future<void> _retryLatestTripLogProposal() async {
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    final review = tripTracking?.latestPendingTripLogProposal;
+    if (tripTracking == null || review == null) {
+      _showGpsMessage('No pending local trip handoff is available.');
+      return;
+    }
+    final submitted = await tripTracking.retryTripLogProposal(review.id);
+    if (!mounted) return;
+    _showGpsMessage(
+      submitted
+          ? 'Trip is ready for TripLog review.'
+          : (tripTracking.tripLogProposalError ??
+                'The trip remains saved locally and can be retried.'),
+    );
+  }
+
   Future<void> _showLatestGpsFieldSummary() async {
     final review = TripTrackingScope.maybeOf(
       context,
@@ -1067,17 +1124,33 @@ class _LiveOdometerDialogLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final odometer = GlobalOdometerScope.of(context);
+    final tripTracking = TripTrackingScope.maybeOf(context);
     return AnimatedBuilder(
-      animation: odometer,
+      animation: tripTracking == null
+          ? odometer
+          : Listenable.merge([odometer, tripTracking]),
       builder: (context, _) {
         final display = odometer.liveDisplaySnapshot;
-        final status = display.statusLabelAt(DateTime.now());
+        final status = !display.isLive
+            ? null
+            : tripTracking?.nativeTracking == true
+            ? display.deltaLabel
+            : tripTracking?.lifecycleState ==
+                  TripTrackingSessionLifecycleState.starting
+            ? 'Location starting'
+            : 'Location paused';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               '${display.label}: ${display.displayValue}',
-              semanticsLabel: display.semanticsLabelAt(DateTime.now()),
+              semanticsLabel: [
+                display.label,
+                display.displayValue,
+                ?status,
+                if (display.isLive)
+                  'confirmed ${display.confirmedDisplayValue}',
+              ].join(', '),
               style: const TextStyle(
                 color: Color(0xFFC8D0D3),
                 fontWeight: FontWeight.w800,
@@ -1087,8 +1160,12 @@ class _LiveOdometerDialogLine extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 '$status • confirmed ${display.confirmedDisplayValue}',
-                style: const TextStyle(
-                  color: Color(0xFF20F060),
+                style: TextStyle(
+                  color: status == 'Location paused'
+                      ? const Color(0xFFFFD166)
+                      : status == 'Location starting'
+                      ? const Color(0xFF9CC7E8)
+                      : const Color(0xFF20F060),
                   fontSize: 12,
                   fontWeight: FontWeight.w800,
                 ),
@@ -1107,22 +1184,34 @@ class _LiveOdometerPanelLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final odometer = GlobalOdometerScope.of(context);
+    final tripTracking = TripTrackingScope.maybeOf(context);
     return AnimatedBuilder(
-      animation: odometer,
+      animation: tripTracking == null
+          ? odometer
+          : Listenable.merge([odometer, tripTracking]),
       builder: (context, _) {
         final display = odometer.liveDisplaySnapshot;
-        final status = display.statusLabelAt(DateTime.now());
-        final plainStatus = status == 'Live GPS paused'
-            ? 'Location paused'
-            : status;
+        final status = !display.isLive
+            ? null
+            : tripTracking?.nativeTracking == true
+            ? display.deltaLabel
+            : tripTracking?.lifecycleState ==
+                  TripTrackingSessionLifecycleState.starting
+            ? 'Location starting'
+            : 'Location paused';
         return Text(
-          'Location estimate: ${display.displayValue} • Last confirmed: ${display.confirmedDisplayValue}${plainStatus == null ? '' : ' • $plainStatus'}',
+          'Location estimate: ${display.displayValue} • Last confirmed: ${display.confirmedDisplayValue}${status == null ? '' : ' • $status'}',
           style: const TextStyle(
             color: Color(0xFF9CC7E8),
             fontSize: 12,
             fontWeight: FontWeight.w900,
           ),
-          semanticsLabel: display.semanticsLabelAt(DateTime.now()),
+          semanticsLabel: [
+            display.label,
+            display.displayValue,
+            ?status,
+            if (display.isLive) 'confirmed ${display.confirmedDisplayValue}',
+          ].join(', '),
         );
       },
     );
@@ -1135,6 +1224,7 @@ class _GpsTripPanel extends StatelessWidget {
     required this.onStop,
     required this.onCancel,
     required this.onReviewLatest,
+    required this.onRetryTripLogProposal,
     required this.onReviewWalkingStop,
     required this.onViewFieldSummary,
     required this.onOpenSettings,
@@ -1147,6 +1237,7 @@ class _GpsTripPanel extends StatelessWidget {
   final Future<void> Function() onStop;
   final Future<void> Function() onCancel;
   final Future<void> Function() onReviewLatest;
+  final Future<void> Function() onRetryTripLogProposal;
   final Future<void> Function() onReviewWalkingStop;
   final Future<void> Function() onViewFieldSummary;
   final VoidCallback onOpenSettings;
@@ -1204,6 +1295,7 @@ class _GpsTripPanel extends StatelessWidget {
         liveTrackingWarning != null &&
         liveTrackingWarning !=
             'Location tracking stays paused until you tap Resume.';
+    final signalAction = controller?.signalQualityAction();
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
       decoration: BoxDecoration(
@@ -1263,6 +1355,19 @@ class _GpsTripPanel extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     liveTrackingWarning,
+                    style: const TextStyle(
+                      color: Color(0xFFFFD166),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+                if (tracking && signalAction?.shouldShowBanner == true) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    _gpsSignalQualityMessage(
+                      controller!.signalQualitySummary.quality,
+                    ),
                     style: const TextStyle(
                       color: Color(0xFFFFD166),
                       fontSize: 11,
@@ -1400,6 +1505,30 @@ class _GpsTripPanel extends StatelessWidget {
                     ),
                   ),
                 ],
+                if (controller?.tripLogProposalError != null &&
+                    controller?.latestPendingTripLogProposal != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    controller!.tripLogProposalError!,
+                    style: const TextStyle(
+                      color: Color(0xFFFF9F43),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton(
+                      onPressed: onRetryTripLogProposal,
+                      style: TextButton.styleFrom(
+                        minimumSize: Size.zero,
+                        padding: const EdgeInsets.only(top: 3, right: 8),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text('RETRY TRIPLOG HANDOFF'),
+                    ),
+                  ),
+                ],
                 if (!tracking && controller?.latestUnconfirmedReview != null)
                   Align(
                     alignment: Alignment.centerLeft,
@@ -1500,6 +1629,22 @@ class _GpsTripPanel extends StatelessWidget {
     );
   }
 }
+
+String _gpsSignalQualityMessage(
+  TripTrackingSignalQuality quality,
+) => switch (quality) {
+  TripTrackingSignalQuality.reduced =>
+    'GPS signal is reduced. Accepted distance remains advisory.',
+  TripTrackingSignalQuality.poor =>
+    'GPS signal is weak. Keep the trip and review its distance against the odometer.',
+  TripTrackingSignalQuality.interrupted =>
+    'GPS was interrupted. The gap is preserved for review rather than counted as a precise route.',
+  TripTrackingSignalQuality.unsafe =>
+    'GPS samples were rejected for safety. Confirmed odometer mileage remains official.',
+  TripTrackingSignalQuality.noSamples =>
+    'Waiting for a safe GPS location sample.',
+  TripTrackingSignalQuality.healthy => 'GPS signal is healthy.',
+};
 
 class _GpsTripBadge extends StatelessWidget {
   const _GpsTripBadge({required this.label, required this.active});

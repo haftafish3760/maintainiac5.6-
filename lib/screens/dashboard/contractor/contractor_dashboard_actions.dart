@@ -81,7 +81,7 @@ extension _ContractorDashboardActions on _ContractorDashboardScreenState {
       return;
     }
     String? note;
-    var odometerReading = GlobalOdometerScope.of(context).reading;
+    final odometerReading = GlobalOdometerScope.of(context).confirmedReading;
     if (command.target == ContractorCommandTarget.addStop) {
       note = await openWorkdayNoteSheet(
         context,
@@ -91,13 +91,6 @@ extension _ContractorDashboardActions on _ContractorDashboardScreenState {
         saveLabel: 'Continue',
       );
       if (note == null || !mounted) return;
-      final confirmed = await openOdometerEntryResult(
-        context,
-        title: 'Stop Odometer',
-        saveLabel: 'Add Stop',
-      );
-      if (confirmed == null || !mounted) return;
-      odometerReading = confirmed;
     } else {
       note = await openWorkdayNoteSheet(context);
       if (note == null || !mounted) return;

@@ -33,6 +33,7 @@ void main() {
 
     final disabled = controller.evaluateAutomaticStartAssistance(
       settings: const TripTrackingSettings(gpsAssistedTrackingEnabled: true),
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       observations: evidence(),
     );
     final enabled = controller.evaluateAutomaticStartAssistance(
@@ -40,6 +41,7 @@ void main() {
         gpsAssistedTrackingEnabled: true,
         automaticStartAssistanceEnabled: true,
       ),
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       observations: evidence(),
     );
     expect(disabled.disposition, TripAutomaticStartDisposition.disabled);
@@ -77,6 +79,7 @@ void main() {
         gpsAssistedTrackingEnabled: true,
         automaticStartAssistanceEnabled: true,
       ),
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       observations: evidence(),
     );
     expect(
@@ -102,6 +105,7 @@ void main() {
 
     final failed = controller.evaluateAutomaticStartAssistance(
       settings: settings,
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       observations: evidence(),
     );
     expect(
@@ -113,11 +117,38 @@ void main() {
     store.fail = false;
     final recovered = controller.evaluateAutomaticStartAssistance(
       settings: settings,
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       observations: evidence(),
     );
     expect(recovered.disposition, TripAutomaticStartDisposition.candidate);
     expect(controller.platformStatus, isNull);
     expect(controller.platformError, isNull);
+  });
+
+  test('controller enforces paid access before evaluating evidence', () {
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    final decision = controller.evaluateAutomaticStartAssistance(
+      settings: const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      ),
+      accessLevel: TripAutomaticStartAccessLevel.free,
+      observations: evidence(),
+    );
+
+    expect(
+      decision.disposition,
+      TripAutomaticStartDisposition.paidEntitlementRequired,
+    );
+    expect(decision.shouldSuggestStart, isFalse);
   });
 }
 

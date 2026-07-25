@@ -35,7 +35,10 @@ int _safeSamplingIntervalMillis(Duration interval) {
 
 double _safeMinimumDisplacementMeters(double meters) {
   if (!meters.isFinite || meters <= 0) return 1;
-  return meters > 1000 ? 1000 : meters;
+  // Android and iOS both enforce this same ceiling. Bound it before crossing
+  // the native channel so saved diagnostics describe the request the device
+  // actually receives instead of a silently rewritten value.
+  return meters > 100 ? 100 : meters;
 }
 
 class TripTrackingPlatformCapabilities {

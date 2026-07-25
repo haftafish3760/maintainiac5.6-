@@ -2,6 +2,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+String _iosTripTrackingSource() => <String>[
+  'ios/Runner/TripTrackingNativeBridge.swift',
+  'ios/Runner/TripTrackingLocationDelegate.swift',
+].map((path) => File(path).readAsStringSync()).join('\n');
+
 void main() {
   test('Android permission flow never loops after a denied location request', () {
     final source = File(
@@ -48,9 +53,7 @@ void main() {
   });
 
   test('iOS escalates location authorization only after foreground approval', () {
-    final source = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final source = _iosTripTrackingSource();
     final plist = File('ios/Runner/Info.plist').readAsStringSync();
 
     expect(source, contains('state == "whileInUse" && allowBackground'));
@@ -154,9 +157,7 @@ void main() {
     final androidBridge = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync().replaceAll('\r\n', '\n');
+    final ios = _iosTripTrackingSource().replaceAll('\r\n', '\n');
 
     expect(
       android,
@@ -173,6 +174,11 @@ void main() {
     expect(android, contains('trip_tracking_foreground_service_denied'));
     expect(androidBridge, contains('catch (error: IllegalStateException)'));
     expect(android, contains('trip_tracking_location_registration_failed'));
+    expect(androidBridge, contains('trip_tracking_native_already_running'));
+    expect(android, contains('if (!samplingUpdate && isRunning)'));
+    expect(android, contains('"type" to "status", "status" to "tracking"'));
+    expect(ios, contains('guard !tracking else'));
+    expect(ios, contains('trip_tracking_native_already_running'));
     expect(android, contains('coerceIn(1f, 100f)'));
     expect(
       android,
@@ -288,9 +294,7 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
     expect(android, contains('Context.BATTERY_SERVICE'));
     expect(android, contains('Context.POWER_SERVICE'));
@@ -305,9 +309,7 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
     expect(android, contains('"readBatterySnapshot"'));
     expect(android, contains('BATTERY_PROPERTY_CAPACITY'));
@@ -326,9 +328,7 @@ void main() {
   test(
     'iOS applies the requested sampling tier instead of hardcoding GPS best',
     () {
-      final ios = File(
-        'ios/Runner/TripTrackingNativeBridge.swift',
-      ).readAsStringSync();
+      final ios = _iosTripTrackingSource();
 
       expect(ios, contains('intervalMillis'));
       expect(ios, contains('applySampling(intervalMillis: intervalMillis'));
@@ -348,9 +348,7 @@ void main() {
 
   test('iOS background trip tracking keeps its declared capability contract', () {
     final info = File('ios/Runner/Info.plist').readAsStringSync();
-    final bridge = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final bridge = _iosTripTrackingSource();
 
     expect(info, contains('NSLocationAlwaysAndWhenInUseUsageDescription'));
     expect(info, contains('UIBackgroundModes'));
@@ -394,9 +392,7 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
     expect(
       android,
@@ -449,9 +445,7 @@ void main() {
     final androidBridge = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync().replaceAll('\r\n', '\n');
+    final ios = _iosTripTrackingSource().replaceAll('\r\n', '\n');
 
     expect(android, contains('trip_tracking_location_denied'));
     expect(android, contains('trip_tracking_gps_disabled'));
@@ -521,7 +515,7 @@ void main() {
         'stopNativeCollection()\n    emit([\n      "type": "error",\n      "errorCode": "trip_tracking_location_error"',
       ),
     );
-    expect(ios, contains('private func stopNativeCollection()'));
+    expect(ios, contains('func stopNativeCollection()'));
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
     expect(
       ios.indexOf(
@@ -529,7 +523,7 @@ void main() {
       ),
       greaterThanOrEqualTo(0),
     );
-    expect(ios, contains('private var trackingStartedAt: Date?'));
+    expect(ios, contains('var trackingStartedAt: Date?'));
     expect(
       ios.indexOf('trackingStartedAt = Date()\n    tracking = true'),
       greaterThanOrEqualTo(0),
@@ -548,9 +542,7 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
     expect(android, contains('private fun hasLocation(): Boolean'));
     expect(android, contains('Manifest.permission.ACCESS_COARSE_LOCATION'));
@@ -570,9 +562,7 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
     expect(
       android,
@@ -591,34 +581,93 @@ void main() {
     expect(ios, contains('motionManager.stopActivityUpdates()'));
   });
 
-  test(
-    'Android notification exposes a pause without claiming trip completion',
-    () {
-      final android = File(
-        'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
-      ).readAsStringSync();
-      final ios = File(
-        'ios/Runner/TripTrackingNativeBridge.swift',
-      ).readAsStringSync();
+  test('Android notification exposes a pause without claiming trip completion', () {
+    final android = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+    final androidNotification = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNotificationFactory.kt',
+    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
-      expect(android, contains('private const val stopAction'));
-      expect(android, contains('intent?.action == stopAction'));
-      expect(android, contains('"Pause GPS assistance"'));
-      expect(android, isNot(contains('"Stop trip tracking"')));
-      expect(android, contains('Intent(this, MainActivity::class.java)'));
-      expect(android, contains('PendingIntent.getActivity'));
-      expect(android, contains('.setContentIntent(openAppIntent)'));
-      expect(android, contains('PendingIntent.getService'));
-      expect(android, contains('"paused_by_user"'));
-      expect(android, contains('consumeRecoveryStatus'));
-      expect(
-        android,
-        contains('recordRecoveryStatus(userPausedRecoveryStatus)'),
-      );
-      expect(ios, contains('case "consumeRecoveryStatus":'));
-      expect(ios, contains('result(nil)'));
-    },
-  );
+    expect(android, contains('private const val stopAction'));
+    expect(android, contains('intent.action == stopAction'));
+    expect(android, contains('TripTrackingNotificationFactory.active'));
+    expect(androidNotification, contains('"Pause GPS assistance"'));
+    expect(androidNotification, isNot(contains('"Stop trip tracking"')));
+    expect(
+      androidNotification,
+      contains('Intent(context, MainActivity::class.java)'),
+    );
+    expect(androidNotification, contains('PendingIntent.getActivity'));
+    expect(androidNotification, contains('.setContentIntent(openAppIntent)'));
+    expect(androidNotification, contains('PendingIntent.getService'));
+    final recovery = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingRecoveryState.kt',
+    ).readAsStringSync();
+    expect(recovery, contains('"paused_by_user"'));
+    expect(android, contains('consumeRecoveryStatus'));
+    expect(
+      android,
+      contains('TripTrackingRecoveryState.recordUserPause(this)'),
+    );
+    expect(ios, contains('case "consumeRecoveryStatus":'));
+    expect(ios, contains('result(nil)'));
+  });
+
+  test('Android reboot preserves an unfinished trip without restarting GPS', () {
+    final manifest = File(
+      'android/app/src/main/AndroidManifest.xml',
+    ).readAsStringSync();
+    final service = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
+    ).readAsStringSync();
+    final bridge = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+    final receiver = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingBootReceiver.kt',
+    ).readAsStringSync();
+    final recovery = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingRecoveryState.kt',
+    ).readAsStringSync();
+    final notification = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNotificationFactory.kt',
+    ).readAsStringSync();
+
+    expect(manifest, contains('android.permission.RECEIVE_BOOT_COMPLETED'));
+    expect(manifest, contains('.TripTrackingBootReceiver'));
+    expect(manifest, contains('android.intent.action.BOOT_COMPLETED'));
+    expect(manifest, contains('android.intent.action.MY_PACKAGE_REPLACED'));
+    expect(receiver, contains('Intent.ACTION_BOOT_COMPLETED'));
+    expect(receiver, contains('Intent.ACTION_MY_PACKAGE_REPLACED'));
+    expect(
+      receiver,
+      contains('TripTrackingRecoveryState.recordSystemPauseIfActive(context)'),
+    );
+    expect(
+      receiver,
+      contains('TripTrackingNotificationFactory.notifyRecovery'),
+    );
+    expect(receiver, isNot(contains('startForegroundService')));
+    expect(receiver, isNot(contains('startService')));
+    expect(recovery, contains('"nativeTrackingWasActive"'));
+    expect(recovery, contains('"paused_by_system"'));
+    expect(
+      service,
+      contains('TripTrackingRecoveryState.markTrackingStarted(this)'),
+    );
+    expect(
+      service,
+      contains('TripTrackingRecoveryState.recordSystemPauseIfActive(this)'),
+    );
+    expect(
+      bridge,
+      contains('TripTrackingRecoveryState.clearForExplicitStop(activity)'),
+    );
+    expect(notification, contains('An unfinished GPS-assisted trip is saved.'));
+    expect(notification, contains('.setAutoCancel(true)'));
+  });
 
   test('Android native sampling updates never request zero displacement', () {
     final android = File(
@@ -646,15 +695,20 @@ void main() {
     expect(service, contains('stopSelf(startId)'));
     expect(
       service.indexOf('if (intent == null) {'),
-      lessThan(service.indexOf('if (intent?.action == stopAction)')),
+      lessThan(service.indexOf('if (intent.action == stopAction)')),
+    );
+    expect(
+      service.indexOf('if (intent.action == stopAction)'),
+      lessThan(service.indexOf('if (!samplingUpdate && isRunning)')),
     );
     expect(service, contains('samplingUpdateExtra'));
     expect(
       service,
       contains(
-        'intent.getBooleanExtra(samplingUpdateExtra, false) && !isRunning',
+        'val samplingUpdate = intent.getBooleanExtra(samplingUpdateExtra, false)',
       ),
     );
+    expect(service, contains('if (samplingUpdate && !isRunning)'));
     expect(
       bridge,
       contains(
@@ -667,9 +721,7 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
     ).readAsStringSync();
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
     expect(
       android,
@@ -693,6 +745,12 @@ void main() {
     expect(ios, contains('private func startHeartbeat()'));
     expect(ios, contains('private func stopHeartbeat()'));
     expect(ios, contains('deinit {'));
+    expect(
+      ios,
+      contains(
+        'deinit {\n    // A Flutter engine/plugin replacement must not leave Core Location or\n    // Core Motion running without the Dart controller that owns persistence.\n    stopNativeCollection()\n    locationManager.delegate = nil',
+      ),
+    );
     expect(ios, contains('No coordinates, sensor evidence, stops, or mileage'));
   });
 
@@ -702,9 +760,7 @@ void main() {
       final android = File(
         'android/app/src/main/kotlin/com/maintainiac/TripTrackingForegroundService.kt',
       ).readAsStringSync();
-      final ios = File(
-        'ios/Runner/TripTrackingNativeBridge.swift',
-      ).readAsStringSync();
+      final ios = _iosTripTrackingSource();
 
       expect(android, contains('private fun stopForCriticalBatteryIfNeeded()'));
       expect(android, contains('private fun isBatteryCriticallyLow()'));
@@ -714,10 +770,7 @@ void main() {
       expect(android, contains('level * 100 / scale < 10'));
       expect(android, contains('"trip_tracking_battery_critical"'));
       expect(android, contains('if (stopForCriticalBatteryIfNeeded()) return'));
-      expect(
-        ios,
-        contains('private func stopForCriticalBatteryIfNeeded() -> Bool'),
-      );
+      expect(ios, contains('func stopForCriticalBatteryIfNeeded() -> Bool'));
       expect(ios, contains('snapshot["isCharging"] as? Bool != true'));
       expect(ios, contains('percent < 10'));
       expect(ios, contains('"trip_tracking_battery_critical"'));
@@ -816,9 +869,7 @@ void main() {
   });
 
   test('iOS native sampling never requests zero displacement', () {
-    final ios = File(
-      'ios/Runner/TripTrackingNativeBridge.swift',
-    ).readAsStringSync();
+    final ios = _iosTripTrackingSource();
 
     expect(
       ios,

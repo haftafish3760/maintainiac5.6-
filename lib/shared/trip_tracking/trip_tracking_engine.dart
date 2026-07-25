@@ -34,6 +34,7 @@ class TripTrackingEngine {
   var _motionState = TripMotionState.unknown;
   var _vehicleMovementObserved = false;
   DateTime? _stationaryStartedAt;
+  DateTime? _lastStationaryEvidenceAt;
   final List<TripTrackingSignalGap> _signalGaps = [];
   TripInitialFixAssessment? _initialFixAssessment;
   final List<TripInitialFixAssessment> _initialFixHistory = [];
@@ -52,7 +53,6 @@ class TripTrackingEngine {
     _initialFixAssessment = assessment;
     if (assessment == null) return;
     _initialFixHistory.add(assessment);
-    if (_initialFixHistory.length > 8) _initialFixHistory.removeAt(0);
   }
 
   bool beginSignalGap(
@@ -453,6 +453,7 @@ extension on TripTrackingEngine {
 
 const _defaultGap = Duration(minutes: 2);
 const _defaultWalkingConfirmationWindow = Duration(seconds: 45);
+const _maximumContinuousStationaryEvidenceGap = Duration(seconds: 45);
 
 double _safePositiveDouble(double value, {required double fallback}) =>
     value.isFinite && value > 0 ? value : fallback;

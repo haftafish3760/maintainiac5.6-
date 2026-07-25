@@ -8,7 +8,7 @@ const int _defaultIterations = 25;
 const int _maximumIterations = 1000;
 const double _maximumStationaryDriftMeters = 15;
 const double _maximumP95DistanceError = .05;
-const int _minimumDistanceCases = 3;
+const int _minimumDistanceCases = 5;
 
 final class TripTrackingSimulationResult {
   const TripTrackingSimulationResult({

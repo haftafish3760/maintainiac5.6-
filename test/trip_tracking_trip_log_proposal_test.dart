@@ -185,6 +185,105 @@ void main() {
   });
 
   test(
+    'odometer confirmation refreshes proposal without granting authority',
+    () async {
+      final at = DateTime.utc(2026, 7, 21, 15, 30);
+      final sink = _ProposalSink();
+      final store = TripTrackingSessionStore.memory();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 13000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: odometer,
+        tripLogProposalSink: sink,
+        clockNow: () => at.add(const Duration(minutes: 6)),
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      await controller.start(
+        tripId: 'trip_log_confirmed_refresh',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: at,
+      );
+      final review = await controller.finishForReview(
+        finishedAt: at.add(const Duration(minutes: 5)),
+      );
+
+      expect(review, isNotNull);
+      expect(
+        await controller.confirmOdometerReview(
+          reviewId: review!.id,
+          confirmedEndingOdometer: 13000,
+          confirmedAt: at.add(const Duration(minutes: 6)),
+        ),
+        isTrue,
+      );
+      expect(sink.proposals, hasLength(2));
+      expect(sink.proposals.last.review.isOdometerConfirmed, isTrue);
+      expect(
+        sink.proposals.last.reviewRevision,
+        greaterThan(sink.proposals.first.reviewRevision),
+      );
+      expect(sink.proposals.last.canConfirmMileage, isFalse);
+      expect(sink.proposals.last.canFinalizeTripLog, isFalse);
+    },
+  );
+
+  test('startup retry safely submits every pending local proposal', () async {
+    final at = DateTime.utc(2026, 7, 21, 15, 45);
+    final sink = _ProposalSink()..fail = true;
+    final store = TripTrackingSessionStore.memory();
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 13000,
+    );
+    final controller = TripTrackingController(
+      sessionStore: store,
+      odometer: odometer,
+      tripLogProposalSink: sink,
+      clockNow: () => at.add(const Duration(minutes: 20)),
+    );
+    addTearDown(controller.dispose);
+    addTearDown(odometer.dispose);
+    for (final id in const ['pending_one', 'pending_two']) {
+      await controller.start(
+        tripId: id,
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: at,
+      );
+      await controller.finishForReview(
+        finishedAt: at.add(const Duration(minutes: 5)),
+      );
+    }
+    expect(
+      store.pendingReviews
+          .where(
+            (review) =>
+                review.tripLogProposalState ==
+                TripTrackingTripLogProposalState.pending,
+          )
+          .length,
+      2,
+    );
+
+    sink.fail = false;
+    expect(await controller.retryPendingTripLogProposals(), 2);
+    expect(sink.proposals, hasLength(2));
+    expect(
+      store.pendingReviews.every(
+        (review) =>
+            review.tripLogProposalState ==
+            TripTrackingTripLogProposalState.submitted,
+      ),
+      isTrue,
+    );
+  });
+
+  test(
     'TripLog retry cannot overwrite a concurrent completion draft',
     () async {
       final at = DateTime.utc(2026, 7, 21, 16);

@@ -143,7 +143,7 @@ void main() {
     expect(assessment.toMap().containsKey('longitude'), isFalse);
   });
 
-  test('snapshot preserves bounded initial-fix recovery history', () {
+  test('snapshot preserves complete initial-fix recovery history', () {
     final stale = classifier.classify(
       sample: sample(now.subtract(const Duration(minutes: 5))),
       receivedAt: now,
@@ -156,19 +156,35 @@ void main() {
       locationServicesAvailable: true,
       preciseLocationAuthorized: true,
     );
+    final history = [
+      stale,
+      for (var index = 0; index < 10; index++)
+        classifier.classify(
+          sample: sample(now.add(Duration(seconds: index + 1))),
+          receivedAt: now.add(Duration(seconds: index + 1)),
+          locationServicesAvailable: true,
+          preciseLocationAuthorized: true,
+        ),
+      fresh,
+    ];
     final restored = TripTrackingEngineSnapshot.fromMap(
       TripTrackingEngineSnapshot(
         totalAcceptedMeters: 0,
         walkingReviewSuggested: false,
         initialFixAssessment: fresh,
-        initialFixHistory: [stale, fresh],
+        initialFixHistory: history,
       ).toMap(),
     );
 
-    expect(restored.initialFixHistory.map((item) => item.quality), [
+    expect(restored.initialFixHistory, hasLength(12));
+    expect(
+      restored.initialFixHistory.first.quality,
       TripInitialFixQuality.staleCached,
+    );
+    expect(
+      restored.initialFixHistory.last.quality,
       TripInitialFixQuality.freshPrecise,
-    ]);
+    );
     expect(
       restored.initialFixAssessment?.quality,
       TripInitialFixQuality.freshPrecise,
@@ -177,7 +193,7 @@ void main() {
       restored,
       profile: TripTrackingProfile.roadVehicle,
     );
-    expect(recoveredEngine.initialFixHistory.length, 2);
+    expect(recoveredEngine.initialFixHistory.length, 12);
     expect(restored.toMap().toString(), isNot(contains('latitude')));
     expect(restored.toMap().toString(), isNot(contains('longitude')));
   });

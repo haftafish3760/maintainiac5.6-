@@ -17,6 +17,7 @@ import '../../shared/state/app_state.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../shared/trip_tracking/trip_tracking_dashboard_live_status_policy.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../expenses/data/expense_work_profile_store.dart';
 import 'data/active_workday_store.dart';
@@ -26,12 +27,6 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (OperationalContextScope.maybeOf(
-          context,
-        )?.context.isContractorDashboard ==
-        true) {
-      return const ContractorDashboardScreen();
-    }
     return const AppScreenShell(body: _PreDayDashboardBody());
   }
 }
@@ -73,11 +68,18 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
                 ? odometer
                 : Listenable.merge([odometer, tripTracking]),
             builder: (context, _) {
-              final gpsStatus = tripTracking?.nativeTracking == true
-                  ? 'LIVE GPS'
-                  : odometer.hasLiveTripProjection
-                  ? 'GPS PAUSED'
-                  : 'Active';
+              final gpsStatus =
+                  TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+                    activeTrip: tripTracking?.isTracking == true,
+                    nativeTracking: tripTracking?.nativeTracking == true,
+                    hasLiveProjection: odometer.hasLiveTripProjection,
+                    platformStatus: tripTracking?.platformStatus,
+                    awaitingInitialFix:
+                        tripTracking?.awaitingInitialFix == true,
+                    signalReviewRequired:
+                        tripTracking?.signalQualitySummary.requiresUserReview ==
+                        true,
+                  );
               final activeVehicle = selectedVehicle == null
                   ? VehicleProfilePreview(
                       id: defaultVehicleProfile.id,
@@ -154,8 +156,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        if (activeContext == null || activeContext.isContractorDashboard)
-          const SliverToBoxAdapter(child: ContractorDashboardLauncher()),
+        const SliverToBoxAdapter(child: ContractorDashboardLauncher()),
         if (activeContext != null)
           SliverToBoxAdapter(
             child: OperationalContextStrip(contextLabel: contextLabel),
@@ -199,14 +200,14 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       return;
     }
     if (activeWorkday.activeSession != null) {
+      final tripSettings = TripTrackingSettingsScope.maybeOf(context)?.settings;
       _openActiveWorkday(
         activeVehicle: activeVehicle,
         activeWorkProfileName: activeWorkProfile.name,
         promptForTripTrackingSetup:
-            TripTrackingSettingsScope.maybeOf(
-              context,
-            )?.settings.tripTrackingSetupCompleted ==
-            false,
+            tripSettings?.tripTrackingSetupCompleted == false,
+        startGpsWhenOpened:
+            tripSettings?.gpsAssistedTrackingEnabled == true,
       );
       return;
     }
@@ -247,6 +248,11 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
             context,
           )?.settings.tripTrackingSetupCompleted ==
           false,
+      startGpsWhenOpened:
+          TripTrackingSettingsScope.maybeOf(
+            context,
+          )?.settings.gpsAssistedTrackingEnabled ==
+          true,
     );
   }
 
@@ -254,6 +260,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
     required VehicleProfile activeVehicle,
     required String activeWorkProfileName,
     bool promptForTripTrackingSetup = false,
+    bool startGpsWhenOpened = false,
   }) {
     final odometer = GlobalOdometerScope.of(context);
     Navigator.of(context).push(
@@ -271,6 +278,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
           ),
           workProfileName: activeWorkProfileName,
           promptForTripTrackingSetup: promptForTripTrackingSetup,
+          startGpsWhenOpened: startGpsWhenOpened,
         ),
       ),
     );

@@ -69,7 +69,7 @@ void main() {
     expect(record.hasValidTimeline, isTrue);
   });
 
-  test('permission history is bounded and survives local recovery', () async {
+  test('complete permission history survives local recovery', () async {
     final store = TripTrackingSessionStore.memory();
     final startedAt = DateTime.utc(2026, 7, 21, 18);
     final history = List.generate(
@@ -101,8 +101,11 @@ void main() {
     final recovered = TripTrackingSessionRecord.fromMap(
       store.activeSession!.toMap(),
     );
-    expect(recovered.permissionHistory, hasLength(24));
-    expect(recovered.permissionHistory.first.observedAt, history[6].observedAt);
+    expect(recovered.permissionHistory, hasLength(30));
+    expect(
+      recovered.permissionHistory.first.observedAt,
+      history.first.observedAt,
+    );
     expect(recovered.permissionHistory.last.state, 'denied');
     expect(recovered.engineSnapshot.totalAcceptedMeters, 500);
   });

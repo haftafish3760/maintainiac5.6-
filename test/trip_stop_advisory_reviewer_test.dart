@@ -131,7 +131,7 @@ void main() {
       );
 
       expect(advisories.single.evidenceStartedAt, stationaryStartedAt);
-      expect(advisories.single.confidence, TripTrackingConfidence.medium);
+      expect(advisories.single.confidence, TripTrackingConfidence.low);
 
       final upgraded = TripStopAdvisoryReviewer.afterMotionTransition(
         sessionWith(advisories),

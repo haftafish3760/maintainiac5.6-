@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/device_capabilities/device_bluetooth_capabilities.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_automatic_start_detector.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_bluetooth.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_bluetooth_coordinator.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -122,4 +123,73 @@ void main() {
       expect(switchCalls, 2);
     },
   );
+
+  test('paid linked vehicle connection may start automatic GPS tracking', () async {
+    var active = false;
+    String? startedVehicle;
+    final coordinator = TripTrackingBluetoothCoordinator(
+      linkStore: await links(),
+      settings: () => const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        bluetoothVehicleRecognitionEnabled: true,
+        automaticVehicleSwitchEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      ),
+      hasActiveSession: () => active,
+      hasUnfinishedStoredSession: () => false,
+      currentVehicleId: () => 'vehicle_1',
+      switchVehicle: (_) async => true,
+      automaticStartAccess: () => TripAutomaticStartAccessLevel.paid,
+      startAutomaticTracking: (vehicleId, _) async {
+        startedVehicle = vehicleId;
+        active = true;
+        return true;
+      },
+    );
+
+    await coordinator.handleConnection(
+      DeviceBluetoothConnectionObservation(
+        opaqueDeviceId: 'opaque_local_device',
+        connected: true,
+        observedAtUtc: now,
+      ),
+      nowUtc: now,
+    );
+
+    expect(startedVehicle, 'vehicle_2');
+    expect(active, isTrue);
+  });
+
+  test('free linked vehicle connection cannot start automatic tracking', () async {
+    var startCalls = 0;
+    final coordinator = TripTrackingBluetoothCoordinator(
+      linkStore: await links(),
+      settings: () => const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        bluetoothVehicleRecognitionEnabled: true,
+        automaticVehicleSwitchEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      ),
+      hasActiveSession: () => false,
+      hasUnfinishedStoredSession: () => false,
+      currentVehicleId: () => 'vehicle_1',
+      switchVehicle: (_) async => true,
+      automaticStartAccess: () => TripAutomaticStartAccessLevel.free,
+      startAutomaticTracking: (_, _) async {
+        startCalls += 1;
+        return true;
+      },
+    );
+
+    await coordinator.handleConnection(
+      DeviceBluetoothConnectionObservation(
+        opaqueDeviceId: 'opaque_local_device',
+        connected: true,
+        observedAtUtc: now,
+      ),
+      nowUtc: now,
+    );
+
+    expect(startCalls, 0);
+  });
 }

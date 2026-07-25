@@ -3015,6 +3015,75 @@ void main() {
   );
 
   test(
+    'continuous constrained-device GPS creates low-confidence review only',
+    () async {
+      final native = _FakeTripTrackingPlatform();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_continuous_vehicle_only_review',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(allowBackground: false),
+        isTrue,
+      );
+      TripActivityObservation automotive(int seconds) =>
+          TripActivityObservation(
+            activity: TripActivity.automotive,
+            confidence: 90,
+            recordedAt: start.add(Duration(seconds: seconds)),
+          );
+
+      for (final entry in const [
+        (0, -80.0),
+        (12, -79.997),
+        (24, -79.994),
+        (36, -79.991),
+        (48, -79.988),
+      ]) {
+        await controller.ingest(
+          sample(entry.$2, entry.$1, speed: 3),
+          activity: entry.$1 == 0 ? automotive(0) : null,
+        );
+      }
+      for (var seconds = 60; seconds <= 432; seconds += 12) {
+        await controller.ingest(
+          sample(-79.988, seconds, speed: 0.2),
+        );
+      }
+
+      expect(controller.motionState, TripMotionState.stopCandidate);
+      expect(controller.isTracking, isTrue);
+      expect(controller.advisories, hasLength(1));
+      expect(
+        controller.advisories.single.type,
+        TripTrackingAdvisoryType.probableStop,
+      );
+      expect(
+        controller.advisories.single.confidence,
+        TripTrackingConfidence.low,
+      );
+      expect(
+        controller.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.pending,
+      );
+      expect(
+        controller.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.TEMPORARILY_STOPPED,
+      );
+      expect(odometer.confirmedReading, 1000);
+      expect(odometer.reading, greaterThan(1000));
+    },
+  );
+
+  test(
     'traffic-like vehicle-only waiting stays advisory-free across recovery',
     () async {
       final store = TripTrackingSessionStore.memory();
@@ -3550,6 +3619,50 @@ void main() {
     expect(native.stopCalls, 1);
     expect(controller.nativeTracking, isFalse);
   });
+
+  test(
+    'dispose during native startup cannot leave an orphaned collector',
+    () async {
+      final startGate = Completer<void>();
+      final native = _FakeTripTrackingPlatform(startDelay: startGate.future);
+      final store = TripTrackingSessionStore.memory();
+      final controller = TestTripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(initialReading: 1000),
+        platform: native,
+      );
+      await controller.start(
+        tripId: 'trip_dispose_during_native_start',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: start,
+      );
+
+      final starting = controller.startNativeTracking(allowBackground: false);
+      await drainNativeTripEventsUntil(() => native.startCalls == 1);
+      controller.dispose();
+      startGate.complete();
+
+      await starting;
+      await drainNativeTripEventsUntil(
+        () =>
+            native.stopCalls == 1 &&
+            store.activeSession?.lifecycleState ==
+                TripTrackingSessionLifecycleState.paused,
+      );
+
+      expect(native.hasEventListener, isFalse);
+      expect(await native.isTracking, isFalse);
+      expect(
+        store.activeSession?.effectiveContractState,
+        TripTrackingSessionLifecycleContractState.PAUSED_BY_SYSTEM,
+      );
+      expect(
+        store.activeSession?.transitionAudits.last.reasonCode,
+        'controller_disposed_system_pause',
+      );
+    },
+  );
 
   test('duplicate stop requests while already stopped are ignored', () async {
     final native = _FakeTripTrackingPlatform();

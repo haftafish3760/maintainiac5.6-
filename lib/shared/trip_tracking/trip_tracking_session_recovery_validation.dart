@@ -1,5 +1,6 @@
 import 'trip_tracking_models.dart';
 import 'trip_tracking_session_store.dart';
+import 'trip_tracking_state_machine.dart';
 
 enum TripTrackingSessionRecoveryStatus {
   recoverableActiveSession,
@@ -18,7 +19,7 @@ class TripTrackingSessionRecoveryValidation {
   factory TripTrackingSessionRecoveryValidation.activeSession(
     TripTrackingSessionRecord session, {
     DateTime? recoveredAt,
-    Duration maximumCheckpointAge = const Duration(hours: 18),
+    Duration? maximumCheckpointAge = const Duration(hours: 18),
     Duration maximumFutureSkew = const Duration(minutes: 2),
   }) {
     final reasons = <String>[];
@@ -40,9 +41,10 @@ class TripTrackingSessionRecoveryValidation {
       if (updated.isAfter(recovered.add(futureSkew))) {
         reasons.add('session_checkpoint_in_future');
       }
-      if (updated.isBefore(
-        recovered.subtract(_safeCheckpointAge(maximumCheckpointAge)),
-      )) {
+      if (maximumCheckpointAge != null &&
+          updated.isBefore(
+            recovered.subtract(_safeCheckpointAge(maximumCheckpointAge)),
+          )) {
         reasons.add('session_checkpoint_too_stale');
       }
     }
@@ -353,11 +355,12 @@ bool _hasForeignTransitionAudit(
   required DateTime startedAt,
   required DateTime latestAt,
 }) {
+  final auditList = audits.toList(growable: false);
   final ids = <String>{};
   final sequences = <int>{};
-  return audits.any(
-    (event) =>
-        event.schemaVersion != 1 ||
+  TripTrackingSessionTransitionAudit? previous;
+  for (final event in auditList) {
+    if (event.schemaVersion != 1 ||
         !_safeIdentifier(event.id) ||
         !ids.add(event.id) ||
         !sequences.add(event.sequenceNumber) ||
@@ -368,8 +371,45 @@ bool _hasForeignTransitionAudit(
         event.sequenceNumber < 1 ||
         event.revision < 1 ||
         event.eventTimestamp.isBefore(startedAt) ||
-        event.eventTimestamp.isAfter(latestAt),
-  );
+        event.eventTimestamp.isAfter(latestAt) ||
+        !_transitionAcceptanceMatchesStateMachines(event)) {
+      return true;
+    }
+    final prior = previous;
+    if (prior != null &&
+        (event.sequenceNumber <= prior.sequenceNumber ||
+            event.revision <= prior.revision ||
+            event.fromState !=
+                (prior.accepted ? prior.toState : prior.fromState) ||
+            event.effectiveFromContractState !=
+                (prior.accepted
+                    ? prior.effectiveToContractState
+                    : prior.effectiveFromContractState))) {
+      return true;
+    }
+    previous = event;
+  }
+  return false;
+}
+
+bool _transitionAcceptanceMatchesStateMachines(
+  TripTrackingSessionTransitionAudit event,
+) {
+  final runtimeAllowed =
+      event.fromState == event.toState ||
+      TripTrackingSessionStateMachine.canTransition(
+        event.fromState,
+        event.toState,
+      );
+  final fromContract = event.effectiveFromContractState;
+  final toContract = event.effectiveToContractState;
+  final contractAllowed =
+      fromContract == toContract ||
+      TripTrackingSessionContractStateMachine.canTransition(
+        fromContract,
+        toContract,
+      );
+  return event.accepted == (runtimeAllowed && contractAllowed);
 }
 
 bool _hasUnsafeRecoveryEvidence({

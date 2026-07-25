@@ -13,18 +13,21 @@ class ContractorOperationsPulse extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: BorderLabel(
-        label: 'Operations Pulse',
-        child: GridView.count(
-          crossAxisCount: 2,
-          mainAxisExtent: contractorMetricTileExtent(context),
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          children: [
-            for (final item in items) ContractorMetricTile(metric: item),
-          ],
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.4,
+        child: BorderLabel(
+          label: 'Operations Pulse',
+          child: GridView.count(
+            crossAxisCount: 2,
+            mainAxisExtent: contractorMetricTileExtent(context),
+            crossAxisSpacing: 8,
+            mainAxisSpacing: 8,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              for (final item in items) ContractorMetricTile(metric: item),
+            ],
+          ),
         ),
       ),
     );

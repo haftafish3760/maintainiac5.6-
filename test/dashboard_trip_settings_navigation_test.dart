@@ -36,9 +36,10 @@ void main() {
   });
 
   test('trip settings retain separate GPS and motion consent switches', () {
-    final source = File(
+    final source = [
       'lib/screens/settings/trip_tracking_settings_screen.dart',
-    ).readAsStringSync();
+      'lib/screens/settings/trip_tracking_settings_labels.dart',
+    ].map((path) => File(path).readAsStringSync()).join('\n');
 
     expect(source, contains("title: 'Enable GPS-assisted tracking'"));
     expect(source, contains('value: settings.activityRecognitionEnabled'));
@@ -46,7 +47,19 @@ void main() {
       source,
       contains('settings.copyWith(activityRecognitionEnabled: value)'),
     );
-    expect(source, contains("title: 'GPS update preset'"));
+    expect(source, contains("title: 'Accuracy and battery use'"));
     expect(source, contains("'High accuracy (2 sec)'"));
+    expect(source, contains("const _SettingsSectionTitle('Vehicle recognition')"));
+    expect(source, contains("'Paid feature'"));
+    expect(
+      source,
+      contains("'Automatically start GPS for the linked vehicle'"),
+    );
+    expect(
+      source,
+      contains(
+        'Confirmed odometer mileage is never changed without your review.',
+      ),
+    );
   });
 }

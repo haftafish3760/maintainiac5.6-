@@ -178,7 +178,7 @@ class _MetricReadout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 76,
+      height: 78,
       padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
       decoration: BoxDecoration(
         color: const Color(0xFF141A1D),
@@ -192,37 +192,40 @@ class _MetricReadout extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFFCAD2D5),
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 7),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              maxLines: 1,
-              style: TextStyle(
-                color: color,
-                fontSize: 22,
+      child: MediaQuery.withClampedTextScaling(
+        maxScaleFactor: 1.4,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFFCAD2D5),
+                fontSize: 12,
                 fontWeight: FontWeight.w900,
                 height: 1,
-                shadows: [
-                  Shadow(color: color.withValues(alpha: 0.45), blurRadius: 8),
-                ],
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 7),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value,
+                maxLines: 1,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                  shadows: [
+                    Shadow(color: color.withValues(alpha: 0.45), blurRadius: 8),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

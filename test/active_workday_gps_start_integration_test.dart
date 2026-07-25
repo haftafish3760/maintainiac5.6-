@@ -104,7 +104,9 @@ void main() {
     );
     final settings = TripTrackingSettingsController.memory(
       const TripTrackingSettings(
+        tripTrackingSetupCompleted: true,
         gpsAssistedTrackingEnabled: true,
+        samplingPreset: TripTrackingSamplingPreset.highAccuracy,
         activityRecognitionEnabled: true,
       ),
     );
@@ -132,8 +134,14 @@ void main() {
               controller: settings,
               child: TripTrackingScope(
                 controller: trip,
-                child: const MaterialApp(
-                  home: ActiveWorkdayScreen(
+                child: MaterialApp(
+                  builder: (context, child) => MediaQuery(
+                    data: MediaQuery.of(
+                      context,
+                    ).copyWith(textScaler: const TextScaler.linear(2)),
+                    child: child!,
+                  ),
+                  home: const ActiveWorkdayScreen(
                     activeVehicle: VehicleProfilePreview(
                       id: 'vehicle_1',
                       nickname: 'Work Truck',
@@ -144,6 +152,7 @@ void main() {
                       status: 'ACTIVE',
                     ),
                     workProfileName: 'Delivery',
+                    startGpsWhenOpened: true,
                   ),
                 ),
               ),
@@ -153,12 +162,6 @@ void main() {
       ),
     );
 
-    await tester.scrollUntilVisible(
-      find.widgetWithText(FilledButton, 'START'),
-      250,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
@@ -168,7 +171,10 @@ void main() {
     expect(trip.activeSession?.vehicleId, 'vehicle_1');
     expect(trip.activeSession?.effectiveProfileId, 'profile_delivery');
     expect(gateway.request?.activityRecognitionEnabled, isTrue);
+    expect(gateway.request?.sampling.interval, const Duration(seconds: 2));
+    expect(gateway.request?.sampling.minimumDisplacementMeters, 1);
     expect(odometer.confirmedReading, 12000);
+    expect(find.textContaining('• GPS live'), findsOneWidget);
 
     final sessionId = trip.activeSession?.id;
     gateway.running = false;
@@ -184,6 +190,7 @@ void main() {
       trip.signalGaps.single.reason,
       TripTrackingSignalGapReason.userPause,
     );
+    expect(find.textContaining('• Location paused'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'RESUME'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(FilledButton, 'RESUME'));

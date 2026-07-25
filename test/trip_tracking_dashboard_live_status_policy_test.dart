@@ -89,4 +89,62 @@ void main() {
       );
     },
   );
+
+  test('vehicle row distinguishes acquiring live degraded and recovery GPS', () {
+    expect(
+      TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+        activeTrip: true,
+        nativeTracking: true,
+        hasLiveProjection: true,
+        awaitingInitialFix: true,
+      ),
+      'GPS ACQUIRING',
+    );
+    expect(
+      TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+        activeTrip: true,
+        nativeTracking: true,
+        hasLiveProjection: true,
+      ),
+      'LIVE GPS',
+    );
+    expect(
+      TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+        activeTrip: true,
+        nativeTracking: true,
+        hasLiveProjection: true,
+        signalReviewRequired: true,
+      ),
+      'GPS DEGRADED',
+    );
+    expect(
+      TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+        activeTrip: true,
+        nativeTracking: false,
+        hasLiveProjection: true,
+        platformStatus: 'recoverable',
+      ),
+      'GPS RECOVERY',
+    );
+  });
+
+  test('vehicle row makes explicit system and user pauses visible', () {
+    for (final status in [
+      'paused',
+      'recovery_paused_by_user',
+      'battery_critical_gps_blocked',
+      'low_battery_requires_user_choice',
+      'gps_signal_review_required',
+    ]) {
+      expect(
+        TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+          activeTrip: true,
+          nativeTracking: false,
+          hasLiveProjection: true,
+          platformStatus: status,
+        ),
+        'GPS PAUSED',
+      );
+    }
+  });
 }

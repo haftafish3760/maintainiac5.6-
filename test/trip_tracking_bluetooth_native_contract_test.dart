@@ -21,4 +21,27 @@ void main() {
       }
     },
   );
+
+  test('Android publishes privacy-safe Bluetooth connection observations', () {
+    final events = File(
+      'android/app/src/main/kotlin/com/maintainiac/DeviceCapabilityEvents.kt',
+    ).readAsStringSync();
+    final manifest = File(
+      'android/app/src/main/AndroidManifest.xml',
+    ).readAsStringSync();
+    final service = File(
+      'lib/shared/device_capabilities/device_capability_service.dart',
+    ).readAsStringSync();
+
+    expect(manifest, contains('android.permission.BLUETOOTH_CONNECT'));
+    expect(events, contains('BluetoothDevice.ACTION_ACL_CONNECTED'));
+    expect(events, contains('BluetoothDevice.ACTION_ACL_DISCONNECTED'));
+    expect(events, contains('"opaqueDeviceId"'));
+    expect(events, contains('MessageDigest.getInstance("SHA-256")'));
+    expect(events, isNot(contains('"deviceName"')));
+    expect(events, isNot(contains('"deviceAddress"')));
+    expect(service, contains('DeviceBluetoothConnectionProbe'));
+    expect(service, contains('approvedConnectionChanges'));
+    expect(service, contains("event['reason'] != 'bluetoothConnection'"));
+  });
 }

@@ -10,6 +10,7 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_location_error' ||
     'trip_tracking_gps_unavailable' ||
     'trip_tracking_gps_disabled' ||
+    'trip_tracking_native_already_running' ||
     'trip_tracking_battery_critical' => true,
     _ => false,
   };
@@ -51,6 +52,8 @@ class TripTrackingNativeErrorPolicy {
     'trip_tracking_gps_unavailable' =>
       'GPS is unavailable on this device right now.',
     'trip_tracking_gps_disabled' => 'GPS was turned off while tracking.',
+    'trip_tracking_native_already_running' =>
+      'A GPS collector is already running. Recover or stop it before starting another trip.',
     'trip_tracking_battery_critical' =>
       'Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.',
     'trip_tracking_activity_unavailable' =>

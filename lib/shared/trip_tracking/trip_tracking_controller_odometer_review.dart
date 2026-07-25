@@ -310,7 +310,13 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
       _platformStatus = null;
       _platformError = null;
     }
-    await _saveDurableReviewedTrip(confirmedReview);
+    // Refresh the coordinate-free TripLog proposal after the driver confirms
+    // the physical odometer. The sink still cannot confirm mileage itself,
+    // but its newest revision must not remain at the pre-confirmation draft.
+    await _submitTripLogProposal(confirmedReview);
+    final persistedConfirmedReview =
+        _readReviewSafely(review.id) ?? confirmedReview;
+    await _saveDurableReviewedTrip(persistedConfirmedReview);
     _acceptedCalibrationEvidenceSignature = null;
     _calibrationState = _calibrationState.refreshEnabled(
       signal: odometerCalibrationSignal(),
@@ -333,7 +339,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
       _platformError = null;
     }
     try {
-      await _cloudMirror.queueReview(confirmedReview);
+      await _cloudMirror.queueReview(persistedConfirmedReview);
       unawaited(_flushCloudMirror());
       _cloudMirrorError = null;
     } catch (error) {

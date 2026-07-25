@@ -501,12 +501,11 @@ class TripTrackingReviewRecord {
         .where((item) => item.isValid)
         .map((item) => item.toMap())
         .toList(growable: false),
-    'transitionAudits': _boundedTransitionAudits(
-      transitionAudits,
-    ).map((item) => item.toMap()).toList(growable: false),
+    'transitionAudits': transitionAudits
+        .map((item) => item.toMap())
+        .toList(growable: false),
     'batteryStateSummary': batteryStateSummary?.toMap(),
     'permissionHistory': permissionHistory
-        .takeLast(24)
         .map((item) => item.toMap())
         .toList(growable: false),
     'recoveryCount': recoveryCount < 0 ? 0 : recoveryCount,

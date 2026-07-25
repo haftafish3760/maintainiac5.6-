@@ -74,12 +74,14 @@ class ContractorDayControlPanel extends StatelessWidget {
     required this.dayStarted,
     required this.onStartDay,
     this.onOpenDay,
+    this.onStartGps,
     super.key,
   });
 
   final bool dayStarted;
   final VoidCallback onStartDay;
   final VoidCallback? onOpenDay;
+  final VoidCallback? onStartGps;
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +122,7 @@ class ContractorDayControlPanel extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       dayStarted
-                          ? 'Open the workday to pause, resume, review GPS, add stops, or end with the vehicle odometer.'
+                          ? 'GPS assistance is optional. Start it here, or open the workday to pause, review, add stops, and end with the vehicle odometer.'
                           : 'Begin mileage, jobs, receipts, materials, and invoices for this vehicle.',
                       style: const TextStyle(
                         color: Color(0xFFF1F7F3),
@@ -134,14 +136,34 @@ class ContractorDayControlPanel extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               if (dayStarted)
-                AppButton(
-                  label: 'Open Workday',
-                  compact: true,
-                  icon: const Icon(
-                    Icons.open_in_new_rounded,
-                    color: Colors.white,
+                SizedBox(
+                  width: 180,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      AppButton(
+                        label: 'Start GPS',
+                        compact: true,
+                        tone: AppButtonTone.commit,
+                        icon: const Icon(
+                          Icons.location_on_rounded,
+                          color: Colors.white,
+                        ),
+                        onPressed: onStartGps,
+                      ),
+                      const SizedBox(height: 6),
+                      AppButton(
+                        label: 'Open Workday',
+                        compact: true,
+                        icon: const Icon(
+                          Icons.open_in_new_rounded,
+                          color: Colors.white,
+                        ),
+                        onPressed: onOpenDay,
+                      ),
+                    ],
                   ),
-                  onPressed: onOpenDay,
                 )
               else
                 AppButton(

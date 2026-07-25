@@ -21,7 +21,7 @@ abstract class DeviceCapabilityLiveProbe implements DeviceCapabilityProbe {
 /// account identity or durable storage, so separate devices on one account are
 /// always classified from their own hardware and current conditions.
 class DeviceCapabilityService
-    implements DeviceCapabilityLiveProbe, DeviceBluetoothCapabilityProbe {
+    implements DeviceCapabilityLiveProbe, DeviceBluetoothConnectionProbe {
   DeviceCapabilityService({
     DeviceInfoPlugin? deviceInfo,
     MethodChannel? nativeChannel,
@@ -48,20 +48,45 @@ class DeviceCapabilityService
   Future<DeviceCameraCapabilities>? _camera;
   Future<DeviceExtendedCapabilities>? _extendedStatic;
   Future<DeviceCapabilityProfile>? _cachedProfile;
+  Stream<Object?>? _nativeEvents;
   Stream<void>? _changes;
+  Stream<DeviceBluetoothConnectionObservation>? _approvedConnectionChanges;
 
   @override
   Stream<void> get changes => _changes ??= _readChanges().asBroadcastStream();
 
-  Stream<void> _readChanges() async* {
+  Stream<Object?> get _events =>
+      _nativeEvents ??= _readNativeEvents().asBroadcastStream();
+
+  Stream<Object?> _readNativeEvents() async* {
     try {
-      await for (final _ in _eventChannel.receiveBroadcastStream()) {
-        yield null;
-      }
+      yield* _eventChannel.receiveBroadcastStream();
     } on MissingPluginException {
       return;
     } on PlatformException {
       return;
+    }
+  }
+
+  Stream<void> _readChanges() async* {
+    await for (final _ in _events) {
+      yield null;
+    }
+  }
+
+  @override
+  Stream<DeviceBluetoothConnectionObservation>
+  get approvedConnectionChanges =>
+      _approvedConnectionChanges ??=
+          _readApprovedConnectionChanges().asBroadcastStream();
+
+  Stream<DeviceBluetoothConnectionObservation>
+  _readApprovedConnectionChanges() async* {
+    await for (final event in _events) {
+      if (event is! Map || event['reason'] != 'bluetoothConnection') continue;
+      final observation =
+          DeviceBluetoothConnectionObservation.tryParseNative(event);
+      if (observation != null) yield observation;
     }
   }
 

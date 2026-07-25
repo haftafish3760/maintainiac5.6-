@@ -91,7 +91,11 @@ void main() {
         ),
       );
 
-      await tester.ensureVisible(find.text('GPS-ASSISTED TRIP'));
+      await tester.scrollUntilVisible(
+        find.textContaining('unusually high'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
 
       expect(find.textContaining('unusually high'), findsOneWidget);
       expect(find.textContaining('GPS stays advisory'), findsOneWidget);
@@ -180,7 +184,11 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.text('GPS-ASSISTED TRIP'));
+    await tester.scrollUntilVisible(
+      find.textContaining('Repeated GPS/odometer drift'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
 
     expect(find.textContaining('Repeated GPS/odometer drift'), findsOneWidget);
     expect(find.textContaining('odometer stays official'), findsOneWidget);

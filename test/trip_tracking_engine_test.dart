@@ -1440,6 +1440,50 @@ void main() {
     expect(engine.needsWalkingReview, isFalse);
   });
 
+  test(
+    'continuous constrained-device fixes can reach review-only stop candidate',
+    () {
+      final engine = TripTrackingEngine(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final automotive = TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start,
+      );
+      for (final entry in const [
+        (0, -80.0),
+        (12, -79.9995),
+        (24, -79.9990),
+        (36, -79.9985),
+        (48, -79.9980),
+      ]) {
+        engine.ingest(
+          sample(entry.$2, entry.$1, speedMetersPerSecond: 3),
+          activity: entry.$1 == 0 ? automotive : null,
+        );
+      }
+
+      for (var seconds = 60; seconds <= 432; seconds += 12) {
+        engine.ingest(
+          sample(-79.9980, seconds, speedMetersPerSecond: 0.2),
+        );
+      }
+
+      expect(engine.motionState, TripMotionState.stopCandidate);
+      expect(engine.currentStopCandidate, isNotNull);
+      expect(
+        engine.currentStopCandidate!.evidence,
+        TripStopCandidateEvidence.stationaryGps,
+      );
+      expect(engine.currentStopCandidate!.confidence, TripTrackingConfidence.low);
+      expect(engine.needsWalkingReview, isFalse);
+      expect(engine.totalAcceptedMeters, greaterThan(0));
+      expect(engine.odometerIsGlobalTruth, isTrue);
+      expect(engine.engineCanConfirmOdometer, isFalse);
+    },
+  );
+
   test('a GPS outage cannot bridge an old vehicle-only wait into a stop', () {
     final engine = TripTrackingEngine(
       profile: TripTrackingProfile.rideshareVehicle,
@@ -1540,6 +1584,58 @@ void main() {
 
       expect(restored.motionState, isNot(TripMotionState.stopCandidate));
       expect(restored.needsWalkingReview, isFalse);
+    },
+  );
+
+  test(
+    'continuous constrained-device dwell survives safe local recovery',
+    () {
+      final engine = TripTrackingEngine(
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      final automotive = TripActivityObservation(
+        activity: TripActivity.automotive,
+        confidence: 90,
+        recordedAt: start,
+      );
+      for (final entry in const [
+        (0, -80.0),
+        (12, -79.9995),
+        (24, -79.9990),
+        (36, -79.9985),
+        (48, -79.9980),
+      ]) {
+        engine.ingest(
+          sample(entry.$2, entry.$1, speedMetersPerSecond: 3),
+          activity: entry.$1 == 0 ? automotive : null,
+        );
+      }
+      for (var seconds = 60; seconds <= 240; seconds += 12) {
+        engine.ingest(
+          sample(-79.9980, seconds, speedMetersPerSecond: 0.2),
+        );
+      }
+
+      final restored = TripTrackingEngine.fromSnapshot(
+        TripTrackingEngineSnapshot.fromMap(engine.snapshot.toMap()),
+        profile: TripTrackingProfile.deliveryVehicle,
+      );
+      for (var seconds = 252; seconds <= 432; seconds += 12) {
+        restored.ingest(
+          sample(-79.9980, seconds, speedMetersPerSecond: 0.2),
+        );
+      }
+
+      expect(restored.motionState, TripMotionState.stopCandidate);
+      expect(
+        restored.currentStopCandidate?.evidence,
+        TripStopCandidateEvidence.stationaryGps,
+      );
+      expect(
+        restored.currentStopCandidate?.confidence,
+        TripTrackingConfidence.low,
+      );
+      expect(restored.engineCanConfirmOdometer, isFalse);
     },
   );
 

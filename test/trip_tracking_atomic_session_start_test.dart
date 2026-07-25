@@ -11,18 +11,19 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  TripTrackingSessionRecord session(String id) => TripTrackingSessionRecord(
-    id: id,
-    vehicleId: 'vehicle_1',
-    startingOdometer: 1000,
-    profile: TripTrackingProfile.roadVehicle,
-    startedAt: DateTime.utc(2026, 7, 23, 12),
-    updatedAt: DateTime.utc(2026, 7, 23, 12),
-    engineSnapshot: const TripTrackingEngineSnapshot(
-      totalAcceptedMeters: 0,
-      walkingReviewSuggested: false,
-    ),
-  );
+  TripTrackingSessionRecord session(String id, {int startingOdometer = 1000}) =>
+      TripTrackingSessionRecord(
+        id: id,
+        vehicleId: 'vehicle_1',
+        startingOdometer: startingOdometer,
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 7, 23, 12),
+        updatedAt: DateTime.utc(2026, 7, 23, 12),
+        engineSnapshot: const TripTrackingEngineSnapshot(
+          totalAcceptedMeters: 0,
+          walkingReviewSuggested: false,
+        ),
+      );
 
   test(
     'one memory store atomically accepts only one simultaneous start',
@@ -39,6 +40,26 @@ void main() {
         store.activeSession?.id,
         results.first ? 'trip_memory_a' : 'trip_memory_b',
       );
+    },
+  );
+
+  test(
+    'failed memory reservation does not block a later valid start',
+    () async {
+      final store = TripTrackingSessionStore.memory();
+      final invalid = session('trip_memory_invalid', startingOdometer: -1);
+
+      await expectLater(
+        store.createIfNoSessionEvidence(invalid),
+        throwsArgumentError,
+      );
+
+      expect(store.activeSession, isNull);
+      expect(
+        await store.createIfNoSessionEvidence(session('trip_memory_valid')),
+        isTrue,
+      );
+      expect(store.activeSession?.id, 'trip_memory_valid');
     },
   );
 
@@ -119,6 +140,35 @@ void main() {
       expect(firstStore.pendingWriteState, TripTrackingPendingWriteState.none);
     },
   );
+
+  test('failed Hive reservation does not leave a phantom session', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'trip_failed_session_reservation_',
+    );
+    Hive.init(directory.path);
+    final store = await TripTrackingSessionStore.create(
+      storageCheck: _allowStorage,
+    );
+    addTearDown(() async {
+      await Hive.close();
+      if (directory.existsSync()) await directory.delete(recursive: true);
+    });
+    final invalid = session('trip_hive_invalid', startingOdometer: -1);
+
+    await expectLater(
+      store.createIfNoSessionEvidence(invalid),
+      throwsArgumentError,
+    );
+
+    expect(store.activeSession, isNull);
+    expect(store.hasUnreadableActiveEvidence, isFalse);
+    expect(store.pendingWriteState, TripTrackingPendingWriteState.none);
+    expect(
+      await store.createIfNoSessionEvidence(session('trip_hive_valid')),
+      isTrue,
+    );
+    expect(store.activeSession?.id, 'trip_hive_valid');
+  });
 }
 
 Future<AppStorageCheck> _allowStorage() async => const AppStorageCheck(

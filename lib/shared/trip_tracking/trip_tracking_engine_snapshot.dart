@@ -89,7 +89,6 @@ class TripTrackingEngineSnapshot {
       'signalGaps': signalGaps.map((item) => item.toMap()).toList(),
       'initialFixAssessment': initialFixAssessment?.toMap(),
       'initialFixHistory': initialFixHistory
-          .skip(initialFixHistory.length > 8 ? initialFixHistory.length - 8 : 0)
           .map((item) => item.toMap())
           .toList(growable: false),
       'walkingReviewSuggested': _safeWalkingReviewSuggested(
@@ -121,12 +120,6 @@ class TripTrackingEngineSnapshot {
         : const <TripInitialFixAssessment>[];
     final initialFixHistory = parsedInitialFixHistory.isNotEmpty
         ? parsedInitialFixHistory
-              .skip(
-                parsedInitialFixHistory.length > 8
-                    ? parsedInitialFixHistory.length - 8
-                    : 0,
-              )
-              .toList(growable: false)
         : legacyInitialFix == null
         ? const <TripInitialFixAssessment>[]
         : <TripInitialFixAssessment>[legacyInitialFix];
@@ -224,7 +217,12 @@ List<TripTrackingSignalGap> _safeSignalGaps(Object? value) {
 }
 
 const _maxPersistedWalkingEvidence = 12;
-const _maxPersistedObservationLead = Duration(minutes: 2);
+// Continuous accurate location observations may legitimately remain
+// stationary longer than the 6-12 minute profile dwell thresholds. Keep the
+// recovery window bounded, but do not collapse valid stop evidence back to the
+// last mileage-bearing point.
+const _maxPersistedObservationLead = Duration(minutes: 15);
+const _maxPersistedWalkingEvidenceLead = Duration(minutes: 2);
 
 Iterable<TripActivityObservation> _boundedWalkingEvidence(
   Iterable<TripActivityObservation> evidence,
@@ -247,7 +245,9 @@ List<TripActivityObservation> sanitizeRecoveredWalkingEvidence(
   // accepted observation. Legacy pending-review records may legitimately
   // carry only advisory motion evidence, so a missing anchor cannot erase a
   // user-visible review cue by itself.
-  final latestAllowed = lastObservedAt?.add(_maxPersistedObservationLead);
+  final latestAllowed = lastObservedAt?.add(
+    _maxPersistedWalkingEvidenceLead,
+  );
   final earliestAllowed =
       lastObservedAt != null &&
           maximumEvidenceAge != null &&

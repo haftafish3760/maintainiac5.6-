@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/active_workday_screen.dart';
+import 'package:maintaniac/screens/dashboard/contractor/contractor_dashboard_sections.dart';
 import 'package:maintaniac/screens/dashboard/dashboard.dart';
 import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/dashboard/vehicle_profile_widgets.dart';
@@ -31,6 +32,31 @@ void main() {
   tearDown(() {
     appState.dispose();
     odometer.dispose();
+  });
+
+  testWidgets('contractor GPS entry requires an explicit tap', (tester) async {
+    var startGpsCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ContractorDayControlPanel(
+            dayStarted: true,
+            onStartDay: () {},
+            onOpenDay: () {},
+            onStartGps: () => startGpsCalls += 1,
+          ),
+        ),
+      ),
+    );
+
+    expect(startGpsCalls, 0);
+    expect(find.text('Start GPS'), findsOneWidget);
+    expect(find.textContaining('GPS assistance is optional'), findsOneWidget);
+
+    await tester.tap(find.text('Start GPS'));
+    await tester.pump();
+
+    expect(startGpsCalls, 1);
   });
 
   testWidgets('dashboard opens contractor command center', (tester) async {
@@ -91,6 +117,10 @@ void main() {
     expect(find.text('Invoice'), findsOneWidget);
     expect(find.text('Payment'), findsOneWidget);
     expect(find.text('Proof Photo'), findsNothing);
+    await tester.binding.handlePopRoute();
+    await tester.pumpAndSettle();
+    expect(find.text('Start GPS'), findsOneWidget);
+    expect(find.textContaining('GPS assistance is optional'), findsOneWidget);
   });
 
   testWidgets('canonical workday owns contractor pause and end controls', (
@@ -279,7 +309,7 @@ void main() {
       ),
     );
 
-    expect(find.text('0001000'), findsOneWidget);
+    expect(find.text('1000'), findsOneWidget);
     expect(find.text('0'), findsOneWidget);
 
     expect(
@@ -309,7 +339,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('0001000'), findsNothing);
+    expect(find.text('1000'), findsNothing);
     expect(find.text(odometer.displayValue), findsOneWidget);
     expect(odometer.reading, greaterThan(1000));
     expect(odometer.confirmedReading, 1000);
@@ -507,9 +537,8 @@ void main() {
 
     expect(native.requestAuthorizationCalls, 1);
     expect(native.startCalls, 1);
+    expect(tripController.nativeTracking, isTrue);
     expect(find.text('GPS-assisted trip tracking started.'), findsOneWidget);
-    expect(find.text('Foreground GPS'), findsOneWidget);
-    expect(find.text('Foreground GPS assist is available.'), findsOneWidget);
   });
 
   testWidgets('active day can remember low battery GPS cancellation', (
@@ -994,6 +1023,7 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'START'));
     await tester.pumpAndSettle();
     expect(find.widgetWithText(FilledButton, 'STOP'), findsOneWidget);
+    expect(native.stopCalls, 0);
     await tripController.ingest(
       TripLocationSample(
         latitude: 35,
@@ -1015,9 +1045,11 @@ void main() {
     await tester.tap(find.widgetWithText(FilledButton, 'STOP'));
     await tester.pump();
     expect(find.widgetWithText(FilledButton, 'STOPPING'), findsOneWidget);
+    expect(native.stopInvocations, 1);
 
     await tester.tap(find.widgetWithText(FilledButton, 'STOPPING'));
     await tester.pump();
+    expect(native.stopInvocations, 1);
     stopCompleter.complete();
     await tester.pumpAndSettle();
     await tester.pump();
@@ -1078,7 +1110,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Odometer: 0001000'), findsOneWidget);
+      expect(find.text('Odometer: 1000'), findsOneWidget);
       expect(
         odometer.beginLiveTripProjection(
           tripId: 'gps-trip-stop-dialog',
@@ -1095,9 +1127,9 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text('Live GPS odometer: 0001004'), findsOneWidget);
-      expect(find.text('+4 mi live • confirmed 0001000'), findsOneWidget);
-      expect(find.text('Odometer: 0001000'), findsNothing);
+      expect(find.text('Live GPS odometer: 1004'), findsOneWidget);
+      expect(find.text('Location paused • confirmed 1000'), findsOneWidget);
+      expect(find.text('Odometer: 1000'), findsNothing);
     },
   );
 
@@ -1363,6 +1395,7 @@ class _DashboardTripNativeGateway implements TripTrackingNativeGateway {
   final _events = StreamController<TripTrackingPlatformEvent>.broadcast();
   var requestAuthorizationCalls = 0;
   var startCalls = 0;
+  var stopInvocations = 0;
   var stopCalls = 0;
   var _tracking = false;
 
@@ -1408,6 +1441,7 @@ class _DashboardTripNativeGateway implements TripTrackingNativeGateway {
 
   @override
   Future<void> stop() async {
+    stopInvocations += 1;
     await stopDelay;
     stopCalls += 1;
     _tracking = false;

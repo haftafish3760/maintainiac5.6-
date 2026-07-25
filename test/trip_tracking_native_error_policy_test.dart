@@ -39,6 +39,7 @@ void main() {
       'trip_tracking_location_error',
       'trip_tracking_gps_unavailable',
       'trip_tracking_gps_disabled',
+      'trip_tracking_native_already_running',
       'trip_tracking_battery_critical',
     ]) {
       expect(TripTrackingNativeErrorPolicy.requiresRecovery(code), isTrue);
@@ -127,6 +128,12 @@ void main() {
         'trip_tracking_permission_busy',
       ),
       'Another GPS permission request is already in progress.',
+    );
+    expect(
+      TripTrackingNativeErrorPolicy.safeMessage(
+        'trip_tracking_native_already_running',
+      ),
+      'A GPS collector is already running. Recover or stop it before starting another trip.',
     );
   });
 

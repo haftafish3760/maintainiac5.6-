@@ -51,6 +51,12 @@
    stop threshold pretend to suit every use case.
 6. Add targeted regressions for every defect found during this phase. Validate
    only affected tests and platform builds after bundled changes.
+7. Automatic-start assistance remains deliberately unavailable in production.
+   Its settings model and multi-observation detector exist, but no approved
+   pre-trip native observation source or user-facing toggle is wired. Do not
+   expose the toggle until background monitoring, permission disclosure,
+   battery cost, candidate-session recovery, and real-device false-start rates
+   are designed and measured without creating a second tracking engine.
 
 ### Phase B — odometer reconciliation and adaptive sanity assistance
 
@@ -215,5 +221,30 @@
   navigation/route optimization, fleet tracking, OCR, inventory, receipts,
   invoices, and unrelated modules.
 - Deterministic simulation/replay is now active and covers a bounded
-  production-pipeline corpus. Lifecycle fuzzing, long-session resource
-  evidence, and real-device field routes remain incomplete.
+  production-pipeline corpus. A ten-hour controller/store replay now proves
+  bounded coordinate-free recovery state and preserved odometer authority.
+  The benchmark corpus also covers a plausible tunnel/garage no-fix interval
+  and verifies that recovery resumes without counting the hidden route or
+  suggesting a false stop.
+  A 1,000-iteration run now executes 24,000 deterministic case replays and
+  reports explicit stop confusion counts without elevating synthetic evidence
+  into a field-accuracy claim.
+  Recorded lifecycle seeds also cover competing native start, stop, app
+  pause/resume, and heartbeat operations while proving serialized native
+  commands and one session identity. Native real-device long-session/field
+  routes and field-derived defect seeds remain incomplete.
+- Startup recovery now detects a native collector with no readable owning
+  session, requests stop, and verifies the stopped state before reporting
+  success. Stop refusal and failed verification remain controlled,
+  user-actionable recovery states and never create mileage.
+- Contractor-day GPS controls are now discoverable from the dashboard through
+  an explicit optional `Start GPS` action. Deferred signal-safety cleanup
+  yields to an in-progress user stop so native collection is stopped once.
+- Foreground runtime supervision now probes the expected native collector at a
+  bounded interval through the existing heartbeat policy. A silently killed
+  collector therefore becomes a preserved degraded/interrupted trip instead of
+  waiting indefinitely for another provider event; no distance, stop, or
+  odometer value is fabricated during the gap.
+- Active-workday GPS controls now complete their full start-to-review regression
+  at 200% accessibility text scaling. Quick-action wording remains visible
+  without ellipses, and the dynamic grid removes the reproduced overflow.

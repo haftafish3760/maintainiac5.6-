@@ -6,14 +6,14 @@ class ContractorActiveShiftPanel extends StatelessWidget {
   const ContractorActiveShiftPanel({
     this.shiftTime = '00:00',
     this.milesToday = '0',
-    this.currentJob = '1',
+    this.currentJob,
     this.liveOdometerLabel,
     super.key,
   });
 
   final String shiftTime;
   final String milesToday;
-  final String currentJob;
+  final String? currentJob;
   final String? liveOdometerLabel;
 
   @override
@@ -56,7 +56,7 @@ class ContractorActiveShiftPanel extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               const Text(
-                'Oak Street repair is active. Add stops, notes, expenses, receipts, materials, invoices, and payments from here.',
+                'Your active workday is saved locally. Add stops, notes, receipts, materials, invoices, and payments from here.',
                 style: TextStyle(
                   color: Color(0xFFE6F5FF),
                   fontSize: 12.5,
@@ -80,13 +80,15 @@ class ContractorActiveShiftPanel extends StatelessWidget {
                       value: milesToday,
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ContractorShiftReadout(
-                      label: 'Current Job',
-                      value: currentJob,
+                  if (currentJob != null) ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ContractorShiftReadout(
+                        label: 'Current Job',
+                        value: currentJob!,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
               if (liveOdometerLabel != null) ...[

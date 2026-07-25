@@ -10,6 +10,7 @@ import 'trip_driver_pattern_assistant.dart';
 import 'trip_driver_pattern_review_adapter.dart';
 import 'trip_odometer_end_review_policy.dart';
 import 'trip_odometer_calibration_prompt_policy.dart';
+import 'trip_signal_quality_action_policy.dart';
 import 'trip_tracking_bluetooth.dart';
 import 'trip_automatic_start_detector.dart';
 import 'trip_initial_fix_classifier.dart';
@@ -32,8 +33,10 @@ import 'trip_tracking_policy.dart';
 import 'trip_tracking_recovery_policy.dart';
 import 'trip_tracking_route_point_store.dart';
 import 'trip_tracking_sampling_preset_policy.dart';
+import 'trip_tracking_session_recovery_validation.dart';
 import 'trip_tracking_session_store.dart';
 import 'trip_tracking_settings_store.dart';
+import 'trip_tracking_signal_quality.dart';
 import 'trip_tracking_state_machine.dart';
 import 'trip_stop_advisory_reviewer.dart';
 import 'trip_tracking_trip_log_proposal.dart';
@@ -43,6 +46,7 @@ part 'trip_tracking_controller_ingestion.dart';
 part 'trip_tracking_controller_pending_recovery.dart';
 part 'trip_tracking_controller_native_collection.dart';
 part 'trip_tracking_controller_native_lifecycle.dart';
+part 'trip_tracking_controller_runtime_settings.dart';
 part 'trip_tracking_controller_odometer_review.dart';
 part 'trip_tracking_controller_review_actions.dart';
 part 'trip_tracking_controller_session_lifecycle.dart';
@@ -51,6 +55,39 @@ bool _isSafeUserEventCommandId(String value) =>
     value.isNotEmpty &&
     value.length <= 96 &&
     RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(value);
+
+TripTrackingDiagnostics _diagnosticsSince(
+  TripTrackingDiagnostics current,
+  TripTrackingDiagnostics baseline,
+) {
+  final received = (current.receivedSamples - baseline.receivedSamples).clamp(
+    0,
+    current.receivedSamples,
+  );
+  final accepted = (current.acceptedSamples - baseline.acceptedSamples).clamp(
+    0,
+    received,
+  );
+  final counts = <TripSampleDisposition, int>{};
+  for (final disposition in TripSampleDisposition.values) {
+    final count =
+        (current.dispositionCounts[disposition] ?? 0) -
+        (baseline.dispositionCounts[disposition] ?? 0);
+    if (count > 0) counts[disposition] = count;
+  }
+  return TripTrackingDiagnostics(
+    receivedSamples: received,
+    acceptedSamples: accepted,
+    dispositionCounts: Map.unmodifiable(counts),
+    rejectedDistanceMeters:
+        (current.rejectedDistanceMeters - baseline.rejectedDistanceMeters)
+            .clamp(0, current.rejectedDistanceMeters),
+    estimatedGapDistanceMeters:
+        (current.estimatedGapDistanceMeters -
+                baseline.estimatedGapDistanceMeters)
+            .clamp(0, current.estimatedGapDistanceMeters),
+  );
+}
 
 /// Owns one active GPS-assisted trip. Platform adapters feed it samples; this
 /// controller keeps the UI, local recovery record, and live odometer aligned.
@@ -92,7 +129,10 @@ class TripTrackingController extends ChangeNotifier {
          gpsAssistanceCalibrationMultiplier,
        ),
        _activeVehicleConfigurationRevision = activeVehicleConfigurationRevision,
-       _clockNow = clockNow ?? heartbeatNow ?? DateTime.now;
+       _clockNow = clockNow ?? heartbeatNow ?? DateTime.now {
+    _lastObservedConfirmedOdometer = odometer.confirmedReading;
+    odometer.addListener(_handleConfirmedOdometerChanged);
+  }
 
   final TripTrackingSessionStore _sessionStore;
   final GlobalOdometerController _odometer;
@@ -141,6 +181,8 @@ class TripTrackingController extends ChangeNotifier {
   bool _nativeStopRequested = false;
   bool _nativeInterruptionPending = false;
   bool _nativeCriticalBatteryStopPending = false;
+  bool _signalSafetyPausePending = false;
+  TripTrackingDiagnostics? _nativeSignalEpochBaseline;
   TripTrackingNativeRequest? _pendingNativeStartRequest;
   bool _pendingNativeStartActivityUnavailable = false;
   bool _pendingNativeStartPreferenceSaveFailed = false;
@@ -150,6 +192,7 @@ class TripTrackingController extends ChangeNotifier {
   String? _pendingNativeSystemPauseStatus;
   TripSamplingRecommendation? _nativeSampling;
   TripTrackingSamplingPlan? _nativeSamplingPlan;
+  int _deviceLocationIntervalFloorSeconds = 1;
   DateTime? _lastNativeHeartbeatUtc;
   DateTime? _nativeTrackingStartedAtUtc;
   DateTime? _lastNativeLocationReceivedUtc;
@@ -170,6 +213,53 @@ class TripTrackingController extends ChangeNotifier {
   DateTime? _lastRoutePointPersistedAtUtc;
   String? _routeStorageStatus;
   String? _acceptedCalibrationEvidenceSignature;
+  int? _lastObservedConfirmedOdometer;
+
+  void _handleConfirmedOdometerChanged() {
+    if (_isDisposed) return;
+    final confirmed = _odometer.confirmedReading;
+    if (_lastObservedConfirmedOdometer == confirmed) return;
+    _lastObservedConfirmedOdometer = confirmed;
+    final session = _session;
+    if (session == null ||
+        _projection == null ||
+        _odometer.activeLiveTripId != session.id) {
+      return;
+    }
+
+    final anchorMeters = acceptedMeters;
+    _projection = TripLiveOdometerProjection(
+      startingOdometer: confirmed,
+      acceptedMetersBaseline: anchorMeters,
+      maxSupportedReading: _odometer.maxSupportedReading,
+    );
+    final anchoredSession = session.copyWith(
+      updatedAt: _nonRegressingSessionTime(session, _clockNow()),
+      revision: session.revision + 1,
+      projectionAnchorOdometer: confirmed,
+      projectionAnchorAcceptedMeters: anchorMeters,
+    );
+    _session = anchoredSession;
+    _ingestionQueue = _ingestionQueue.then((_) async {
+      final current = _session;
+      if (_isDisposed ||
+          current == null ||
+          current.id != anchoredSession.id ||
+          current.effectiveProjectionAnchorOdometer != confirmed ||
+          current.projectionAnchorAcceptedMeters != anchorMeters) {
+        return;
+      }
+      try {
+        await _sessionStore.save(current);
+      } catch (_) {
+        _platformStatus = 'storage_failed';
+        _platformError =
+            'Your confirmed odometer was saved, but the GPS projection anchor '
+            'could not be saved. GPS remains advisory until recovery.';
+        notifyListeners();
+      }
+    });
+  }
 
   TripTrackingSessionRecord? get activeSession => _session;
   bool get isTracking => _session != null;
@@ -189,6 +279,22 @@ class TripTrackingController extends ChangeNotifier {
       _engine?.motionState ?? TripMotionState.unknown;
   TripTrackingDiagnostics get diagnostics =>
       _engine?.snapshot.diagnostics ?? const TripTrackingDiagnostics();
+  TripTrackingSignalQualitySummary get cumulativeSignalQualitySummary =>
+      TripTrackingSignalQualitySummary.evaluate(diagnostics);
+  TripTrackingSignalQualitySummary get signalQualitySummary =>
+      TripTrackingSignalQualitySummary.evaluate(
+        switch (_nativeSignalEpochBaseline) {
+          final baseline? => _diagnosticsSince(diagnostics, baseline),
+          null => diagnostics,
+        },
+      );
+  TripSignalQualityActionDecision signalQualityAction({
+    bool userCanReviewNow = true,
+  }) => TripSignalQualityActionPolicy.evaluate(
+    signal: signalQualitySummary,
+    activeTripHasLocalCheckpoint: _session != null,
+    userCanReviewNow: userCanReviewNow,
+  );
   List<TripTrackingAdvisoryEvent> get advisories =>
       List.unmodifiable(_session?.advisories ?? const []);
   List<TripBoundaryCandidate> get boundaryCandidates =>
@@ -221,6 +327,10 @@ class TripTrackingController extends ChangeNotifier {
         currentConfirmedOdometer: _odometer.confirmedReading,
       );
   bool get nativeTracking => _nativeTracking;
+  bool get deviceAdjustedSampling =>
+      _nativeSamplingPlan?.deviceAdjusted == true;
+  int? get nativeSamplingIntervalSeconds =>
+      _nativeSampling?.interval.inSeconds;
   List<TripTrackingSignalGap> get signalGaps =>
       _engine?.signalGaps ?? const <TripTrackingSignalGap>[];
   TripInitialFixAssessment? get initialFixAssessment =>
@@ -283,6 +393,7 @@ class TripTrackingController extends ChangeNotifier {
 
   TripAutomaticStartDecision evaluateAutomaticStartAssistance({
     required TripTrackingSettings settings,
+    required TripAutomaticStartAccessLevel accessLevel,
     required Iterable<TripAutomaticStartObservation> observations,
     TripAutomaticStartDetector detector = const TripAutomaticStartDetector(),
   }) {
@@ -305,6 +416,7 @@ class TripTrackingController extends ChangeNotifier {
       enabled:
           settings.gpsAssistedTrackingEnabled &&
           settings.automaticStartAssistanceEnabled,
+      accessLevel: accessLevel,
       hasActiveOrRecoverableSession: hasUnfinishedSession,
       observations: observations,
     );
@@ -377,6 +489,15 @@ class TripTrackingController extends ChangeNotifier {
   TripTrackingReviewRecord? get latestUnconfirmedReview =>
       _readPendingReviewsSafely()
           .where((review) => !review.isOdometerConfirmed)
+          .firstOrNull;
+
+  TripTrackingReviewRecord? get latestPendingTripLogProposal =>
+      _readPendingReviewsSafely()
+          .where(
+            (review) =>
+                review.tripLogProposalState ==
+                TripTrackingTripLogProposalState.pending,
+          )
           .firstOrNull;
 
   TripOdometerCalibrationSignal odometerCalibrationSignal({
@@ -477,24 +598,36 @@ class TripTrackingController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
+    _odometer.removeListener(_handleConfirmedOdometerChanged);
     // A detached Dart controller has no safe path to persist native events.
     // Stop collection rather than leaving a foreground service running with
     // no local consumer. Normal background tracking keeps this controller
     // alive; a later restore can resume from the durable local checkpoint.
-    if (_nativeTracking) {
-      unawaited(
-        _stopNativeTracking(
-          interrupted: true,
-          interruptionHealth: TripTrackingHealthState.interrupted,
-          interruptionSource: 'controller_dispose',
-          interruptionReasonCode: 'controller_disposed_system_pause',
-        ),
-      );
-    } else {
-      unawaited(_platformSubscription?.cancel());
-      _platformSubscription = null;
-    }
-    _isDisposed = true;
+    // Cleanup is queued behind any in-flight native start/update. Otherwise a
+    // dispose that lands while platform.start is awaiting its result can
+    // detach the listener first and still leave the collector running.
+    unawaited(
+      _enqueueNativeLifecycle(() async {
+        if (_nativeTracking) {
+          await _stopNativeTracking(
+            interrupted: true,
+            interruptionHealth: TripTrackingHealthState.interrupted,
+            interruptionSource: 'controller_dispose',
+            interruptionReasonCode: 'controller_disposed_system_pause',
+          );
+          return;
+        }
+        try {
+          await _platformSubscription?.cancel();
+        } catch (_) {
+          // The controller is already detached. Native collection was not
+          // active, so there is no trusted distance to preserve here.
+        } finally {
+          _platformSubscription = null;
+        }
+      }),
+    );
     _cloudMirror.dispose();
     super.dispose();
   }
@@ -751,6 +884,7 @@ class TripTrackingController extends ChangeNotifier {
     bool? lowBatteryProtectionEnabled,
     bool? lowBatteryOverrideEnabled,
     bool? lowBatteryWarningDismissed,
+    int? deviceLocationIntervalFloorSeconds,
   }) async {
     final session = _session;
     if (session == null) return false;
@@ -775,7 +909,10 @@ class TripTrackingController extends ChangeNotifier {
         (lowBatteryOverrideEnabled == null ||
             session.lowBatteryOverrideEnabled == lowBatteryOverrideEnabled) &&
         (lowBatteryWarningDismissed == null ||
-            session.lowBatteryWarningDismissed == lowBatteryWarningDismissed)) {
+            session.lowBatteryWarningDismissed == lowBatteryWarningDismissed) &&
+        (deviceLocationIntervalFloorSeconds == null ||
+            session.deviceLocationIntervalFloorSeconds ==
+                deviceLocationIntervalFloorSeconds)) {
       return true;
     }
     final next = session.copyWith(
@@ -790,6 +927,8 @@ class TripTrackingController extends ChangeNotifier {
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
+      deviceLocationIntervalFloorSeconds:
+          deviceLocationIntervalFloorSeconds,
     );
     try {
       await _sessionStore.save(next);

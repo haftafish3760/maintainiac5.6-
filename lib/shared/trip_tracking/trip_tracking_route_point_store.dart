@@ -26,13 +26,15 @@ class TripTrackingRoutePointWriteResult {
 /// Optional local route history. It is not used by distance calculation,
 /// odometer confirmation, TripLog creation, or cloud synchronization.
 class TripTrackingRoutePointStore {
-  TripTrackingRoutePointStore._(this._box);
-  TripTrackingRoutePointStore.memory() : _box = null;
+  TripTrackingRoutePointStore._(this._box) : _available = true;
+  TripTrackingRoutePointStore.memory() : _box = null, _available = true;
+  TripTrackingRoutePointStore.unavailable() : _box = null, _available = false;
 
   static const boxName = 'gps_trip_tracking_compact_route_points';
   static const compactEncodingVersion = 2;
 
   final Box<dynamic>? _box;
+  final bool _available;
   final Map<String, Object?> _memory = {};
   Future<void> _writeTail = Future<void>.value();
 
@@ -46,6 +48,13 @@ class TripTrackingRoutePointStore {
     required DateTime nowUtc,
     required TripTrackingSettings settings,
   }) => _enqueue(() async {
+    if (!_available) {
+      return const TripTrackingRoutePointWriteResult(
+        saved: false,
+        reasonCode: 'local_route_storage_unavailable',
+        persistedPointsForDay: 0,
+      );
+    }
     final safeDayKey = _safeDayKey(localDayKey);
     if (safeDayKey == null) {
       return const TripTrackingRoutePointWriteResult(
@@ -112,6 +121,7 @@ class TripTrackingRoutePointStore {
   });
 
   List<Map<String, Object?>> pointsForTrip(String tripId) {
+    if (!_available) return const [];
     final values = _box == null ? _memory.values : _box.values;
     final points =
         values
@@ -132,12 +142,13 @@ class TripTrackingRoutePointStore {
   }
 
   int nextSequenceForTrip(String tripId) =>
-      (_readInt(_lastSequenceKey(tripId)) ?? -1) + 1;
+      _available ? (_readInt(_lastSequenceKey(tripId)) ?? -1) + 1 : 0;
 
   /// Route history is optional private data and can only be erased after an
   /// explicit user confirmation. Trip mileage and reviews are not stored here.
   Future<bool> deleteRoute(String tripId, {required bool userConfirmed}) =>
       _enqueue(() async {
+        if (!_available) return false;
         if (!userConfirmed) return false;
         final pointKeys = <String>[];
         final removedByDay = <String, int>{};
@@ -184,6 +195,13 @@ class TripTrackingRoutePointStore {
     _writeTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;
   }
+}
+
+String tripTrackingLocalDayKey(DateTime instant) {
+  final local = instant.toLocal();
+  return '${local.year.toString().padLeft(4, '0')}-'
+      '${local.month.toString().padLeft(2, '0')}-'
+      '${local.day.toString().padLeft(2, '0')}';
 }
 
 Map<String, Object?>? _decodeRoutePoint(Map<dynamic, dynamic> value) {

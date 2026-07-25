@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
@@ -132,8 +134,8 @@ void main() {
     expect(restored?.pauseKind, TripTrackingPauseKind.system);
     expect(restored?.batteryStateSummary?.batteryPercent, 19);
     expect(restored?.permissionHistory.single.state, 'always');
-    expect(restored?.transitionAudits, hasLength(32));
-    expect(restored?.transitionAudits.first.id, 'audit_4');
+    expect(restored?.transitionAudits, hasLength(36));
+    expect(restored?.transitionAudits.first.id, 'audit_0');
     expect(restored?.transitionAudits.last.id, 'audit_35');
     expect(restored?.transitionAudits.last.sequenceNumber, 36);
     expect(restored?.transitionAudits.last.revision, 37);
@@ -426,6 +428,46 @@ void main() {
       expect(store.activeSession, isNull);
     },
   );
+
+  test('independent memory stores do not block each other', () async {
+    final storageGate = Completer<AppStorageCheck>();
+    final blockedStore = TripTrackingSessionStore.memory(
+      storageCheck: () => storageGate.future,
+    );
+    final independentStore = TripTrackingSessionStore.memory();
+    TripTrackingSessionRecord session(String id) => TripTrackingSessionRecord(
+      id: id,
+      vehicleId: 'vehicle_1',
+      startingOdometer: 1000,
+      profile: TripTrackingProfile.roadVehicle,
+      startedAt: DateTime.utc(2026, 7, 24, 12),
+      updatedAt: DateTime.utc(2026, 7, 24, 12),
+      engineSnapshot: const TripTrackingEngineSnapshot(
+        totalAcceptedMeters: 0,
+        walkingReviewSuggested: false,
+      ),
+    );
+
+    final blockedWrite = blockedStore.save(session('trip_blocked_store'));
+    await Future<void>.delayed(Duration.zero);
+    await independentStore
+        .save(session('trip_independent_store'))
+        .timeout(const Duration(seconds: 1));
+
+    expect(independentStore.activeSession?.id, 'trip_independent_store');
+    expect(storageGate.isCompleted, isFalse);
+
+    storageGate.complete(
+      const AppStorageCheck(
+        availableBytes: AppStorageGuard.mileageTrackingWriteBytes * 2,
+        operationBytes: AppStorageGuard.mileageTrackingWriteBytes,
+        requiredBytes: AppStorageGuard.mileageTrackingWriteBytes,
+        purpose: AppStoragePurpose.mileageTracking,
+      ),
+    );
+    await blockedWrite;
+    expect(blockedStore.activeSession?.id, 'trip_blocked_store');
+  });
 
   test('active GPS session writes require safe trip and vehicle ids', () async {
     final store = TripTrackingSessionStore.memory();
@@ -1691,7 +1733,7 @@ void main() {
     },
   );
 
-  test('persisted GPS advisories keep only a bounded recent window', () {
+  test('persisted GPS advisories preserve the complete valid history', () {
     final session = TripTrackingSessionRecord(
       id: 'trip_many_advisories',
       vehicleId: 'vehicle_1',
@@ -1723,9 +1765,9 @@ void main() {
     final map = session.toMap();
     final restored = TripTrackingSessionRecord.fromMap(map);
 
-    expect(map['advisories'], hasLength(24));
-    expect(restored.advisories, hasLength(24));
-    expect(restored.advisories.first.id, 'advisory_16');
+    expect(map['advisories'], hasLength(40));
+    expect(restored.advisories, hasLength(40));
+    expect(restored.advisories.first.id, 'advisory_0');
   });
 
   test('persisted GPS advisories must belong to the restored session', () {

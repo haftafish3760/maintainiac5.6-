@@ -1,4 +1,5 @@
 import '../device_capabilities/device_bluetooth_capabilities.dart';
+import 'trip_automatic_start_detector.dart';
 import 'trip_tracking_bluetooth.dart';
 import 'trip_tracking_settings_store.dart';
 
@@ -12,6 +13,8 @@ class TripTrackingBluetoothCoordinator {
     required this.hasUnfinishedStoredSession,
     required this.currentVehicleId,
     required this.switchVehicle,
+    this.automaticStartAccess = _freeAutomaticStartAccess,
+    this.startAutomaticTracking,
   });
 
   final TripTrackingBluetoothVehicleLinkStore linkStore;
@@ -20,6 +23,9 @@ class TripTrackingBluetoothCoordinator {
   final bool Function() hasUnfinishedStoredSession;
   final String Function() currentVehicleId;
   final Future<bool> Function(String vehicleId) switchVehicle;
+  final TripAutomaticStartAccessLevel Function() automaticStartAccess;
+  final Future<bool> Function(String vehicleId, DateTime startedAt)?
+  startAutomaticTracking;
   Future<void> _tail = Future<void>.value();
 
   Future<BluetoothVehicleMatchDecision> handleConnection(
@@ -68,10 +74,19 @@ class TripTrackingBluetoothCoordinator {
       );
     }
     final vehicleId = decision.vehicleId;
-    if (!decision.canSwitchVehicle || vehicleId == null) return decision;
+    if (vehicleId == null) return decision;
+    if (decision.disposition ==
+        BluetoothVehicleMatchDisposition.alreadyActiveVehicle) {
+      await _maybeStartAutomaticTracking(vehicleId, observedAt);
+      return decision;
+    }
+    if (!decision.canSwitchVehicle) return decision;
 
     try {
-      if (await switchVehicle(vehicleId)) return decision;
+      if (await switchVehicle(vehicleId)) {
+        await _maybeStartAutomaticTracking(vehicleId, observedAt);
+        return decision;
+      }
     } catch (_) {
       // A failed global-vehicle switch remains an explicit review request.
     }
@@ -81,6 +96,32 @@ class TripTrackingBluetoothCoordinator {
       safeReason: 'bluetooth_vehicle_switch_failed_safely',
     );
   }
+
+  Future<void> _maybeStartAutomaticTracking(
+    String vehicleId,
+    DateTime observedAt,
+  ) async {
+    final startTracking = startAutomaticTracking;
+    final currentSettings = settings();
+    if (startTracking == null ||
+        automaticStartAccess() != TripAutomaticStartAccessLevel.paid ||
+        !currentSettings.gpsAssistedTrackingEnabled ||
+        !currentSettings.bluetoothVehicleRecognitionEnabled ||
+        !currentSettings.automaticStartAssistanceEnabled ||
+        hasActiveSession() ||
+        hasUnfinishedStoredSession()) {
+      return;
+    }
+    try {
+      await startTracking(vehicleId, observedAt);
+    } catch (_) {
+      // The caller owns actionable startup status. A Bluetooth observation
+      // never bypasses the controller's local-storage and permission gates.
+    }
+  }
 }
 
 // odometerIsGlobalTruth: true. Bluetooth may identify a vehicle, never mileage.
+
+TripAutomaticStartAccessLevel _freeAutomaticStartAccess() =>
+    TripAutomaticStartAccessLevel.free;

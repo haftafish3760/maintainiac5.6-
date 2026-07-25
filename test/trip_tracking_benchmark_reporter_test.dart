@@ -58,6 +58,9 @@ void main() {
     expect(report.stopDetectionRecall, 1);
 
     final summary = report.toSafeSummary();
+    expect(summary['truePositiveStops'], 1);
+    expect(summary['falsePositiveStops'], 1);
+    expect(summary['falseNegativeStops'], 0);
     expect(summary['syntheticFixtureMetricsOnly'], isTrue);
     expect(summary['realDeviceAccuracyProven'], isFalse);
     expect(summary['routeGeometryIncluded'], isFalse);

@@ -12,6 +12,26 @@ void main() {
       ).readAsStringSync();
 
       expect(mainSource, contains('TripTrackingDurableRecordBridge'));
+      expect(mainSource, contains('TripTrackingTripLogProposalStore.create()'));
+      expect(
+        mainSource,
+        contains('TripTrackingTripLogProposalStore.unavailable()'),
+      );
+      expect(mainSource, contains('tripLogProposalSink: tripLogProposalStore'));
+      expect(
+        mainSource,
+        contains('tripTracking.retryPendingTripLogProposals()'),
+      );
+      expect(mainSource, contains('TripTrackingRoutePointStore.create()'));
+      expect(mainSource, contains('TripTrackingRoutePointStore.unavailable()'));
+      expect(mainSource, contains('routePointStore: routePointStore'));
+      expect(
+        mainSource,
+        contains('routeSettings: () => tripTrackingSettings.settings'),
+      );
+      expect(mainSource, contains('localRouteDayKey: tripTrackingLocalDayKey'));
+      expect(mainSource, contains('tripTracking.applyGpsAssistanceConsent('));
+      expect(mainSource, contains('tripTracking.applyActiveTrackingSettings('));
       expect(mainSource, isNot(contains('TripTrackingFirebaseMirror')));
       expect(mainSource, isNot(contains('cloudMirror:')));
       expect(

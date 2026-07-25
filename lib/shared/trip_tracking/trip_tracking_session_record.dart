@@ -118,6 +118,9 @@ class TripTrackingSessionRecord {
     this.vehicleConfigurationRevision = 0,
     this.gpsAssistanceCalibrationMultiplier = 1,
     required this.startingOdometer,
+    this.projectionAnchorOdometer,
+    this.projectionAnchorAcceptedMeters = 0,
+    this.deviceLocationIntervalFloorSeconds = 1,
     required this.profile,
     this.profileId = '',
     required this.startedAt,
@@ -154,6 +157,11 @@ class TripTrackingSessionRecord {
   final int vehicleConfigurationRevision;
   final double gpsAssistanceCalibrationMultiplier;
   final int startingOdometer;
+  final int? projectionAnchorOdometer;
+  final double projectionAnchorAcceptedMeters;
+  final int deviceLocationIntervalFloorSeconds;
+  int get effectiveProjectionAnchorOdometer =>
+      projectionAnchorOdometer ?? startingOdometer;
   final TripTrackingProfile profile;
   final String profileId;
   String get effectiveProfileId => _safeIdentifier(profileId).isEmpty
@@ -232,6 +240,9 @@ class TripTrackingSessionRecord {
     int? recoveryCount,
     List<TripTrackingSessionTransitionAudit>? transitionAudits,
     TripTrackingSessionLifecycleContractState? persistedContractState,
+    int? projectionAnchorOdometer,
+    double? projectionAnchorAcceptedMeters,
+    int? deviceLocationIntervalFloorSeconds,
   }) {
     final nextSamplingCeiling = clearSamplingCeiling
         ? null
@@ -248,6 +259,14 @@ class TripTrackingSessionRecord {
       vehicleConfigurationRevision: vehicleConfigurationRevision,
       gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
       startingOdometer: startingOdometer,
+      projectionAnchorOdometer:
+          projectionAnchorOdometer ?? this.projectionAnchorOdometer,
+      projectionAnchorAcceptedMeters:
+          projectionAnchorAcceptedMeters ??
+          this.projectionAnchorAcceptedMeters,
+      deviceLocationIntervalFloorSeconds:
+          deviceLocationIntervalFloorSeconds ??
+          this.deviceLocationIntervalFloorSeconds,
       profile: profile,
       profileId: effectiveProfileId,
       startedAt: startedAt,
@@ -299,6 +318,14 @@ class TripTrackingSessionRecord {
           gpsAssistanceCalibrationMultiplier,
         ),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
+    if (projectionAnchorOdometer != null)
+      'projectionAnchorOdometer': _persistedOdometerValue(
+        projectionAnchorOdometer!,
+      ),
+    if (projectionAnchorOdometer != null)
+      'projectionAnchorAcceptedMeters': projectionAnchorAcceptedMeters,
+    'deviceLocationIntervalFloorSeconds':
+        deviceLocationIntervalFloorSeconds.clamp(1, 60),
     'profile': profile.name,
     'profileId': effectiveProfileId,
     'startedAt': startedAt.toUtc().toIso8601String(),
@@ -306,9 +333,7 @@ class TripTrackingSessionRecord {
     'startedTimeZoneOffsetMinutes': startedTimeZoneOffsetMinutes,
     'startedTimeZoneName': _safeTimeZoneName(startedTimeZoneName),
     'engineSnapshot': engineSnapshot.toMap(),
-    'advisories': _boundedAdvisories(
-      advisories,
-    ).map((item) => item.toMap()).toList(),
+    'advisories': advisories.map((item) => item.toMap()).toList(),
     'tripEvents': _boundedTripEvents(
       tripEvents,
     ).map((item) => item.toMap()).toList(growable: false),
@@ -324,16 +349,11 @@ class TripTrackingSessionRecord {
     'lowBatteryOverrideEnabled': lowBatteryOverrideEnabled,
     'lowBatteryWarningDismissed': lowBatteryWarningDismissed,
     'batteryStateSummary': batteryStateSummary?.toMap(),
-    'permissionHistory': permissionHistory
-        .takeLast(24)
-        .map((item) => item.toMap())
-        .toList(),
+    'permissionHistory': permissionHistory.map((item) => item.toMap()).toList(),
     'schemaVersion': schemaVersion,
     'revision': revision,
     'recoveryCount': recoveryCount < 0 ? 0 : recoveryCount,
-    'transitionAudits': _boundedTransitionAudits(
-      transitionAudits,
-    ).map((item) => item.toMap()).toList(),
+    'transitionAudits': transitionAudits.map((item) => item.toMap()).toList(),
     if (ancestry != null) 'ancestry': ancestry!.toMap(),
     'contractState': effectiveContractState.name,
   };
@@ -371,6 +391,21 @@ class TripTrackingSessionRecord {
         _isValidGpsAssistanceCalibrationMultiplier(
           map['gpsAssistanceCalibrationMultiplier'],
         );
+    final hasProjectionAnchor =
+        map.containsKey('projectionAnchorOdometer') ||
+        map.containsKey('projectionAnchorAcceptedMeters');
+    final hasValidProjectionAnchor =
+        !hasProjectionAnchor ||
+        (map['projectionAnchorOdometer'] is int &&
+            (map['projectionAnchorOdometer'] as int) >= 0 &&
+            map['projectionAnchorAcceptedMeters'] is num &&
+            (map['projectionAnchorAcceptedMeters'] as num).isFinite &&
+            (map['projectionAnchorAcceptedMeters'] as num) >= 0);
+    final hasValidDeviceIntervalFloor =
+        !map.containsKey('deviceLocationIntervalFloorSeconds') ||
+        (map['deviceLocationIntervalFloorSeconds'] is int &&
+            (map['deviceLocationIntervalFloorSeconds'] as int) >= 1 &&
+            (map['deviceLocationIntervalFloorSeconds'] as int) <= 60);
     final hasValidStartedTimeZone =
         !map.containsKey('startedTimeZoneOffsetMinutes') ||
         (_isValidTimeZoneOffset(map['startedTimeZoneOffsetMinutes']) &&
@@ -426,6 +461,18 @@ class TripTrackingSessionRecord {
             map['gpsAssistanceCalibrationMultiplier'],
           ),
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
+      projectionAnchorOdometer:
+          map['projectionAnchorOdometer'] is int
+          ? _persistedOdometerValue(map['projectionAnchorOdometer'])
+          : null,
+      projectionAnchorAcceptedMeters:
+          map['projectionAnchorAcceptedMeters'] is num
+          ? (map['projectionAnchorAcceptedMeters'] as num).toDouble()
+          : 0,
+      deviceLocationIntervalFloorSeconds:
+          map['deviceLocationIntervalFloorSeconds'] is int
+          ? (map['deviceLocationIntervalFloorSeconds'] as int).clamp(1, 60)
+          : 1,
       profile: safeProfile,
       profileId: _safeIdentifier(map['profileId']).isEmpty
           ? safeProfile.name
@@ -500,6 +547,8 @@ class TripTrackingSessionRecord {
           hasValidHealthState &&
           hasValidVehicleConfigurationRevision &&
           hasValidCalibrationMultiplier &&
+          hasValidProjectionAnchor &&
+          hasValidDeviceIntervalFloor &&
           hasValidStartedTimeZone &&
           hasValidAncestry &&
           hasSupportedSchemaVersion,
@@ -540,8 +589,6 @@ List<TripTrackingPermissionEvidence> _permissionHistoryFromMap(
       .map(TripTrackingPermissionEvidence.tryFromMap)
       .whereType<TripTrackingPermissionEvidence>()
       .where((item) => !item.observedAt.isAfter(latestAt))
-      .toList(growable: false)
-      .takeLast(24)
       .toList(growable: false);
 }
 
@@ -550,9 +597,7 @@ int _safeRecoveryCount(Object? value) {
   return value > 1000000 ? 1000000 : value;
 }
 
-const _maxPersistedAdvisories = 24;
 const _maxPersistedTripEvents = TripManualEvent.maximumPerTrip;
-const _maxPersistedTransitionAudits = 32;
 
 Iterable<TripManualEvent> _boundedTripEvents(Iterable<TripManualEvent> events) {
   final items = events.toList(growable: false);
@@ -655,20 +700,6 @@ int _samplingAggressiveness(TripSamplingMode mode) => switch (mode) {
   TripSamplingMode.economy => 1,
 };
 
-Iterable<TripTrackingAdvisoryEvent> _boundedAdvisories(
-  Iterable<TripTrackingAdvisoryEvent> advisories,
-) {
-  final items = advisories.toList(growable: false);
-  return items.takeLast(_maxPersistedAdvisories);
-}
-
-Iterable<TripTrackingSessionTransitionAudit> _boundedTransitionAudits(
-  Iterable<TripTrackingSessionTransitionAudit> audits,
-) {
-  final items = audits.toList(growable: false);
-  return items.takeLast(_maxPersistedTransitionAudits);
-}
-
 List<TripTrackingSessionTransitionAudit> _transitionAuditsFromMapValue(
   Object? value, {
   required String sessionId,
@@ -700,10 +731,7 @@ List<TripTrackingSessionTransitionAudit> _transitionAuditsFromMapValue(
   final unique = ordered.where(
     (event) => seenIds.add(event.id) && seenSequences.add(event.sequenceNumber),
   );
-  return unique
-      .toList(growable: false)
-      .takeLast(_maxPersistedTransitionAudits)
-      .toList(growable: false);
+  return unique.toList(growable: false);
 }
 
 extension _TripTrackingTransitionAuditSort
@@ -764,8 +792,6 @@ List<TripTrackingAdvisoryEvent> _advisoriesFromMapValue(
           startedAt: startedAt,
         ),
       )
-      .toList(growable: false)
-      .takeLast(_maxPersistedAdvisories)
       .toList(growable: false);
 }
 

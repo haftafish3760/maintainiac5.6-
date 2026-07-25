@@ -63,7 +63,13 @@ void main() {
     expect(source, contains('Future<int?> _finishAndReviewGpsTrip('));
     expect(source, contains('confirmedTripEndingOdometer = await'));
     expect(source, contains('odometerReading: confirmedTripEndingOdometer'));
-    expect(source, contains('if (tripTracking.isTracking) return;'));
+    expect(source, contains('confirmedTripEndingOdometer == null'));
+    expect(
+      source,
+      contains(
+        'keep the workday open instead of\n          // bypassing it with a second generic ending-odometer sheet',
+      ),
+    );
     expect(
       source,
       contains('return reviewConfirmed ? confirmedEndingOdometer : null;'),
@@ -82,6 +88,8 @@ void main() {
       source,
       contains(r'Last confirmed: ${display.confirmedDisplayValue}'),
     );
+    expect(source, contains('tripTracking?.nativeTracking == true'));
+    expect(source, isNot(contains('display.statusLabelAt(DateTime.now())')));
     expect(source, isNot(contains('odometer is live')));
   });
 

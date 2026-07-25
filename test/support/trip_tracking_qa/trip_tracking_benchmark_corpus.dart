@@ -29,6 +29,20 @@ class TripTrackingBenchmarkCorpus {
       ),
     ),
     _case(
+      id: 'short_trip_known_distance',
+      category: TripTrackingBenchmarkCategory.normalOpenSky,
+      profile: TripTrackingProfile.roadVehicle,
+      expectedDistanceMeters: 273.26,
+      expectedStopReview: false,
+      points: _knownDistanceRoute(
+        latitude: 35,
+        longitudeStep: .001,
+        secondsPerSample: 10,
+        speedMetersPerSecond: 9.1,
+        pointCount: 4,
+      ),
+    ),
+    _case(
       id: 'rural_known_distance',
       category: TripTrackingBenchmarkCategory.rural,
       profile: TripTrackingProfile.roadVehicle,
@@ -39,6 +53,32 @@ class TripTrackingBenchmarkCorpus {
         longitudeStep: .002,
         secondsPerSample: 20,
         speedMetersPerSecond: 8.52,
+      ),
+    ),
+    _case(
+      id: 'highway_known_distance',
+      category: TripTrackingBenchmarkCategory.normalOpenSky,
+      profile: TripTrackingProfile.roadVehicle,
+      expectedDistanceMeters: 2732.58,
+      expectedStopReview: false,
+      points: _knownDistanceRoute(
+        latitude: 35,
+        longitudeStep: .003,
+        secondsPerSample: 10,
+        speedMetersPerSecond: 27.33,
+      ),
+    ),
+    _case(
+      id: 'low_speed_equipment_known_distance',
+      category: TripTrackingBenchmarkCategory.normalOpenSky,
+      profile: TripTrackingProfile.lowSpeedEquipment,
+      expectedDistanceMeters: 45.54,
+      expectedStopReview: false,
+      points: _knownDistanceRoute(
+        latitude: 35,
+        longitudeStep: .00005,
+        secondsPerSample: 10,
+        speedMetersPerSecond: .46,
       ),
     ),
     _case(
@@ -169,6 +209,27 @@ class TripTrackingBenchmarkCorpus {
       points: _scenarios.gpsJumpAndGapMasqueradingAsStop(),
     ),
     _case(
+      id: 'tunnel_signal_loss_recovery',
+      category: TripTrackingBenchmarkCategory.severeInterruption,
+      profile: TripTrackingProfile.roadVehicle,
+      expectedStopReview: false,
+      points: _scenarios.tunnelSignalLossAndRecovery(),
+    ),
+    _case(
+      id: 'urban_building_canyon_recovery',
+      category: TripTrackingBenchmarkCategory.urban,
+      profile: TripTrackingProfile.roadVehicle,
+      expectedStopReview: false,
+      points: _scenarios.urbanBuildingCanyonRecovery(),
+    ),
+    _case(
+      id: 'rural_intermittent_coverage_recovery',
+      category: TripTrackingBenchmarkCategory.rural,
+      profile: TripTrackingProfile.roadVehicle,
+      expectedStopReview: false,
+      points: _scenarios.ruralIntermittentCoverageRecovery(),
+    ),
+    _case(
       id: 'severe_hostile_provider',
       category: TripTrackingBenchmarkCategory.severeInterruption,
       profile: TripTrackingProfile.deliveryVehicle,
@@ -210,8 +271,9 @@ class TripTrackingBenchmarkCorpus {
     required double longitudeStep,
     required int secondsPerSample,
     required double speedMetersPerSecond,
+    int pointCount = 11,
   }) => List.generate(
-    11,
+    pointCount,
     (index) => SimulatedTripPoint(
       _scenarios.roadPoint(
         -80 + (longitudeStep * index),

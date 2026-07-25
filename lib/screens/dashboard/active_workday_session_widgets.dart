@@ -78,8 +78,7 @@ class _QuickActionButton extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             action.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
             textAlign: TextAlign.center,
             style: const TextStyle(
               color: Color(0xFFE2E8EA),

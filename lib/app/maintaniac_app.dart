@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
@@ -25,15 +24,26 @@ class MaintaniacApp extends StatefulWidget {
 
 class _MaintaniacAppState extends State<MaintaniacApp>
     with WidgetsBindingObserver {
+  static const _tripHeartbeatCheckInterval = Duration(seconds: 30);
+
   final _navigatorKey = GlobalKey<NavigatorState>();
   final _deviceCapabilities = DeviceCapabilityController();
   IncomingReceiptShareController? _incomingShare;
+  Timer? _tripHeartbeatTimer;
+  AppLifecycleState _appLifecycleState = AppLifecycleState.resumed;
+  var _tripHeartbeatCheckInFlight = false;
   var _openingIncomingShare = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _appLifecycleState =
+        WidgetsBinding.instance.lifecycleState ?? AppLifecycleState.resumed;
+    _tripHeartbeatTimer = Timer.periodic(
+      _tripHeartbeatCheckInterval,
+      (_) => unawaited(_checkForegroundTripHeartbeat()),
+    );
     unawaited(_deviceCapabilities.initialize());
   }
 
@@ -51,6 +61,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _tripHeartbeatTimer?.cancel();
     _deviceCapabilities.dispose();
     _incomingShare?.removeListener(_handleIncomingShare);
     super.dispose();
@@ -58,6 +69,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _appLifecycleState = state;
     if (state == AppLifecycleState.resumed) {
       unawaited(_deviceCapabilities.refreshRuntime());
     }
@@ -70,6 +82,22 @@ class _MaintaniacAppState extends State<MaintaniacApp>
         backgroundTrackingAllowed: settings.settings.backgroundTrackingEnabled,
       ),
     );
+  }
+
+  Future<void> _checkForegroundTripHeartbeat() async {
+    if (!mounted ||
+        _appLifecycleState != AppLifecycleState.resumed ||
+        _tripHeartbeatCheckInFlight) {
+      return;
+    }
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    if (tripTracking == null || !tripTracking.nativeTracking) return;
+    _tripHeartbeatCheckInFlight = true;
+    try {
+      await tripTracking.checkNativeHeartbeat();
+    } finally {
+      _tripHeartbeatCheckInFlight = false;
+    }
   }
 
   void _handleIncomingShare() {

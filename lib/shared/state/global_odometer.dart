@@ -233,11 +233,6 @@ class GlobalOdometerController extends ChangeNotifier {
     String? sourceType,
     String? sourceId,
   }) {
-    if (hasLiveTripProjection) {
-      return const OdometerUpdateResult.error(
-        'A GPS-assisted trip is active. End or review that trip before entering a manual odometer reading.',
-      );
-    }
     final parseError = parseOdometerInputError(rawValue);
     if (parseError != null) {
       return OdometerUpdateResult.error(parseError);
@@ -287,6 +282,9 @@ class GlobalOdometerController extends ChangeNotifier {
     }
 
     final deltaMiles = parsed - _reading;
+    final gpsDifferenceMiles = hasLiveTripProjection
+        ? (parsed - reading).abs()
+        : 0;
     if (deltaMiles > 0 && mileageReview == null) {
       return OdometerUpdateResult.mileageReviewRequired(
         message: odometerMileageReviewPrompt(deltaMiles),
@@ -305,6 +303,14 @@ class GlobalOdometerController extends ChangeNotifier {
     if (validation.needsConfirmation && !confirmSuspicious) {
       return OdometerUpdateResult.needsConfirmation(
         validation.message,
+        mileageReview: mileageReview,
+      );
+    }
+    if (gpsDifferenceMiles >= 50 && !confirmSuspicious) {
+      return OdometerUpdateResult.needsConfirmation(
+        'Your reading differs from the live GPS estimate by '
+        '$gpsDifferenceMiles miles. GPS is only a suggestion; double-check '
+        'the vehicle odometer, then confirm your reading if it is correct.',
         mileageReview: mileageReview,
       );
     }
@@ -412,6 +418,11 @@ class GlobalOdometerController extends ChangeNotifier {
     }
     final previousReading = _reading;
     _reading = parsed;
+    if (hasLiveTripProjection) {
+      _liveTripEstimatedReading = parsed;
+      _liveTripUpdatedAt = enteredAt;
+      _liveTripProjectionRevision += 1;
+    }
     _history.add(
       OdometerReadingEvent(
         id: _nextEventId(),
@@ -472,6 +483,11 @@ class GlobalOdometerController extends ChangeNotifier {
     }
     final previousReading = _reading;
     _reading = parsed;
+    if (hasLiveTripProjection) {
+      _liveTripEstimatedReading = parsed;
+      _liveTripUpdatedAt = correctedAt ?? DateTime.now();
+      _liveTripProjectionRevision += 1;
+    }
     _history.add(
       OdometerReadingEvent(
         id: _nextEventId(),

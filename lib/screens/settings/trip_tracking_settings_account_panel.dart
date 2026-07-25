@@ -1,4 +1,11 @@
-part of 'trip_tracking_settings_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+
+import '../../shared/firebase/maintainiac_auth_service.dart';
+
+// Legacy account UI retained as a standalone, private library for source
+// preservation. It is intentionally not a part of TripTrackingSettingsScreen:
+// GPS settings must not own or expose Firebase backup configuration.
 
 class _FirebaseBackupAccountPanel extends StatefulWidget {
   const _FirebaseBackupAccountPanel();

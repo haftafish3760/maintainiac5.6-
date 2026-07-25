@@ -279,6 +279,27 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     return _submitTripLogProposal(review);
   }
 
+  Future<int> retryPendingTripLogProposals() => _runExclusiveSessionOperation(
+    0,
+    _retryPendingTripLogProposals,
+    busyStatus: 'session_operation_in_progress',
+    busyError:
+        'A trip is already starting or ending. Please wait for it to finish.',
+  );
+
+  Future<int> _retryPendingTripLogProposals() async {
+    if (_tripLogProposalSink == null) return 0;
+    var submitted = 0;
+    for (final review in _readPendingReviewsSafely()) {
+      if (review.tripLogProposalState !=
+          TripTrackingTripLogProposalState.pending) {
+        continue;
+      }
+      if (await _submitTripLogProposal(review)) submitted += 1;
+    }
+    return submitted;
+  }
+
   Future<bool> _submitTripLogProposal(TripTrackingReviewRecord review) async {
     final sink = _tripLogProposalSink;
     if (sink == null) return true;
@@ -294,6 +315,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
         ),
       );
       _tripLogProposalError = null;
+      notifyListeners();
       return true;
     } catch (_) {
       try {
@@ -309,6 +331,7 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
       }
       _tripLogProposalError =
           'TripLog proposal is preserved locally and can be retried.';
+      notifyListeners();
       return false;
     }
   }

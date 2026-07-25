@@ -3,10 +3,13 @@ import 'trip_tracking_models.dart';
 
 enum TripAutomaticStartDisposition {
   disabled,
+  paidEntitlementRequired,
   activeSessionExists,
   insufficientEvidence,
   candidate,
 }
+
+enum TripAutomaticStartAccessLevel { free, paid }
 
 class TripAutomaticStartObservation {
   const TripAutomaticStartObservation({
@@ -47,6 +50,8 @@ class TripAutomaticStartDecision {
 
   bool get shouldSuggestStart =>
       disposition == TripAutomaticStartDisposition.candidate;
+  bool get requiresPaidEntitlement =>
+      disposition == TripAutomaticStartDisposition.paidEntitlementRequired;
   bool get canInventStartingOdometer => false;
   bool get canAssignBusinessPurpose => false;
   bool get canAssignJob => false;
@@ -62,6 +67,9 @@ class TripAutomaticStartDecision {
     'evidenceEndedAt': evidenceEndedAt?.toUtc().toIso8601String(),
     'suggestedVehicleId': _safeVehicleId(suggestedVehicleId),
     'shouldSuggestStart': shouldSuggestStart,
+    'requiresPaidEntitlement': requiresPaidEntitlement,
+    'paidEntitlementVerified':
+        disposition == TripAutomaticStartDisposition.candidate,
     'canInventStartingOdometer': false,
     'canAssignBusinessPurpose': false,
     'canAssignJob': false,
@@ -92,10 +100,16 @@ class TripAutomaticStartDetector {
 
   TripAutomaticStartDecision evaluate({
     required bool enabled,
+    required TripAutomaticStartAccessLevel accessLevel,
     required bool hasActiveOrRecoverableSession,
     required Iterable<TripAutomaticStartObservation> observations,
   }) {
     if (!enabled) return _decision(TripAutomaticStartDisposition.disabled);
+    if (accessLevel != TripAutomaticStartAccessLevel.paid) {
+      return _decision(
+        TripAutomaticStartDisposition.paidEntitlementRequired,
+      );
+    }
     if (hasActiveOrRecoverableSession) {
       return _decision(TripAutomaticStartDisposition.activeSessionExists);
     }
@@ -171,6 +185,8 @@ class TripAutomaticStartDetector {
     disposition: disposition,
     reasonCode: switch (disposition) {
       TripAutomaticStartDisposition.disabled => 'automatic_start_disabled',
+      TripAutomaticStartDisposition.paidEntitlementRequired =>
+        'paid_automatic_tracking_required',
       TripAutomaticStartDisposition.activeSessionExists =>
         'active_or_recoverable_session_exists',
       TripAutomaticStartDisposition.insufficientEvidence =>

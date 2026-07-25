@@ -1,6 +1,43 @@
 part of 'trip_tracking_settings_screen.dart';
 
 extension _TripTrackingSettingsMapControls on _TripTrackingSettingsPanel {
+  Widget _routeStorageNotice(String? status) {
+    final message = switch (status) {
+      'local_route_storage_unavailable' ||
+      'route_storage_failed_gps_continues' ||
+      'invalid_local_day_key' =>
+        'Optional route history is not being saved right now. GPS assistance and confirmed odometer mileage continue normally.',
+      'map_route_history_live_budget_exhausted' =>
+        'Optional route history reached today’s storage limit and is paused. GPS assistance and confirmed odometer mileage continue normally.',
+      _ => null,
+    };
+    if (message == null) return const SizedBox.shrink();
+    return Semantics(
+      container: true,
+      liveRegion: true,
+      label: message,
+      child: Container(
+        key: const Key('routeStorageNotice'),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF332A16),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFFFD166)),
+        ),
+        child: Text(
+          message,
+          style: const TextStyle(
+            color: Color(0xFFFFE4A3),
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            height: 1.25,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _mapRouteHistoryControls(TripTrackingSettings settings) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
     child: Container(

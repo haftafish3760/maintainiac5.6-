@@ -46,6 +46,36 @@ class DeviceBluetoothConnectionObservation {
   final String opaqueDeviceId;
   final bool connected;
   final DateTime observedAtUtc;
+
+  static DeviceBluetoothConnectionObservation? tryParseNative(Object? value) {
+    if (value is! Map || value['reason'] != 'bluetoothConnection') {
+      return null;
+    }
+    final opaqueDeviceId = value['opaqueDeviceId'];
+    final connected = value['connected'];
+    final atMs = value['atMs'];
+    if (opaqueDeviceId is! String ||
+        opaqueDeviceId.trim().isEmpty ||
+        connected is! bool ||
+        atMs is! num ||
+        !atMs.isFinite ||
+        atMs <= 0) {
+      return null;
+    }
+    final timestamp = atMs.toInt();
+    try {
+      return DeviceBluetoothConnectionObservation(
+        opaqueDeviceId: opaqueDeviceId.trim(),
+        connected: connected,
+        observedAtUtc: DateTime.fromMillisecondsSinceEpoch(
+          timestamp,
+          isUtc: true,
+        ),
+      );
+    } on ArgumentError {
+      return null;
+    }
+  }
 }
 
 abstract interface class DeviceBluetoothCapabilityProbe {

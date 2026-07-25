@@ -21,6 +21,8 @@ import '../../../shared/state/app_state.dart';
 import '../../../shared/state/global_odometer.dart';
 import '../../../shared/odometer/open_odometer_entry.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
+import '../../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../../shared/trip_tracking/trip_tracking_session_store.dart';
 import '../active_workday_screen.dart';
 import '../data/active_workday_store.dart';
 import '../start_day_confirmation_sheet.dart';
@@ -84,12 +86,6 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
         children: [
           const GlobalOdometerHeader(),
           const SizedBox(height: 10),
-          ContractorScaleStrip(metrics: snapshot.scaleMetrics),
-          const SizedBox(height: 10),
-          ContractorOperationsPulse(items: snapshot.operationsMetrics),
-          const SizedBox(height: 10),
-          ContractorAttentionPanel(items: snapshot.attentionItems),
-          const SizedBox(height: 10),
           if (dayStarted) ...[
             AnimatedBuilder(
               animation: odometer,
@@ -102,18 +98,22 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
                 liveOdometerLabel: odometer.hasLiveTripProjection
                     ? 'Live odometer: ${odometer.displayValue}'
                     : null,
+                currentJob: snapshot.jobsToday.isEmpty
+                    ? null
+                    : snapshot.jobsToday.first.title,
               ),
-            ),
-            const SizedBox(height: 10),
-            ContractorCommandGrid(
-              commands: contractorActiveCommands,
-              onCommand: _handleCommand,
             ),
             const SizedBox(height: 10),
             ContractorDayControlPanel(
               dayStarted: true,
               onStartDay: _startContractorDay,
               onOpenDay: _openActiveWorkday,
+              onStartGps: () => _openActiveWorkday(startGpsWhenOpened: true),
+            ),
+            const SizedBox(height: 10),
+            ContractorCommandGrid(
+              commands: contractorActiveCommands,
+              onCommand: _handleCommand,
             ),
           ] else ...[
             ContractorDayControlPanel(
@@ -126,6 +126,12 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
               onCommand: _handleCommand,
             ),
           ],
+          const SizedBox(height: 10),
+          ContractorScaleStrip(metrics: snapshot.scaleMetrics),
+          const SizedBox(height: 10),
+          ContractorOperationsPulse(items: snapshot.operationsMetrics),
+          const SizedBox(height: 10),
+          ContractorAttentionPanel(items: snapshot.attentionItems),
           const SizedBox(height: 10),
           ContractorJobsPanel(jobs: snapshot.jobsToday),
           const SizedBox(height: 10),
@@ -152,7 +158,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
       return;
     }
     if (activeWorkday.activeSession != null) {
-      _openActiveWorkday();
+      _openActiveWorkday(startGpsWhenOpened: true);
       return;
     }
     try {
@@ -204,7 +210,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     }
   }
 
-  void _openActiveWorkday() {
+  void _openActiveWorkday({bool startGpsWhenOpened = false}) {
     final activeVehicle = AppStateScope.of(context).activeVehicle;
     if (activeVehicle == null) {
       _showActiveDayRequired('Open Workday');
@@ -233,6 +239,12 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
                 context,
               )?.settings.tripTrackingSetupCompleted ==
               false,
+          startGpsWhenOpened:
+              startGpsWhenOpened &&
+              TripTrackingSettingsScope.maybeOf(
+                    context,
+                  )?.settings.gpsAssistedTrackingEnabled ==
+                  true,
         ),
       ),
     );
@@ -246,11 +258,41 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
   }) async {
     try {
       final odometer = GlobalOdometerScope.of(context);
+      final tripTracking = TripTrackingScope.maybeOf(context);
       final updated = await activeWorkday.addEvent(
         type: type,
         odometerReading: odometerReading ?? odometer.reading,
         note: note,
       );
+      final tripEventType = switch (type) {
+        ActiveWorkdayEventType.stop => TripManualEventType.stop,
+        ActiveWorkdayEventType.pickup => TripManualEventType.pickup,
+        ActiveWorkdayEventType.dropOff => TripManualEventType.dropoff,
+        _ => null,
+      };
+      if (updated != null &&
+          updated.events.isNotEmpty &&
+          tripEventType != null &&
+          tripTracking?.isTracking == true) {
+        final workdayEvent = updated.events.last;
+        final attached = await tripTracking!.recordUserTripEvent(
+          commandId: 'workday.${workdayEvent.id}',
+          type: tripEventType,
+          initiatingSource: 'dashboard',
+          occurredAt: workdayEvent.occurredAt,
+          note: note,
+        );
+        if (!attached && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'The stop was saved to your workday but could not be attached to the active GPS trip.',
+              ),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+      }
       if (!mounted) return updated != null;
       setState(() {});
       return updated != null;

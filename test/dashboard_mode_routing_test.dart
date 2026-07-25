@@ -9,22 +9,19 @@ import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 
 void main() {
-  testWidgets('contractor work type opens the contractor dashboard directly', (
-    tester,
-  ) async {
-    final harness = await _pumpDashboard(
-      tester,
-      OperationalDashboardMode.soloContractor,
-    );
-    addTearDown(harness.dispose);
+  testWidgets(
+    'contractor work type keeps driver dashboard with contractor access',
+    (tester) async {
+      final harness = await _pumpDashboard(
+        tester,
+        OperationalDashboardMode.soloContractor,
+      );
+      addTearDown(harness.dispose);
 
-    expect(find.text('Mode'), findsOneWidget);
-    expect(find.text('Contractor'), findsOneWidget);
-    expect(find.text('Back'), findsNothing);
-    expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
-    expect(find.text('Independent Dashboard'), findsNothing);
-    expect(find.text('Contractor Dashboard'), findsNothing);
-  });
+      expect(find.text('Independent Dashboard'), findsOneWidget);
+      expect(find.text('Contractor Dashboard'), findsOneWidget);
+    },
+  );
 
   testWidgets('gig work type keeps the independent driving dashboard', (
     tester,
@@ -36,10 +33,10 @@ void main() {
     addTearDown(harness.dispose);
 
     expect(find.text('Independent Dashboard'), findsOneWidget);
-    expect(find.text('Mode'), findsNothing);
+    expect(find.text('Contractor Dashboard'), findsOneWidget);
   });
 
-  testWidgets('contractor dashboard supports enlarged Android text', (
+  testWidgets('driver dashboard supports enlarged Android text in contractor mode', (
     tester,
   ) async {
     final harness = await _pumpDashboard(
@@ -49,7 +46,9 @@ void main() {
     );
     addTearDown(harness.dispose);
 
-    expect(find.text('Operations Pulse'), findsOneWidget);
+    expect(find.text('Independent Dashboard'), findsOneWidget);
+    expect(find.text('Contractor Dashboard'), findsOneWidget);
+    expect(find.text('Mock banner placement'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

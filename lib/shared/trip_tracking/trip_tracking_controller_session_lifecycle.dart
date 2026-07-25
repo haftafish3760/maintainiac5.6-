@@ -242,6 +242,8 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
       ancestry: ancestry,
       startingOdometer: startingOdometer,
+      projectionAnchorOdometer: startingOdometer,
+      projectionAnchorAcceptedMeters: 0,
       profile: profile,
       profileId: effectiveProfileId,
       startedAt: started,
@@ -320,6 +322,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         _platformError = 'Could not preserve damaged trip recovery evidence.';
         notifyListeners();
       }
+      await _stopOrphanedNativeCollectorAfterMissingSession();
       return false;
     }
     if (session.lifecycleState == TripTrackingSessionLifecycleState.cancelled) {
@@ -400,8 +403,15 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       notifyListeners();
       return false;
     }
+    final confirmedOdometer = _odometer.confirmedReading;
+    final storedAnchorMatchesConfirmation =
+        session.effectiveProjectionAnchorOdometer == confirmedOdometer;
+    final projectionAnchorMeters = storedAnchorMatchesConfirmation
+        ? session.projectionAnchorAcceptedMeters
+        : session.engineSnapshot.totalAcceptedMeters;
     final projection = TripLiveOdometerProjection(
-      startingOdometer: session.startingOdometer,
+      startingOdometer: confirmedOdometer,
+      acceptedMetersBaseline: projectionAnchorMeters,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
     _activeTripCalibrationMultiplier =
@@ -412,7 +422,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     );
     if (!_odometer.beginLiveTripProjection(
       tripId: session.id,
-      startingOdometer: session.startingOdometer,
+      startingOdometer: confirmedOdometer,
       observedAtUtc: session.startedAt,
     )) {
       return false;
@@ -441,6 +451,8 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     final recoveredSession = session.copyWith(
       recoveryCount: session.recoveryCount + 1,
       revision: session.revision + 1,
+      projectionAnchorOdometer: confirmedOdometer,
+      projectionAnchorAcceptedMeters: projectionAnchorMeters,
     );
     try {
       await _sessionStore.save(recoveredSession);
@@ -688,6 +700,8 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
             }
           } else {
             _nativeTracking = true;
+            _deviceLocationIntervalFloorSeconds =
+                session.deviceLocationIntervalFloorSeconds;
             _backgroundTrackingAllowed = true;
             _activityRecognitionEnabled = session.activityRecognitionEnabled;
             _nativeSampling = session.nativeSampling;
@@ -698,6 +712,10 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
                     deviceTier: TripTrackingDeviceCapabilityTier.locationOnly,
                     walkingEvidenceAvailable: false,
                     batteryProtectionEvidenceAvailable: false,
+                    deviceAdjusted:
+                        session.deviceLocationIntervalFloorSeconds > 1,
+                    deviceIntervalFloorSeconds:
+                        session.deviceLocationIntervalFloorSeconds,
                   );
             _adaptiveSamplingEnabled = session.adaptiveSamplingEnabled;
             _lowBatteryProtectionEnabled = session.lowBatteryProtectionEnabled;
@@ -914,6 +932,48 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     return true;
   }
 
+  Future<void> _stopOrphanedNativeCollectorAfterMissingSession() async {
+    final platform = _platform;
+    if (platform == null) return;
+    bool providerRunning;
+    try {
+      providerRunning = await platform.isTracking;
+    } catch (_) {
+      _platformStatus ??= 'native_service_state_unknown';
+      _platformError ??=
+          'Could not verify whether an unowned GPS collector is still running.';
+      notifyListeners();
+      return;
+    }
+    if (!providerRunning) return;
+    try {
+      await platform.stop();
+      try {
+        if (await platform.isTracking) {
+          _platformStatus = 'orphaned_native_collector_stop_failed';
+          _platformError =
+              'An unowned GPS collector is still running. Stop location tracking from the device notification before starting another trip.';
+          notifyListeners();
+          return;
+        }
+      } catch (_) {
+        _platformStatus = 'orphaned_native_collector_stop_unverified';
+        _platformError =
+            'Maintainiac requested that the unowned GPS collector stop, but the device could not verify the result.';
+        notifyListeners();
+        return;
+      }
+      _platformStatus ??= 'orphaned_native_collector_stopped';
+      _platformError ??=
+          'Location collection was stopped because no matching local trip could be recovered. No mileage was created.';
+    } catch (_) {
+      _platformStatus = 'orphaned_native_collector_stop_failed';
+      _platformError =
+          'An unowned GPS collector may still be running. Reopen Maintainiac or stop location tracking from the device notification.';
+    }
+    notifyListeners();
+  }
+
   Future<bool> _recoverCancelledSession(
     TripTrackingSessionRecord session,
   ) async {
@@ -1021,11 +1081,15 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
   }
 
   bool _isRecoverableSession(TripTrackingSessionRecord session) =>
-      session.hasValidTimeline &&
-      _isSafeTripTrackingIdentity(session.id) &&
-      _isSafeTripTrackingIdentity(session.vehicleId) &&
-      session.startingOdometer >= 0 &&
-      !session.updatedAt.isBefore(session.startedAt) &&
+      TripTrackingSessionRecoveryValidation.activeSession(
+        session,
+        recoveredAt: _clockNow(),
+        // A paused long-haul or multi-day trip can be old without being
+        // corrupt. Recovery never auto-resumes trusted GPS, so structural and
+        // future-time validation is the safe boundary here; age is presented
+        // to the user for review rather than used to erase recoverability.
+        maximumCheckpointAge: null,
+      ).isRecoverable &&
       _isRecoverableLifecycleState(session.lifecycleState);
 
   bool _isRecoverableLifecycleState(TripTrackingSessionLifecycleState state) =>

@@ -83,8 +83,11 @@ class TripStopAdvisoryReviewer {
         detectedAt: safeDetectedAt,
         evidenceStartedAt: evidenceStartedAt,
         evidenceEndedAt: safeDetectedAt,
-        confidence: currentMotionState == TripMotionState.stopped
-            ? TripTrackingConfidence.high
+        confidence: type == TripTrackingAdvisoryType.probableStop
+            ? engineSnapshot.currentStopCandidate?.confidence ??
+                  (currentMotionState == TripMotionState.stopped
+                      ? TripTrackingConfidence.high
+                      : TripTrackingConfidence.low)
             : TripTrackingConfidence.medium,
         suggestedAction: type == TripTrackingAdvisoryType.probableStop
             ? 'reviewStop'

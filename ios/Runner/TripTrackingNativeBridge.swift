@@ -8,16 +8,16 @@ private let tripTrackingEventChannel = "maintainiac/trip_tracking/events"
 
 /// Native source for location samples. It does not estimate distance or decide
 /// trip boundaries; those rules remain in the tested Dart trip engine.
-final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocationManagerDelegate {
-  private let locationManager = CLLocationManager()
+final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
+  let locationManager = CLLocationManager()
   private let motionManager = CMMotionActivityManager()
   private let pedometer = CMPedometer()
   private var eventSink: FlutterEventSink?
-  private var pendingAuthorizationResult: FlutterResult?
-  private var requestedBackgroundAuthorization = false
-  private var backgroundAuthorizationRequested = false
-  private var tracking = false
-  private var trackingStartedAt: Date?
+  var pendingAuthorizationResult: FlutterResult?
+  var requestedBackgroundAuthorization = false
+  var backgroundAuthorizationRequested = false
+  var tracking = false
+  var trackingStartedAt: Date?
   private var activityRecognitionEnabled = false
   private var activityRecognitionGeneration = 0
   private var activityRecognitionUnavailableReported = false
@@ -31,10 +31,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   deinit {
-    // The timer captures this bridge weakly, but explicit teardown keeps the
-    // native liveness loop bounded if Flutter replaces the engine/plugin.
-    stopHeartbeat()
-    pedometer.stopUpdates()
+    // A Flutter engine/plugin replacement must not leave Core Location or
+    // Core Motion running without the Dart controller that owns persistence.
+    stopNativeCollection()
+    locationManager.delegate = nil
   }
 
   func register(with pluginRegistry: FlutterPluginRegistry) {
@@ -64,155 +64,6 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   func onCancel(withArguments arguments: Any?) -> FlutterError? {
     eventSink = nil
     return nil
-  }
-
-  func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-    // Toggling system Location Services can be reported alongside an
-    // authorization transition. Retire immediately instead of waiting for a
-    // timer or a future coordinate callback that may never arrive.
-    if tracking && stopForLocationServicesDisabledIfNeeded() { return }
-    let authorization = authorizationMap()
-    emit(["type": "authorization"] .merging(authorization) { _, latest in latest })
-    let state = authorization["state"] as? String
-    let canKeepBackgroundTracking = !requestedBackgroundAuthorization || state == "always"
-    if tracking && (
-      state == "denied" ||
-      state == "restricted" ||
-      !canKeepBackgroundTracking
-    ) {
-      stopNativeCollection()
-      let errorCode: String
-      let errorMessage: String
-      if !canKeepBackgroundTracking {
-        errorCode = "trip_tracking_background_location_denied"
-        errorMessage = "Background location permission was removed while tracking."
-      } else {
-        errorCode = "trip_tracking_location_denied"
-        errorMessage = "Location permission was removed while tracking."
-      }
-      emit([
-        "type": "error",
-        "errorCode": errorCode,
-        "errorMessage": errorMessage,
-      ])
-    }
-    guard let result = pendingAuthorizationResult else { return }
-    if state == "whileInUse" && requestedBackgroundAuthorization && !backgroundAuthorizationRequested {
-      backgroundAuthorizationRequested = true
-      locationManager.requestAlwaysAuthorization()
-      return
-    }
-    if state != "notDetermined" {
-      pendingAuthorizationResult = nil
-      result(authorization)
-    }
-  }
-
-  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    // Core Location can deliver a buffered callback after stopUpdatingLocation.
-    // Do not let a retired session emit a late coordinate into Flutter, even
-    // though the Dart controller independently rejects inactive-session data.
-    guard tracking, let trackingStartedAt else { return }
-    if stopForLocationServicesDisabledIfNeeded() { return }
-    if stopForCriticalBatteryIfNeeded() { return }
-    let callbackReceivedAt = Date()
-    for location in locations {
-      // The delegate is shared across collection sessions. A callback queued
-      // before stopUpdatingLocation can arrive after a new start, so do not
-      // treat a coordinate predating this collector as current-trip evidence.
-      guard location.timestamp >= trackingStartedAt else { continue }
-      guard CLLocationCoordinate2DIsValid(location.coordinate),
-            location.coordinate.latitude.isFinite,
-            location.coordinate.longitude.isFinite,
-            location.horizontalAccuracy > 0,
-            location.horizontalAccuracy.isFinite,
-            location.timestamp.timeIntervalSince1970 > 0,
-            location.timestamp <= callbackReceivedAt.addingTimeInterval(120) else { continue }
-      let reportedSpeed = location.speed >= 0 && location.speed.isFinite
-        ? location.speed
-        : nil
-      // Keep provider metadata inside the same bounded contract enforced by
-      // the shared Dart model. A malformed cached accuracy must not turn an
-      // otherwise valid fix into a repeatedly rejected platform event.
-      let reportedSpeedAccuracy = location.speedAccuracy >= 0 &&
-        location.speedAccuracy.isFinite && location.speedAccuracy <= 1000
-        ? location.speedAccuracy
-        : nil
-      let reportedBearing = location.course >= 0 &&
-        location.course.isFinite && location.course < 360
-        ? location.course
-        : nil
-      let simulated = isSimulatedLocation(location)
-      var event: [String: Any] = [
-        "type": "location",
-        "latitude": location.coordinate.latitude,
-        "longitude": location.coordinate.longitude,
-        "recordedAt": ISO8601DateFormatter().string(from: location.timestamp),
-        "horizontalAccuracyMeters": location.horizontalAccuracy,
-        "speedMetersPerSecond": reportedSpeed ?? NSNull(),
-        "speedAccuracyMetersPerSecond": reportedSpeedAccuracy ?? NSNull(),
-        "bearingDegrees": reportedBearing ?? NSNull(),
-        "mockedLocation": simulated,
-      ]
-      if let monotonicElapsedNanos = monotonicElapsedNanos(
-        for: location,
-        observedAt: callbackReceivedAt
-      ) {
-        event["monotonicElapsedNanos"] = monotonicElapsedNanos
-      }
-      emit(event)
-    }
-  }
-
-  /// Core Location exposes wall time but not the monotonic timestamp carried
-  /// by Android locations. Derive the sample uptime from its bounded age so a
-  /// user clock change cannot silently reorder otherwise current iOS fixes.
-  private func monotonicElapsedNanos(for location: CLLocation, observedAt: Date) -> Int64? {
-    let wallAge = max(0, observedAt.timeIntervalSince(location.timestamp))
-    let sampleUptime = ProcessInfo.processInfo.systemUptime - wallAge
-    let maximumUptime = Double(Int64.max) / 1_000_000_000
-    guard sampleUptime.isFinite, sampleUptime > 0, sampleUptime <= maximumUptime else {
-      return nil
-    }
-    return Int64(sampleUptime * 1_000_000_000)
-  }
-
-  private func isSimulatedLocation(_ location: CLLocation) -> Bool {
-    if #available(iOS 15.0, *) {
-      return location.sourceInformation?.isSimulatedBySoftware == true
-    }
-    return false
-  }
-
-  func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    // Ignore deferred Core Location failures from a session that was already
-    // stopped or replaced. A late error must not interrupt a newer trip.
-    guard tracking else { return }
-    if let locationError = error as? CLError, locationError.code == .locationUnknown {
-      // Core Location documents this as transient and will keep trying. Do
-      // not manufacture a platform error, interruption, or UI alarm from a
-      // normal recovery path. The validated next fix remains the evidence.
-      return
-    }
-    if let locationError = error as? CLError, locationError.code == .denied {
-      stopNativeCollection()
-      emit([
-        "type": "error",
-        "errorCode": "trip_tracking_location_denied",
-        "errorMessage": "Location permission was removed while tracking.",
-      ])
-      return
-    }
-    // Any other Core Location failure leaves the current fix stream
-    // indeterminate. End native collection and let the Dart lifecycle keep
-    // the local trip recoverable rather than silently continuing with stale
-    // state. This never creates mileage, a stop, or an odometer update.
-    stopNativeCollection()
-    emit([
-      "type": "error",
-      "errorCode": "trip_tracking_location_error",
-      "errorMessage": "Core Location could not continue trip tracking.",
-    ])
   }
 
   private func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -272,6 +123,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   }
 
   private func start(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    guard !tracking else {
+      result(FlutterError(code: "trip_tracking_native_already_running", message: "A GPS collector is already running. Recover or stop it before starting another trip.", details: nil))
+      return
+    }
     guard CLLocationManager.locationServicesEnabled() else {
       result(FlutterError(code: "trip_tracking_gps_unavailable", message: "Device location is unavailable. Turn on Location Services before starting trip tracking.", details: nil))
       return
@@ -506,7 +361,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   /// Core Location can stop delivering fixes when system Location Services is
   /// switched off. Treat that as an interrupted collector rather than leaving
   /// the Dart session falsely healthy until a future callback happens.
-  private func stopForLocationServicesDisabledIfNeeded() -> Bool {
+  func stopForLocationServicesDisabledIfNeeded() -> Bool {
     guard !CLLocationManager.locationServicesEnabled() else { return false }
     stopNativeCollection()
     emit([
@@ -520,7 +375,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   /// Retire the collector before telling Core Location or Core Motion to stop.
   /// Both frameworks may have a buffered callback already queued, and a late
   /// callback must never influence a completed or replacement Dart session.
-  private func stopNativeCollection() {
+  func stopNativeCollection() {
     tracking = false
     trackingStartedAt = nil
     stopHeartbeat()
@@ -561,7 +416,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
   /// Core Location can keep running while Dart is background-suspended.
   /// Mirror the hard below-ten-percent safety rule while unplugged without
   /// changing TripLog history or the authoritative odometer.
-  private func stopForCriticalBatteryIfNeeded() -> Bool {
+  func stopForCriticalBatteryIfNeeded() -> Bool {
     let snapshot = batterySnapshot()
     guard snapshot["isCharging"] as? Bool != true,
           let percent = snapshot["batteryPercent"] as? Int,
@@ -576,7 +431,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     return true
   }
 
-  private func authorizationMap() -> [String: Any] {
+  func authorizationMap() -> [String: Any] {
     let status: CLAuthorizationStatus
     if #available(iOS 14.0, *) {
       status = locationManager.authorizationStatus
@@ -600,7 +455,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler, CLLocation
     return ["schemaVersion": 1, "state": state, "preciseLocation": precise]
   }
 
-  private func emit(_ event: [String: Any]) {
+  func emit(_ event: [String: Any]) {
     eventSink?(event.merging(["schemaVersion": 1]) { _, latest in latest })
   }
 

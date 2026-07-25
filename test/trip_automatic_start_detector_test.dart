@@ -24,6 +24,7 @@ void main() {
   test('one point and GPS-only thresholds cannot create a candidate', () {
     final onePoint = detector.evaluate(
       enabled: true,
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       hasActiveOrRecoverableSession: false,
       observations: [
         observation(0, activity: TripActivity.automotive, confidence: 90),
@@ -31,6 +32,7 @@ void main() {
     );
     final gpsOnly = detector.evaluate(
       enabled: true,
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       hasActiveOrRecoverableSession: false,
       observations: [observation(0), observation(15), observation(30)],
     );
@@ -44,6 +46,7 @@ void main() {
     () {
       final decision = detector.evaluate(
         enabled: true,
+        accessLevel: TripAutomaticStartAccessLevel.paid,
         hasActiveOrRecoverableSession: false,
         observations: [
           observation(0, vehicleId: 'vehicle_1'),
@@ -68,4 +71,25 @@ void main() {
       expect(decision.toMap()['coordinatesIncluded'], isFalse);
     },
   );
+
+  test('free access cannot create an automatic-start candidate', () {
+    final decision = detector.evaluate(
+      enabled: true,
+      accessLevel: TripAutomaticStartAccessLevel.free,
+      hasActiveOrRecoverableSession: false,
+      observations: [
+        observation(0, vehicleId: 'vehicle_1'),
+        observation(15, vehicleId: 'vehicle_1'),
+        observation(30, vehicleId: 'vehicle_1'),
+      ],
+    );
+
+    expect(
+      decision.disposition,
+      TripAutomaticStartDisposition.paidEntitlementRequired,
+    );
+    expect(decision.shouldSuggestStart, isFalse);
+    expect(decision.requiresPaidEntitlement, isTrue);
+    expect(decision.toMap()['paidEntitlementVerified'], isFalse);
+  });
 }

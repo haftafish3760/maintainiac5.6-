@@ -30,7 +30,11 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     if (!_canAcceptTrustedGpsSample(session.lifecycleState)) return null;
 
     if (sample.recordedAt.toUtc().isBefore(session.startedAt.toUtc())) {
-      return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
+      return _rejectAndPersistDiagnostic(
+        session,
+        engine,
+        TripSampleDisposition.rejectedOutOfOrder,
+      );
     }
 
     // A caller may supply the native receipt time for a platform event. Direct
@@ -42,15 +46,27 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     if (sample.recordedAt.toUtc().isAfter(
       receivedAt.add(engine.policy.maximumFutureSampleSkew),
     )) {
-      return engine.reject(TripSampleDisposition.rejectedFutureTimestamp);
+      return _rejectAndPersistDiagnostic(
+        session,
+        engine,
+        TripSampleDisposition.rejectedFutureTimestamp,
+      );
     }
 
     if (!sample.hasValidCoordinate || !sample.hasValidAccuracy) {
-      return engine.reject(TripSampleDisposition.rejectedInvalid);
+      return _rejectAndPersistDiagnostic(
+        session,
+        engine,
+        TripSampleDisposition.rejectedInvalid,
+      );
     }
     if (!sample.hasValidReportedSpeed ||
         !sample.hasValidReportedSpeedAccuracy) {
-      return engine.reject(TripSampleDisposition.rejectedInvalid);
+      return _rejectAndPersistDiagnostic(
+        session,
+        engine,
+        TripSampleDisposition.rejectedInvalid,
+      );
     }
 
     final lastObservedAt = engine.snapshot.lastObservedAt?.toUtc();
@@ -70,13 +86,21 @@ extension TripTrackingControllerIngestion on TripTrackingController {
       previousWallClock: lastObservedAt,
     );
     if (lastObservedAt != null && !wallClockIsNewer && !monotonicIsNewer) {
-      return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
+      return _rejectAndPersistDiagnostic(
+        session,
+        engine,
+        TripSampleDisposition.rejectedOutOfOrder,
+      );
     }
     if (lastObservedMonotonicElapsedNanos != null &&
         sample.monotonicElapsedNanos != null &&
         !monotonicIsNewer &&
         !monotonicClockReset) {
-      return engine.reject(TripSampleDisposition.rejectedOutOfOrder);
+      return _rejectAndPersistDiagnostic(
+        session,
+        engine,
+        TripSampleDisposition.rejectedOutOfOrder,
+      );
     }
 
     final safeActivity = _activitySafeForSample(sample, activity);
@@ -278,6 +302,88 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     return decision;
   }
 
+  Future<TripSampleDecision?> _rejectAndPersistDiagnostic(
+    TripTrackingSessionRecord session,
+    TripTrackingEngine engine,
+    TripSampleDisposition disposition,
+  ) async {
+    final previousSnapshot = engine.snapshot;
+    final decision = engine.reject(disposition);
+    final quality = signalQualitySummary;
+    final next = session.copyWith(
+      revision: session.revision + 1,
+      engineSnapshot: engine.snapshot,
+      healthState: quality.healthState,
+    );
+    try {
+      await _sessionStore.save(next);
+      _session = next;
+      notifyListeners();
+      _scheduleUnsafeSignalPauseIfNeeded(signalQualitySummary);
+      return decision;
+    } catch (_) {
+      _engine = TripTrackingEngine.fromSnapshot(
+        previousSnapshot,
+        policy: engine.policy,
+        profile: engine.profile,
+      );
+      _handleIngestionStorageFailure(
+        message:
+            'Could not preserve rejected GPS diagnostics locally. Trusted distance is paused.',
+        reasonCode: 'rejected_sample_diagnostic_storage_system_pause',
+      );
+      return null;
+    }
+  }
+
+  void _scheduleUnsafeSignalPauseIfNeeded(
+    TripTrackingSignalQualitySummary quality,
+  ) {
+    final action = TripSignalQualityActionPolicy.evaluate(
+      signal: quality,
+      activeTripHasLocalCheckpoint: _session != null,
+      userCanReviewNow: true,
+    );
+    if (action.canContinueGps ||
+        !_nativeTracking ||
+        _nativeStopRequested ||
+        _signalSafetyPausePending) {
+      return;
+    }
+    _signalSafetyPausePending = true;
+    _platformStatus = 'gps_signal_review_required';
+    _platformError =
+        'GPS samples were rejected for safety. Your trip is saved and the confirmed odometer remains official.';
+    notifyListeners();
+    // Native samples arrive through [_platformEventQueue]. Cleanup must be
+    // deferred so stopping the collector never waits on its own callback.
+    _deferPlatformCleanup(() async {
+      try {
+        final lifecycle = _session?.lifecycleState;
+        if (!_nativeTracking ||
+            _nativeStopRequested ||
+            lifecycle == TripTrackingSessionLifecycleState.stopping ||
+            lifecycle == TripTrackingSessionLifecycleState.awaitingReview ||
+            lifecycle == TripTrackingSessionLifecycleState.completed ||
+            lifecycle == TripTrackingSessionLifecycleState.cancelled) {
+          return;
+        }
+        await _stopNativeTracking(
+          interrupted: true,
+          interruptionHealth: action.targetHealthState,
+          interruptionSource: 'gps_signal_quality',
+          interruptionReasonCode: action.reasonCode,
+        );
+        _platformStatus = 'gps_signal_review_required';
+        _platformError =
+            'GPS assistance paused after unsafe location samples. Review the trip, then tap Resume when ready.';
+        notifyListeners();
+      } finally {
+        _signalSafetyPausePending = false;
+      }
+    });
+  }
+
   void _handleIngestionStorageFailure({
     required String message,
     required String reasonCode,
@@ -306,7 +412,9 @@ extension TripTrackingControllerIngestion on TripTrackingController {
     if (_platformError !=
             'Could not preserve the incoming GPS sample locally. Trusted distance is paused.' &&
         _platformError !=
-            'Could not save accepted GPS evidence locally. Trusted distance is paused.') {
+            'Could not save accepted GPS evidence locally. Trusted distance is paused.' &&
+        _platformError !=
+            'Could not preserve rejected GPS diagnostics locally. Trusted distance is paused.') {
       return;
     }
     _platformStatus = null;

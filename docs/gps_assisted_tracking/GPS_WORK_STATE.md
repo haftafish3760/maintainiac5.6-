@@ -181,3 +181,266 @@
   and long-session runs remain required before any real-world accuracy claim
 - Next action: continue lifecycle/recovery replay expansion, then convert
   sanitized field defects into deterministic regressions
+
+## 2026-07-24 production-wiring and reboot-recovery checkpoint
+
+- The primary round `START` workflow now creates the canonical workday and,
+  only when the driver has completed GPS setup and opted in, starts the single
+  scoped native GPS session for that vehicle and work profile. Existing active
+  workdays are never silently restarted.
+- The Android foreground service notification code and iOS Core Location
+  delegate were extracted into focused native components. The affected
+  production files are below 500 physical lines with no tracking-policy change.
+- Android records whether native collection was active. After a device reboot
+  or unexpected native shutdown it preserves the local trip as
+  `paused_by_system`, creates no new mileage, does not restart GPS, and offers a
+  notification that opens Maintainiac for review or explicit resume.
+- The expanded trip gate reports `TRIP_QA_PASS`; Android debug and iOS
+  simulator builds pass. Focused recovery coverage proves the reboot marker
+  creates one system-pause signal gap and remains idempotent.
+- No production record, route point, trip session, test, or application file
+  was deleted during this checkpoint.
+- The connected S24 Ultra still contains an older build signed with a different
+  certificate. Android correctly rejected an in-place replacement. Current
+  device UI and route behavior therefore remain unverified until the owner
+  explicitly authorizes uninstalling that copy or supplies a compatible signed
+  build.
+- The round start workflow now handles device location being unavailable
+  without cancelling the workday or leaving a phantom GPS session. It explains
+  that manual mileage remains available and preserves the confirmed odometer.
+- Widget coverage now waits for the durable native lifecycle boundary instead
+  of treating a native start callback as completion. This exposed and repaired
+  an isolation defect where unrelated in-memory trip stores shared a static
+  write queue; real Hive stores retain their shared serialization boundary.
+- A dedicated store regression proves that a blocked write in one independent
+  memory store cannot stall another store. The focused dashboard/store bundle
+  passes 60 tests and the complete trip gate again reports `TRIP_QA_PASS`.
+- UI-tree inspection confirms the S24 currently runs the stale July 23 build
+  containing the removed Oak Street placeholder and mock advertisement. The
+  installed certificate SHA-256 is
+  `07514c99ae4c99945cbcab4dfb2ccf8b9658f4787dfef733a5b32a07c37fa0f3`;
+  the current Mac debug build uses
+  `bde55b812494eb3c0451c9011b53feda5be6fe9546f48555915c2c5f766c4189`.
+  No device data was removed or changed while confirming this blocker.
+- The live active-workday dashboard no longer calculates every timer tick from
+  `DateTime.now()`. It establishes a restart-safe baseline from the durable
+  workday record, then advances through a monotonic runtime clock so manual
+  clock rollback, time-zone changes, and daylight-saving transitions cannot
+  move the displayed duration backward or invent elapsed time.
+- Pause and resume changes preserve one monotonic elapsed boundary. A process
+  restart deliberately rebuilds from the durable wall-time record because
+  platform monotonic clocks do not survive process or device restart.
+- Focused elapsed-clock and dashboard wiring coverage passes eight tests,
+  including wall-clock rollback, pause/resume, recovered baseline, opted-in GPS
+  start, GPS-unavailable manual fallback, and confirmed stop handoff.
+- Controller disposal is now serialized behind any in-flight native
+  start/update. A disposal that lands while the platform start call is pending
+  can no longer detach its event listener and then leave a foreground GPS
+  collector running without a Dart consumer.
+- The disposal/start race has a deterministic gated regression proving one
+  native stop, a detached listener, a provider that is no longer running, and
+  a durable `PAUSED_BY_SYSTEM` checkpoint with the
+  `controller_disposed_system_pause` audit reason.
+- iOS plugin teardown now calls the same complete native-stop boundary used by
+  an explicit GPS stop and then detaches the Core Location delegate. Replacing
+  a Flutter engine/plugin can no longer leave Core Location or Core Motion
+  running after its Dart persistence owner disappears.
+- All 23 native permission/lifecycle contract tests pass after that change.
+  The iOS simulator debug target compiles successfully; Xcode still reports the
+  pre-existing Google ML Kit arm64 simulator-support warning.
+- Both native command bridges now reject a second explicit collector start with
+  `trip_tracking_native_already_running`, preserving the existing collector for
+  recovery instead of silently assigning it to another local session.
+- Android also treats a redelivered service start as idempotent. It emits the
+  current tracking status without replacing the active location callback,
+  resetting the collector boundary, or creating duplicate distance.
+- The new native error is recoverable, sanitized for user display, and cannot
+  override the global confirmed odometer. Thirty-one focused native/error
+  contract tests pass, as do targeted analysis and Android/iOS debug builds.
+- Dart, Android, and iOS now enforce the same 1–100 meter native displacement
+  boundary. Invalid or extreme recommendations are normalized before crossing
+  the platform channel, so saved diagnostics match actual device sampling.
+- Active-workday live odometer labels now listen to both the global odometer
+  projection and the native tracking controller. They show the collector as
+  live, starting, or paused from actual lifecycle state rather than inferring
+  it from wall-clock age.
+- The status color and accessibility text follow that same state. Clock jumps
+  cannot falsely mark a running collector paused, and a real pause redraws
+  immediately without waiting for another GPS sample or unrelated UI rebuild.
+- Ending a workday from an active GPS trip can no longer bypass a dismissed
+  GPS odometer review by opening a second generic ending-odometer form. The
+  workday remains open and the durable completion-pending review stays
+  reachable until the driver confirms or deliberately handles it.
+- Android evaluates the foreground-notification Pause action before its
+  duplicate-start guard. A notification tap therefore records a durable
+  user-pause and retires native collection; it cannot be mistaken for a
+  redelivered start request.
+- Active and completion-pending records now preserve every valid GPS advisory,
+  lifecycle transition audit, and permission-history entry. Long or
+  interruption-heavy trips no longer silently discard older evidence at the
+  serialization or recovery boundary.
+- Session and completed-review regressions cover 40 advisories, 36 ordered
+  transition audits, and 30 permission changes across a full map round trip.
+  Existing ownership, ordering, timeline, and malformed-entry validation still
+  rejects evidence that does not belong to the trip.
+- Initial-fix recovery history is no longer reduced to the latest eight
+  assessments. Every valid coordinate-free quality assessment now survives
+  engine recovery, while malformed entries and raw coordinates remain excluded.
+- Atomic session creation now removes its own durable reservation when the
+  first write fails validation. A failed start cannot leave a phantom
+  unfinished trip that blocks the next valid start; cleanup remains
+  identity-scoped and cannot remove another session's evidence.
+- Memory and Hive regressions prove a rejected start leaves no active session,
+  unreadable marker, or pending write, and that the next valid start succeeds.
+- Production startup now opens and injects the optional compact local
+  route-point store, current trip settings, and device-local calendar key into
+  the canonical tracking controller. Explicitly opted-in map-route history can
+  therefore persist in the real app rather than existing only in tests.
+- Failure to open optional route storage does not block GPS assistance or
+  manual mileage. A non-persisting adapter returns the explicit
+  `local_route_storage_unavailable` status while retaining the invariant that
+  route points cannot change the confirmed odometer or upload to Firestore.
+- Route-storage status changes now notify the UI immediately. When opted-in
+  route history is unavailable, fails, has an invalid day boundary, or reaches
+  its daily limit, GPS settings show a professional non-blocking notice that
+  confirmed odometer mileage and GPS assistance continue normally.
+- Withdrawing the main GPS-assisted tracking opt-in now immediately stops the
+  native collector through the serialized lifecycle boundary and preserves the
+  session as a user pause. It never changes confirmed mileage, cancels the
+  trip, or deletes evidence.
+- Restoring the opt-in does not silently restart collection. A deterministic
+  regression proves repeated opt-out is idempotent and the driver must still
+  explicitly start or resume GPS assistance.
+- Active changes to the selected accuracy preset, adaptive sampling, battery
+  protection, and withdrawals of background or motion access now pass through
+  one serialized runtime-settings boundary. The native request and recoverable
+  session checkpoint are updated together without changing odometer mileage.
+- Enabling new background or motion access remains deferred to a separately
+  authorized start. A rejected or unpersistable live update stops native
+  collection into a recoverable system pause instead of continuing with an
+  ambiguous configuration.
+- A temporarily unavailable capability probe after process recovery cannot
+  block those live reductions. The controller uses its persisted conservative
+  capability baseline to apply the requested cadence and privacy settings.
+- Production startup now injects a local, coordinate-free TripLog proposal
+  inbox into the canonical tracking controller. Completing a trip persists one
+  de-duplicated proposal per review and marks the review submitted only after
+  that local handoff succeeds.
+- Pending proposals from earlier launches are retried during startup. The inbox
+  preserves the newest review revision, isolates malformed records, and has no
+  authority to alter the global odometer or finalize a TripLog record.
+- Driver odometer confirmation refreshes that coordinate-free proposal with
+  the newest locally authoritative review revision. The handoff can preserve
+  the user's confirmed value, but it still reports that it cannot confirm
+  mileage or finalize TripLog on the user's behalf.
+- A failed local TripLog handoff is now visible in the active-day GPS panel.
+  The driver can retry it directly; success removes the warning, while failure
+  keeps the completed review local and retryable without changing mileage.
+- Startup proposal recovery now runs through the controller's guarded review
+  reader. It retries every pending proposal, but an unreadable or malformed
+  review store returns a controlled storage warning instead of crashing app
+  startup or discarding evidence.
+- GPS settings are now separated into clearly labeled Core tracking, Maps and
+  route history, Battery protection, Tracking behavior and stops, Odometer
+  review and calibration, and conditional Vehicle recognition sections. The
+  underlying opt-ins and odometer authority are unchanged.
+- Invalid, future-dated, and out-of-order GPS callbacks now persist their
+  coordinate-free rejection diagnostics before returning. Those samples still
+  contribute zero distance, but provider-quality evidence survives process
+  death and can no longer disappear from the completed-trip audit.
+- The active-day panel now evaluates the persisted signal-quality action and
+  explains reduced, poor, interrupted, or unsafe GPS evidence to the driver.
+  Every message keeps GPS advisory and identifies the confirmed odometer as
+  official mileage.
+- Unsafe provider evidence now applies the policy's recoverable system pause
+  instead of merely displaying it. Native GPS stops after the rejection
+  diagnostics commit, the trip remains active and reviewable, accepted
+  distance stays unchanged, and the driver can explicitly resume later.
+- If that diagnostic checkpoint write fails, the in-memory rejection is rolled
+  back and trusted collection fails safely. A later successful local sample
+  clears only this matching storage warning; unrelated storage failures remain
+  visible.
+- Resuming after an unsafe-signal pause now starts a fresh live collection
+  quality epoch. Historical rejection diagnostics remain in the durable trip
+  audit, while only samples received since the explicit resume can trigger a
+  new automatic safety pause. This prevents old provider failures from
+  permanently trapping a recoverable trip in an unsafe state.
+- A ten-hour, 3,601-sample deterministic replay now passes through the real
+  controller and session store. The recoverable checkpoint remains bounded
+  instead of retaining the raw location stream, transient pending evidence is
+  cleared, completion produces an unconfirmed review, and the global confirmed
+  odometer remains unchanged. This is local resource evidence only; it does
+  not replace a ten-hour native-device field run.
+- The deterministic benchmark corpus now includes a realistic tunnel/garage
+  signal-loss interval. The engine rejects the missing continuity exactly once,
+  never bridges the unobserved route, resumes later accepted samples, and does
+  not manufacture a stop review. This remains synthetic regression evidence,
+  not a field-accuracy claim.
+- A maximum bounded simulation run now replays 24,000 production-engine cases
+  deterministically. Safe reports expose true-positive, false-positive, and
+  false-negative stop counts directly while continuing to deny any claim of
+  real-device accuracy.
+- The complete dashboard GPS start, pause, resume, live-odometer, and stop flow
+  now passes at 200% text scaling. Quick-action labels wrap to two lines without
+  ellipses and the grid grows with the platform text scaler, eliminating the
+  nine reproduced RenderFlex overflows.
+- Six recorded lifecycle-fuzz seeds now exercise 720 competing native start,
+  stop, app pause/resume, and heartbeat operations. Native commands remain
+  serialized, one trip identity and monotonic revision history survive every
+  race, and no unaccepted GPS event changes distance or the confirmed odometer.
+- The app root now supervises an active native collector every 30 seconds while
+  the app is foregrounded. Checks cannot overlap, stop when the app is disposed,
+  and reuse the existing serialized heartbeat recovery path; background
+  survival remains owned by the Android/iOS native collector rather than an
+  unreliable Dart background timer. The focused heartbeat tests, app smoke
+  test, analyzer, and complete trip-tracking QA gate are green.
+- The post-hardening trip production scope analyzes cleanly and the current
+  Android debug APK builds successfully. Installation remains intentionally
+  withheld because the connected S24 contains active local records under a
+  different signing certificate.
+- The complete 18-state commercial lifecycle contract now has executable
+  all-pairs coverage. Every one of the 324 possible transitions is checked
+  against its immutable allowlist, legal transitions return normally, illegal
+  transitions produce controlled errors, and safe diagnostic summaries cannot
+  report a forbidden transition as accepted.
+- Recovery validation now verifies every persisted transition audit against
+  both the runtime and commercial contract state machines. A record claiming
+  that an illegal transition was accepted, that a legal transition was
+  rejected, or that runtime and contract legality disagree is quarantined
+  without rewriting or deleting the source evidence.
+- Transition recovery also requires strictly increasing sequence and revision
+  ordering plus a continuous runtime and contract-state chain. Individually
+  legal events can no longer be combined into an impossible history and
+  silently presented as trustworthy audit evidence.
+- The canonical controller restore path now uses that structural validation;
+  it is no longer limited to checking identity, timestamps, and a broad
+  lifecycle enum. Forged transition evidence is preserved in quarantine before
+  it can become active recovery state.
+- Local trip recovery deliberately has no fixed 18-hour expiration. A
+  structurally valid four-day trip remains recoverable but paused, native GPS
+  does not restart automatically, and the confirmed odometer remains
+  unchanged. Future-dated and malformed checkpoints still fail closed.
+- If the platform reports a running native collector but no readable local
+  session can own it, startup now stops that collector instead of leaving an
+  orphan service that blocks every future Start. Corrupt local evidence keeps
+  its recovery diagnostic, stop/probe failures remain actionable, and the
+  cleanup creates neither a trip nor mileage. Recovery re-probes the platform
+  after stop: a collector that ignores stop is reported as failed, and a
+  collector whose stopped state cannot be verified is reported as unverified
+  instead of falsely claiming successful cleanup.
+- The contractor dashboard now exposes a direct, opt-in `Start GPS` action
+  alongside `Open Workday`; it uses the existing setup/permission flow and
+  never bypasses user consent. A regression also closes a lifecycle race where
+  a deferred unsafe-signal pause could issue a second native stop while the
+  user was already ending the trip.
+- A stale Firebase account panel that was no longer part of the GPS settings
+  screen remained syntactically declared as a Dart `part`, causing scoped
+  settings analysis to fail. It is now a preserved standalone private library;
+  it remains unreachable, and GPS settings still do not own or expose Firebase
+  configuration.
+- Automatic-start assistance is not release-ready: the bounded detector and
+  safety evaluator exist, but production has no pre-trip native observation
+  source and exposes no misleading toggle. Manual start and explicit
+  dashboard GPS start remain the supported workflows until background
+  monitoring and false-start behavior receive an owner-approved design and
+  physical-device evidence.

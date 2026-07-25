@@ -77,6 +77,7 @@ class TripTrackingNativeBridge(
                 // Retire callbacks before stopService returns. Android may
                 // invoke onDestroy asynchronously after this bridge reply.
                 TripTrackingForegroundService.retireForExplicitStop()
+                TripTrackingRecoveryState.clearForExplicitStop(activity)
                 activity.stopService(Intent(activity, TripTrackingForegroundService::class.java))
                 result.success(null)
             }
@@ -178,6 +179,14 @@ class TripTrackingNativeBridge(
     }
 
     private fun start(call: MethodCall, result: MethodChannel.Result) {
+        if (isTracking()) {
+            result.error(
+                "trip_tracking_native_already_running",
+                "A GPS collector is already running. Recover or stop it before starting another trip.",
+                null,
+            )
+            return
+        }
         if (!hasLocation()) {
             result.error("trip_tracking_location_denied", "Location permission is required before starting trip tracking.", authorizationMap())
             return

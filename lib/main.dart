@@ -37,8 +37,10 @@ import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
 import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
+import 'shared/trip_tracking/trip_tracking_route_point_store.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
 import 'shared/trip_tracking/trip_tracking_settings_store.dart';
+import 'shared/trip_tracking/trip_tracking_trip_log_proposal_store.dart';
 import 'shared/widgets/receipt_capture/incoming_receipt_share.dart';
 import 'shared/widgets/receipt_capture/receipt_capture_settings_store.dart';
 
@@ -128,6 +130,18 @@ Future<void> main() async {
     snapshotWriter: odometerStore.saveSnapshot,
   );
   final tripTrackingStore = await TripTrackingSessionStore.create();
+  TripTrackingTripLogProposalStore tripLogProposalStore;
+  try {
+    tripLogProposalStore = await TripTrackingTripLogProposalStore.create();
+  } catch (_) {
+    tripLogProposalStore = TripTrackingTripLogProposalStore.unavailable();
+  }
+  TripTrackingRoutePointStore routePointStore;
+  try {
+    routePointStore = await TripTrackingRoutePointStore.create();
+  } catch (_) {
+    routePointStore = TripTrackingRoutePointStore.unavailable();
+  }
   final durableRecordStore = await MaintainiacDurableRecordStore.create(
     'maintainiac_durable_records',
   );
@@ -148,11 +162,36 @@ Future<void> main() async {
     sessionStore: tripTrackingStore,
     odometer: globalOdometer,
     platform: TripTrackingPlatform(),
+    routePointStore: routePointStore,
+    routeSettings: () => tripTrackingSettings.settings,
+    localRouteDayKey: tripTrackingLocalDayKey,
     activeVehicleConfigurationRevision: () =>
         appState.activeVehicle?.tireConfigurationRevision ?? 0,
     durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
+    tripLogProposalSink: tripLogProposalStore,
   );
   await tripTracking.restore();
+  await tripTracking.retryPendingTripLogProposals();
+  await tripTracking.applyGpsAssistanceConsent(
+    enabled: tripTrackingSettings.settings.gpsAssistedTrackingEnabled,
+  );
+  await tripTracking.applyActiveTrackingSettings(tripTrackingSettings.settings);
+  void syncTripGpsAssistanceConsent() {
+    unawaited(
+      tripTracking.applyGpsAssistanceConsent(
+        enabled: tripTrackingSettings.settings.gpsAssistedTrackingEnabled,
+      ),
+    );
+  }
+
+  tripTrackingSettings.addListener(syncTripGpsAssistanceConsent);
+  void syncActiveTripSettings() {
+    unawaited(
+      tripTracking.applyActiveTrackingSettings(tripTrackingSettings.settings),
+    );
+  }
+
+  tripTrackingSettings.addListener(syncActiveTripSettings);
   void syncTripCalibrationAssist() {
     tripTracking.refreshGpsAssistanceCalibration(
       enabled:
@@ -162,13 +201,6 @@ Future<void> main() async {
 
   syncTripCalibrationAssist();
   tripTrackingSettings.addListener(syncTripCalibrationAssist);
-  void syncTripActivityRecognitionConsent() {
-    if (!tripTrackingSettings.settings.activityRecognitionEnabled) {
-      unawaited(tripTracking.disableActivityRecognition());
-    }
-  }
-
-  tripTrackingSettings.addListener(syncTripActivityRecognitionConsent);
   final activeDashboardMirror = dashboardMirror;
   if (activeDashboardMirror != null) {
     final dashboardReporter = DashboardTripTrackingSummaryReporter(

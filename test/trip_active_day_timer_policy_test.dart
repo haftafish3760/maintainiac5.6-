@@ -90,6 +90,31 @@ void main() {
     expect(decision.requiresUserReview, isTrue);
   });
 
+  test(
+    'daylight-saving fallback and midnight preserve physical elapsed time',
+    () {
+      final fallback = TripActiveDayTimerPolicy.evaluate(
+        lifecycle: TripTrackingSessionLifecycleState.active,
+        startedAtUtc: DateTime.parse('2026-11-01T01:30:00-04:00'),
+        pausedAtUtc: null,
+        completedAtUtc: null,
+        nowUtc: DateTime.parse('2026-11-01T01:30:00-05:00'),
+      );
+      final crossMidnight = TripActiveDayTimerPolicy.evaluate(
+        lifecycle: TripTrackingSessionLifecycleState.active,
+        startedAtUtc: DateTime.parse('2026-07-24T23:30:00-04:00'),
+        pausedAtUtc: null,
+        completedAtUtc: null,
+        nowUtc: DateTime.parse('2026-07-25T01:30:00-04:00'),
+      );
+
+      expect(fallback.status, TripActiveDayTimerStatus.running);
+      expect(fallback.elapsed, const Duration(hours: 1));
+      expect(crossMidnight.status, TripActiveDayTimerStatus.running);
+      expect(crossMidnight.elapsed, const Duration(hours: 2));
+    },
+  );
+
   test('safe timer summary cannot mutate mileage, stops, maps, or data', () {
     final safe = TripActiveDayTimerPolicy.evaluate(
       lifecycle: TripTrackingSessionLifecycleState.active,

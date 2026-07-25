@@ -86,9 +86,7 @@ class DeviceCapabilityBridge(private val activity: Activity) {
             "adapterAvailable" to (adapter != null),
             "poweredOn" to (authorized && adapter?.isEnabled == true),
             "authorization" to if (authorized) "authorized" else "notRequested",
-            // Identity remains unavailable until a separate user-approved
-            // adapter supplies opaque connection observations.
-            "supportsApprovedDeviceObservation" to false,
+            "supportsApprovedDeviceObservation" to (authorized && adapter != null),
         )
     }
 

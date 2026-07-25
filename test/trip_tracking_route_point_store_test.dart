@@ -10,6 +10,53 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
+  test('unavailable optional route store never blocks GPS tracking', () async {
+    final store = TripTrackingRoutePointStore.unavailable();
+    final result = await store.persist(
+      payload: {
+        'schemaVersion': 1,
+        'tripId': 'trip_unavailable',
+        'source': 'gps',
+        'sequence': 0,
+        'recordedAt': DateTime.utc(2026, 7, 21, 12).toIso8601String(),
+        'latitude': 35.1,
+        'longitude': -80.8,
+        'horizontalAccuracyMeters': 5,
+      },
+      expectedTripId: 'trip_unavailable',
+      localDayKey: '2026-07-21',
+      nowUtc: DateTime.utc(2026, 7, 21, 12),
+      settings: const TripTrackingSettings(
+        tripTrackingSetupCompleted: true,
+        gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: true,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 1,
+      ),
+    );
+
+    expect(result.saved, isFalse);
+    expect(result.reasonCode, 'local_route_storage_unavailable');
+    expect(result.gpsTrackingMayContinue, isTrue);
+    expect(store.pointsForTrip('trip_unavailable'), isEmpty);
+    expect(
+      await store.deleteRoute('trip_unavailable', userConfirmed: true),
+      isFalse,
+    );
+  });
+
+  test('local route day key uses the device-local calendar date', () {
+    final instant = DateTime.now();
+    final local = instant.toLocal();
+
+    expect(
+      tripTrackingLocalDayKey(instant),
+      '${local.year.toString().padLeft(4, '0')}-'
+      '${local.month.toString().padLeft(2, '0')}-'
+      '${local.day.toString().padLeft(2, '0')}',
+    );
+  });
+
   const enabled = TripTrackingSettings(
     gpsAssistedTrackingEnabled: true,
     mapPreviewEnabled: true,

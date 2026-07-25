@@ -43,7 +43,7 @@ void main() {
       ),
     );
 
-    expect(find.text('0001000'), findsOneWidget);
+    expect(find.text('1000'), findsOneWidget);
     expect(find.text('stale-reading'), findsNothing);
 
     expect(
@@ -62,7 +62,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('0001004'), findsOneWidget);
+    expect(find.text('1004'), findsOneWidget);
     expect(odometer.confirmedReading, 1000);
   });
 }

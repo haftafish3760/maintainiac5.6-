@@ -76,7 +76,7 @@ void main() {
     expect(tooFast.toMap()['intervalMillis'], 1000);
     expect(tooFast.toMap()['minimumDisplacementMeters'], 1);
     expect(tooSparse.toMap()['intervalMillis'], 60000);
-    expect(tooSparse.toMap()['minimumDisplacementMeters'], 1000);
+    expect(tooSparse.toMap()['minimumDisplacementMeters'], 100);
   });
 
   test('native request never asks for zero-displacement GPS callbacks', () {

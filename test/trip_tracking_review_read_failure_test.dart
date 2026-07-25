@@ -3,6 +3,7 @@ import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_trip_log_proposal.dart';
 
 void main() {
   test('review-facing reads fail safely when local storage is unavailable', () {
@@ -83,6 +84,28 @@ void main() {
         'Could not read the locally saved trip review.',
       );
       expect(controller.activeSession, isNull);
+    },
+  );
+
+  test(
+    'startup proposal retry cannot crash on unreadable review storage',
+    () async {
+      final controller = TripTrackingController(
+        sessionStore: _UnavailableReviewStore(),
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle-1',
+          initialReading: 12000,
+        ),
+        tripLogProposalSink: _NoopProposalSink(),
+      );
+      addTearDown(controller.dispose);
+
+      expect(await controller.retryPendingTripLogProposals(), 0);
+      expect(controller.platformStatus, 'storage_failed');
+      expect(
+        controller.platformError,
+        'Could not read locally saved trip reviews.',
+      );
     },
   );
 
@@ -188,4 +211,9 @@ class _RecoveringReviewStore extends TripTrackingSessionStore {
     if (failReview) throw StateError('review storage unavailable');
     return super.reviewForTrip(tripId);
   }
+}
+
+class _NoopProposalSink implements TripTrackingTripLogProposalSink {
+  @override
+  Future<void> propose(TripTrackingTripLogProposal proposal) async {}
 }

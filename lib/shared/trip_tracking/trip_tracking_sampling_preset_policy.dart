@@ -12,15 +12,21 @@ class TripTrackingSamplingPresetPolicy {
     required TripTrackingSamplingPreset preset,
     required int customIntervalSeconds,
     required TripTrackingPlatformCapabilities capabilities,
+    int deviceIntervalFloorSeconds = 1,
   }) {
+    final requested = recommendationFor(
+      preset: preset,
+      customIntervalSeconds: customIntervalSeconds,
+    );
+    final safeFloor = deviceIntervalFloorSeconds.clamp(1, 60);
+    final sampling = _applyIntervalFloor(requested, safeFloor);
     return TripTrackingSamplingPlan(
-      sampling: recommendationFor(
-        preset: preset,
-        customIntervalSeconds: customIntervalSeconds,
-      ),
+      sampling: sampling,
       deviceTier: capabilities.deviceTier,
       walkingEvidenceAvailable: capabilities.activityRecognitionAvailable,
       batteryProtectionEvidenceAvailable: capabilities.batteryStateAvailable,
+      deviceAdjusted: sampling.interval != requested.interval,
+      deviceIntervalFloorSeconds: safeFloor,
     );
   }
 
@@ -65,6 +71,18 @@ class TripTrackingSamplingPresetPolicy {
   };
 
   static int _boundedCustomInterval(int seconds) => seconds.clamp(3, 60);
+
+  static TripSamplingRecommendation _applyIntervalFloor(
+    TripSamplingRecommendation requested,
+    int floorSeconds,
+  ) {
+    if (requested.interval.inSeconds >= floorSeconds) return requested;
+    return TripSamplingRecommendation(
+      mode: requested.mode,
+      interval: Duration(seconds: floorSeconds),
+      minimumDisplacementMeters: requested.minimumDisplacementMeters,
+    );
+  }
 }
 
 /// Capability facts are retained as coarse feature availability only. This
@@ -76,12 +94,16 @@ class TripTrackingSamplingPlan {
     required this.deviceTier,
     required this.walkingEvidenceAvailable,
     required this.batteryProtectionEvidenceAvailable,
+    this.deviceAdjusted = false,
+    this.deviceIntervalFloorSeconds = 1,
   });
 
   final TripSamplingRecommendation sampling;
   final TripTrackingDeviceCapabilityTier deviceTier;
   final bool walkingEvidenceAvailable;
   final bool batteryProtectionEvidenceAvailable;
+  final bool deviceAdjusted;
+  final int deviceIntervalFloorSeconds;
 
   /// Adaptive GPS may reduce collection when conditions are quiet, but it must
   /// never become more aggressive than the cadence the driver selected.
@@ -120,6 +142,8 @@ class TripTrackingSamplingPlan {
     'deviceTier': deviceTier.name,
     'walkingEvidenceAvailable': walkingEvidenceAvailable,
     'batteryProtectionEvidenceAvailable': batteryProtectionEvidenceAvailable,
+    'deviceAdjusted': deviceAdjusted,
+    'deviceIntervalFloorSeconds': deviceIntervalFloorSeconds.clamp(1, 60),
     'rawLocationIncluded': false,
     'deviceIdentityIncluded': false,
     'canAuthorizeTracking': false,

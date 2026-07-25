@@ -91,10 +91,15 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('GPS-Assisted Trip Tracking'), findsOneWidget);
+    expect(find.text('CORE TRACKING'), findsOneWidget);
+    expect(find.text('MAPS AND ROUTE HISTORY'), findsOneWidget);
+    expect(find.text('BATTERY PROTECTION'), findsOneWidget);
+    expect(find.text('TRACKING BEHAVIOR AND STOPS'), findsOneWidget);
+    expect(find.text('ODOMETER REVIEW AND CALIBRATION'), findsOneWidget);
     expect(find.text('Enable GPS-assisted tracking'), findsOneWidget);
     expect(
       find.text('Share reviewed mileage summaries with organization'),
-      findsOneWidget,
+      findsNothing,
     );
     expect(
       find.textContaining('Enable GPS-assisted tracking before allowing'),
@@ -117,10 +122,16 @@ void main() {
       find.textContaining('unless the phone is charging'),
       findsNWidgets(2),
     );
-    expect(find.text('Mileage backup network'), findsOneWidget);
-    expect(find.text('Wi‑Fi + mobile'), findsOneWidget);
-    expect(find.text('Recognize a linked vehicle by Bluetooth'), findsNothing);
-    expect(find.text('Automatically switch the active vehicle'), findsNothing);
+    expect(find.text('Mileage backup network'), findsNothing);
+    expect(
+      find.text('Recognize a linked vehicle by Bluetooth'),
+      findsOneWidget,
+    );
+    expect(
+      find.text('Automatically switch the active vehicle'),
+      findsOneWidget,
+    );
+    expect(find.text('Paid feature'), findsOneWidget);
     expect(settings.settings.activityRecognitionEnabled, isFalse);
     expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
     expect(settings.settings.gpsOdometerCalibrationAssistEnabled, isFalse);
@@ -191,9 +202,9 @@ void main() {
       find.bySemanticsLabel('Enable GPS-assisted tracking'),
       findsOneWidget,
     );
-    await tester.ensureVisible(find.text('GPS update preset'));
+    await tester.ensureVisible(find.text('Accuracy and battery use'));
     await tester.pump();
-    expect(find.bySemanticsLabel('GPS update preset'), findsOneWidget);
+    expect(find.bySemanticsLabel('Accuracy and battery use'), findsOneWidget);
     await tester.tap(find.text('Enhanced (8 sec)'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('High accuracy (2 sec)').last);
@@ -278,13 +289,70 @@ void main() {
       find.textContaining('review and accept current local evidence'),
       findsOneWidget,
     );
-    expect(find.text('Back up reviewed mileage'), findsOneWidget);
+    expect(find.text('Back up reviewed mileage'), findsNothing);
     expect(find.text('Back up reviewed mileage to Firebase'), findsNothing);
     expect(find.text('Firebase backup account'), findsNothing);
     expect(profiles.activeProfile.cloudBackupEnabled, isFalse);
   });
 
-  testWidgets('backup network policy can be changed from GPS settings', (
+  testWidgets('optional route storage failure is visible but non-blocking', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(900, 2400);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+    final settings = TripTrackingSettingsController.memory(
+      const TripTrackingSettings(
+        tripTrackingSetupCompleted: true,
+        gpsAssistedTrackingEnabled: true,
+        mapPreviewEnabled: true,
+        mapRouteHistorySavingEnabled: true,
+        mapRouteHistoryDailyBudgetMb: 1,
+      ),
+    );
+    final odometer = GlobalOdometerController();
+    final tripTracking = _RouteStorageStatusController(
+      odometer: odometer,
+      status: 'local_route_storage_unavailable',
+    );
+    addTearDown(settings.dispose);
+    addTearDown(odometer.dispose);
+    addTearDown(tripTracking.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppStateScope(
+          controller: AppStateController(),
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: TripTrackingSettingsScope(
+              controller: settings,
+              child: TripTrackingScope(
+                controller: tripTracking,
+                child: const TripTrackingSettingsScreen(),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('routeStorageNotice')));
+    await tester.pump();
+
+    expect(
+      find.textContaining('Optional route history is not being saved'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('confirmed odometer mileage continue normally'),
+      findsOneWidget,
+    );
+    expect(settings.settings.gpsAssistedTrackingEnabled, isTrue);
+  });
+
+  testWidgets('backup network policy stays outside GPS settings', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -312,15 +380,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.ensureVisible(find.text('Mileage backup network'));
-    await tester.tap(find.text('Wi‑Fi + mobile'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Wi‑Fi only').last);
-    await tester.pumpAndSettle();
-
+    expect(find.text('Mileage backup network'), findsNothing);
     expect(
       settings.settings.backupNetworkPolicy,
-      TripTrackingBackupNetworkPolicy.wifiOnly,
+      TripTrackingBackupNetworkPolicy.wifiAndMobileData,
     );
   });
 
@@ -428,4 +491,21 @@ void main() {
     expect(settings.settings.lowBatteryGpsOverrideEnabled, isFalse);
     expect(settings.settings.lowBatteryGpsWarningDismissed, isFalse);
   });
+}
+
+class _RouteStorageStatusController extends TripTrackingController {
+  // A dedicated fixture supplies the required in-memory store itself.
+  // ignore: use_super_parameters
+  _RouteStorageStatusController({
+    required GlobalOdometerController odometer,
+    required this.status,
+  }) : super(
+         sessionStore: TripTrackingSessionStore.memory(),
+         odometer: odometer,
+       );
+
+  final String status;
+
+  @override
+  String? get routeStorageStatus => status;
 }

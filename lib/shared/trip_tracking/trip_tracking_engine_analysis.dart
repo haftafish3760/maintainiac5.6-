@@ -202,6 +202,7 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
       }
       _vehicleMovementObserved = true;
       _stationaryStartedAt = null;
+      _lastStationaryEvidenceAt = null;
       _motionState = TripMotionState.moving;
       return;
     }
@@ -212,6 +213,7 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
     // into a fabricated stop.
     if (disposition == TripSampleDisposition.rejectedGap) {
       _stationaryStartedAt = null;
+      _lastStationaryEvidenceAt = null;
       _walkingEvidence.clear();
       // A gap invalidates only incomplete evidence. Once a stop has already
       // earned a review, it remains a user-visible advisory until reviewed.
@@ -222,7 +224,30 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
     if ((disposition == TripSampleDisposition.rejectedDrift ||
             stationaryConflict) &&
         _vehicleMovementObserved) {
+      final priorStationaryEvidenceAt = _lastStationaryEvidenceAt;
+      final configuredMaximumGap = _safePositiveDuration(
+        policy.maximumGap,
+        _defaultGap,
+      );
+      final stationaryEvidenceGapLimit =
+          configuredMaximumGap < _maximumContinuousStationaryEvidenceGap
+          ? configuredMaximumGap
+          : _maximumContinuousStationaryEvidenceGap;
+      if (priorStationaryEvidenceAt != null &&
+          (sample.recordedAt.isBefore(priorStationaryEvidenceAt) ||
+              sample.recordedAt.difference(priorStationaryEvidenceAt) >
+                  stationaryEvidenceGapLimit)) {
+        // A sparse provider callback sequence is not continuous stop evidence.
+        // Restart the advisory dwell window instead of bridging an OS pause,
+        // tunnel, or throttled background interval into a fabricated stop.
+        _stationaryStartedAt = sample.recordedAt;
+        _lastStationaryEvidenceAt = sample.recordedAt;
+        _walkingEvidence.clear();
+        _motionState = TripMotionState.unknown;
+        return;
+      }
       _stationaryStartedAt ??= sample.recordedAt;
+      _lastStationaryEvidenceAt = sample.recordedAt;
       // Motion callbacks can arrive more often than location callbacks while
       // the vehicle is stationary. Previously, that buffered, time-spaced
       // walking evidence was ignored unless another walking callback happened
@@ -232,19 +257,6 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
       if (_strategy.usesWalkingStopEvidence &&
           _hasWalkingStopEvidence(sample.recordedAt)) {
         _motionState = TripMotionState.stopped;
-        return;
-      }
-      final stationaryStartedAt = _stationaryStartedAt;
-      if (_walkingEvidence.isEmpty &&
-          stationaryStartedAt != null &&
-          sample.recordedAt.difference(stationaryStartedAt) >
-              _safePositiveDuration(policy.maximumGap, _defaultGap)) {
-        // Continuous stationary vehicle-only fixes can be a traffic queue,
-        // gridlock, or a phone left in a parked vehicle. Age that evidence out
-        // instead of turning a long wait into a stop candidate. Walking may
-        // still establish a fresh, review-only stop cue afterward.
-        _stationaryStartedAt = sample.recordedAt;
-        _motionState = TripMotionState.unknown;
         return;
       }
       if (_hasVehicleOnlyStopCandidate(sample)) {

@@ -96,6 +96,9 @@ TripTrackingEngine restoreTripTrackingEngineSnapshot(
   }
   engine._vehicleMovementObserved = recoveredSnapshot.vehicleMovementObserved;
   engine._stationaryStartedAt = recoveredStationaryStartedAt;
+  engine._lastStationaryEvidenceAt = recoveredStationaryStartedAt == null
+      ? null
+      : engine._lastObservedAt;
   engine._diagnostics = recoveredSnapshot.diagnostics;
   return engine;
 }

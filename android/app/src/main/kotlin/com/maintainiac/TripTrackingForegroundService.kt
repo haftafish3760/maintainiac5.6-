@@ -1,8 +1,6 @@
 package com.maintainiac
 
 import android.Manifest
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
 import android.app.PendingIntent
 import android.content.Context
@@ -17,7 +15,6 @@ import android.os.BatteryManager
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.ActivityRecognition
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -37,12 +34,8 @@ class TripTrackingForegroundService : Service() {
         const val samplingUpdateExtra = "samplingUpdate"
         const val activityEpochExtra = "activityEpoch"
         private const val stopAction = "com.maintainiac.trip_tracking.STOP"
-        private const val notificationChannelId = "maintainiac_trip_tracking"
         private const val notificationId = 7313
         private const val heartbeatIntervalMillis = 60_000L
-        private const val recoveryPreferences = "maintainiac_trip_tracking_recovery"
-        private const val recoveryStatusKey = "nativeRecoveryStatus"
-        private const val userPausedRecoveryStatus = "paused_by_user"
         @Volatile
         var isRunning = false
             private set
@@ -75,10 +68,7 @@ class TripTrackingForegroundService : Service() {
         }
 
         fun consumeRecoveryStatus(context: Context): String? {
-            val preferences = context.getSharedPreferences(recoveryPreferences, Context.MODE_PRIVATE)
-            val status = preferences.getString(recoveryStatusKey, null)
-            preferences.edit().remove(recoveryStatusKey).commit()
-            return status?.takeIf { it == userPausedRecoveryStatus }
+            return TripTrackingRecoveryState.consumeStatus(context)
         }
     }
 
@@ -165,28 +155,41 @@ class TripTrackingForegroundService : Service() {
             stopSelf(startId)
             return START_NOT_STICKY
         }
-        // The bridge verifies the collector before requesting a cadence
-        // update, but it can still disappear in the tiny interval afterward.
-        // An update intent is never authorization to create a new collector.
-        if (intent.getBooleanExtra(samplingUpdateExtra, false) && !isRunning) {
-            stopSelf(startId)
-            return START_NOT_STICKY
-        }
-        if (intent?.action == stopAction) {
+        if (intent.action == stopAction) {
             // The persistent notification must give the driver an immediate,
             // visible way to pause GPS collection without falsely implying
             // that the odometer-review workflow has been completed.
             userPauseRequested = true
-            recordRecoveryStatus(userPausedRecoveryStatus)
+            TripTrackingRecoveryState.recordUserPause(this)
             stopSelf()
             return START_NOT_STICKY
         }
+        // The bridge verifies the collector before requesting a cadence
+        // update, but it can still disappear in the tiny interval afterward.
+        // An update intent is never authorization to create a new collector.
+        val samplingUpdate = intent.getBooleanExtra(samplingUpdateExtra, false)
+        if (samplingUpdate && !isRunning) {
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+        // Android may redeliver a start command or a native caller may replay
+        // one after the collector is already live. Treat that as idempotent:
+        // never replace the callback, reset the session boundary, or count the
+        // same movement twice. Sampling changes use the explicit update path.
+        if (!samplingUpdate && isRunning) {
+            TripTrackingEventEmitter.emit(
+                mapOf("type" to "status", "status" to "tracking"),
+            )
+            return START_NOT_STICKY
+        }
         userPauseRequested = false
-        recordRecoveryStatus(null)
         backgroundTrackingRequired =
             intent.getBooleanExtra(allowBackgroundExtra, false)
         try {
-            startForeground(notificationId, notification())
+            startForeground(
+                notificationId,
+                TripTrackingNotificationFactory.active(this, stopAction),
+            )
         } catch (error: SecurityException) {
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_foreground_service_denied", "errorMessage" to "Android blocked the trip-tracking foreground service: ${error.message ?: "permission denied"}"))
             stopSelf()
@@ -234,6 +237,7 @@ class TripTrackingForegroundService : Service() {
         // collection must not become mileage in a newly started trip.
         trackingStartedAtMillis = System.currentTimeMillis()
         isRunning = true
+        TripTrackingRecoveryState.markTrackingStarted(this)
         @Suppress("MissingPermission")
         try {
             fusedLocationClient.requestLocationUpdates(
@@ -349,7 +353,11 @@ class TripTrackingForegroundService : Service() {
         retireActivityRecognitionEpoch()
         trackingStartedAtMillis = null
         backgroundTrackingRequired = false
-        recordRecoveryStatus(if (userPauseRequested) userPausedRecoveryStatus else null)
+        if (userPauseRequested) {
+            TripTrackingRecoveryState.recordUserPause(this)
+        } else {
+            TripTrackingRecoveryState.recordSystemPauseIfActive(this)
+        }
         TripTrackingEventEmitter.emit(
             mapOf(
                 "type" to "status",
@@ -357,12 +365,6 @@ class TripTrackingForegroundService : Service() {
             ),
         )
         super.onDestroy()
-    }
-
-    private fun recordRecoveryStatus(status: String?) {
-        val edit = getSharedPreferences(recoveryPreferences, Context.MODE_PRIVATE).edit()
-        if (status == null) edit.remove(recoveryStatusKey) else edit.putString(recoveryStatusKey, status)
-        edit.commit()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -459,37 +461,9 @@ class TripTrackingForegroundService : Service() {
         locationCallback = null
     }
 
-    private fun notification(): android.app.Notification {
-        val openAppIntent = PendingIntent.getActivity(
-            this,
-            7314,
-            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val stopIntent = PendingIntent.getService(
-            this,
-            7315,
-            Intent(this, TripTrackingForegroundService::class.java).setAction(stopAction),
-            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        return NotificationCompat.Builder(this, notificationChannelId)
-            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentTitle("Maintainiac trip tracking")
-            .setContentText("GPS-assisted trip tracking is active")
-            .setContentIntent(openAppIntent)
-            .setOngoing(true)
-            .addAction(0, "Pause GPS assistance", stopIntent)
-            .build()
-    }
-
     override fun onCreate() {
         super.onCreate()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val manager = getSystemService(NotificationManager::class.java)
-            manager.createNotificationChannel(
-                NotificationChannel(notificationChannelId, "Trip tracking", NotificationManager.IMPORTANCE_LOW),
-            )
-        }
+        TripTrackingNotificationFactory.ensureChannel(this)
     }
 
     private fun hasFineLocation() = ContextCompat.checkSelfPermission(

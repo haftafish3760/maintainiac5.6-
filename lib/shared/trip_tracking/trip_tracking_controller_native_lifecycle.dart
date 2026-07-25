@@ -7,6 +7,29 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
   Future<void> stopNativeTracking() =>
       _enqueueNativeLifecycle(_stopNativeTracking);
 
+  /// Applies the app-wide GPS assistance opt-in to a running collector.
+  ///
+  /// Withdrawing consent pauses native assistance immediately while preserving
+  /// the local trip and confirmed odometer. Granting consent never starts or
+  /// resumes collection without the driver's separate start/resume action.
+  Future<void> applyGpsAssistanceConsent({required bool enabled}) {
+    if (enabled) return Future<void>.value();
+    return _enqueueNativeLifecycle(() async {
+      final state = _session?.lifecycleState;
+      final mustStop =
+          _nativeTracking ||
+          state == TripTrackingSessionLifecycleState.starting ||
+          state == TripTrackingSessionLifecycleState.active ||
+          state == TripTrackingSessionLifecycleState.degraded ||
+          state == TripTrackingSessionLifecycleState.recovering;
+      if (!mustStop) return;
+      await _stopNativeTracking();
+      _platformStatus = 'gps_assistance_disabled';
+      _platformError = null;
+      notifyListeners();
+    });
+  }
+
   /// Withdraw optional motion-sensor assistance from an active collector.
   ///
   /// This is deliberately one-way for a running session: enabling a sensor

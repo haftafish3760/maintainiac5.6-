@@ -5,6 +5,7 @@ const metersPerMile = 1609.344;
 class TripLiveOdometerProjection {
   TripLiveOdometerProjection({
     required this.startingOdometer,
+    this.acceptedMetersBaseline = 0,
     int maxSupportedReading = 9999999,
     double maxProjectedTripMiles = 1500,
   }) : maxSupportedReading = _safeMaxSupportedReading(maxSupportedReading),
@@ -17,6 +18,7 @@ class TripLiveOdometerProjection {
        );
 
   final int startingOdometer;
+  final double acceptedMetersBaseline;
   final int maxSupportedReading;
   final double maxProjectedTripMiles;
   int _lastProjectedReading;
@@ -115,7 +117,12 @@ class TripLiveOdometerProjection {
     final multiplier = _safeCalibrationMultiplier(
       gpsAssistanceCalibrationMultiplier,
     );
-    final acceptedMiles = (acceptedMeters / metersPerMile) * multiplier;
+    final relativeAcceptedMeters = acceptedMeters - acceptedMetersBaseline;
+    if (!relativeAcceptedMeters.isFinite || relativeAcceptedMeters < 0) {
+      return _lastProjectedReading;
+    }
+    final acceptedMiles =
+        (relativeAcceptedMeters / metersPerMile) * multiplier;
     if (!acceptedMiles.isFinite ||
         acceptedMiles > maxProjectedTripMiles ||
         acceptedMiles > maxSupportedReading - safeStart) {

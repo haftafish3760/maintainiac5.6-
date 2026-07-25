@@ -15,6 +15,28 @@ class TripTrackingDashboardLiveStatusPolicy {
       'Waiting for your current location. Your start time and confirmed '
       'odometer are saved.';
 
+  static String vehicleStatus({
+    required bool activeTrip,
+    required bool nativeTracking,
+    required bool hasLiveProjection,
+    String? platformStatus,
+    bool awaitingInitialFix = false,
+    bool signalReviewRequired = false,
+  }) {
+    if (nativeTracking) {
+      if (awaitingInitialFix) return 'GPS ACQUIRING';
+      if (platformStatus == 'gps_signal_stale' || signalReviewRequired) {
+        return 'GPS DEGRADED';
+      }
+      return 'LIVE GPS';
+    }
+    if (activeTrip || hasLiveProjection) {
+      if (_isExplicitPause(platformStatus)) return 'GPS PAUSED';
+      return 'GPS RECOVERY';
+    }
+    return 'Active';
+  }
+
   static String? warning({
     required bool tracking,
     String? platformStatus,
@@ -49,4 +71,11 @@ class TripTrackingDashboardLiveStatusPolicy {
     final trimmed = value?.trim();
     return trimmed == null || trimmed.isEmpty ? null : trimmed;
   }
+
+  static bool _isExplicitPause(String? status) =>
+      status == 'paused' ||
+      status == 'recovery_paused_by_user' ||
+      status == 'battery_critical_gps_blocked' ||
+      status == 'low_battery_requires_user_choice' ||
+      status == 'gps_signal_review_required';
 }

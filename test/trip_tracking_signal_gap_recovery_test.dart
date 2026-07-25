@@ -130,6 +130,70 @@ void main() {
     },
   );
 
+  test(
+    'reboot marker recovers exactly one system pause and remains idempotent',
+    () async {
+      final startedAt = DateTime.utc(2026, 7, 24, 12);
+      final store = TripTrackingSessionStore.memory();
+      await store.save(
+        TripTrackingSessionRecord(
+          id: 'android_reboot_recovery_trip',
+          vehicleId: 'vehicle_1',
+          startingOdometer: 1000,
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: startedAt,
+          updatedAt: startedAt.add(const Duration(minutes: 5)),
+          engineSnapshot: const TripTrackingEngineSnapshot(
+            totalAcceptedMeters: 1600,
+            walkingReviewSuggested: false,
+          ),
+          lifecycleState: TripTrackingSessionLifecycleState.active,
+        ),
+      );
+      final platform = _GapPlatform(recoveryStatus: 'paused_by_system');
+      final controller = TripTrackingController(
+        sessionStore: store,
+        odometer: GlobalOdometerController(
+          vehicleId: 'vehicle_1',
+          initialReading: 1000,
+        ),
+        platform: platform,
+        clockNow: () => startedAt.add(const Duration(minutes: 10)),
+      );
+
+      expect(await controller.restore(), isTrue);
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.paused,
+      );
+      expect(controller.activeSession?.pauseKind, TripTrackingPauseKind.system);
+      expect(controller.platformStatus, 'recovery_paused_native_missing');
+      expect(controller.acceptedMeters, 1600);
+      expect(controller.signalGaps, hasLength(1));
+      expect(
+        controller.signalGaps.single.reason,
+        TripTrackingSignalGapReason.systemPause,
+      );
+      expect(
+        controller.activeSession?.transitionAudits.last.reasonCode,
+        'native_collector_missing_after_recovery',
+      );
+      expect(await platform.consumeRecoveryStatus(), isNull);
+
+      expect(await controller.restore(), isFalse);
+      expect(controller.signalGaps, hasLength(1));
+      expect(
+        controller.activeSession?.transitionAudits
+            .where(
+              (audit) =>
+                  audit.reasonCode == 'native_collector_missing_after_recovery',
+            )
+            .length,
+        1,
+      );
+    },
+  );
+
   test('native notification pause survives Dart process recovery', () async {
     final startedAt = DateTime.utc(2026, 7, 21, 12);
     var now = startedAt.add(const Duration(minutes: 10));

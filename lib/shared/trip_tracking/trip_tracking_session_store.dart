@@ -144,6 +144,7 @@ class TripTrackingSessionStore {
   final Map<String, TripTrackingRecoveryDiagnostic> _memoryRecoveryDiagnostics =
       {};
   final TripTrackingSessionStorageCheck? _storageCheck;
+  Future<void> _memoryWriteTail = Future<void>.value();
   static Future<void> _sharedWriteTail = Future<void>.value();
 
   static Future<TripTrackingSessionStore> create({
@@ -354,16 +355,28 @@ class TripTrackingSessionStore {
       // normal write behavior after this store-wide atomic reservation.
       await save(session);
       return true;
-    } catch (_) {
-      await _releaseFailedMemoryReservation(session.id);
-      rethrow;
+    } catch (error, stackTrace) {
+      try {
+        await _releaseFailedReservation(session.id);
+      } catch (_) {
+        // Preserve the original start failure. A cleanup failure leaves the
+        // marker available to the normal deterministic recovery path.
+      }
+      Error.throwWithStackTrace(error, stackTrace);
     }
   }
 
-  Future<void> _releaseFailedMemoryReservation(String sessionId) =>
+  Future<void> _releaseFailedReservation(String sessionId) =>
       _enqueue(() async {
-        if (_box == null && _memorySession?.id == sessionId) {
-          _memorySession = null;
+        if (_box == null) {
+          if (_memorySession?.id == sessionId) {
+            _memorySession = null;
+          }
+          return;
+        }
+        final pending = _rawSessionPayload(_box.get(_pendingSessionWriteKey));
+        if (pending?['id'] == sessionId) {
+          await _box.delete(_pendingSessionWriteKey);
         }
       });
 
@@ -619,6 +632,11 @@ class TripTrackingSessionStore {
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {
+    if (_box == null) {
+      final next = _memoryWriteTail.then((_) => operation());
+      _memoryWriteTail = next.then<void>((_) {}, onError: (Object _) {});
+      return next;
+    }
     final next = _sharedWriteTail.then((_) => operation());
     _sharedWriteTail = next.then<void>((_) {}, onError: (Object _) {});
     return next;

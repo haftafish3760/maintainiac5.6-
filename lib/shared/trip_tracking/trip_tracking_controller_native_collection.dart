@@ -30,6 +30,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     bool lowBatteryProtectionEnabled = true,
     bool lowBatteryOverrideEnabled = false,
     bool lowBatteryWarningDismissed = false,
+    int deviceIntervalFloorSeconds = 1,
   }) => _enqueueNativeLifecycle(
     () => _startNativeTracking(
       allowBackground: allowBackground,
@@ -43,6 +44,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
+      deviceIntervalFloorSeconds: deviceIntervalFloorSeconds,
     ),
   );
 
@@ -58,6 +60,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     bool lowBatteryProtectionEnabled = true,
     bool lowBatteryOverrideEnabled = false,
     bool lowBatteryWarningDismissed = false,
+    int deviceIntervalFloorSeconds = 1,
   }) async {
     final platform = _platform;
     var session = _session;
@@ -227,6 +230,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
             preset: samplingPreset,
             customIntervalSeconds: customIntervalSeconds,
             capabilities: capabilities,
+            deviceIntervalFloorSeconds: deviceIntervalFloorSeconds,
           )
         : null;
     final request = TripTrackingNativeRequest(
@@ -253,6 +257,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
+      deviceLocationIntervalFloorSeconds:
+          deviceIntervalFloorSeconds.clamp(1, 60),
     )) {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
@@ -272,6 +278,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     _pendingNativeStartStopped = false;
     _pendingNativeStartAuthorizationRevoked = false;
     _pendingNativeStartErrorCode = null;
+    final signalEpochBaseline = diagnostics;
     _platformSubscription = _listenToPlatformEvents(platform);
     bool started;
     try {
@@ -443,6 +450,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     _engine?.recordInitialFixAssessment(null);
     _nativeSampling = request.sampling;
     _nativeSamplingPlan = samplingPlan;
+    _deviceLocationIntervalFloorSeconds =
+        deviceIntervalFloorSeconds.clamp(1, 60);
     _lastNativeHeartbeatUtc = _clockNow().toUtc();
     _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
     _lastNativeLocationReceivedUtc = null;
@@ -479,6 +488,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       _backgroundTrackingAllowed = false;
       return false;
     }
+    _nativeSignalEpochBaseline = signalEpochBaseline;
     notifyListeners();
     return true;
   }

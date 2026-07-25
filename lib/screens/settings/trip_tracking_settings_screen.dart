@@ -1,34 +1,33 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-import '../../shared/firebase/maintainiac_auth_service.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
+import '../../shared/trip_tracking/trip_automatic_start_detector.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
-import '../../shared/profiles/user_profile_store.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import 'trip_background_location_settings_action.dart';
 import 'trip_tracking_gps_opt_in_flow.dart';
 
 part 'trip_tracking_settings_map_controls.dart';
-part 'trip_tracking_settings_account_panel.dart';
+part 'trip_tracking_settings_calibration_panel.dart';
+part 'trip_tracking_settings_labels.dart';
 
 /// Shared preference surface opened from both Dashboard Settings and Menu.
 class TripTrackingSettingsScreen extends StatelessWidget {
   const TripTrackingSettingsScreen({
     super.key,
     this.bluetoothVehicleRecognitionAvailable = false,
+    this.automaticStartAccess = TripAutomaticStartAccessLevel.free,
   });
 
   final bool bluetoothVehicleRecognitionAvailable;
+  final TripAutomaticStartAccessLevel automaticStartAccess;
 
   @override
   Widget build(BuildContext context) {
     final controller = TripTrackingSettingsScope.of(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
     final settings = controller.settings;
-    final userProfiles = UserProfileScope.maybeOf(context);
     return AppScreenShell(
       section: AppSection.dashboard,
       body: ListView(
@@ -36,30 +35,15 @@ class TripTrackingSettingsScreen extends StatelessWidget {
         children: [
           const GlobalOdometerHeader(),
           const SizedBox(height: 12),
-          if (Firebase.apps.isNotEmpty) ...[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: _FirebaseBackupAccountPanel(),
-            ),
-            const SizedBox(height: 8),
-          ],
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: _TripTrackingSettingsPanel(
               settings: settings,
               onChanged: controller.update,
               tripTracking: tripTracking,
-              cloudBackupEnabled:
-                  userProfiles?.activeProfile.cloudBackupEnabled ?? false,
-              onCloudBackupChanged: userProfiles == null
-                  ? null
-                  : (enabled) => userProfiles.saveActiveProfile(
-                      userProfiles.activeProfile.copyWith(
-                        cloudBackupEnabled: enabled,
-                      ),
-                    ),
               bluetoothVehicleRecognitionAvailable:
                   bluetoothVehicleRecognitionAvailable,
+              automaticStartAccess: automaticStartAccess,
             ),
           ),
         ],
@@ -73,17 +57,15 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
     required this.settings,
     required this.onChanged,
     required this.tripTracking,
-    required this.cloudBackupEnabled,
-    required this.onCloudBackupChanged,
     required this.bluetoothVehicleRecognitionAvailable,
+    required this.automaticStartAccess,
   });
 
   final TripTrackingSettings settings;
   final ValueChanged<TripTrackingSettings> onChanged;
   final TripTrackingController? tripTracking;
-  final bool cloudBackupEnabled;
   final bool bluetoothVehicleRecognitionAvailable;
-  final ValueChanged<bool>? onCloudBackupChanged;
+  final TripAutomaticStartAccessLevel automaticStartAccess;
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +89,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Location stays on this device for workday recovery and review. It only starts when you press Start during an active workday.',
+            'Your confirmed vehicle odometer is always official. Phone location can assist after Start Day, and you can stop it at any time.',
             style: TextStyle(
               color: Color(0xFFCAD2D5),
               fontSize: 13,
@@ -116,30 +98,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _switch(
-            title: 'Back up reviewed mileage',
-            detail:
-                'Off by default. Turning it off cancels unsent backup. Only reviewed mileage summaries are backed up; GPS coordinates, routes, raw samples, and live location never leave this device.',
-            value: cloudBackupEnabled,
-            onChanged: onCloudBackupChanged ?? (_) {},
-          ),
-          _switch(
-            title: 'Share reviewed mileage summaries with organization',
-            detail:
-                'Off by default. Turn this on only when you agree to share reviewed mileage totals with your organization. GPS coordinates, routes, and live location are never shared.',
-            value: settings.organizationMileageSharingEnabled,
-            onChanged: (value) => onChanged(
-              settings.copyWith(organizationMileageSharingEnabled: value),
-            ),
-          ),
-          _choice<TripTrackingBackupNetworkPolicy>(
-            title: 'Mileage backup network',
-            value: settings.backupNetworkPolicy,
-            items: TripTrackingBackupNetworkPolicy.values,
-            label: _backupNetworkPolicyLabel,
-            onChanged: (value) =>
-                onChanged(settings.copyWith(backupNetworkPolicy: value)),
-          ),
+          const _SettingsSectionTitle('Core tracking'),
           _switch(
             title: 'Enable GPS-assisted tracking',
             detail:
@@ -152,6 +111,33 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
               enabled: value,
             ),
           ),
+          _choice<TripTrackingSamplingPreset>(
+            title: 'Accuracy and battery use',
+            value: settings.samplingPreset,
+            items: TripTrackingSamplingPreset.values,
+            label: _samplingPresetLabel,
+            onChanged: (value) =>
+                onChanged(settings.copyWith(samplingPreset: value)),
+          ),
+          if (settings.samplingPreset == TripTrackingSamplingPreset.custom)
+            _customInterval(settings),
+          _switch(
+            title: 'Continue during an active background trip',
+            detail: settings.gpsAssistedTrackingEnabled
+                ? 'Keeps assisting after you leave the screen. Android may ask for additional location access when the trip starts.'
+                : 'Enable GPS-assisted tracking before allowing a trip to continue in the background.',
+            value: settings.backgroundTrackingEnabled,
+            onChanged: settings.gpsAssistedTrackingEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(backgroundTrackingEnabled: value),
+                  )
+                : null,
+          ),
+          if (settings.backgroundTrackingEnabled && tripTracking != null)
+            TripBackgroundLocationSettingsAction(
+              onOpenSettings: tripTracking!.openBackgroundLocationSettings,
+            ),
+          const _SettingsSectionTitle('Maps and route history'),
           _switch(
             title: 'Show optional maps',
             detail: settings.gpsAssistedTrackingEnabled
@@ -190,22 +176,9 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 : null,
           ),
           if (settings.mapPreviewEnabled) _mapRouteHistoryControls(settings),
-          _switch(
-            title: 'Continue during an active background trip',
-            detail: settings.gpsAssistedTrackingEnabled
-                ? 'Off by default. Without it, GPS stops when the app is backgrounded. Requests the extra location permission only when you start a trip with this enabled.'
-                : 'Enable GPS-assisted tracking before allowing a trip to continue in the background.',
-            value: settings.backgroundTrackingEnabled,
-            onChanged: settings.gpsAssistedTrackingEnabled
-                ? (value) => onChanged(
-                    settings.copyWith(backgroundTrackingEnabled: value),
-                  )
-                : null,
-          ),
-          if (settings.backgroundTrackingEnabled && tripTracking != null)
-            TripBackgroundLocationSettingsAction(
-              onOpenSettings: tripTracking!.openBackgroundLocationSettings,
-            ),
+          if (settings.mapRouteHistorySavingEnabled)
+            _routeStorageNotice(tripTracking?.routeStorageStatus),
+          const _SettingsSectionTitle('Battery protection'),
           _switch(
             title: 'Protect GPS at or below 15% battery',
             detail:
@@ -233,16 +206,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
               settings.copyWith(lowBatteryGpsWarningDismissed: value),
             ),
           ),
-          _choice<TripTrackingSamplingPreset>(
-            title: 'GPS update preset',
-            value: settings.samplingPreset,
-            items: TripTrackingSamplingPreset.values,
-            label: _samplingPresetLabel,
-            onChanged: (value) =>
-                onChanged(settings.copyWith(samplingPreset: value)),
-          ),
-          if (settings.samplingPreset == TripTrackingSamplingPreset.custom)
-            _customInterval(settings),
+          const _SettingsSectionTitle('Tracking behavior and stops'),
           _switch(
             title: 'Adaptive GPS sampling',
             detail:
@@ -285,6 +249,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
               settings.copyWith(walkingTransitionReviewEnabled: value),
             ),
           ),
+          const _SettingsSectionTitle('Odometer review and calibration'),
           _switch(
             title: 'Odometer anomaly alerts',
             detail: settings.gpsAssistedTrackingEnabled
@@ -316,29 +281,87 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             const SizedBox(height: 8),
             _CalibrationAcceptancePanel(tripTracking: tripTracking!),
           ],
-          if (bluetoothVehicleRecognitionAvailable) ...[
-            _switch(
-              title: 'Recognize a linked vehicle by Bluetooth',
-              detail:
-                  'Uses only Bluetooth devices you explicitly link to a vehicle on this device.',
-              value: settings.bluetoothVehicleRecognitionEnabled,
-              onChanged: (value) => onChanged(
-                settings.copyWith(bluetoothVehicleRecognitionEnabled: value),
-              ),
-            ),
-            _switch(
-              title: 'Automatically switch the active vehicle',
-              detail:
-                  'Never switches while a GPS trip is active. Otherwise, a linked device can select its vehicle.',
-              value: settings.automaticVehicleSwitchEnabled,
-              onChanged: settings.bluetoothVehicleRecognitionEnabled
-                  ? (value) => onChanged(
-                      settings.copyWith(automaticVehicleSwitchEnabled: value),
-                    )
-                  : (_) {},
-            ),
-          ],
+          const _SettingsSectionTitle('Vehicle recognition'),
+          _bluetoothStatus(),
+          _switch(
+            title: 'Recognize a linked vehicle by Bluetooth',
+            detail:
+                'Uses only a Bluetooth device you explicitly link to a vehicle on this phone. Bluetooth identifies the vehicle; GPS estimates distance.',
+            value: settings.bluetoothVehicleRecognitionEnabled,
+            onChanged: _bluetoothControlsEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(
+                      bluetoothVehicleRecognitionEnabled: value,
+                      automaticVehicleSwitchEnabled: value
+                          ? settings.automaticVehicleSwitchEnabled
+                          : false,
+                      automaticStartAssistanceEnabled: value
+                          ? settings.automaticStartAssistanceEnabled
+                          : false,
+                    ),
+                  )
+                : null,
+          ),
+          _switch(
+            title: 'Automatically switch the active vehicle',
+            detail:
+                'Never switches while a GPS trip is active. Otherwise, a linked device can select its vehicle.',
+            value: settings.automaticVehicleSwitchEnabled,
+            onChanged:
+                _bluetoothControlsEnabled &&
+                    settings.bluetoothVehicleRecognitionEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(automaticVehicleSwitchEnabled: value),
+                  )
+                : null,
+          ),
+          _switch(
+            title: 'Automatically start GPS for the linked vehicle',
+            detail: !settings.gpsAssistedTrackingEnabled
+                ? 'Enable GPS-assisted tracking first. Manual mileage remains available.'
+                : 'Paid feature. Starts advisory GPS distance when the approved vehicle connects. Confirmed odometer mileage is never changed without your review.',
+            value: settings.automaticStartAssistanceEnabled,
+            onChanged:
+                _bluetoothControlsEnabled &&
+                    settings.gpsAssistedTrackingEnabled &&
+                    settings.bluetoothVehicleRecognitionEnabled
+                ? (value) => onChanged(
+                    settings.copyWith(automaticStartAssistanceEnabled: value),
+                  )
+                : null,
+          ),
         ],
+      ),
+    );
+  }
+
+  bool get _bluetoothControlsEnabled =>
+      automaticStartAccess == TripAutomaticStartAccessLevel.paid &&
+      bluetoothVehicleRecognitionAvailable;
+
+  Widget _bluetoothStatus() {
+    final (title, detail) =
+        automaticStartAccess != TripAutomaticStartAccessLevel.paid
+        ? (
+            'Paid feature',
+            'Bluetooth-triggered automatic tracking requires an active paid plan. GPS and manual odometer entry remain available without it.',
+          )
+        : !bluetoothVehicleRecognitionAvailable
+        ? (
+            'Bluetooth setup required',
+            'Bluetooth connection access is unavailable or not granted. Nothing is linked or tracked silently.',
+          )
+        : (
+            'Ready for an approved vehicle link',
+            'Only a vehicle link you approve on this phone can trigger automatic GPS tracking.',
+          );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        key: const Key('bluetoothTrackingStatus'),
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        decoration: _rowDecoration,
+        child: _SettingText(title: title, detail: detail),
       ),
     );
   }
@@ -473,6 +496,26 @@ const _titleStyle = TextStyle(
   fontWeight: FontWeight.w900,
 );
 
+class _SettingsSectionTitle extends StatelessWidget {
+  const _SettingsSectionTitle(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(2, 8, 2, 7),
+    child: Text(
+      label.toUpperCase(),
+      style: const TextStyle(
+        color: Color(0xFF8EC8F0),
+        fontSize: 12,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 0.7,
+      ),
+    ),
+  );
+}
+
 class _SettingText extends StatelessWidget {
   const _SettingText({required this.title, required this.detail});
   final String title;
@@ -496,133 +539,3 @@ class _SettingText extends StatelessWidget {
     ],
   );
 }
-
-/// The switch is only a standing opt-in. A materially different GPS/odometer
-/// pattern still requires this separate, current-evidence acceptance before it
-/// can influence future GPS estimates.
-class _CalibrationAcceptancePanel extends StatelessWidget {
-  const _CalibrationAcceptancePanel({required this.tripTracking});
-
-  final TripTrackingController tripTracking;
-
-  @override
-  Widget build(BuildContext context) {
-    final guard = tripTracking.gpsAssistanceCalibrationApplyGuard;
-    final reviewRequired = guard.reasonCodes.contains(
-      'user_must_accept_calibration_review',
-    );
-    final waitingForHistory = guard.reasonCodes.contains(
-      'more_reviewed_odometer_days_required',
-    );
-    final detail = reviewRequired
-        ? 'Current reviewed mileage shows a consistent difference. Accepting applies the advisory adjustment only to future GPS estimates for this vehicle. It never changes confirmed odometer history.'
-        : waitingForHistory
-        ? 'More consistent, reviewed driving days are needed before a calibration review can be offered.'
-        : tripTracking.calibrationReviewAcceptedForCurrentEvidence
-        ? 'Current reviewed evidence has been accepted. Only future GPS estimates use the advisory adjustment.'
-        : 'Current evidence is not eligible for an advisory GPS calibration.';
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: _rowDecoration,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const _SettingText(
-            title: 'Calibration review',
-            detail:
-                'Confirmed odometer readings remain authoritative. GPS can never rewrite them.',
-          ),
-          const SizedBox(height: 6),
-          Text(
-            detail,
-            style: const TextStyle(
-              color: Color(0xFFCAD2D5),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              height: 1.18,
-            ),
-          ),
-          if (reviewRequired) ...[
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: () => _acceptCurrentReview(context),
-              child: const Text('Accept current calibration review'),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Future<void> _acceptCurrentReview(BuildContext context) async {
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Accept advisory GPS calibration?'),
-        content: const Text(
-          'This affects only future GPS-assisted estimates for the current vehicle. It never edits confirmed odometer readings, completed TripLog history, or Recap.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Accept'),
-          ),
-        ],
-      ),
-    );
-    if (accepted != true || !context.mounted) return;
-    final applied = tripTracking.acceptGpsAssistanceCalibrationReview();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          applied
-              ? 'Advisory GPS calibration will apply to future estimates only.'
-              : 'Calibration evidence changed or is not eligible. No adjustment was applied.',
-        ),
-      ),
-    );
-  }
-}
-
-String _samplingPresetLabel(TripTrackingSamplingPreset preset) =>
-    switch (preset) {
-      TripTrackingSamplingPreset.highAccuracy => 'High accuracy (2 sec)',
-      TripTrackingSamplingPreset.enhancedAccuracy => 'Enhanced (8 sec)',
-      TripTrackingSamplingPreset.balanced => 'Balanced (15 sec)',
-      TripTrackingSamplingPreset.batterySaver => 'Battery saver (30 sec)',
-      TripTrackingSamplingPreset.extremeOptimized =>
-        'Extreme optimized (60 sec)',
-      TripTrackingSamplingPreset.custom => 'Custom',
-    };
-
-String _backupNetworkPolicyLabel(TripTrackingBackupNetworkPolicy policy) =>
-    switch (policy) {
-      TripTrackingBackupNetworkPolicy.wifiOnly => 'Wi‑Fi only',
-      TripTrackingBackupNetworkPolicy.wifiAndMobileData => 'Wi‑Fi + mobile',
-      TripTrackingBackupNetworkPolicy.mobileDataOnly => 'Mobile data only',
-    };
-
-String _profileLabel(TripTrackingProfile profile) => switch (profile) {
-  TripTrackingProfile.roadVehicle => 'Road vehicle',
-  TripTrackingProfile.rideshareVehicle => 'Rideshare / passenger driving',
-  TripTrackingProfile.deliveryVehicle => 'Delivery driver',
-  TripTrackingProfile.contractorVehicle => 'Contractor / service vehicle',
-  TripTrackingProfile.lowSpeedEquipment => 'Low-speed equipment',
-};
-
-String _profileTrackingDetail(TripTrackingProfile profile) => switch (profile) {
-  TripTrackingProfile.rideshareVehicle =>
-    'Because you may stay in the vehicle, Maintainiac waits for clearer signs before suggesting a stop.',
-  TripTrackingProfile.deliveryVehicle =>
-    'After you stop driving and begin walking, Maintainiac can suggest a pickup or delivery stop for you to review.',
-  TripTrackingProfile.contractorVehicle =>
-    'After you stop driving and begin walking, Maintainiac can suggest a jobsite or supplier stop for you to review.',
-  TripTrackingProfile.lowSpeedEquipment =>
-    'Walking does not create stop suggestions while using the equipment profile.',
-  TripTrackingProfile.roadVehicle =>
-    'After driving, walking can suggest a possible stop for you to review.',
-};

@@ -624,10 +624,15 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
         nowUtc: _clockNow().toUtc(),
         settings: settings,
       );
+      final previousStatus = _routeStorageStatus;
       _routeStorageStatus = result.reasonCode;
       if (result.saved) _lastRoutePointPersistedAtUtc = sampleAt;
+      if (_routeStorageStatus != previousStatus) notifyListeners();
     } catch (_) {
-      _routeStorageStatus = 'route_storage_failed_gps_continues';
+      if (_routeStorageStatus != 'route_storage_failed_gps_continues') {
+        _routeStorageStatus = 'route_storage_failed_gps_continues';
+        notifyListeners();
+      }
     }
   }
 

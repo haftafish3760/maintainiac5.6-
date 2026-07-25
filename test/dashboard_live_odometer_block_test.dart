@@ -6,7 +6,7 @@ import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 
 void main() {
-  testWidgets('dashboard active vehicle block follows live odometer updates', (
+  testWidgets('dashboard active vehicle block follows paused GPS projection', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -33,7 +33,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Odometer 0001000'), findsOneWidget);
+    expect(find.text('Odometer 1000'), findsOneWidget);
 
     expect(
       odometer.beginLiveTripProjection(
@@ -51,8 +51,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text('Live odometer 0001006'), findsOneWidget);
-    expect(find.text('Odometer 0001000'), findsNothing);
+    expect(find.text('Odometer 1006'), findsOneWidget);
+    expect(find.text('Odometer 1000'), findsNothing);
     expect(odometer.confirmedReading, 1000);
   });
 }
