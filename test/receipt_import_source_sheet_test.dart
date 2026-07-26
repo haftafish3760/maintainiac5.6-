@@ -5,6 +5,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_attachment_panel.dart';
 
 void main() {
+  test(
+    'new expense opens receipt source choices without a second tap',
+    () async {
+      final panel = await File(
+        'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
+      ).readAsString();
+      final expenseAttachment = await File(
+        'lib/screens/expenses/entry/expense_receipt_entry_attachment_panel.dart',
+      ).readAsString();
+
+      expect(panel, contains('this.openImportOptionsOnFirstBuild = false'));
+      expect(
+        panel,
+        contains(
+          'if (widget.openImportOptionsOnFirstBuild && !_hasAttachment)',
+        ),
+      );
+      expect(panel, contains('unawaited(openReceiptImportOptions())'));
+      expect(expenseAttachment, contains('openImportOptionsOnFirstBuild:'));
+      expect(expenseAttachment, contains('widget.receiptId == null'));
+      expect(expenseAttachment, contains('widget.draftId == null'));
+    },
+  );
+
   testWidgets('receipt import sheet exposes common sources and help returns', (
     tester,
   ) async {
@@ -155,7 +179,11 @@ void main() {
     expect(source, isNot(contains('return Scaffold(')));
     expect(source, contains('SafeArea('));
     expect(source, contains('SingleChildScrollView('));
-    expect(source, contains('crossAxisCount: 2'));
+    expect(
+      source,
+      contains('final columns = constraints.maxWidth >= 340 ? 2 : 1'),
+    );
+    expect(source, contains('return Wrap('));
     expect(source, contains("label: 'Capture Photo'"));
     expect(source, contains("label: 'Upload Photos'"));
     expect(source, contains("label: 'Upload PDF/File'"));
@@ -168,7 +196,7 @@ void main() {
     expect(tile, isNot(contains('height: 58')));
   });
 
-  test('capture path asks only receipt assist before camera launch', () async {
+  test('receipt source chooser asks for Receipt Assist once first', () async {
     final source = await File(
       'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
     ).readAsString();
@@ -185,6 +213,14 @@ void main() {
     final openStart = source.indexOf('Future<void> openReceiptImportOptions');
     final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
     final openBlock = source.substring(openStart, openEnd);
+    final introIndex = openBlock.indexOf('_showFirstUseReceiptAssistIntro');
+    final chooserIndex = openBlock.indexOf('showModalBottomSheet');
+    expect(introIndex, greaterThanOrEqualTo(0));
+    expect(chooserIndex, greaterThan(introIndex));
+    expect(
+      openBlock,
+      contains('!settings.hasReceiptAssistChoiceFor(widget.area)'),
+    );
     final captureCaseStart = openBlock.indexOf(
       'case _ReceiptImportAction.camera',
     );
@@ -201,11 +237,13 @@ void main() {
       'Future<_MaintainiacNativeCameraPhotoOutcome>',
     );
     final takeBlock = cameraActions.substring(takeStart, takeEnd);
-    final introIndex = takeBlock.indexOf('_showFirstUseReceiptCameraIntro');
+    final cameraIntroIndex = takeBlock.indexOf(
+      '_showFirstUseReceiptAssistIntro',
+    );
     final nativeIndex = takeBlock.indexOf('_takeMaintainiacNativeCameraPhoto');
 
-    expect(introIndex, greaterThanOrEqualTo(0));
-    expect(nativeIndex, greaterThan(introIndex));
+    expect(cameraIntroIndex, greaterThanOrEqualTo(0));
+    expect(nativeIndex, greaterThan(cameraIntroIndex));
     expect(takeBlock, isNot(contains('openReceiptCaptureSettings')));
     expect(takeBlock, isNot(contains('Saved Receipt Proof Size')));
     expect(takeBlock, isNot(contains('defaultDataSaverLevel')));

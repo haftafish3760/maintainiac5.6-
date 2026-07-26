@@ -212,18 +212,9 @@ void main() {
       settings.receiptReviewStyle,
       ExpenseReceiptReviewStyle.simpleAmounts,
     );
-    expect(
-      ExpenseReceiptReviewStyle.basicReceipt.label,
-      'Basic receipt review',
-    );
-    expect(
-      ExpenseReceiptReviewStyle.simpleAmounts.label,
-      'Simple receipt review',
-    );
-    expect(
-      ExpenseReceiptReviewStyle.fullItemDetails.label,
-      'Detailed receipt review',
-    );
+    expect(ExpenseReceiptReviewStyle.basicReceipt.label, 'Quick total');
+    expect(ExpenseReceiptReviewStyle.simpleAmounts.label, 'Category summary');
+    expect(ExpenseReceiptReviewStyle.fullItemDetails.label, 'Detailed receipt');
 
     await settings.setReceiptReviewStyle(
       ExpenseReceiptReviewStyle.fullItemDetails,

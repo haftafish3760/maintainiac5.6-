@@ -57,8 +57,6 @@ class _ReceiptPaperRecap extends StatelessWidget {
           Text(
             storeName.trim().isEmpty ? 'STORE NOT FILLED YET' : storeName,
             textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFF25211A),
               fontSize: 12,
@@ -71,8 +69,6 @@ class _ReceiptPaperRecap extends StatelessWidget {
             Text(
               storeAddress,
               textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF62584C),
                 fontSize: 10.5,

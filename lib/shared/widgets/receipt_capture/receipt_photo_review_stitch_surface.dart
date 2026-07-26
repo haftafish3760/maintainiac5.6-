@@ -5,45 +5,20 @@ extension _ReceiptPhotoReviewStitchSurface on _ReceiptPhotoReviewScreenState {
     final preview = _stitchPreviewResult;
     final stitchedPath = preview?.stitchedPath;
     if (preview?.didStitch == true && stitchedPath != null) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          _buildPhotoSurface(stitchedPath),
-          Positioned(
-            left: 12,
-            right: 12,
-            top: 88,
-            child: _StitchPreviewStatusBanner(
-              stitch: preview!,
-              rebuilding: _stitchPreviewInFlight,
-            ),
-          ),
-        ],
-      );
+      return _buildPhotoSurface(stitchedPath);
     }
     if (preview?.usedFallback == true) {
       final pairIndex = _selectedStitchPairIndex.clamp(
         0,
         _photoPaths.length - 2,
       );
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          _ReceiptStitchPairPreview(
-            firstPath: _photoPaths[pairIndex],
-            secondPath: _photoPaths[pairIndex + 1],
-            pairIndex: pairIndex,
-            totalPairs: _photoPaths.length - 1,
-            overlapFraction: _stitchPairOverlapFraction(pairIndex),
-            bottomInset: _stitchSurfaceBottomInset(context),
-          ),
-          Positioned(
-            left: 12,
-            right: 12,
-            top: 88,
-            child: _StitchFallbackBanner(stitch: preview!),
-          ),
-        ],
+      return _ReceiptStitchPairPreview(
+        firstPath: _photoPaths[pairIndex],
+        secondPath: _photoPaths[pairIndex + 1],
+        pairIndex: pairIndex,
+        totalPairs: _photoPaths.length - 1,
+        overlapFraction: _stitchPairOverlapFraction(pairIndex),
+        bottomInset: _stitchSurfaceBottomInset(context),
       );
     }
     final pairIndex = _selectedStitchPairIndex.clamp(0, _photoPaths.length - 2);

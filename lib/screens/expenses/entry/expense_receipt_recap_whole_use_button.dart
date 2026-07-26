@@ -23,11 +23,9 @@ class _ReceiptWholeUseButton extends StatelessWidget {
       label: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(label, textAlign: TextAlign.center, softWrap: true),
           Text(
             helper,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700),
           ),
         ],

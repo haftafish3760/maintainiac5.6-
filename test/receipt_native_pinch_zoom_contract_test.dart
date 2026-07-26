@@ -13,6 +13,22 @@ void main() {
 
     expect(android, contains('ScaleGestureDetector('));
     expect(android, contains('MotionEvent.ACTION_DOWN'));
+    expect(
+      android,
+      contains(
+        'MotionEvent.ACTION_DOWN -> {\n'
+        '                // Own the stream from DOWN',
+      ),
+    );
+    expect(
+      android,
+      isNot(
+        contains(
+          'MotionEvent.ACTION_DOWN -> {\n'
+          '                return@OnTouchListener false',
+        ),
+      ),
+    );
     expect(android, contains('setZoomRatio(nextZoom)'));
     expect(android, isNot(contains('FocusMeteringAction')));
 

@@ -120,7 +120,7 @@ void main() {
     expect(
       sectionLabels,
       contains(
-        "return total <= 1 ? 'Add Another Photo' : 'Add Next Receipt Photo';",
+        "return index >= total - 1 ? 'Add Next Receipt Photo' : 'Add Missing Photo';",
       ),
     );
     expect(

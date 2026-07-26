@@ -30,8 +30,6 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
                 children: [
                   Text(
                     profile.summaryLabel,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 12,
@@ -43,8 +41,6 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
                   const SizedBox(height: 3),
                   Text(
                     profile.notesLabel,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFC8D0D3),
                       fontSize: 11,
@@ -56,8 +52,6 @@ class _ReceiptCameraRuntimeSummary extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Detected safely: $privacySafeCapabilityLabel',
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFF95A3A8),
                       fontSize: 10.5,
@@ -203,8 +197,9 @@ class _ReceiptAssistSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return _ReceiptSettingsSection(
       icon: Icons.auto_awesome_rounded,
-      title: 'Automatic Receipt Filling',
-      subtitle: 'Optional. Manual entry always stays available.',
+      title: 'Receipt Assist',
+      subtitle:
+          'Choose whether Maintainiac should read receipts and fill editable details for you.',
       children: [
         _ReceiptSettingsSwitch(
           title: title,

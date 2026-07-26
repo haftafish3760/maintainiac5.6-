@@ -39,8 +39,6 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
                   Expanded(
                     child: Text(
                       uiConfig.firstUseTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Color(0xFFE8ECEE),
                         fontSize: 18,

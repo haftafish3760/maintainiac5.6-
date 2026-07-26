@@ -54,7 +54,6 @@ part 'expense_receipt_save_readiness_dialog.dart';
 part 'expense_receipt_duplicate_dialog.dart';
 part 'expense_receipt_header.dart';
 part 'expense_receipt_inventory_prompt.dart';
-part 'expense_receipt_detail_mode_panel.dart';
 part 'expense_receipt_parse_review.dart';
 part 'expense_receipt_parse_review_metrics.dart';
 part 'expense_receipt_parse_review_intro_panel.dart';
@@ -126,17 +125,6 @@ enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 enum _ReceiptDetailEntryMode { basicReceipt, quickClassify, detailedItems }
 
 extension _ReceiptDetailEntryModeX on _ReceiptDetailEntryMode {
-  ExpenseReceiptReviewStyle get settingsStyle {
-    return switch (this) {
-      _ReceiptDetailEntryMode.basicReceipt =>
-        ExpenseReceiptReviewStyle.basicReceipt,
-      _ReceiptDetailEntryMode.quickClassify =>
-        ExpenseReceiptReviewStyle.simpleAmounts,
-      _ReceiptDetailEntryMode.detailedItems =>
-        ExpenseReceiptReviewStyle.fullItemDetails,
-    };
-  }
-
   static _ReceiptDetailEntryMode fromSettingsStyle(
     ExpenseReceiptReviewStyle style,
   ) {
@@ -243,7 +231,6 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   Map<String, int> _receiptInstallOptionalPacksRequireConsentCounts = const {};
   var _trackMaterialsInInventory = false;
   int? _expenseOdometerReading;
-  var _odometerPromptEvaluated = false;
   var _detailEntryMode = _ReceiptDetailEntryMode.quickClassify;
   var _receiptReviewModeChangedByUser = false;
   var _appliedReceiptReviewStyleDefault = false;

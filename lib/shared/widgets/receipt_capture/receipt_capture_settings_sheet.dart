@@ -42,8 +42,6 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
                   Expanded(
                     child: Text(
                       _settingsTitle(area),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFE8ECEE),
                         fontSize: 20,
@@ -308,12 +306,11 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
 
   static String _assistedReceiptTitle(ReceiptCaptureArea area) {
     return switch (area) {
-      ReceiptCaptureArea.expenses =>
-        'Let Maintainiac Help Fill Expense Receipts',
+      ReceiptCaptureArea.expenses => 'Use Receipt Assist For Expenses',
       ReceiptCaptureArea.materialsInventory =>
-        'Let Maintainiac Help Fill Material Receipts',
+        'Use Receipt Assist For Materials',
       ReceiptCaptureArea.maintenanceRepair =>
-        'Let Maintainiac Help Fill Maintenance Receipts',
+        'Use Receipt Assist For Maintenance',
     };
   }
 }

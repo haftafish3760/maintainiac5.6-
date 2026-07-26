@@ -120,7 +120,8 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
       status: ReceiptPhotoCoverageStatus.likelyComplete,
       reasonCode: 'readable_framed_photo',
       title: 'Receipt Looks Complete',
-      guidance: 'Use this photo if the receipt does not continue below this photo.',
+      guidance:
+          'Use this photo if the receipt does not continue below this photo.',
     );
   }
   if (framingSignal == ReceiptNativeCoverageSignalValues.receiptNotFound) {

@@ -46,8 +46,6 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                   children: [
                     Text(
                       line.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFF25211A),
                         fontSize: 12.5,
@@ -59,8 +57,6 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       '${line.allocationSummary} | ${line.category} | ${line.packageSummary}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFF62584C),
                         fontSize: 10.5,
@@ -82,8 +78,6 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       line.allocationDetail,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFF62584C),
                         fontSize: 10.5,
@@ -145,8 +139,6 @@ class _ReceiptParserBadge extends StatelessWidget {
       ),
       child: Text(
         line.parserReviewSummary,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: color,
           fontSize: 9.5,

@@ -23,14 +23,14 @@ void main() {
     expect(androidCameraUnit, contains('CAPTURE_MODE_MINIMIZE_LATENCY'));
     expect(androidCameraUnit, contains('"receipt_latency_light_device"'));
     expect(androidCameraUnit, contains('"receipt_fast_document_shutter"'));
-    expect(androidCameraUnit, contains('PreviewView.ScaleType.FIT_CENTER'));
+    expect(androidCameraUnit, contains('PreviewView.ScaleType.FILL_CENTER'));
     expect(
       androidCameraUnit,
-      isNot(contains('PreviewView.ScaleType.FILL_CENTER')),
+      isNot(contains('PreviewView.ScaleType.FIT_CENTER')),
     );
     expect(
       androidCameraUnit,
-      contains('nativePreviewScaleMode = "fit_center_capture_parity"'),
+      contains('nativePreviewScaleMode = "fill_center_full_screen_preview"'),
     );
     expect(androidCameraUnit, contains('AspectRatio.RATIO_4_3'));
     expect(

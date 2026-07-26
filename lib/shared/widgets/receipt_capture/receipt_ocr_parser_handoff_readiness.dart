@@ -30,7 +30,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
         'Receipt store header needs review, but date, items, and total are usable.',
       'missing_vendor_needs_review' =>
         'Receipt store header needs review before trusting app-filled fields.',
-      'no_text' => 'No OCR text ready for store-header review.',
+      'no_text' => 'No receipt text is ready for store-header review.',
       _ => 'Receipt store-header status needs review.',
     };
   }
@@ -73,7 +73,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
       'vendor_missing_recoverable_address_contact_suppressed' =>
         'Store name needs review; address or phone rows were kept as metadata.',
       'vendor_missing_recoverable_weak_header_candidate' =>
-        'Store name needs review; OCR found weak header text near the top.',
+        'Store name needs review; Receipt Assist found weak header text near the top.',
       'vendor_missing_recoverable_no_header_text' =>
         'Store name needs review; date, line items, and total can still continue.',
       'vendor_missing_unrecoverable_line_order' =>
@@ -84,7 +84,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
         'Store name needs review and no safe item prices were found.',
       'vendor_missing_unrecoverable_line_identity' =>
         'Store name needs review and receipt line numbers need review.',
-      'no_text' => 'No OCR text ready for store-name review.',
+      'no_text' => 'No receipt text is ready for store-name review.',
       _ => 'Receipt store name needs review.',
     };
   }
@@ -187,7 +187,7 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
         'Receipt needs item lines before merchant-independent parsing.',
       'needs_total' =>
         'Receipt needs a total before merchant-independent parsing.',
-      'no_text' => 'No OCR text ready for merchant-independent parsing.',
+      'no_text' => 'No receipt text is ready for receipt reconstruction.',
       _ => 'Merchant-independent receipt structure needs review.',
     };
   }
@@ -236,16 +236,16 @@ extension ReceiptOcrParserHandoffReadiness on ReceiptOcrParserHandoff {
 
   String get leanLocalOcrReadinessLabel {
     return switch (leanLocalOcrReadinessStatus) {
-      'no_text' => 'No OCR text ready for local receipt help.',
+      'no_text' => 'No receipt text is ready for Receipt Assist.',
       'proof_fields_need_review' =>
-        'Lean local OCR needs review before using store, date, and total.',
+        'On-device Receipt Assist needs review before using store, date, and total.',
       'proof_totals_need_review' =>
-        'Lean local OCR found receipt totals, but the math needs review.',
+        'On-device Receipt Assist found receipt totals, but the math needs review.',
       'proof_totals_ready_lines_deferred' =>
-        'Lean local OCR can use store, date, and total; detailed lines should be entered or reviewed manually.',
+        'On-device Receipt Assist can use store, date, and total; detailed lines should be entered or reviewed manually.',
       'proof_totals_ready_lines_need_review' =>
-        'Lean local OCR can use receipt proof fields, but line items need review.',
-      _ => 'Lean local OCR can prepare line items for review.',
+        'On-device Receipt Assist can use receipt proof fields, but line items need review.',
+      _ => 'On-device Receipt Assist can prepare line items for review.',
     };
   }
 

@@ -12,7 +12,7 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
       icon: Icons.photo_size_select_large_rounded,
       title: 'Receipt Details And Saved Proof',
       subtitle:
-          'Choose the default backup copy size. OCR still uses the clearest receipt source first.',
+          'Choose the default backup copy size. Receipt Assist still uses the clearest receipt source first.',
       children: [
         _ReceiptSettingsSwitch(
           title: 'Ask Every Receipt',

@@ -25,51 +25,12 @@ class _ReceiptStitchGuideChip extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFFE8ECEE),
                   fontSize: 10.5,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 0,
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReceiptStitchEvidenceChip extends StatelessWidget {
-  const _ReceiptStitchEvidenceChip({required this.label, required this.icon});
-
-  final String label;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xFF243036),
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: const Color(0xFF526168)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 5),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 13, color: const Color(0xFF8FD3FF)),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFFE8ECEE),
-                fontSize: 10.5,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0,
               ),
             ),
           ],
@@ -110,8 +71,6 @@ class _ReceiptMatchRecoveryPill extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFFE8ECEE),
                   fontSize: 10.5,

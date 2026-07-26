@@ -46,8 +46,6 @@ class _ReceiptImportTile extends StatelessWidget {
                     children: [
                       Text(
                         source.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFE8ECEE),
                           fontSize: 12.5,
@@ -58,8 +56,6 @@ class _ReceiptImportTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         source.detail,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFC8D0D3),
                           fontSize: 10.5,

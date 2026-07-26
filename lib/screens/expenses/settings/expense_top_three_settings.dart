@@ -90,8 +90,6 @@ class _SettingsTopThreeCard extends StatelessWidget {
         children: [
           Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: color,
               fontSize: 12,
@@ -121,8 +119,6 @@ class _SettingsTopThreeLine extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFE8ECEE),
               fontSize: 10,

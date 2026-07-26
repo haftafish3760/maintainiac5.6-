@@ -72,8 +72,6 @@ class _CalendarExpenseEntry extends StatelessWidget {
                   width: 54,
                   child: Text(
                     entry.timeLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFC8D0D3),
                       fontSize: 11,
@@ -89,8 +87,6 @@ class _CalendarExpenseEntry extends StatelessWidget {
                     children: [
                       Text(
                         entry.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFE2E8EA),
                           fontSize: 14,
@@ -101,8 +97,6 @@ class _CalendarExpenseEntry extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         '${entry.scope} | ${entry.category} | ${entry.lines.length} lines',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFD4DDE1),
                           fontSize: 12,
@@ -114,8 +108,6 @@ class _CalendarExpenseEntry extends StatelessWidget {
                         const SizedBox(height: 3),
                         Text(
                           entry.ocrSummaryLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             color: entry.ocrStatusLabel == 'Read saved'
                                 ? const Color(0xFF8EF6A4)

@@ -62,7 +62,7 @@ void main() {
     final settingsSheet = await File(
       'lib/shared/widgets/receipt_capture/receipt_capture_runtime_settings.dart',
     ).readAsString();
-    expect(settingsSheet, contains('Automatic Receipt Filling'));
+    expect(settingsSheet, contains("title: 'Receipt Assist'"));
     expect(settingsSheet, contains('settings.setAppAssistedFor(area, value)'));
     expect(settingsSheet, contains('Automatic Photo Capture'));
     expect(photoReviewScreen, contains('this.assistedReceiptFill = false'));
@@ -114,6 +114,9 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_attachment_import_actions.dart',
         ).readAsString() +
         await File(
+          'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+        ).readAsString() +
+        await File(
           'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',
         ).readAsString();
 
@@ -134,7 +137,7 @@ void main() {
         'enum _ReceiptFirstUseCameraAction { useReceiptAssist, manualEntry }',
       ),
     );
-    expect(importActions, contains('_showFirstUseReceiptCameraIntro'));
+    expect(importActions, contains('_showFirstUseReceiptAssistIntro'));
     expect(
       importActions,
       contains('!settings.hasReceiptAssistChoiceFor(widget.area)'),
@@ -167,11 +170,11 @@ void main() {
     );
     expect(
       settingsSheet,
-      contains('OCR still uses the clearest receipt source first'),
+      contains('Receipt Assist still uses the clearest receipt source first'),
     );
 
     final introHelperStart = cameraActions.indexOf(
-      'Future<bool> _showFirstUseReceiptCameraIntro',
+      'Future<bool> _showFirstUseReceiptAssistIntro',
     );
     final introHelperEnd = cameraActions.indexOf(
       'Future<void> _applyFirstUseReceiptAssistChoice',
@@ -226,7 +229,7 @@ void main() {
     );
     expect(
       takePhotoBlock.indexOf(
-        'final ready = await _showFirstUseReceiptCameraIntro(settings);',
+        'final ready = await _showFirstUseReceiptAssistIntro(settings);',
       ),
       lessThan(
         takePhotoBlock.indexOf(

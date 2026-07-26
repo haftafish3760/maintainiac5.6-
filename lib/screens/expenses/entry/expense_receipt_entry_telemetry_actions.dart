@@ -95,9 +95,8 @@ extension _ExpenseReceiptEntryTelemetryActions
     final sectionOrderReviewStatus = handoffContract['sectionOrderReviewStatus']
         ?.toString()
         .trim();
-    final sectionOrderFailedPairStatus = handoffContract['sectionOrderFailedPairStatus']
-        ?.toString()
-        .trim();
+    final sectionOrderFailedPairStatus =
+        handoffContract['sectionOrderFailedPairStatus']?.toString().trim();
     return {
       if (status != null && status.isNotEmpty)
         'ocrSourceQualityReviewStatus': status,

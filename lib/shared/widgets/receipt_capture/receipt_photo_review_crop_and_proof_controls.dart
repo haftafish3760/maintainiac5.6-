@@ -50,8 +50,6 @@ class _ReceiptDataSaverStrip extends StatelessWidget {
                     children: [
                       Text(
                         '${level.label}: ${level.shortLabel}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: active
                               ? const Color(0xFF101416)
@@ -61,8 +59,6 @@ class _ReceiptDataSaverStrip extends StatelessWidget {
                       ),
                       Text(
                         level.reviewChoiceLabel,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: active
                               ? const Color(0xFF263238)
@@ -165,8 +161,6 @@ class _ReceiptOcrProofLaneCard extends StatelessWidget {
           children: [
             const Text(
               'Receipt Details And Saved Proof',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Color(0xFFE8ECEE),
                 fontSize: 12,
@@ -199,8 +193,6 @@ class _ReceiptOcrProofLaneCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               selected.cleanupLabel,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFFC7D0D4),
                 fontSize: 10.5,
@@ -253,8 +245,6 @@ class _ReceiptLaneChip extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: color,
                       fontSize: 10.5,
@@ -264,8 +254,6 @@ class _ReceiptLaneChip extends StatelessWidget {
                   ),
                   Text(
                     detail,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 10.5,

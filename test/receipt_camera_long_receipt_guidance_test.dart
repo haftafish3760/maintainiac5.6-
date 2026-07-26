@@ -64,8 +64,8 @@ void main() {
       sources.stitchControls,
       contains(r'Top of section ${pairIndex + 2}'),
     );
-    expect(sources.stitchControls, contains('Combined Receipt Ready'));
-    expect(sources.stitchControls, contains('Safe Fallback Ready'));
+    expect(sources.stitchControls, contains('Photos aligned'));
+    expect(sources.stitchControls, contains('Photos will stay separate'));
     expect(sources.modeControls, contains('Long Receipt Match'));
     expect(sources.modeControls, contains("label: 'Match Photos'"));
     expect(sources.reviewControls, contains('if (!bestShotCandidateMode &&'));
@@ -74,7 +74,7 @@ void main() {
       contains('reviewMode != _ReceiptReviewMode.stitch'),
     );
     expect(sources.reviewControls, contains('photoPaths.length > 1'));
-    expect(sources.reviewControls, contains("return 'Check Photo Match';"));
+    expect(sources.reviewControls, contains("return 'Review Photos';"));
     expect(sources.reviewControls, contains('waitingForStitch'));
     expect(sources.reviewControls, contains('continueEnabled'));
     expect(sources.reviewControls, contains("return 'Use Receipt';"));
@@ -278,23 +278,21 @@ void main() {
       sources.reviewScreen,
       contains('uniqueNormalizedReceiptPhotoPaths(widget.initialPhotoPaths)'),
     );
-    expect(sources.reviewScreen, contains('Review Photos Top To Bottom'));
     expect(
       sources.reviewScreen,
-      contains('Line up 3-5 repeated readable receipt lines'),
+      isNot(contains('Review Photos Top To Bottom')),
     );
-    expect(sources.reviewScreen, contains('Combined Receipt Preview'));
+    expect(sources.reviewScreen, contains('Align repeated lines'));
+    expect(sources.reviewScreen, isNot(contains('Combined Receipt Preview')));
+    expect(sources.reviewScreen, contains('InteractiveViewer('));
     expect(
       sources.reviewScreen,
       contains('Receipt details will use them from top to bottom'),
     );
-    expect(
-      sources.stitchControls,
-      contains("final fallbackRecoveryLabel = failedPairLabel.isEmpty"),
-    );
-    expect(sources.stitchControls, contains('Fix Photo Order'));
-    expect(sources.stitchControls, contains(r'Fix $failedPairLabel'));
-    expect(sources.stitchControls, contains('Use Top To Bottom'));
+    expect(sources.stitchControls, contains("final duplicatePhoto ="));
+    expect(sources.stitchControls, contains('Reorder Photos'));
+    expect(sources.stitchControls, contains('Remove Duplicate Photo'));
+    expect(sources.stitchControls, isNot(contains('Use Top To Bottom')));
     expect(sources.reviewScreen, contains('ReceiptStitchDeviceLimits'));
     expect(sources.reviewScreen, contains('_deviceCapability.stitchLimits'));
     expect(sources.policySource, contains('ReceiptCapabilityTier.light'));
@@ -318,8 +316,11 @@ void main() {
       contains('minimumSize: const Size(35, 35)'),
     );
     expect(sources.commonControls, contains('minimumSize: const Size(0, 32)'));
-    expect(sources.sectionLabels, contains("'Add Another Photo'"));
-    expect(sources.reviewPreviewControls, contains('addNextSectionLabel'));
+    expect(
+      sources.sectionLabels,
+      contains('Add Another Photo only if the receipt continues.'),
+    );
+    expect(sources.reviewPreviewControls, contains("label: 'Reorder Photos'"));
     expect(sources.sectionLabels, contains("'Add Next Receipt Photo'"));
     expect(sources.orderControls, contains('_ReceiptOrderThumbnail'));
     expect(sources.reviewScreen, contains('BoxFit.contain'));

@@ -76,7 +76,9 @@ class _ReceiptPhotoRecoveryPanel extends StatelessWidget {
                     onPressed: onReviewDetails,
                     icon: const Icon(Icons.fact_check_rounded),
                     label: Text(
-                      manualReviewOnly ? 'Open Manual Review' : 'Back To Review',
+                      manualReviewOnly
+                          ? 'Open Manual Review'
+                          : 'Back To Review',
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFF8EF6A4),

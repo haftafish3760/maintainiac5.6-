@@ -52,7 +52,7 @@ void main() {
     );
     expect(
       storageSettings,
-      contains('OCR still uses the clearest receipt source first'),
+      contains('Receipt Assist still uses the clearest receipt source first'),
     );
     expect(
       storageSettings,
@@ -93,7 +93,7 @@ void main() {
     expect(
       androidSettings,
       contains(
-        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
+        'Changes apply to this camera session. The phone keeps control of its supported autofocus, lens, exposure, and stabilization features.',
       ),
     );
     expect(

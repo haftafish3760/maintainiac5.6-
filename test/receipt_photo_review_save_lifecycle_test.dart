@@ -11,31 +11,17 @@ void main() {
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
-    expect(saveActions, contains('bool _isStagedReceiptReviewPhoto'));
-    expect(saveActions, contains('bool _isPhoneCameraBackupReviewPhoto'));
-    expect(
-      saveActions,
-      contains(
-        "diagnostics?['nativeCaptureAttachmentStorageState'] == 'staged'",
-      ),
-    );
-    expect(
-      saveActions,
-      contains(
-        "diagnostics?['nativeCaptureRecoveryAttachmentState'] ==\n            'staged_not_attached'",
-      ),
-    );
-    expect(
-      saveActions,
-      contains("diagnostics?['phoneCameraBackupUsed'] == true"),
-    );
+    expect(saveActions, contains('ReceiptPhotoReviewResult.keptForLater('));
+    expect(saveActions, contains('if (!beginReceiptReviewClose()) return;'));
     expect(
       saveActions,
       isNot(contains('return !widget.initialPhotoPaths.contains(photoPath)')),
     );
     expect(
-      saveActions,
-      contains('receiptPhotoPathSetContains(_initialPhotoPaths, photoPath)'),
+      reviewScreen,
+      contains(
+        'receiptPhotoPathSetContains(_initialPhotoPaths, normalizedPath)',
+      ),
     );
     expect(
       saveActions,
@@ -43,7 +29,9 @@ void main() {
     );
     expect(
       saveActions,
-      contains("if (_openingCamera) {\n      _showCameraError('Camera is opening. Wait a moment.');"),
+      contains(
+        "if (_openingCamera) {\n      _showCameraError('Camera is opening. Wait a moment.');",
+      ),
     );
     expect(
       saveActions,
@@ -139,17 +127,22 @@ void main() {
         'unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));',
       ),
     );
+    final closeAfterPreparation = saveActions.indexOf(
+      'if (!beginReceiptReviewClose()) return;',
+      forgetStart,
+    );
+    expect(closeAfterPreparation, greaterThan(forgetStart));
     expect(
       saveActions.indexOf(
         '_forgetAcceptedReceiptPrepArtifacts(generatedPrepArtifacts, {',
       ),
-      lessThan(saveActions.indexOf('beginReceiptReviewClose();')),
+      lessThan(closeAfterPreparation),
     );
     expect(
       saveActions.indexOf(
         'unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));',
       ),
-      lessThan(saveActions.indexOf('beginReceiptReviewClose();')),
+      lessThan(closeAfterPreparation),
     );
     expect(
       saveActions,
@@ -313,8 +306,8 @@ void main() {
     );
     expect(commonControls, contains("primary: 'Add'"));
     expect(commonControls, contains('Bottom'));
-    expect(commonControls, contains("primary: 'Check'"));
-    expect(commonControls, contains('Photo Match'));
+    expect(commonControls, contains("primary: 'Review'"));
+    expect(commonControls, contains("secondary: 'Photos'"));
     expect(
       saveActions,
       contains(
@@ -341,11 +334,13 @@ void main() {
         removeConfirmationBlock.indexOf('showModalBottomSheet<bool>'),
       ),
     );
-    expect(saveActions, contains('beginReceiptReviewClose();'));
+    expect(saveActions, contains('if (!beginReceiptReviewClose()) return;'));
     expect(saveActions, contains('bool beginReceiptReviewClose()'));
     expect(
       saveActions,
-      contains('if (!mounted || _reviewDisposed || _closingReview) {'),
+      contains(
+        'if (!mounted || _reviewDisposed || _closingReview) return false;',
+      ),
     );
     expect(saveActions, contains('final navigator = Navigator.of(context);'));
     expect(saveActions, contains('if (!mounted || _closingReview) return;'));

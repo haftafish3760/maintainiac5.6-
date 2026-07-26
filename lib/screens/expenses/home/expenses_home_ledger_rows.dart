@@ -26,8 +26,6 @@ class _LedgerRow extends StatelessWidget {
                     children: [
                       Text(
                         entry.day,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: _gold,
                           fontSize: 13,
@@ -38,8 +36,6 @@ class _LedgerRow extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         entry.date,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFC8D0D3),
                           fontSize: 10,
@@ -57,8 +53,6 @@ class _LedgerRow extends StatelessWidget {
                     children: [
                       Text(
                         entry.store,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFF0F4F2),
                           fontSize: 14,
@@ -69,8 +63,6 @@ class _LedgerRow extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         '${entry.scope} | ${entry.category}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFC8D0D3),
                           fontSize: 12,

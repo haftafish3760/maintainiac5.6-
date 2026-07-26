@@ -26,6 +26,8 @@ class _ReceiptCropActions extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        const _ReceiptCropInstructionStrip(),
+        const SizedBox(height: 4),
         SizedBox(
           height: 52,
           child: Row(
@@ -94,6 +96,27 @@ class _ReceiptCropActions extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ReceiptCropInstructionStrip extends StatelessWidget {
+  const _ReceiptCropInstructionStrip();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      height: 28,
+      child: Center(
+        child: Text(
+          'Drag the yellow edges until the full receipt is inside the frame.',
+          style: TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
     );
   }
 }

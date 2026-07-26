@@ -28,7 +28,9 @@ void main() {
         'androidx.lifecycle.Lifecycle',
         'androidx.lifecycle.LifecycleOwner',
         'androidx.lifecycle.LifecycleRegistry',
-        'java.util.concurrent.Executor',
+              'java.util.concurrent.Executor',
+              'java.util.concurrent.ExecutorService',
+              'java.util.concurrent.Executors',
       },
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt': {
         'android.hardware.camera2.CaptureRequest',
@@ -105,7 +107,6 @@ void main() {
         'android.graphics.Color',
         'android.graphics.Typeface',
         'android.graphics.drawable.GradientDrawable',
-        'android.text.TextUtils',
         'android.view.Gravity',
         'android.view.View',
         'android.view.ViewGroup',

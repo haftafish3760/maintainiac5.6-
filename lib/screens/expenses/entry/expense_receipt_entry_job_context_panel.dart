@@ -33,8 +33,6 @@ extension _ExpenseReceiptEntryJobContext on _ExpenseReceiptEntryScreenState {
                     selectedLabel.isEmpty
                         ? 'Not attached to a job'
                         : selectedLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Color(0xFFB7C8CE)),
                   ),
                 ],

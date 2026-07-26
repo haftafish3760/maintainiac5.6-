@@ -64,10 +64,10 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
+        'Changes apply to this camera session. The phone keeps control of its supported autofocus, lens, exposure, and stabilization features.',
       ),
     );
-    expect(cameraActivity, contains('Camera only'));
+    expect(cameraActivity, contains('Live camera'));
     expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
     expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));
     expect(cameraActivity, contains('CAPTURE FLOW'));
@@ -237,21 +237,23 @@ void main() {
       ),
     );
     expect(cameraActivity, contains('"pinchZoomPolicy" to zoomGesturePolicy'));
-    expect(cameraActivity, contains('Color.argb(168, 5, 6, 7)'));
+    expect(cameraActivity, contains('guidance = TextView(this).apply {'));
+    expect(cameraActivity, contains('visibility = View.GONE'));
+    expect(cameraActivity, contains('FrameLayout.LayoutParams(0, 0)'));
     expect(cameraActivity, contains('Color.argb(118, 5, 6, 7)'));
     expect(cameraActivity, contains('Color.argb(104, 5, 6, 7)'));
-    expect(cameraActivity, contains('Color.argb(92, 255, 209, 102)'));
-    expect(cameraActivity, contains('alpha = 0.36f'));
-    expect(cameraActivity, contains('PreviewView.ScaleType.FIT_CENTER'));
+    expect(cameraActivity, contains('Color.argb(176, 255, 209, 102)'));
+    expect(cameraActivity, contains('alpha = 0.72f'));
+    expect(cameraActivity, contains('PreviewView.ScaleType.FILL_CENTER'));
     expect(
       cameraActivity,
-      isNot(contains('PreviewView.ScaleType.FILL_CENTER')),
+      isNot(contains('PreviewView.ScaleType.FIT_CENTER')),
     );
     expect(cameraActivity, contains('nativePreviewScaleMode'));
     expect(
       cameraActivity,
       contains(
-        'internal val nativePreviewScaleMode = "fit_center_capture_parity"',
+        'internal val nativePreviewScaleMode = "fill_center_full_screen_preview"',
       ),
     );
     expect(cameraActivity, contains('nativeControlDensity'));
@@ -335,7 +337,7 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'Start at the top, add sections in order, and repeat a few readable lines so each section is ready for later receipt reconstruction.',
+        'No mode is required. Capture the first section, then choose Add Photo when the receipt continues.',
       ),
     );
     expect(

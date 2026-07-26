@@ -238,8 +238,7 @@ extension _ExpenseTelemetryHealthSnapshotAccumulatorSnapshot
       topOcrSourceScannerDecision: ocrSourceSummary.topScannerDecision,
       topOcrSourceCaptureSourceSignal: ocrSourceSummary.topCaptureSourceSignal,
       topOcrSourceCoverageSignal: ocrSourceSummary.topCoverageSignal,
-      topOcrSourceContinuationSignal:
-          ocrSourceSummary.topContinuationSignal,
+      topOcrSourceContinuationSignal: ocrSourceSummary.topContinuationSignal,
       topOcrSourceSectionOrderSignal: ocrSourceSummary.topSectionOrderSignal,
       topOcrSourcePhotoQualityRisk: ocrSourceSummary.topPhotoQualityRisk,
       topOcrSourceQualityReviewStatus: ocrSourceSummary.topQualityReviewStatus,

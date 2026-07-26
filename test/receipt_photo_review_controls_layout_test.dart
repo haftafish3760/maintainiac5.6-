@@ -163,7 +163,7 @@ void main() {
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
-    expect(cropControls, isNot(contains('class _ReceiptCropInstructionStrip')));
+    expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
     expect(cropControls, contains('height: 52'));
     expect(topBar, contains('Crop receipt — drag the yellow edges'));
     expect(
@@ -295,7 +295,7 @@ void main() {
     );
     expect(commonControls, contains("'Proof' => 'Preview saved proof size'"));
     expect(previewControls, contains('class _ReceiptMultiPhotoActionRail'));
-    expect(previewControls, contains('onAddPhoto'));
+    expect(previewControls, contains("label: 'Reorder Photos'"));
     expect(previewControls, contains("message: 'Crop receipt photo'"));
     expect(previewControls, isNot(contains('label: strings.savedProof')));
     expect(previewControls, contains("? 'Add Bottom Section'"));
@@ -376,7 +376,9 @@ void main() {
     expect(modeControls, contains('final bool enabled;'));
     expect(
       modeControls,
-      contains('enabled ? () => onSelected(_ReceiptReviewMode.preview) : null'),
+      contains(
+        'onTap: enabled\n                ? () => onSelected(_ReceiptReviewMode.preview)\n                : null',
+      ),
     );
     expect(
       modeControls,
@@ -387,7 +389,7 @@ void main() {
       modeControls,
       contains('onPressed: previewEnabled ? onBackToPreview : null'),
     );
-    expect(sectionLabels, contains('Receipt Sections'));
+    expect(sectionLabels, contains("if (total <= 1) return 'Receipt Photo';"));
     expect(sectionLabels, contains(r'Section ${index + 1} of $total'));
     expect(sectionLabels, contains('Add Next Receipt Photo'));
     expect(
@@ -404,7 +406,7 @@ void main() {
     expect(
       orderControls,
       contains(
-        'onTap: interactionLocked ? null : () => onPhotoSelected(index)',
+        'onTap: interactionLocked\n                        ? null\n                        : () => onPhotoSelected(index)',
       ),
     );
     expect(orderControls, contains('canMoveEarlier && !interactionLocked'));
@@ -424,10 +426,7 @@ void main() {
     expect(controls, isNot(contains('Use This Photo')));
     expect(controls, isNot(contains('Saved copy')));
     expect(controls, isNot(contains('Saved Copy')));
-    expect(
-      controls,
-      contains('onCrop: hasMultiplePhotos || interactionLocked'),
-    );
+    expect(controls, contains('onCrop: interactionLocked'));
     expect(
       controls,
       contains(': () => onModeChanged(_ReceiptReviewMode.crop)'),

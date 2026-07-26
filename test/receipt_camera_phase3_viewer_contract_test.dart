@@ -33,7 +33,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('scaleType = PreviewView.ScaleType.FIT_CENTER'),
+      contains('scaleType = PreviewView.ScaleType.FILL_CENTER'),
     );
     expect(
       cameraActivity,
@@ -61,7 +61,7 @@ void main() {
     expect(
       cameraActivity,
       contains(
-        'layoutParams = LinearLayout.LayoutParams(dp(70), dp(70)).apply {',
+        'layoutParams = LinearLayout.LayoutParams(dp(64), dp(64)).apply {',
       ),
     );
     expect(cameraActivity, contains('shape = GradientDrawable.OVAL'));
@@ -94,8 +94,11 @@ void main() {
       contains('text = receiptCameraText("Add Photo", "Agregar foto")'),
     );
     expect(cameraActivity, contains('visibility = View.GONE'));
-    expect(cameraActivity, contains('maxLines = 2'));
-    expect(cameraActivity, contains('ellipsize = null'));
+    expect(
+      cameraActivity,
+      contains('importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO'),
+    );
+    expect(cameraActivity, contains('layoutParams = FrameLayout.LayoutParams(0, 0)'));
     expect(
       cameraActivity,
       contains('bottomReviewButton = Button(this).apply {'),

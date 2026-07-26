@@ -300,7 +300,7 @@ void main() {
       ).readAsString();
 
       final firstUseStart = actions.indexOf(
-        'Future<bool> _showFirstUseReceiptCameraIntro',
+        'Future<bool> _showFirstUseReceiptAssistIntro',
       );
       final firstUseEnd = actions.indexOf(
         'String _nativeCameraOpenErrorMessage',

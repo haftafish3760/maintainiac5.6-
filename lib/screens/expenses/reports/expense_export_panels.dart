@@ -214,8 +214,6 @@ class _PreviewStat extends StatelessWidget {
         children: [
           Text(
             value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFFFD166),
               fontSize: 16,

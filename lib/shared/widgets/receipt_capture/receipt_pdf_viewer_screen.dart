@@ -46,7 +46,8 @@ class ReceiptPdfViewerScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF11181B),
         foregroundColor: const Color(0xFFE8ECEE),
-        title: Text(fileName, maxLines: 1, overflow: TextOverflow.ellipsis),
+        toolbarHeight: 72,
+        title: Text(fileName, maxLines: 2, softWrap: true),
       ),
       body: Column(
         children: [

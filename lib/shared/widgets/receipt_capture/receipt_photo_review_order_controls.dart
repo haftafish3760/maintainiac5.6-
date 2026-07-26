@@ -61,8 +61,6 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '$sectionLabel, $countLabel. $sectionHint Receipt details open in this order.',
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 11.5,
@@ -87,7 +85,9 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                     index: index,
                     total: photoPaths.length,
                     selected: index == selectedIndex,
-                    onTap: interactionLocked ? null : () => onPhotoSelected(index),
+                    onTap: interactionLocked
+                        ? null
+                        : () => onPhotoSelected(index),
                   );
                 },
               ),

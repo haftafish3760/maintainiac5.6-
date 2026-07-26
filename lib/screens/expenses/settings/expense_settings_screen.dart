@@ -114,10 +114,10 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
           const _OdometerPromptSettingsPanel(),
           const SizedBox(height: 12),
           _SettingsSwitchPanel(
-            title: 'Receipts And OCR',
+            title: 'Receipts And Receipt Assist',
             rows: [
               _SettingsSwitchRowData(
-                label: 'Confirm OCR totals before posting',
+                label: 'Confirm Receipt Assist totals before saving',
                 value: settings.confirmOcrTotals,
                 onChanged: settings.setConfirmOcrTotals,
               ),

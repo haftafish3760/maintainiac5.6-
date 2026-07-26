@@ -25,8 +25,6 @@ class _ReceiptReviewStepMetric extends StatelessWidget {
         children: [
           Text(
             value,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: color,
               fontSize: 16,
@@ -37,8 +35,6 @@ class _ReceiptReviewStepMetric extends StatelessWidget {
           const SizedBox(height: 1),
           Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 10.5,
@@ -70,7 +66,7 @@ class _ReceiptNoLineRecoveryChip extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 17),
-      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      label: Text(label, textAlign: TextAlign.center, softWrap: true),
       style: OutlinedButton.styleFrom(
         foregroundColor: color,
         side: BorderSide(color: color.withValues(alpha: .8)),

@@ -45,7 +45,8 @@ class _ReceiptEntryStartGuide extends StatelessWidget {
           SizedBox(height: 5),
           _ReceiptEntryStartGuideStep(
             number: '3',
-            title: 'Check the filled details, choose Business, Personal, or Mixed, then save',
+            title:
+                'Check the filled details, choose Business, Personal, or Mixed, then save',
           ),
         ],
       ),
@@ -54,7 +55,10 @@ class _ReceiptEntryStartGuide extends StatelessWidget {
 }
 
 class _ReceiptEntryStartGuideStep extends StatelessWidget {
-  const _ReceiptEntryStartGuideStep({required this.number, required this.title});
+  const _ReceiptEntryStartGuideStep({
+    required this.number,
+    required this.title,
+  });
 
   final String number;
   final String title;

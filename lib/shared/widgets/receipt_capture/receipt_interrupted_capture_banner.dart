@@ -59,8 +59,6 @@ class _ReceiptInterruptedCaptureBanner extends StatelessWidget {
               children: [
                 const Text(
                   'Resume Interrupted Receipt Photos',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Color(0xFFE8ECEE),
                     fontSize: 12.5,
@@ -71,8 +69,6 @@ class _ReceiptInterruptedCaptureBanner extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '$freshnessLabel: $countLabel from $engineLabel were saved locally before review finished.$extraLabel',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFC7D0D4),
                     fontSize: 11.5,
@@ -97,8 +93,6 @@ class _ReceiptInterruptedCaptureBanner extends StatelessWidget {
                     Expanded(
                       child: Text(
                         '${record.recoveryResumeStatusLabel}: ${record.recoveryResumeActionDetail}',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFE8ECEE),
                           fontSize: 11,
@@ -113,8 +107,6 @@ class _ReceiptInterruptedCaptureBanner extends StatelessWidget {
                 const SizedBox(height: 5),
                 Text(
                   nextStepCopy,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFFFE2A0),
                     fontSize: 10.8,

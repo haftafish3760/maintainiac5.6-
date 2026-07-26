@@ -109,7 +109,7 @@ void main() {
     expect(helpSheet, isNot(contains('profile.summaryLabel')));
     expect(helpSheet, isNot(contains('deviceModel')));
     expect(helpSheet, isNot(contains('availableRamLabel')));
-    expect(importActions, contains('_showFirstUseReceiptCameraIntro'));
+    expect(importActions, contains('_showFirstUseReceiptAssistIntro'));
     expect(
       importActions,
       contains('!settings.hasReceiptAssistChoiceFor(widget.area)'),
@@ -125,10 +125,7 @@ void main() {
     expect(helpSheet, contains('_ReceiptFirstUseCameraAction.manualEntry'));
     expect(attachmentPublishHelpers, contains('openReceiptCaptureSettings()'));
     expect(settingsSheet, contains('Expense Receipt Settings'));
-    expect(
-      settingsSheet,
-      contains('Let Maintainiac Help Fill Expense Receipts'),
-    );
+    expect(settingsSheet, contains('Use Receipt Assist For Expenses'));
     expect(settingsSheet, contains("title: 'Capture Flow'"));
     expect(settingsSheet, contains('ReceiptCaptureSettingsScope'));
     expect(settingsSheet, contains('settings.privacySafeCapabilityLabel'));
@@ -167,16 +164,25 @@ void main() {
     _expectNoCloudRequiredCopy(settingsSheet);
     _expectNoCloudRequiredCopy(helpSheet);
     _expectNoCloudRequiredCopy(importActions);
-    expect(settingsSheet, contains('Expense Receipt Review Detail'));
-    expect(settingsSheet, contains('Simple Receipt'));
-    expect(settingsSheet, contains('Detailed Receipt'));
+    expect(settingsSheet, contains('Receipt Detail Level'));
+    expect(
+      settingsSheet,
+      contains('ExpenseReceiptReviewStyle.simpleAmounts.label'),
+    );
+    expect(
+      settingsSheet,
+      contains('ExpenseReceiptReviewStyle.fullItemDetails.label'),
+    );
     expect(
       settingsSheet,
       contains(
-        'Choose what Maintainiac shows after it reads an expense receipt.',
+        'Choose the default amount of editable information Receipt Assist prepares.',
       ),
     );
-    expect(settingsSheet, contains('as all Business or all Personal'));
+    expect(
+      settingsSheet,
+      contains('ExpenseReceiptReviewStyle.simpleAmounts.description'),
+    );
     expect(settingsSheet, contains('ExpenseSettingsScope.maybeOf(context)'));
     expect(settingsSheet, contains('ExpenseReceiptReviewStyle.simpleAmounts'));
     expect(
@@ -210,7 +216,10 @@ void main() {
     expect(reviewControls, contains("return 'Use Receipt';"));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
     expect(reviewPreviewControls, contains('_ReceiptMultiPhotoActionRail'));
-    expect(reviewPreviewControls, contains('_ReceiptSectionPositionChip'));
+    expect(
+      reviewPreviewControls,
+      isNot(contains('_ReceiptSectionPositionChip')),
+    );
     expect(commonControls, contains('_ReceiptActionRailButton'));
     expect(
       contextControls,
@@ -227,8 +236,8 @@ void main() {
       reviewPreviewActionTray,
       contains('Save & Continue will use one combined receipt image.'),
     );
-    expect(sectionLabels, contains('Receipt Sections'));
-    expect(reviewPreviewControls, contains('addNextSectionLabel'));
+    expect(sectionLabels, contains(r'Section ${index + 1} of $total'));
+    expect(reviewPreviewControls, contains("label: 'Reorder Photos'"));
     expect(contextControls, contains('Saved proof'));
     expect(
       contextControls,

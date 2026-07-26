@@ -2,19 +2,6 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryLineModeHelpers
     on _ExpenseReceiptEntryScreenState {
-  void _setReceiptReviewMode(_ReceiptDetailEntryMode value) {
-    _setReceiptEntryState(() {
-      _detailEntryMode = value;
-      _receiptReviewModeChangedByUser = true;
-    });
-    _scheduleDraftSave();
-    unawaited(
-      ExpenseSettingsScope.of(
-        context,
-      ).setReceiptReviewStyle(value.settingsStyle),
-    );
-  }
-
   Future<void> _addReceiptLineForMode({
     required _ExpenseLineUse use,
     required String category,

@@ -24,7 +24,9 @@ class _ReceiptReviewStepStrip extends StatelessWidget {
             label: 'Review',
             icon: Icons.visibility_rounded,
             selected: selected == _ReceiptReviewMode.preview,
-            onTap: enabled ? () => onSelected(_ReceiptReviewMode.preview) : null,
+            onTap: enabled
+                ? () => onSelected(_ReceiptReviewMode.preview)
+                : null,
           ),
           const SizedBox(width: 6),
           _StepStripButton(
@@ -162,8 +164,6 @@ class _ReceiptToolModeHeader extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 12.5,
@@ -173,8 +173,6 @@ class _ReceiptToolModeHeader extends StatelessWidget {
                   ),
                   Text(
                     detail,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFC7D0D4),
                       fontSize: 10.5,

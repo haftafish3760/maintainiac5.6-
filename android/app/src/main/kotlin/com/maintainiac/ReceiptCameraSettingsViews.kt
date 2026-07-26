@@ -1,5 +1,6 @@
 package com.maintainiac
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
@@ -8,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 
@@ -37,10 +39,41 @@ internal fun ReceiptCameraActivity.settingSwitch(
             textSize = 12f
         })
     })
-    row.addView(Switch(this).apply {
+    val checkedLabel = receiptCameraText("ON", "SÍ")
+    val uncheckedLabel = receiptCameraText("OFF", "NO")
+    val toggle = Switch(this).apply {
         isChecked = checked
-        setOnCheckedChangeListener { _, isChecked -> onChanged(isChecked) }
-    })
+        textOn = checkedLabel
+        textOff = uncheckedLabel
+        showText = true
+        minimumWidth = dp(76)
+        setPadding(dp(8), 0, 0, 0)
+        setTextColor(Color.WHITE)
+        thumbTintList = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked),
+            ),
+            intArrayOf(Color.rgb(255, 209, 102), Color.rgb(214, 222, 225)),
+        )
+        trackTintList = ColorStateList(
+            arrayOf(
+                intArrayOf(android.R.attr.state_checked),
+                intArrayOf(-android.R.attr.state_checked),
+            ),
+            intArrayOf(Color.rgb(101, 81, 30), Color.rgb(70, 82, 88)),
+        )
+        contentDescription = "$title: ${if (checked) checkedLabel else uncheckedLabel}"
+        setOnCheckedChangeListener { button, isNowChecked ->
+            button.contentDescription =
+                "$title: ${if (isNowChecked) checkedLabel else uncheckedLabel}"
+            onChanged(isNowChecked)
+        }
+    }
+    row.addView(toggle)
+    row.isClickable = true
+    row.isFocusable = true
+    row.setOnClickListener { toggle.isChecked = !toggle.isChecked }
     return row
 }
 
@@ -58,6 +91,67 @@ internal fun ReceiptCameraActivity.settingSummary(title: String, detail: String)
             text = detail
             setTextColor(Color.rgb(200, 208, 211))
             textSize = 12f
+        })
+    }
+}
+
+internal fun ReceiptCameraActivity.settingSlider(
+    title: String,
+    detail: String,
+    enabled: Boolean,
+    maximum: Int,
+    current: Int,
+    onChanged: (Int) -> Unit,
+    onReset: () -> Unit,
+): View {
+    val activity = this
+    return settingCard().apply {
+        orientation = LinearLayout.VERTICAL
+        addView(TextView(activity).apply {
+            text = title
+            setTextColor(Color.rgb(232, 236, 238))
+            textSize = 15f
+            setTypeface(typeface, Typeface.BOLD)
+        })
+        addView(TextView(activity).apply {
+            text = detail
+            setTextColor(Color.rgb(200, 208, 211))
+            textSize = 12f
+        })
+        addView(LinearLayout(activity).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(SeekBar(activity).apply {
+                isEnabled = enabled
+                max = maximum.coerceAtLeast(0)
+                progress = current.coerceIn(0, max)
+                alpha = if (enabled) 1f else 0.45f
+                contentDescription = title
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f,
+                )
+                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(
+                        seekBar: SeekBar?,
+                        progress: Int,
+                        fromUser: Boolean,
+                    ) {
+                        if (fromUser) onChanged(progress)
+                    }
+
+                    override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+                    override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+                })
+            })
+            addView(Button(activity).apply {
+                text = receiptCameraText("Reset", "Restablecer")
+                isAllCaps = false
+                isEnabled = enabled
+                setTextColor(Color.rgb(255, 209, 102))
+                setOnClickListener { onReset() }
+            })
         })
     }
 }

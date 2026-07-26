@@ -85,8 +85,6 @@ extension _ExpenseReceiptEntrySplitPercentActions
                   children: [
                     Text(
                       line.displayDescription,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFE8ECEE),
                         fontWeight: FontWeight.w900,
@@ -191,8 +189,6 @@ extension _ExpenseReceiptEntrySplitPercentActions
                     children: [
                       Text(
                         line.displayDescription,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFE8ECEE),
                           fontWeight: FontWeight.w900,

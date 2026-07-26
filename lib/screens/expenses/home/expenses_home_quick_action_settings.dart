@@ -357,8 +357,6 @@ class _PinnedTileSurface extends StatelessWidget {
                 const Spacer(),
                 Text(
                   category.label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFF0F4F2),
                     fontSize: 12,
@@ -431,8 +429,6 @@ class _AddQuickActionTile extends StatelessWidget {
               const Spacer(),
               Text(
                 category.label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: onAdd == null
                       ? const Color(0xFF9FAAAF)

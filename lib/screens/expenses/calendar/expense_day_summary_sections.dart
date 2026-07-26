@@ -44,8 +44,6 @@ class _CalendarDaySummary extends StatelessWidget {
               Expanded(
                 child: Text(
                   calendarFullDateLabel(day),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFFF0F4F2),
@@ -100,8 +98,6 @@ class _CalendarRecapPeriodSelector extends StatelessWidget {
         children: [
           const Text(
             'VIEW',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Color(0xFF9FAAAF),
               fontSize: 10,
@@ -112,8 +108,6 @@ class _CalendarRecapPeriodSelector extends StatelessWidget {
           const SizedBox(height: 2),
           const Text(
             'Expense records',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: Color(0xFFF0F4F2),
               fontSize: 18,
@@ -125,8 +119,6 @@ class _CalendarRecapPeriodSelector extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             selected.rangeLabel(selectedDay),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 12,
@@ -219,8 +211,6 @@ class _CalendarOcrDayRecapPanel extends StatelessWidget {
               children: [
                 Text(
                   'Receipt read health',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: color,
                     fontSize: 12,
@@ -231,8 +221,6 @@ class _CalendarOcrDayRecapPanel extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   recap.statusLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFF0F4F2),
                     fontSize: 15,
@@ -243,8 +231,6 @@ class _CalendarOcrDayRecapPanel extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   recap.detailLabel,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFC8D0D3),
                     fontSize: 11.5,
@@ -286,8 +272,6 @@ class _CalendarRecapPeriodButton extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             period.label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: selected ? const Color(0xFF101416) : Colors.white,
               fontSize: 11,

@@ -51,8 +51,6 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           eyebrow,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFF9FAAAF),
             fontSize: 10,
@@ -63,8 +61,6 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           title,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFFF0F4F2),
             fontSize: 20,
@@ -76,8 +72,6 @@ class _SectionHeader extends StatelessWidget {
         const SizedBox(height: 3),
         Text(
           detail,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 12,
@@ -104,8 +98,6 @@ class _BigMoney extends StatelessWidget {
       children: [
         Text(
           value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: _gold,
             fontSize: 28,
@@ -117,8 +109,6 @@ class _BigMoney extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           caption,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.right,
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
@@ -156,8 +146,6 @@ class _MoneyStat extends StatelessWidget {
             children: [
               Text(
                 stat.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFFC8D0D3),
                   fontSize: 11,
@@ -168,8 +156,6 @@ class _MoneyStat extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 stat.value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: stat.color,
                   fontSize: 17,
@@ -307,8 +293,6 @@ class _QuickExpenseTile extends StatelessWidget {
               const Spacer(),
               Text(
                 category.label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFFF0F4F2),
                   fontSize: 13,
@@ -355,8 +339,6 @@ class _TileAmountPill extends StatelessWidget {
         ),
         child: Text(
           label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: color,
             fontSize: 11,

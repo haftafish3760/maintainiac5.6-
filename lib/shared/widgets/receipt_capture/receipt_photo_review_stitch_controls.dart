@@ -111,8 +111,6 @@ class _ReceiptManualStitchControls extends StatelessWidget {
             const SizedBox(height: 4),
             const Text(
               'Slide until the bottom of the first section matches the top of the next section.',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: Color(0xFFC7D0D4),
                 fontSize: 11,
@@ -158,7 +156,6 @@ class _ReceiptManualStitchControls extends StatelessWidget {
             _ReceiptStitchReadinessCard(
               stitchPreview: stitchPreview,
               rebuilding: stitchPreviewInFlight,
-              selectedPairIndex: pairIndex,
               onOpenOrder: disabled ? null : onOpenOrder,
             ),
           ],

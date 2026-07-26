@@ -18,8 +18,6 @@ class _CategoryAllocationCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     row.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFF0F4F2),
                       fontSize: 16,
@@ -150,8 +148,6 @@ class _MiniAmount extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             '${_money(value)} | ${(percent * 100).toStringAsFixed(1)}%',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: color,
               fontSize: 14,

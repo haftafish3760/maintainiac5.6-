@@ -160,8 +160,6 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 11.5,
@@ -172,8 +170,6 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
                   if (!compact)
                     Text(
                       detail,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFC7D0D4),
                         fontSize: 10.5,
@@ -222,7 +218,7 @@ class _ReceiptMiniRecoveryButton extends StatelessWidget {
       child: FilledButton.icon(
         onPressed: onPressed,
         icon: Icon(icon, size: 15),
-        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        label: Text(label, textAlign: TextAlign.center, softWrap: true),
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 38),
           padding: const EdgeInsets.symmetric(horizontal: 8),

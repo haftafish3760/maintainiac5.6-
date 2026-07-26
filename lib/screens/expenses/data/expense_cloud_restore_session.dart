@@ -144,8 +144,8 @@ class ExpenseCloudRestoreSessionStore extends ChangeNotifier {
     if (value is! Map) return null;
     try {
       return ExpenseCloudRestoreSession.fromMap(value);
-    // Local restore state is recovery input. A malformed old value must not
-    // crash the restore entry point or prevent another session from resuming.
+      // Local restore state is recovery input. A malformed old value must not
+      // crash the restore entry point or prevent another session from resuming.
     } catch (_) {
       return null;
     }

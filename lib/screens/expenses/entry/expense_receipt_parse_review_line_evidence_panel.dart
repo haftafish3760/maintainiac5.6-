@@ -196,8 +196,6 @@ class _ReceiptLineEvidenceRow extends StatelessWidget {
             line.description.trim().isEmpty
                 ? line.displayDescription
                 : line.description.trim(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFE8ECEE),
               fontSize: 12,
@@ -211,8 +209,6 @@ class _ReceiptLineEvidenceRow extends StatelessWidget {
               sourceLineLabel.isEmpty
                   ? 'Receipt text: $evidence'
                   : '$sourceLineLabel: $evidence',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFFC8D0D3),
                 fontSize: 11,
@@ -261,8 +257,6 @@ class _ReceiptLineEvidenceRow extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               line.parserReviewReason!.trim(),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF96A3A8),
                 fontSize: 10.5,

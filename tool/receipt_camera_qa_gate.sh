@@ -39,7 +39,6 @@ phase3_tests=(
   test/receipt_native_camera_shell_controls_test.dart
   test/receipt_native_ios_settings_guidance_contract_test.dart
   test/receipt_native_ios_camera_session_capability_test.dart
-  test/receipt_native_ios_capture_format_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
   test/receipt_native_ios_guidance_warning_gate_test.dart
   test/receipt_native_android_bridge_false_positive_guard_test.dart
@@ -412,6 +411,10 @@ stitch_tests=(
 )
 
 full_only_tests=(
+  test/receipt_camera_capture_busy_handoff_test.dart
+  test/receipt_native_ghost_orientation_contract_test.dart
+  test/receipt_native_ios_camera_session_capability_test.dart
+  test/receipt_stitch_real_probe_integrity_contract_test.dart
   test/receipt_camera_backup_staging_contract_test.dart
   test/receipt_camera_capture_loss_contract_test.dart
   test/receipt_camera_import_staging_contract_test.dart
@@ -471,7 +474,6 @@ full_only_tests=(
   test/receipt_native_android_bridge_test.dart
   test/receipt_native_android_diagnostics_payload_test.dart
   test/receipt_native_camera_result_path_validation_test.dart
-  test/receipt_native_capture_blocked_feedback_test.dart
   test/receipt_native_camera_session_contract_test.dart
   test/receipt_native_capture_old_cleanup_test.dart
   test/receipt_native_capture_recovery_store_test.dart

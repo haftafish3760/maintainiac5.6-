@@ -127,8 +127,6 @@ class _TotalAmount extends StatelessWidget {
       children: [
         Text(
           value,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFFF0B43C),
             fontSize: 22,

@@ -95,8 +95,6 @@ class _RecapTile extends StatelessWidget {
           children: [
             Text(
               tile.group.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFF9FAAAF),
                 fontSize: 9.5,
@@ -107,8 +105,6 @@ class _RecapTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               tile.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFFF0F4F2),
                 fontSize: 13,
@@ -120,8 +116,6 @@ class _RecapTile extends StatelessWidget {
             const Spacer(),
             Text(
               tile.valueFor(report),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFFFFD166),
                 fontSize: 19,
@@ -132,8 +126,6 @@ class _RecapTile extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               tile.detailFor(report),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 color: Color(0xFFC8D0D3),
                 fontSize: 10.5,
@@ -234,8 +226,6 @@ class _RecapPanelHeader extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFFF0F4F2),
             fontSize: 20,
@@ -247,8 +237,6 @@ class _RecapPanelHeader extends StatelessWidget {
         const SizedBox(height: 3),
         Text(
           detail,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 12,
@@ -281,8 +269,6 @@ class _MiniMetric extends StatelessWidget {
         children: [
           Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 10.5,
@@ -293,8 +279,6 @@ class _MiniMetric extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFFFD166),
               fontSize: 14,

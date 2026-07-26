@@ -97,7 +97,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   continueLabel: continueLabel,
                   onRetake: interactionLocked ? null : onRetake,
                   onAddPhoto: interactionLocked ? null : onAddPhoto,
-                  onCrop: hasMultiplePhotos || interactionLocked
+                  onCrop: interactionLocked
                       ? null
                       : () => onModeChanged(_ReceiptReviewMode.crop),
                   onContinue: onContinue,
@@ -121,9 +121,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                             uiConfig.showSecondaryTools) ...[
                           const SizedBox(height: 5),
                           _ReceiptMultiPhotoActionRail(
-                            selectedIndex: selectedIndex,
-                            total: photoCount,
-                            onAddPhoto: interactionLocked ? null : onAddPhoto,
                             onOrder: interactionLocked
                                 ? null
                                 : () => onModeChanged(_ReceiptReviewMode.order),
@@ -131,9 +128,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                                 ? null
                                 : () =>
                                       onModeChanged(_ReceiptReviewMode.stitch),
-                            onCrop: interactionLocked
-                                ? null
-                                : () => onModeChanged(_ReceiptReviewMode.crop),
                           ),
                           const SizedBox(height: 5),
                           SizedBox(

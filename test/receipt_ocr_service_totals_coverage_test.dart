@@ -149,19 +149,19 @@ TOTAL 7.98
     expect(
       result.structuredParserHandoffWarnings,
       contains(
-        'OCR found receipt text but no priced item lines. Review line items or enter them by hand.',
+        'Receipt Assist found receipt text but no priced item lines. Review line items or enter them by hand.',
       ),
     );
     expect(
       result.structuredParserHandoffWarnings,
       contains(
-        'OCR found receipt text but no subtotal, tax, or total signals. Review the receipt totals before saving.',
+        'Receipt Assist found receipt text but no subtotal, tax, or total signals. Review the receipt totals before saving.',
       ),
     );
     expect(
       result.structuredParserHandoffWarnings,
       contains(
-        'OCR found receipt text but no clear store header. Review the vendor before saving.',
+        'Receipt Assist found receipt text but no clear store header. Review the vendor before saving.',
       ),
     );
     expect(result.parserHandoff.parserMissingFieldCounts, {

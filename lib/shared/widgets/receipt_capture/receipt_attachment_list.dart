@@ -200,8 +200,6 @@ class _ReceiptAttachmentRow extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFE8ECEE),
                         fontSize: 12.5,
@@ -212,8 +210,6 @@ class _ReceiptAttachmentRow extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFC7D0D4),
                         fontSize: 11,

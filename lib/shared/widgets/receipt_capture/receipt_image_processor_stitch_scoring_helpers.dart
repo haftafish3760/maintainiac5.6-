@@ -110,14 +110,13 @@ double _overlapExposureTolerantDifference(
 ) {
   final length = math.min(previousLumas.length, nextLumas.length);
   if (length < 8) return double.infinity;
-  final previousMean = previousLumas.take(length).reduce((a, b) => a + b) /
-      length;
+  final previousMean =
+      previousLumas.take(length).reduce((a, b) => a + b) / length;
   final nextMean = nextLumas.take(length).reduce((a, b) => a + b) / length;
   var normalizedTotal = 0.0;
   for (var index = 0; index < length; index++) {
     normalizedTotal +=
-        ((previousLumas[index] - previousMean) -
-                (nextLumas[index] - nextMean))
+        ((previousLumas[index] - previousMean) - (nextLumas[index] - nextMean))
             .abs();
   }
   final normalizedAverage = normalizedTotal / length;

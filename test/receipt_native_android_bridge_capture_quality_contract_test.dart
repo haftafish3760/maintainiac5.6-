@@ -191,7 +191,7 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'val needsLiveAnalysis = autoCaptureEnabled || experimentalQualityWarningsEnabled',
+          'val needsLiveAnalysis = edgeDetectionEnabled ||',
         ),
       );
       expect(

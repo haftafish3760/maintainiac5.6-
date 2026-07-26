@@ -27,6 +27,23 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         );
         return;
       }
+      final stitchPreview = _stitchPreviewResult;
+      if (stitchPreview != null &&
+          (stitchPreview.fallbackReasonCode == 'duplicate_section_image' ||
+              stitchPreview.fallbackReasonCode == 'duplicate_input_paths')) {
+        final duplicateIndex = ((stitchPreview.failedPairIndex ?? 0) + 1).clamp(
+          0,
+          _photoPaths.length - 1,
+        );
+        _updateReviewState(() {
+          _selectedIndex = duplicateIndex;
+          _reviewMode = _ReceiptReviewMode.order;
+        });
+        _showCameraError(
+          'These photos appear identical. Remove or replace the highlighted duplicate before continuing.',
+        );
+        return;
+      }
     }
     // A regular, unedited receipt has a single source image. Let the receipt
     // form open immediately; its reader owns preparation and shows progress

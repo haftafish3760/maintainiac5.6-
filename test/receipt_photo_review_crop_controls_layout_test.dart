@@ -53,7 +53,13 @@ void main() {
       surfaces,
       contains('suggestedNormalizedCrop: _suggestedCropNormalized'),
     );
-    expect(cropControls, isNot(contains('class _ReceiptCropInstructionStrip')));
+    expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
+    expect(
+      cropControls,
+      contains(
+        'Drag the yellow edges until the full receipt is inside the frame.',
+      ),
+    );
     expect(topBar, contains('Crop receipt — drag the yellow edges'));
     expect(
       cropControls,

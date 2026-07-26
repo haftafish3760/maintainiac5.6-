@@ -52,8 +52,6 @@ class _ReceiptReviewContextRow extends StatelessWidget {
                 Expanded(
                   child: Text(
                     status,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 11.5,
@@ -225,7 +223,7 @@ class _MiniReceiptActionButton extends StatelessWidget {
     return FilledButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 15),
-      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+      label: Text(label, textAlign: TextAlign.center, softWrap: true),
       style: FilledButton.styleFrom(
         minimumSize: const Size(0, 32),
         backgroundColor: emphasized

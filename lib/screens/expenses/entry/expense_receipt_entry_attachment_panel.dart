@@ -6,6 +6,11 @@ extension _ExpenseReceiptEntryAttachmentPanel
     return SharedReceiptAttachmentPanel(
       hasReceipt: _hasReceipt,
       area: _receiptCaptureArea,
+      openImportOptionsOnFirstBuild:
+          widget.receiptId == null &&
+          widget.draftId == null &&
+          widget.initialAttachments.isEmpty &&
+          widget.initialImportedText.trim().isEmpty,
       showInterruptedCaptureRecovery: widget.showInterruptedCaptureRecovery,
       initialAttachments: _receiptAttachments,
       receiptContinuationReasonCode:

@@ -28,9 +28,9 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
         )
-        // Keep the full captured 4:3 frame visible. A cropped live preview
-        // makes the review image look like a different photo.
-        scaleType = PreviewView.ScaleType.FIT_CENTER
+        // The capture keeps the full-resolution source. The live view fills the
+        // display so letterboxing never steals the receipt framing area.
+        scaleType = PreviewView.ScaleType.FILL_CENTER
     }
     cameraRootView.addView(previewView)
     cameraRootView.addView(buildReceiptFrameGuide())
@@ -45,19 +45,19 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
 
 internal fun ReceiptCameraActivity.buildReceiptFrameGuide(): View {
     receiptFrameGuide = View(this).apply {
-        background = frameGuideDrawable(Color.argb(92, 255, 209, 102))
+        background = frameGuideDrawable(Color.argb(176, 255, 209, 102))
         visibility = if (edgeDetectionEnabled && edgeOverlayEnabled) View.VISIBLE else View.GONE
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT,
             Gravity.CENTER,
         ).apply {
-            leftMargin = dp(22)
-            rightMargin = dp(22)
-            topMargin = dp(76)
-            bottomMargin = dp(118)
+            leftMargin = dp(16)
+            rightMargin = dp(16)
+            topMargin = dp(64)
+            bottomMargin = dp(92)
         }
-        alpha = 0.36f
+        alpha = 0.72f
     }
     return receiptFrameGuide
 }
@@ -66,10 +66,10 @@ internal fun ReceiptCameraActivity.buildTopBar(): View {
     topBar = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
-        setPadding(dp(12), dp(8), dp(12), dp(4))
+        setPadding(dp(8), dp(4), dp(8), dp(4))
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(56),
+            dp(52),
             Gravity.TOP,
         )
     }
@@ -106,23 +106,9 @@ internal fun ReceiptCameraActivity.updateReceiptQuickControlsPanel() {
 internal fun ReceiptCameraActivity.buildGuidance(): View {
     guidance = TextView(this).apply {
         text = guidanceText()
-        setTextColor(Color.WHITE)
-        textSize = 14f
-        gravity = Gravity.CENTER
-        setTypeface(typeface, Typeface.BOLD)
-        maxLines = 2
-        ellipsize = null
-        background = pillDrawable(Color.argb(168, 5, 6, 7))
-        setPadding(dp(12), dp(8), dp(12), dp(8))
-        layoutParams = FrameLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
-            Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL,
-        ).apply {
-            bottomMargin = dp(104)
-            leftMargin = dp(16)
-            rightMargin = dp(16)
-        }
+        visibility = View.GONE
+        importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        layoutParams = FrameLayout.LayoutParams(0, 0)
     }
     return guidance
 }
@@ -139,16 +125,16 @@ internal fun ReceiptCameraActivity.buildExposureControls(): View {
             dp(48),
             Gravity.BOTTOM,
         ).apply {
-            bottomMargin = dp(104)
-            leftMargin = dp(18)
-            rightMargin = dp(18)
+            bottomMargin = dp(80)
+            leftMargin = dp(12)
+            rightMargin = dp(12)
         }
     }
     exposurePanel.addView(TextView(this).apply {
         text = receiptCameraText("Brightness", "Brillo")
         setTextColor(Color.WHITE)
         textSize = 12f
-        setTypeface(typeface, android.graphics.Typeface.BOLD)
+        setTypeface(typeface, Typeface.BOLD)
     })
     exposureSlider = SeekBar(this).apply {
         isEnabled = false
@@ -182,7 +168,7 @@ internal fun ReceiptCameraActivity.buildSettingsStatusStrip(): View {
         setTextColor(Color.rgb(228, 235, 238))
         textSize = 11.5f
         gravity = Gravity.CENTER
-        setTypeface(typeface, android.graphics.Typeface.BOLD)
+        setTypeface(typeface, Typeface.BOLD)
         setPadding(dp(10), dp(6), dp(10), dp(6))
         setBackgroundColor(Color.argb(104, 5, 6, 7))
         layoutParams = FrameLayout.LayoutParams(
@@ -227,11 +213,11 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     bottomBar = LinearLayout(this).apply {
         orientation = LinearLayout.HORIZONTAL
         gravity = Gravity.CENTER
-        setPadding(dp(12), dp(6), dp(12), dp(12))
+        setPadding(dp(8), dp(4), dp(8), dp(8))
         setBackgroundColor(Color.TRANSPARENT)
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(84),
+            dp(72),
             Gravity.BOTTOM,
         )
     }
@@ -250,7 +236,7 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         contentDescription = receiptCameraText("Take receipt photo", "Tomar foto del recibo")
         setImageResource(R.drawable.ic_receipt_camera_shutter)
         background = shutterDrawable()
-        layoutParams = LinearLayout.LayoutParams(dp(70), dp(70)).apply {
+        layoutParams = LinearLayout.LayoutParams(dp(64), dp(64)).apply {
             leftMargin = dp(16)
             rightMargin = dp(16)
         }
@@ -278,18 +264,13 @@ internal fun ReceiptCameraActivity.applyEdgeToEdgeReceiptInsets() {
                 WindowInsetsCompat.Type.displayCutout(),
         )
         topBar.updatePadding(
-            left = dp(12) + insets.left,
-            top = dp(8) + insets.top,
-            right = dp(12) + insets.right,
+            left = dp(8) + insets.left,
+            top = dp(4) + insets.top,
+            right = dp(8) + insets.right,
             bottom = dp(4),
         )
         topBar.updateLayoutParams<FrameLayout.LayoutParams> {
-            height = dp(62) + insets.top
-        }
-        guidance.updateLayoutParams<FrameLayout.LayoutParams> {
-            leftMargin = dp(16) + insets.left
-            rightMargin = dp(16) + insets.right
-            bottomMargin = dp(104) + insets.bottom
+            height = dp(52) + insets.top
         }
         settingsStatusStrip.updateLayoutParams<FrameLayout.LayoutParams> {
             leftMargin = dp(18) + insets.left
@@ -302,24 +283,24 @@ internal fun ReceiptCameraActivity.applyEdgeToEdgeReceiptInsets() {
             topMargin = dp(130) + insets.top
         }
         exposurePanel.updateLayoutParams<FrameLayout.LayoutParams> {
-            leftMargin = dp(18) + insets.left
-            rightMargin = dp(18) + insets.right
-            bottomMargin = dp(104) + insets.bottom
+            leftMargin = dp(12) + insets.left
+            rightMargin = dp(12) + insets.right
+            bottomMargin = dp(80) + insets.bottom
         }
         bottomBar.updatePadding(
-            left = dp(12) + insets.left,
+            left = dp(8) + insets.left,
             top = dp(6),
-            right = dp(12) + insets.right,
-            bottom = dp(12) + insets.bottom,
+            right = dp(8) + insets.right,
+            bottom = dp(8) + insets.bottom,
         )
         bottomBar.updateLayoutParams<FrameLayout.LayoutParams> {
-            height = dp(84) + insets.bottom
+            height = dp(72) + insets.bottom
         }
         receiptFrameGuide.updateLayoutParams<FrameLayout.LayoutParams> {
-            leftMargin = dp(22) + insets.left
-            rightMargin = dp(22) + insets.right
-            topMargin = dp(86) + insets.top
-            bottomMargin = dp(118) + insets.bottom
+            leftMargin = dp(16) + insets.left
+            rightMargin = dp(16) + insets.right
+            topMargin = dp(60) + insets.top
+            bottomMargin = dp(88) + insets.bottom
         }
         windowInsets
     }

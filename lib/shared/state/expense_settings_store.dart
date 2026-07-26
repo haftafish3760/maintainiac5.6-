@@ -22,20 +22,20 @@ enum ExpenseReceiptReviewStyle {
 
   String get label {
     return switch (this) {
-      ExpenseReceiptReviewStyle.basicReceipt => 'Basic receipt review',
-      ExpenseReceiptReviewStyle.simpleAmounts => 'Simple receipt review',
-      ExpenseReceiptReviewStyle.fullItemDetails => 'Detailed receipt review',
+      ExpenseReceiptReviewStyle.basicReceipt => 'Quick total',
+      ExpenseReceiptReviewStyle.simpleAmounts => 'Category summary',
+      ExpenseReceiptReviewStyle.fullItemDetails => 'Detailed receipt',
     };
   }
 
   String get description {
     return switch (this) {
       ExpenseReceiptReviewStyle.basicReceipt =>
-        'Price-only review. Keep the receipt proof and review the store, date, sales tax, and final total without item descriptions.',
+        'Record the final receipt total as Business, Personal, or Split. Keep the receipt image as proof without entering categories or item lines.',
       ExpenseReceiptReviewStyle.simpleAmounts =>
-        'Single-total review. Keep the receipt proof and record the final total after sales tax as all Business or all Personal.',
+        'Record the final total, choose an expense category, and mark it Business, Personal, or Split by dollars or percentage.',
       ExpenseReceiptReviewStyle.fullItemDetails =>
-        'Detailed review. Preserve and review each meaningful receipt line exactly as printed, including quantities, prices, discounts, and totals.',
+        'Preserve editable receipt lines as printed, including quantities, prices, discounts, taxes, and totals. Each line can have its own category and Business, Personal, or Split choice.',
     };
   }
 }

@@ -25,7 +25,7 @@ void main() {
     ).readAsString();
     final models = await readReceiptCaptureModelsSource();
     expect(controls, contains('Opening receipt details'));
-    expect(controls, contains('Check Photo Match'));
+    expect(controls, contains('Review Photos'));
     expect(cropAndProofControls, contains('Receipt Details And Saved Proof'));
     expect(cropAndProofControls, contains('Use Clear Photo'));
     expect(cropAndProofControls, contains('Save Small Copy'));

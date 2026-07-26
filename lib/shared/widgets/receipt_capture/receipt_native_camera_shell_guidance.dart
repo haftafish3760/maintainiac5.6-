@@ -41,8 +41,6 @@ class _ReceiptNativeCameraGuidance extends StatelessWidget {
                 Flexible(
                   child: Text(
                     _compactText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -65,8 +63,6 @@ class _ReceiptNativeCameraGuidance extends StatelessWidget {
                       ),
                       child: Text(
                         sectionLabel!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFE4EBEE),
                           fontSize: 10,

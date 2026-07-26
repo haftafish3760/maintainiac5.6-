@@ -191,8 +191,6 @@ class _CalendarRecapRow extends StatelessWidget {
             flex: 2,
             child: Text(
               value,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.right,
               style: TextStyle(
                 color: color,

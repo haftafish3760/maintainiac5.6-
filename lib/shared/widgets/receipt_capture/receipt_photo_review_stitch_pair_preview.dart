@@ -24,7 +24,7 @@ class _ReceiptStitchPairPreview extends StatelessWidget {
       decoration: const BoxDecoration(color: Color(0xFF050607)),
       child: SafeArea(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(10, 58, 10, bottomInset),
+          padding: EdgeInsets.fromLTRB(6, 6, 6, bottomInset),
           child: Column(
             children: [
               Expanded(
@@ -36,16 +36,13 @@ class _ReceiptStitchPairPreview extends StatelessWidget {
               ),
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: (10 + overlapFraction * 32).clamp(12, 28),
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   color: const Color(0xCCFFD166),
                   border: Border.all(color: const Color(0xFFFFE7A8)),
                 ),
                 child: Text(
-                  'Line up 3-5 repeated readable receipt lines: $overlapPercent% match guide, pair ${pairIndex + 1} of $totalPairs',
+                  'Align repeated lines • $overlapPercent% • Photos ${pairIndex + 1}-${pairIndex + 2}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFF11181B),
@@ -85,11 +82,18 @@ class _StitchPreviewPhoto extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        ClipRect(
-          child: Image.file(
-            File(path),
-            fit: BoxFit.contain,
-            alignment: alignment,
+        InteractiveViewer(
+          minScale: 1,
+          maxScale: 6,
+          panEnabled: true,
+          scaleEnabled: true,
+          clipBehavior: Clip.hardEdge,
+          child: SizedBox.expand(
+            child: Image.file(
+              File(path),
+              fit: BoxFit.contain,
+              alignment: alignment,
+            ),
           ),
         ),
         Align(

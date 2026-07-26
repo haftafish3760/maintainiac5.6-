@@ -9,7 +9,7 @@ extension _ReceiptAttachmentCameraActions
       final settings = ReceiptCaptureSettingsScope.maybeOf(context);
       if (settings != null &&
           !settings.hasReceiptAssistChoiceFor(widget.area)) {
-        final ready = await _showFirstUseReceiptCameraIntro(settings);
+        final ready = await _showFirstUseReceiptAssistIntro(settings);
         if (!mounted) return;
         if (!ready) {
           await returnToReceiptImportOptions();
@@ -251,7 +251,7 @@ extension _ReceiptAttachmentCameraActions
     });
   }
 
-  Future<bool> _showFirstUseReceiptCameraIntro(
+  Future<bool> _showFirstUseReceiptAssistIntro(
     ReceiptCaptureSettingsController settings,
   ) async {
     final action = await Navigator.of(context)

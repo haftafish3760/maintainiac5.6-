@@ -124,8 +124,6 @@ class _ReceiptLineRow extends StatelessWidget {
                   children: [
                     Text(
                       line.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFF0F4F2),
                         fontSize: 13,
@@ -137,8 +135,6 @@ class _ReceiptLineRow extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       '${line.scope} | ${line.category} | ${line.quantityLabel}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFC8D0D3),
                         fontSize: 11,

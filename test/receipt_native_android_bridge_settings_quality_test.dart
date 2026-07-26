@@ -107,24 +107,18 @@ void main() {
       expect(cameraActivity, isNot(contains('AlertDialog.Builder')));
       expect(cameraActivity, contains('ScrollView(this)'));
       expect(cameraActivity, contains('addView(content)'));
-      expect(cameraActivity, contains('Camera only'));
+      expect(cameraActivity, contains('Live camera'));
       expect(cameraActivity, isNot(contains('ACCOUNT AND STORAGE')));
       expect(cameraActivity, isNot(contains('RECEIPT ASSIST')));
-      expect(cameraActivity, contains('Long receipt mode'));
+      expect(cameraActivity, isNot(contains('Long receipt mode')));
       expect(cameraActivity, contains('CAPTURE FLOW'));
       expect(cameraActivity, contains('if (!canUseLongReceiptMode())'));
       expect(
         cameraActivity,
         contains('internal fun ReceiptCameraActivity.canUseLongReceiptMode()'),
       );
-      expect(cameraActivity, contains('if (it && !canUseLongReceiptMode())'));
-      expect(
-        cameraActivity,
-        contains(
-          'Long receipt mode is unavailable for this device or storage setting.',
-        ),
-      );
-      expect(cameraActivity, contains('The phone camera owns autofocus.'));
+      expect(cameraActivity, isNot(contains('if (it && !canUseLongReceiptMode())')));
+      expect(cameraActivity, contains('Autofocus and stabilization'));
       expect(
         cameraActivity,
         isNot(contains('continuous autofocus/readability guidance')),
@@ -152,18 +146,31 @@ void main() {
         contains('Automatic capture is on. Hold steady, or capture anytime.'),
       );
       expect(cameraActivity, contains('latestAutoCaptureStatus = "off"'));
-      expect(cameraActivity, isNot(contains('Auto brightness assist')));
+      expect(cameraActivity, contains('Automatic brightness help'));
+      expect(cameraActivity, contains('textOn = checkedLabel'));
+      expect(cameraActivity, contains('textOff = uncheckedLabel'));
+      expect(cameraActivity, contains('showText = true'));
+      expect(cameraActivity, contains('row.setOnClickListener'));
+      expect(cameraActivity, contains('settingSlider('));
+      expect(
+        cameraActivity,
+        contains('Reset returns exposure to automatic.'),
+      );
+      expect(
+        cameraActivity,
+        contains('This camera does not expose a supported brightness adjustment.'),
+      );
       expect(cameraActivity, isNot(contains('Manual Brightness still wins.')));
       expect(cameraActivity, isNot(contains('Reset brightness')));
       expect(cameraActivity, contains('Find receipt edges'));
-      expect(cameraActivity, isNot(contains('Long receipts')));
+      expect(cameraActivity, contains('Receipts with more than one photo'));
       expect(
         cameraActivity,
         isNot(contains('Capture sections from top to bottom')),
       );
       expect(cameraActivity, isNot(contains('IMAGE HANDOFF')));
       expect(cameraActivity, contains('CAMERA CONTROLS'));
-      expect(cameraActivity, contains('Autofocus and capture'));
+      expect(cameraActivity, contains('Autofocus and stabilization'));
       expect(cameraActivity, isNot(contains('Brightness and light')));
       expect(cameraActivity, isNot(contains('PRIVACY AND DIAGNOSTICS')));
       expect(cameraActivity, contains('Receipt edge guidance is on.'));
@@ -183,8 +190,12 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'The phone camera owns autofocus. Pinch to zoom, use brightness or light on the camera screen, and capture anytime.',
+          'Maintainiac uses the autofocus and stabilization that the phone exposes through its camera API.',
         ),
+      );
+      expect(
+        cameraActivity,
+        contains('No mode is required. Capture the first section'),
       );
       expect(cameraActivity, isNot(contains('Receipt guidance warnings')));
       expect(
@@ -199,7 +210,12 @@ void main() {
         cameraActivity,
         isNot(contains('Warn about shake, glare, low light')),
       );
-      expect(cameraActivity, contains('The phone camera owns autofocus.'));
+      expect(
+        cameraActivity,
+        contains(
+          'Maintainiac uses the autofocus and stabilization that the phone exposes through its camera API.',
+        ),
+      );
       expect(cameraActivity, contains('receiptGuidanceWarningsEnabled'));
       expect(cameraActivity, contains('setReceiptGuidanceWarningsEnabled'));
       expect(

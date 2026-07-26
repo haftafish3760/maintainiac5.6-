@@ -27,9 +27,9 @@ internal fun ReceiptCameraActivity.iconButton(
             shape = GradientDrawable.OVAL
             setColor(Color.argb(220, 17, 24, 27))
         }
-        layoutParams = LinearLayout.LayoutParams(dp(52), dp(52)).apply {
-            leftMargin = dp(4)
-            rightMargin = dp(4)
+        layoutParams = LinearLayout.LayoutParams(dp(48), dp(48)).apply {
+            leftMargin = dp(2)
+            rightMargin = dp(2)
         }
         setOnClickListener { onClick() }
     }

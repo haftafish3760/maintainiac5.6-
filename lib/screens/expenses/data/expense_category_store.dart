@@ -6,14 +6,17 @@ class ExpenseCategoryStore {
   static const _module = 'expense_categories';
   final MaintainiacDurableRecordStore _records;
 
-  static Future<ExpenseCategoryStore> create() async =>
-      ExpenseCategoryStore._(
-        await MaintainiacDurableRecordStore.create('expense_category_settings'),
-      );
+  static Future<ExpenseCategoryStore> create() async => ExpenseCategoryStore._(
+    await MaintainiacDurableRecordStore.create('expense_category_settings'),
+  );
   ExpenseCategoryStore.memory()
     : _records = MaintainiacDurableRecordStore.memory();
 
-  Future<void> rename({required String id, required String name, DateTime? now}) async {
+  Future<void> rename({
+    required String id,
+    required String name,
+    DateTime? now,
+  }) async {
     final cleanId = id.trim();
     final cleanName = name.trim();
     if (cleanId.isEmpty || cleanName.isEmpty || cleanId.contains(':')) {

@@ -62,7 +62,6 @@ extension _ExpenseReceiptEntryLifecycleHelpers
         },
       );
       _scanReceiptAttachmentsIfNeeded();
-      unawaited(_promptForOdometerIfNeeded());
     });
   }
 

@@ -157,8 +157,6 @@ class _SettingsIconTile extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               category.label,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: const Color(0xFFE8ECEE),

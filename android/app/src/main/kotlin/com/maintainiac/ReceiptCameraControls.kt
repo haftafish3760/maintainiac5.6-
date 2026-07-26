@@ -78,7 +78,9 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
         scaleGestureDetector?.onTouchEvent(event)
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                return@OnTouchListener false
+                // Own the stream from DOWN so Android continues delivering the
+                // second pointer to ScaleGestureDetector on real devices.
+                return@OnTouchListener true
             }
             MotionEvent.ACTION_POINTER_DOWN -> {
                 view.parent?.requestDisallowInterceptTouchEvent(true)
@@ -90,17 +92,17 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
                 return@OnTouchListener true
             }
             MotionEvent.ACTION_MOVE -> {
-                return@OnTouchListener event.pointerCount > 1
+                return@OnTouchListener true
             }
             MotionEvent.ACTION_UP -> {
                 view.parent?.requestDisallowInterceptTouchEvent(false)
                 restoreWorkflowGuidanceIfNeeded()
-                return@OnTouchListener false
+                return@OnTouchListener true
             }
             MotionEvent.ACTION_CANCEL -> {
                 view.parent?.requestDisallowInterceptTouchEvent(false)
                 restoreWorkflowGuidanceIfNeeded()
-                return@OnTouchListener false
+                return@OnTouchListener true
             }
             else -> return@OnTouchListener false
         }

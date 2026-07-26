@@ -59,7 +59,8 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                   ],
                 ),
               ),
-              if (_showThumbnailStrip)
+              if (_showThumbnailStrip &&
+                  _reviewMode != _ReceiptReviewMode.preview)
                 _ReceiptReviewThumbnailStrip(
                   photoPaths: _photoPaths,
                   selectedIndex: effectiveSelectedIndex,

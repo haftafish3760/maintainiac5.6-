@@ -316,8 +316,6 @@ class _DraftRow extends StatelessWidget {
                     children: [
                       Text(
                         draft.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFF0F4F2),
                           fontSize: 13,
@@ -328,8 +326,6 @@ class _DraftRow extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '${_shortDate(draft.receiptDate)} | $lineText | ${_money(draft.total)}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFFC8D0D3),
                           fontSize: 11,

@@ -119,8 +119,6 @@ class _ReceiptParseReviewBox extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     detail,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFC8D0D3),
                       fontSize: 11,
@@ -172,7 +170,7 @@ class _ReceiptParseReviewActionChip extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: onPressed,
         icon: const Icon(Icons.touch_app_rounded, size: 13),
-        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        label: Text(label, textAlign: TextAlign.center, softWrap: true),
         style: OutlinedButton.styleFrom(
           foregroundColor: color,
           side: BorderSide(color: color.withValues(alpha: .58)),
@@ -202,8 +200,6 @@ class _ReceiptParseReviewActionChip extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: color,
                 fontSize: 10.5,

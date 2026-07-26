@@ -158,8 +158,6 @@ class _ReceiptSummaryPanel extends StatelessWidget {
               children: [
                 Text(
                   entry.dateLabel,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFF0F4F2),
                     fontSize: 18,
@@ -170,8 +168,6 @@ class _ReceiptSummaryPanel extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${entry.timeLabel} | ${entry.scope} | ${entry.category}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFC8D0D3),
                     fontSize: 12,

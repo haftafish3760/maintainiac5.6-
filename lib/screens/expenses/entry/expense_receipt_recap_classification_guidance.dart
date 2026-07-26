@@ -134,8 +134,6 @@ class _ReceiptLineClassificationChecklist extends StatelessWidget {
                 children: [
                   Text(
                     guidance.statusLabel,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: guidance.accentColor,
                       fontSize: 12,
@@ -146,8 +144,6 @@ class _ReceiptLineClassificationChecklist extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     guidance.actionLabel,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Color(0xFFC8D0D3),
                       fontSize: 10.5,

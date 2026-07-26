@@ -96,14 +96,20 @@ void main() {
     expect(cameraActivity, contains('!detector.scaleFactor.isFinite()'));
     expect(cameraActivity, contains('lastZoomStatus = "zoom_invalid_scale"'));
     expect(cameraActivity, contains('MotionEvent.ACTION_DOWN'));
-    expect(cameraActivity, contains('return@OnTouchListener false'));
+    expect(
+      cameraActivity,
+      contains(
+        'MotionEvent.ACTION_DOWN -> {\n'
+        '                // Own the stream from DOWN',
+      ),
+    );
     expect(
       cameraActivity,
       contains('requestDisallowInterceptTouchEvent(false)'),
     );
     expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_DOWN'));
     expect(cameraActivity, contains('MotionEvent.ACTION_MOVE'));
-    expect(cameraActivity, contains('event.pointerCount > 1'));
+    expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_UP'));
     expect(
       cameraActivity,
       contains('scaleGestureDetector?.onTouchEvent(event)'),
@@ -342,10 +348,16 @@ void main() {
     expect(cameraActivity, contains('ceil(sessionMinExposureOffset).toInt()'));
     expect(cameraActivity, contains('floor(sessionMaxExposureOffset).toInt()'));
     expect(cameraActivity, contains('buildImageAnalysis'));
-    expect(cameraActivity, contains('!tooFarTooCloseWarningEnabled'));
-    expect(cameraActivity, contains('!edgeDetectionEnabled'));
-    expect(cameraActivity, contains('!receiptFullyVisibleWarningEnabled'));
-    expect(cameraActivity, contains('!autoExposureAssistEnabled'));
+    expect(
+      cameraActivity,
+      contains(
+        'val needsLiveAnalysis = edgeDetectionEnabled ||',
+      ),
+    );
+    expect(
+      cameraActivity,
+      contains('if (!liveAnalysisEnabled || !needsLiveAnalysis)'),
+    );
     expect(cameraActivity, contains('analyzeLiveFrame'));
     expect(cameraActivity, contains('motionBlurWarningEnabled'));
     expect(cameraActivity, contains('shadowWarningEnabled'));

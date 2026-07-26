@@ -16,6 +16,9 @@ void main() {
       await File(
         'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_status.dart',
       ).readAsString(),
+      await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_context_controls.dart',
+      ).readAsString(),
     ].join('\n');
     final cropAndProofControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_and_proof_controls.dart',
@@ -25,7 +28,7 @@ void main() {
     ).readAsString();
     final models = await readReceiptCaptureModelsSource();
     expect(controls, contains('Opening receipt details'));
-    expect(controls, contains('Check Photo Match'));
+    expect(controls, contains('Review Photos'));
     expect(cropAndProofControls, contains('Receipt Details And Saved Proof'));
     expect(cropAndProofControls, contains('Use Clear Photo'));
     expect(cropAndProofControls, contains('Save Small Copy'));
@@ -55,7 +58,7 @@ void main() {
     expect(dataSaverPanel, contains('Uses clear photo first'));
     expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));
     expect(dataSaverPanel, contains('Proof kept after reading'));
-    expect(dataSaverPanel, contains('Backup status'));
+    expect(dataSaverPanel, contains('Cloud backup'));
     final sectionLabels = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_section_labels.dart',
     ).readAsString();

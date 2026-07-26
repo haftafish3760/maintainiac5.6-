@@ -196,10 +196,8 @@ Map<String, Object?> _receiptReaderHandoffDiagnosticsFor(
         result.acceptedPhotoHandoffNextStepLabel,
     'receiptDetailsHandoffNextStepLabel':
         result.acceptedPhotoHandoffNextStepLabel,
-    'receiptReaderHandoffOcrSourcePolicy':
-        result.ocrSourceFirstDecisionCode,
-    'receiptDetailsHandoffOcrSourcePolicy':
-        result.ocrSourceFirstDecisionCode,
+    'receiptReaderHandoffOcrSourcePolicy': result.ocrSourceFirstDecisionCode,
+    'receiptDetailsHandoffOcrSourcePolicy': result.ocrSourceFirstDecisionCode,
     'receiptReaderHandoffOcrSourceRelationship':
         result.ocrSourceProofRelationship,
     'receiptDetailsHandoffOcrSourceRelationship':

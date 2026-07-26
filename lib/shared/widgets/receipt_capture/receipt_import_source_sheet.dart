@@ -2,6 +2,11 @@ part of 'receipt_attachment_panel.dart';
 
 extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
   Future<void> openReceiptImportOptions() async {
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+    if (settings != null && !settings.hasReceiptAssistChoiceFor(widget.area)) {
+      final choiceSaved = await _showFirstUseReceiptAssistIntro(settings);
+      if (!mounted || !choiceSaved) return;
+    }
     final action = await showModalBottomSheet<_ReceiptImportAction>(
       context: context,
       backgroundColor: const Color(0xFF161D20),
@@ -149,17 +154,24 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            GridView.count(
-              crossAxisCount: 2,
-              mainAxisSpacing: 10,
-              crossAxisSpacing: 10,
-              childAspectRatio: 1.75,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                for (final source in sources)
-                  _ReceiptImportTile(source: source),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 10.0;
+                final columns = constraints.maxWidth >= 340 ? 2 : 1;
+                final tileWidth =
+                    (constraints.maxWidth - spacing * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: [
+                    for (final source in sources)
+                      SizedBox(
+                        width: tileWidth,
+                        child: _ReceiptImportTile(source: source),
+                      ),
+                  ],
+                );
+              },
             ),
           ],
         ),

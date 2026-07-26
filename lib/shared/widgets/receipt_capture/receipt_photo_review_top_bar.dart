@@ -47,8 +47,6 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Text(
                     'Crop receipt — drag the yellow edges',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 13,

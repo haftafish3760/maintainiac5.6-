@@ -109,8 +109,6 @@ class _ReceiptOrderThumbnailLabel extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
         child: Text(
           text,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: TextStyle(
             color: isTopLeft
                 ? const Color(0xFFE8ECEE)

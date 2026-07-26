@@ -52,7 +52,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         : shouldAddNextSection
         ? 'Add the next receipt section with overlap from this photo'
         : 'Add another receipt photo if the receipt continues';
-    final continueIcon = continueLabel == 'Check Photo Match'
+    final continueIcon = continueLabel == 'Review Photos'
         ? Icons.join_full_rounded
         : Icons.check_rounded;
     return DecoratedBox(
@@ -77,7 +77,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                   child: Text(
                     statusText,
                     maxLines: compact ? 1 : 2,
-                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
                     style: TextStyle(
                       color: const Color(0xFFE8ECEE),
                       fontSize: compact ? 10.5 : 11,
@@ -204,11 +204,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
                               )
                             : Icon(continueIcon),
                         label: savingPhotos
-                            ? const Text(
-                                'Opening',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              )
+                            ? const Text('Opening')
                             : _ReceiptNextReviewLabel(
                                 label: uiConfig.labelFor(
                                   'continue',
@@ -284,8 +280,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: const Color(0xFFE8ECEE),
                       fontSize: compact ? 11 : 12,
@@ -297,8 +291,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       guidance,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFC8D0D3),
                         fontSize: 10.5,
@@ -324,8 +316,8 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
     if (coverageDecision.shouldPromptForMorePhotos) {
       return 'Add another photo if more receipt lines continue below this section.';
     }
-    if (photoCount > 1 && continueLabel == 'Check Photo Match') {
-      return 'Check the overlap match once, then use the receipt.';
+    if (photoCount > 1 && continueLabel == 'Review Photos') {
+      return 'Review the photos in order, then continue to the receipt.';
     }
     return 'Save & Continue opens the details review. Add Another is only for long receipts.';
   }

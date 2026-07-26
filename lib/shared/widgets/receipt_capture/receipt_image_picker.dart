@@ -46,9 +46,7 @@ class ReceiptImagePicker {
   }
 
   static Future<ReceiptPickedPhotoSet> chooseReceiptImageSet() async {
-    final images = await _picker.pickMultiImage(
-      requestFullMetadata: false,
-    );
+    final images = await _picker.pickMultiImage(requestFullMetadata: false);
     return ReceiptPickedPhotoSet.fromFiles(images);
   }
 }

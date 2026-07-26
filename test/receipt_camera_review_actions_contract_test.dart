@@ -16,7 +16,11 @@ void main() {
     expect(primary, contains('onCrop'));
     expect(primary, contains('onContinue'));
     expect(primary, contains("message: 'Crop receipt photo'"));
-    expect(tray, contains('onCrop: hasMultiplePhotos || interactionLocked'));
+    expect(tray, contains('onCrop: interactionLocked'));
+    expect(
+      tray,
+      isNot(contains('onCrop: hasMultiplePhotos || interactionLocked')),
+    );
     expect(tray, contains('onModeChanged(_ReceiptReviewMode.crop)'));
   });
 }

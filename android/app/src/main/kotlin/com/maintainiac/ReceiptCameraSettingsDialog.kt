@@ -43,36 +43,13 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         setPadding(dp(18), dp(12), dp(18), dp(18))
     }
     content.addView(settingSummary(
-        receiptCameraText("Camera only", "Solo cámara"),
+        receiptCameraText("Live camera", "Cámara en vivo"),
         receiptCameraText(
-            "These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.",
-            "Estos controles se aplican mientras esta cámara está abierta. Configure sus valores predeterminados de recibos en Configuración de recibos.",
+            "Changes apply to this camera session. The phone keeps control of its supported autofocus, lens, exposure, and stabilization features.",
+            "Los cambios se aplican a esta sesión. El teléfono conserva el control de las funciones compatibles de enfoque, lente, exposición y estabilización.",
         ),
     ))
     content.addView(settingSectionHeader(receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
-    content.addView(settingSwitch(
-        receiptCameraText("Long receipt mode", "Modo de recibo largo"),
-        receiptCameraText(
-            "Start at the top, add sections in order, and repeat a few readable lines so each section is ready for later receipt reconstruction.",
-            "Comience arriba, agregue secciones en orden y repita algunas líneas legibles para que cada sección esté lista para la reconstrucción posterior del recibo.",
-        ),
-        longReceiptMode,
-    ) {
-        if (it && !canUseLongReceiptMode()) {
-            longReceiptMode = false
-            guidance.text = receiptCameraText(
-                "Long receipt mode is unavailable for this device or storage setting.",
-                "El modo de recibo largo no está disponible para este dispositivo o ajuste de almacenamiento.",
-            )
-            updateDoneButton()
-            updateSettingsStatusStrip()
-            return@settingSwitch
-        }
-        longReceiptMode = it
-        updateDoneButton()
-        guidance.text = guidanceText()
-        updateSettingsStatusStrip()
-    })
     content.addView(settingSwitch(
         receiptCameraText("Automatic capture", "Captura automática"),
         autoCaptureDetail(),
@@ -137,13 +114,65 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         updateSettingsStatusStrip()
     })
     content.addView(settingSectionHeader(receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))
-    content.addView(settingSummary(
-        receiptCameraText("Autofocus and capture", "Enfoque automático y captura"),
+    content.addView(settingSlider(
+        receiptCameraText("Brightness", "Brillo"),
+        if (exposureSliderEnabled && exposureSlider.isEnabled) {
+            receiptCameraText(
+                "Adjust only when receipt text looks too dark or washed out. Reset returns exposure to automatic.",
+                "Ajuste solo si el texto se ve muy oscuro o descolorido. Restablecer devuelve la exposición a automático.",
+            )
+        } else {
+            receiptCameraText(
+                "This camera does not expose a supported brightness adjustment.",
+                "Esta cámara no ofrece un ajuste de brillo compatible.",
+            )
+        },
+        exposureSliderEnabled && exposureSlider.isEnabled,
+        exposureSlider.max,
+        exposureSlider.progress,
+        onChanged = { progress ->
+            exposureSlider.progress = progress
+            setExposureFromSlider(progress)
+        },
+        onReset = { resetExposure() },
+    ))
+    content.addView(settingSwitch(
+        receiptCameraText("Automatic brightness help", "Ayuda de brillo automático"),
         receiptCameraText(
-            "The phone camera owns autofocus. Pinch to zoom, use brightness or light on the camera screen, and capture anytime. Maintainiac reads the clear full-quality photo before making a smaller saved copy.",
-            "La cámara del teléfono controla el enfoque automático. Pellizque para acercar, " +
-                "use brillo o luz en la pantalla de cámara y capture en cualquier momento. " +
-                "Maintainiac lee la foto clara de calidad completa antes de crear una copia guardada más pequeña.",
+            "Keep the phone's automatic exposure and allow safe receipt-paper brightness correction. The brightness button can still make a temporary adjustment.",
+            "Mantiene la exposición automática del teléfono y permite una corrección segura para el papel. El botón de brillo aún permite un ajuste temporal.",
+        ),
+        autoExposureAssistEnabled,
+    ) {
+        autoExposureAssistEnabled = it
+        userExposureOverride = false
+        resetExposure()
+        guidance.text = if (it) {
+            receiptCameraText("Automatic brightness help is on.", "La ayuda de brillo automático está activada.")
+        } else {
+            receiptCameraText("The phone now controls exposure without receipt brightness help.", "El teléfono ahora controla la exposición sin ayuda de brillo para recibos.")
+        }
+        updateSettingsStatusStrip()
+    })
+    content.addView(settingSummary(
+        receiptCameraText("Autofocus and stabilization", "Enfoque automático y estabilización"),
+        receiptCameraText(
+            "Maintainiac uses the autofocus and stabilization that the phone exposes through its camera API. Pinch to zoom; use brightness or light only when needed.",
+            "Maintainiac usa el enfoque automático y la estabilización que el teléfono ofrece mediante su API de cámara. Pellizque para acercar; use brillo o luz solo cuando sea necesario.",
+        ),
+    ))
+    content.addView(settingSummary(
+        receiptCameraText("Receipts with more than one photo", "Recibos con más de una foto"),
+        receiptCameraText(
+            "No mode is required. Capture the first section, then choose Add Photo when the receipt continues.",
+            "No se requiere un modo. Capture la primera sección y elija Agregar foto cuando el recibo continúe.",
+        ),
+    ))
+    content.addView(settingSummary(
+        receiptCameraText("Image quality", "Calidad de imagen"),
+        receiptCameraText(
+            "Maintainiac reads the full-quality capture for text extraction before creating a smaller saved copy for backup.",
+            "Maintainiac lee la captura de calidad completa para extraer texto antes de crear una copia guardada más pequeña para respaldo.",
         ),
     ))
     val scroll = ScrollView(this).apply {
@@ -212,7 +241,10 @@ internal fun ReceiptCameraActivity.resetReceiptCameraDefaults() {
     }
     updateDoneButton()
     updateSettingsStatusStrip()
-    guidance.text = "Receipt camera defaults restored. Manual shutter is ready."
+    guidance.text = receiptCameraText(
+        "Receipt camera defaults restored. Manual shutter is ready.",
+        "Se restauraron los valores de la cámara. El disparador manual está listo.",
+    )
 }
 
 internal fun ReceiptCameraActivity.receiptGuidanceWarningsEnabled(): Boolean {

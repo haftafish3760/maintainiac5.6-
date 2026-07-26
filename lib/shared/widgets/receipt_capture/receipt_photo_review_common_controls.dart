@@ -77,10 +77,10 @@ class _ReceiptNextReviewLabel extends StatelessWidget {
         secondary: '& Continue',
       );
     }
-    if (normalized == 'Check Photo Match') {
+    if (normalized == 'Review Photos') {
       return const _ReceiptStackedButtonLabel(
-        primary: 'Check',
-        secondary: 'Match',
+        primary: 'Review',
+        secondary: 'Photos',
       );
     }
     return Text(normalized, maxLines: 2, textAlign: TextAlign.center);
@@ -159,8 +159,6 @@ class _ReceiptLocalPhotoLimitStrip extends StatelessWidget {
                 'is tuned for ${deviceCapability.maxLocalPhotoCount} local '
                 'receipt photos. You can still use these photos, but review '
                 'every line before saving.',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Color(0xFFE8ECEE),
                   fontSize: 10.5,
@@ -182,13 +180,11 @@ class _ReceiptActionRailButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
-    this.emphasized = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
-  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
@@ -202,16 +198,12 @@ class _ReceiptActionRailButton extends StatelessWidget {
       child: FilledButton.icon(
         onPressed: onPressed,
         icon: Icon(icon, size: 16),
-        label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+        label: Text(label, textAlign: TextAlign.center, softWrap: true),
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 32),
-          backgroundColor: emphasized
-              ? const Color(0xFFFFD166)
-              : const Color(0xFF172126),
+          backgroundColor: const Color(0xFF172126),
           disabledBackgroundColor: const Color(0xFF283137),
-          foregroundColor: emphasized
-              ? const Color(0xFF101416)
-              : const Color(0xFFE8ECEE),
+          foregroundColor: const Color(0xFFE8ECEE),
           disabledForegroundColor: const Color(0xFF758188),
           padding: const EdgeInsets.symmetric(horizontal: 8),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,

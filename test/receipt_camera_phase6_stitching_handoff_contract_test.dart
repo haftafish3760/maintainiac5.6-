@@ -31,6 +31,15 @@ void main() {
       expect(saveActions, contains('_ensureStitchPreview(force: true)'));
       expect(
         saveActions,
+        contains("stitchPreview.fallbackReasonCode == 'duplicate_section_image'"),
+      );
+      expect(
+        saveActions,
+        contains('Remove or replace the highlighted duplicate before continuing.'),
+      );
+      expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.order;'));
+      expect(
+        saveActions,
         contains('final stitch = await _finalStitchResultForOcr('),
       );
       expect(saveActions, contains('await _deleteGeneratedStitchPreview();'));

@@ -83,21 +83,23 @@ class _ReceiptParseContext {
     final text = rows.join(' ').toLowerCase();
     final selectedFuel = targetCategory?.trim().toLowerCase() == 'fuel';
     return _ReceiptParseContext(
-      looksLikeFuelReceipt: RegExp(
-        r'\b(pump|island|nozzle|hose|fueling point|fueling position|fuel|motor fuel|combustible|gasolina|'
-        r'diesel|di[eé]sel|dsl|ulsd|reefer|bomba|surtidor|'
-        r'unl\b|unleaded|regular|midgrade|premium|gasoline|gallons?|'
-        r'avgas|aviation gasoline|jet[-\s]?a(?:[-\s]?1)?|jet fuel|turbine fuel|turbosina|race fuel|racing fuel|combustible de carrera|nitromethane|nitrometano|e[-\s]?100|'
-        r'gal\b|gal[oó]n|gal[oó]nes|def fluid|diesel exhaust fluid|'
-        r'cng|compressed natural gas|gas natural comprimido|gge|'
-        r'propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|hd[-\s]?5|methanol|m85|m100|'
-        r'kerosene|kero|queroseno|k[- ]?1|'
-        r'hydrogen|h2 fuel|fuel cell|kg h2|h35|h70|'
-        r'kwh|ev charge|ev charging|energy sale|energy delivered|'
-        r'chargepoint|supercharger|octane|grade|'
-        r'price per gallon|price/gal|precio\s*/?\s*gal[oó]n|'
-        r'precio\s+por\s+gal[oó]n|ppu|ppg|amt\b|vol\b)\b',
-      ).hasMatch(text) || selectedFuel,
+      looksLikeFuelReceipt:
+          RegExp(
+            r'\b(pump|island|nozzle|hose|fueling point|fueling position|fuel|motor fuel|combustible|gasolina|'
+            r'diesel|di[eé]sel|dsl|ulsd|reefer|bomba|surtidor|'
+            r'unl\b|unleaded|regular|midgrade|premium|gasoline|gallons?|'
+            r'avgas|aviation gasoline|jet[-\s]?a(?:[-\s]?1)?|jet fuel|turbine fuel|turbosina|race fuel|racing fuel|combustible de carrera|nitromethane|nitrometano|e[-\s]?100|'
+            r'gal\b|gal[oó]n|gal[oó]nes|def fluid|diesel exhaust fluid|'
+            r'cng|compressed natural gas|gas natural comprimido|gge|'
+            r'propane|lpg|l\.?p\.? gas|gas l\.?p\.?|autogas|auto gas|hd[-\s]?5|methanol|m85|m100|'
+            r'kerosene|kero|queroseno|k[- ]?1|'
+            r'hydrogen|h2 fuel|fuel cell|kg h2|h35|h70|'
+            r'kwh|ev charge|ev charging|energy sale|energy delivered|'
+            r'chargepoint|supercharger|octane|grade|'
+            r'price per gallon|price/gal|precio\s*/?\s*gal[oó]n|'
+            r'precio\s+por\s+gal[oó]n|ppu|ppg|amt\b|vol\b)\b',
+          ).hasMatch(text) ||
+          selectedFuel,
       targetFuelSelected: selectedFuel,
       looksLikeFoodReceipt: RegExp(
         r'\b(combo|meal|sandwich|burger|fries|drink|coffee|breakfast|lunch|dinner|taco|biscuit|restaurant)\b',

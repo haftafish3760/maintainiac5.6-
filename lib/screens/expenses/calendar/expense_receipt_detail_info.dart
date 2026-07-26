@@ -211,8 +211,6 @@ class _ReceiptBreakdownTile extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFF0F4F2),
               fontSize: 18,
@@ -223,8 +221,6 @@ class _ReceiptBreakdownTile extends StatelessWidget {
           const SizedBox(height: 3),
           Text(
             detail,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 11,

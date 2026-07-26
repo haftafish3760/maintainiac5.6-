@@ -297,8 +297,6 @@ class _ReceiptPdfProofCard extends StatelessWidget {
                     children: [
                       Text(
                         attachment.label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFF25211A),
                           fontSize: 13,
@@ -309,8 +307,6 @@ class _ReceiptPdfProofCard extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         details,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFF4D463A),
                           fontSize: 11.5,

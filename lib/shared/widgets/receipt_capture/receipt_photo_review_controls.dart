@@ -263,16 +263,16 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
   String get _continueLabel {
     if (reviewMode == _ReceiptReviewMode.preview &&
         selectedQualityCheck?.hasCriticalIssue == true) {
-      return 'Use Anyway';
+      return 'Use Receipt';
     }
     if (!bestShotCandidateMode &&
         reviewMode != _ReceiptReviewMode.stitch &&
         photoPaths.length > 1) {
-      return 'Check Photo Match';
+      return 'Review Photos';
     }
     if (reviewMode == _ReceiptReviewMode.stitch &&
         (stitchPreviewInFlight || stitchPreview == null)) {
-      return 'Checking Match';
+      return 'Checking Photos';
     }
     return 'Use Receipt';
   }

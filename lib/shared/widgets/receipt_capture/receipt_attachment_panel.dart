@@ -86,6 +86,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.receiptContinuationReasonCode,
     this.receiptContinuationGuidance,
     this.showInterruptedCaptureRecovery = true,
+    this.openImportOptionsOnFirstBuild = false,
     this.uiConfig = const ReceiptCaptureUiConfig(),
   });
 
@@ -111,6 +112,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final String? receiptContinuationReasonCode;
   final String? receiptContinuationGuidance;
   final bool showInterruptedCaptureRecovery;
+  final bool openImportOptionsOnFirstBuild;
   final ReceiptCaptureUiConfig uiConfig;
 
   @override
@@ -172,6 +174,13 @@ class _SharedReceiptAttachmentPanelState
     _applyInitialAttachments(widget.initialAttachments);
     if (widget.showInterruptedCaptureRecovery) {
       unawaited(_loadRecoverableNativeCaptures());
+    }
+    if (widget.openImportOptionsOnFirstBuild && !_hasAttachment) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_hasAttachment && !_openingPicker) {
+          unawaited(openReceiptImportOptions());
+        }
+      });
     }
   }
 

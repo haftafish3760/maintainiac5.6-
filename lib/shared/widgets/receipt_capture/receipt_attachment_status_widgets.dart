@@ -94,8 +94,6 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: effectiveStatus == _ReceiptReadStatusKind.reading
                         ? accent
@@ -109,8 +107,6 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   text,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFC7D0D4),
                     fontSize: 11.5,
@@ -122,8 +118,6 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   recoveryHint,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: accent,
                     fontSize: 11,
@@ -220,8 +214,6 @@ class _ReceiptReadProgressSteps extends StatelessWidget {
           Expanded(
             child: Text(
               labels[index],
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: index <= current

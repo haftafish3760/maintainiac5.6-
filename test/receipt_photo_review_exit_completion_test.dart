@@ -282,34 +282,33 @@ void main() {
     expect(models, contains('make sure no middle section is missing'));
     expect(models, contains('Repeat 3-5 readable lines between sections'));
     expect(orderControls, contains('Receipt details open in this order.'));
-    expect(stitchControls, contains("'Combined Receipt Ready'"));
-    expect(stitchControls, contains("'Safe Fallback Ready'"));
-    expect(stitchControls, contains('repeated receipt lines match safely'));
+    expect(stitchControls, contains("'Photos aligned'"));
+    expect(stitchControls, contains("'Photos will stay separate'"));
+    expect(stitchControls, contains('Checking photo order and repeated receipt lines.'));
     expect(
       stitchControls,
       contains(
-        'For bottom-section photos, keep 3-5 repeated readable lines in the top ghost slice',
+        'The sections matched and will open as one receipt.',
       ),
     );
-    expect(stitchControls, contains('Repeated receipt lines matched safely'));
-    expect(stitchControls, contains('preview.userFallbackReasonLabel'));
-    expect(stitchControls, contains('preview.ocrHandoffChecklistLabel'));
-    expect(stitchControls, contains('preview.overlapExpectationLabel'));
+    expect(stitchControls, contains('the originals remain unchanged'));
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     expect(
       reviewScreen,
-      contains('Line up 3-5 repeated readable receipt lines'),
+      contains('Align repeated lines'),
     );
-    expect(reviewScreen, contains('match guide'));
+    expect(reviewScreen, isNot(contains('match guide')));
+    expect(reviewScreen, contains('maxScale: 6'));
     expect(stitchControls, contains('Previous Pair'));
     expect(stitchControls, contains('Next Pair'));
-    expect(stitchControls, contains('selectedPair.matchEvidenceLabel'));
+    expect(stitchControls, isNot(contains('_ReceiptStitchEvidenceChip')));
     expect(
       stitchControls,
-      contains("final fallbackRecoveryLabel = failedPairLabel.isEmpty"),
+      contains("final duplicatePhoto ="),
     );
-    expect(stitchControls, contains("'Fix Photo Order'"));
-    expect(stitchControls, contains("'Fix \$failedPairLabel'"));
+    expect(stitchControls, contains("'Remove Duplicate Photo'"));
+    expect(stitchControls, contains("'Reorder Photos'"));
+    expect(stitchControls, isNot(contains("'Fix \$failedPairLabel'")));
     expect(commonControls, contains('_ReceiptLocalPhotoLimitStrip'));
     expect(
       commonControls,
@@ -318,7 +317,7 @@ void main() {
     expect(commonControls, contains('every line before saving.'));
     expect(
       stitchControls,
-      contains('You can still use each section in top-to-bottom order.'),
+      contains('the originals remain unchanged.'),
     );
   });
 

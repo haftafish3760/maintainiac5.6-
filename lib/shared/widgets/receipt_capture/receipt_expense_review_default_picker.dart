@@ -18,7 +18,7 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Expense Receipt Review Detail',
+            'Receipt Detail Level',
             style: TextStyle(
               color: Color(0xFFE8ECEE),
               fontWeight: FontWeight.w900,
@@ -27,7 +27,7 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           const Text(
-            'Choose what Maintainiac shows after it reads an expense receipt. You can still change this on each receipt before saving.',
+            'Choose the default amount of editable information Receipt Assist prepares. You can change this setting whenever your record-keeping needs change.',
             style: TextStyle(
               color: Color(0xFFC7D0D4),
               fontSize: 11.5,
@@ -42,9 +42,8 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
                 settings.receiptReviewStyle ==
                 ExpenseReceiptReviewStyle.basicReceipt,
             icon: Icons.receipt_outlined,
-            title: 'Basic Receipt',
-            detail:
-                'Price-only review. Keep the receipt proof and confirm the store, date, sales tax, and final total without item descriptions.',
+            title: ExpenseReceiptReviewStyle.basicReceipt.label,
+            detail: ExpenseReceiptReviewStyle.basicReceipt.description,
             onTap: () => settings.setReceiptReviewStyle(
               ExpenseReceiptReviewStyle.basicReceipt,
             ),
@@ -55,9 +54,8 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
                 settings.receiptReviewStyle ==
                 ExpenseReceiptReviewStyle.simpleAmounts,
             icon: Icons.price_check_rounded,
-            title: 'Simple Receipt',
-            detail:
-                'Single-total review. Record the final total after sales tax as all Business or all Personal.',
+            title: ExpenseReceiptReviewStyle.simpleAmounts.label,
+            detail: ExpenseReceiptReviewStyle.simpleAmounts.description,
             onTap: () => settings.setReceiptReviewStyle(
               ExpenseReceiptReviewStyle.simpleAmounts,
             ),
@@ -68,9 +66,8 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
                 settings.receiptReviewStyle ==
                 ExpenseReceiptReviewStyle.fullItemDetails,
             icon: Icons.receipt_long_rounded,
-            title: 'Detailed Receipt',
-            detail:
-                'Preserve and review each meaningful receipt line exactly as printed, including quantities, prices, discounts, and totals.',
+            title: ExpenseReceiptReviewStyle.fullItemDetails.label,
+            detail: ExpenseReceiptReviewStyle.fullItemDetails.description,
             onTap: () => settings.setReceiptReviewStyle(
               ExpenseReceiptReviewStyle.fullItemDetails,
             ),

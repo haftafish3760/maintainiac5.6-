@@ -52,8 +52,6 @@ class _RecapRangePanel extends StatelessWidget {
                 child: Text(
                   period.rangeLabel(anchorDate, customRange: customRange),
                   textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFF0F4F2),
                     fontSize: 14,

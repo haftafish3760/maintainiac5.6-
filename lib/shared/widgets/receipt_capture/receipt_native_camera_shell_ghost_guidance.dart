@@ -99,8 +99,6 @@ class _ReceiptPreviousSectionGhostLabel extends StatelessWidget {
                   children: [
                     Text(
                       _title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11.5,
@@ -111,8 +109,6 @@ class _ReceiptPreviousSectionGhostLabel extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       _message,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Color(0xFFE4EBEE),
                         fontSize: 10.5,
@@ -184,8 +180,6 @@ class _ReceiptPreviousSectionGhostRule extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         child: Text(
           'Line up 3-5 repeated receipt lines here',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Color(0xFFFFD166),
