@@ -155,7 +155,7 @@ class _ReceiptDraftsPanelState extends State<ReceiptDraftsPanel> {
                           '$count saved ${count == 1 ? 'draft' : 'drafts'} | Latest ${_shortDate(latest.first)}',
                           style: const TextStyle(
                             color: Color(0xFFC8D0D3),
-                            fontSize: 11,
+                            fontSize: 13,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -176,62 +176,123 @@ class _ReceiptDraftsPanelState extends State<ReceiptDraftsPanel> {
     List<ExpenseReceiptDraftRecord> drafts,
     List<ReceiptNativeCaptureRecoveryRecord> photoDrafts,
   ) async {
+    final visibleDrafts = List<ExpenseReceiptDraftRecord>.from(drafts);
+    final visiblePhotoDrafts = List<ReceiptNativeCaptureRecoveryRecord>.from(
+      photoDrafts,
+    );
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: _pageBackground,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 12, 12, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Receipt Drafts',
-                style: TextStyle(
-                  color: Color(0xFFF0F4F2),
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Receipt Drafts',
+                  style: TextStyle(
+                    color: Color(0xFFF0F4F2),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              const Text(
-                'Continue or delete saved receipt work.',
-                style: TextStyle(
-                  color: Color(0xFFC8D0D3),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
+                const SizedBox(height: 3),
+                const Text(
+                  'Continue or delete saved receipt work.',
+                  style: TextStyle(
+                    color: Color(0xFFC8D0D3),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.sizeOf(sheetContext).height * .78,
+                const SizedBox(height: 10),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(sheetContext).height * .78,
+                  ),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: [
+                      for (final draft in visibleDrafts)
+                        _DraftRow(
+                          draft: draft,
+                          onDeleted: () => _removeVisibleDraft(
+                            sheetContext: sheetContext,
+                            setSheetState: setSheetState,
+                            visibleDrafts: visibleDrafts,
+                            visiblePhotoDrafts: visiblePhotoDrafts,
+                            draftId: draft.id,
+                          ),
+                        ),
+                      for (final photoDraft in visiblePhotoDrafts)
+                        _PhotoDraftRow(
+                          draft: photoDraft,
+                          onDeleted: () => _removeVisiblePhotoDraft(
+                            sheetContext: sheetContext,
+                            setSheetState: setSheetState,
+                            visibleDrafts: visibleDrafts,
+                            visiblePhotoDrafts: visiblePhotoDrafts,
+                            draft: photoDraft,
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final draft in drafts) _DraftRow(draft: draft),
-                    for (final photoDraft in photoDrafts)
-                      _PhotoDraftRow(draft: photoDraft),
-                  ],
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
     if (!mounted) return;
-    setState(() => _photoDrafts = _loadPhotoDrafts());
+    final refreshedPhotoDrafts = _loadPhotoDrafts();
+    setState(() {
+      _photoDrafts = refreshedPhotoDrafts;
+    });
+  }
+
+  void _removeVisibleDraft({
+    required BuildContext sheetContext,
+    required StateSetter setSheetState,
+    required List<ExpenseReceiptDraftRecord> visibleDrafts,
+    required List<ReceiptNativeCaptureRecoveryRecord> visiblePhotoDrafts,
+    required String draftId,
+  }) {
+    setSheetState(
+      () => visibleDrafts.removeWhere((draft) => draft.id == draftId),
+    );
+    _closeDraftSheetIfEmpty(sheetContext, visibleDrafts, visiblePhotoDrafts);
+  }
+
+  void _removeVisiblePhotoDraft({
+    required BuildContext sheetContext,
+    required StateSetter setSheetState,
+    required List<ExpenseReceiptDraftRecord> visibleDrafts,
+    required List<ReceiptNativeCaptureRecoveryRecord> visiblePhotoDrafts,
+    required ReceiptNativeCaptureRecoveryRecord draft,
+  }) {
+    setSheetState(() => visiblePhotoDrafts.remove(draft));
+    _closeDraftSheetIfEmpty(sheetContext, visibleDrafts, visiblePhotoDrafts);
+  }
+
+  void _closeDraftSheetIfEmpty(
+    BuildContext context,
+    List<ExpenseReceiptDraftRecord> drafts,
+    List<ReceiptNativeCaptureRecoveryRecord> photoDrafts,
+  ) {
+    if (drafts.isEmpty && photoDrafts.isEmpty) Navigator.of(context).pop();
   }
 }
 
 class _PhotoDraftRow extends StatelessWidget {
-  const _PhotoDraftRow({required this.draft});
+  const _PhotoDraftRow({required this.draft, required this.onDeleted});
 
   final ReceiptNativeCaptureRecoveryRecord draft;
+  final VoidCallback onDeleted;
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +319,7 @@ class _PhotoDraftRow extends StatelessWidget {
                         'Receipt Draft',
                         style: TextStyle(
                           color: Color(0xFFF0F4F2),
-                          fontSize: 13,
+                          fontSize: 15,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -267,26 +328,20 @@ class _PhotoDraftRow extends StatelessWidget {
                         '${_shortDate(draft.capturedAt)} | $count photo${count == 1 ? '' : 's'} | Not yet completed',
                         style: const TextStyle(
                           color: Color(0xFFC8D0D3),
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  tooltip: 'Delete receipt draft',
+                _DraftDeleteAction(
                   onPressed: () async {
                     if (!await _confirmDraftDeletion(context)) return;
                     await const ReceiptNativeCaptureStaging()
                         .discardRecoveryRecord(draft);
-                    if (context.mounted) Navigator.of(context).pop();
+                    if (context.mounted) onDeleted();
                   },
-                  icon: const Icon(
-                    Icons.delete_outline_rounded,
-                    color: _red,
-                    size: 18,
-                  ),
                 ),
               ],
             ),
@@ -298,9 +353,10 @@ class _PhotoDraftRow extends StatelessWidget {
 }
 
 class _DraftRow extends StatelessWidget {
-  const _DraftRow({required this.draft});
+  const _DraftRow({required this.draft, required this.onDeleted});
 
   final ExpenseReceiptDraftRecord draft;
+  final VoidCallback onDeleted;
 
   @override
   Widget build(BuildContext context) {
@@ -327,6 +383,7 @@ class _DraftRow extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(Icons.edit_note_rounded, color: _gold, size: 19),
                 const SizedBox(width: 8),
@@ -338,7 +395,7 @@ class _DraftRow extends StatelessWidget {
                         draft.title,
                         style: const TextStyle(
                           color: Color(0xFFF0F4F2),
-                          fontSize: 13,
+                          fontSize: 15,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0,
                         ),
@@ -348,7 +405,7 @@ class _DraftRow extends StatelessWidget {
                         '${_shortDate(draft.receiptDate)} | $lineText | ${_money(draft.total)}',
                         style: const TextStyle(
                           color: Color(0xFFC8D0D3),
-                          fontSize: 11,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 0,
                         ),
@@ -360,31 +417,22 @@ class _DraftRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           color: Color(0xFF9CB0B8),
-                          fontSize: 10.5,
+                          fontSize: 12,
                           fontWeight: FontWeight.w700,
-                          height: 1.2,
+                          height: 1.25,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () async {
-                      if (!await _confirmDraftDeletion(context)) return;
-                      await draftController?.deleteDraft(draft.id);
-                    },
-                    borderRadius: BorderRadius.circular(6),
-                    child: const Padding(
-                      padding: EdgeInsets.all(6),
-                      child: Icon(
-                        Icons.delete_outline_rounded,
-                        color: _red,
-                        size: 18,
-                      ),
-                    ),
-                  ),
+                _DraftDeleteAction(
+                  onPressed: () async {
+                    if (!await _confirmDraftDeletion(context)) return;
+                    final controller = draftController;
+                    if (controller == null) return;
+                    await controller.deleteDraft(draft.id);
+                    if (context.mounted) onDeleted();
+                  },
                 ),
               ],
             ),
@@ -417,4 +465,27 @@ Future<bool> _confirmDraftDeletion(BuildContext context) async {
     ),
   );
   return result ?? false;
+}
+
+class _DraftDeleteAction extends StatelessWidget {
+  const _DraftDeleteAction({required this.onPressed});
+
+  final Future<void> Function() onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        foregroundColor: _red,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        minimumSize: Size.zero,
+      ),
+      onPressed: onPressed,
+      icon: const Icon(Icons.close_rounded, size: 16),
+      label: const Text(
+        'Delete',
+        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900),
+      ),
+    );
+  }
 }
