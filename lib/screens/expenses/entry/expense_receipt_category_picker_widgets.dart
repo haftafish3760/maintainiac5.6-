@@ -126,23 +126,28 @@ class _CategoryChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: selected ? const Color(0xFFFFD166) : const Color(0xFF1F2528),
-      borderRadius: BorderRadius.circular(5),
-      child: InkWell(
-        onTap: onTap,
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: label,
+      child: Material(
+        color: selected ? const Color(0xFFFFD166) : const Color(0xFF1F2528),
         borderRadius: BorderRadius.circular(5),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: selected
-                  ? const Color(0xFF101416)
-                  : const Color(0xFFE8ECEE),
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(5),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected
+                    ? const Color(0xFF101416)
+                    : const Color(0xFFE8ECEE),
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0,
+              ),
             ),
           ),
         ),
