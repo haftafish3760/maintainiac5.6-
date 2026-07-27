@@ -66,121 +66,126 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
       _ReceiptReadStatusKind.warning => Icons.warning_amber_rounded,
       _ReceiptReadStatusKind.failed => Icons.error_outline_rounded,
     };
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
-      decoration: BoxDecoration(
-        color: const Color(0xFF10171A),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: accent),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          reading
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Color(0xFFFFD166),
+    return Semantics(
+      container: true,
+      liveRegion: reading,
+      label: '$title. $text. $recoveryHint',
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        decoration: BoxDecoration(
+          color: const Color(0xFF10171A),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: accent),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            reading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Color(0xFFFFD166),
+                    ),
+                  )
+                : Icon(icon, color: accent, size: 19),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: effectiveStatus == _ReceiptReadStatusKind.reading
+                          ? accent
+                          : const Color(0xFFE8ECEE),
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w900,
+                      height: 1.2,
+                      letterSpacing: 0,
+                    ),
                   ),
-                )
-              : Icon(icon, color: accent, size: 19),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: effectiveStatus == _ReceiptReadStatusKind.reading
-                        ? accent
-                        : const Color(0xFFE8ECEE),
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w900,
-                    height: 1.2,
-                    letterSpacing: 0,
+                  const SizedBox(height: 2),
+                  Text(
+                    text,
+                    style: const TextStyle(
+                      color: Color(0xFFC7D0D4),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      letterSpacing: 0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  text,
-                  style: const TextStyle(
-                    color: Color(0xFFC7D0D4),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                    letterSpacing: 0,
+                  const SizedBox(height: 2),
+                  Text(
+                    recoveryHint,
+                    style: TextStyle(
+                      color: accent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      height: 1.18,
+                      letterSpacing: 0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  recoveryHint,
-                  style: TextStyle(
-                    color: accent,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w900,
-                    height: 1.18,
-                    letterSpacing: 0,
-                  ),
-                ),
-                if (reading && uiConfig.showReadProgressSteps) ...[
-                  const SizedBox(height: 8),
-                  _ReceiptReadProgressSteps(
-                    phase: progressPhase,
-                    uiConfig: uiConfig,
-                  ),
+                  if (reading && uiConfig.showReadProgressSteps) ...[
+                    const SizedBox(height: 8),
+                    _ReceiptReadProgressSteps(
+                      phase: progressPhase,
+                      uiConfig: uiConfig,
+                    ),
+                  ],
+                  if (effectiveStatus == _ReceiptReadStatusKind.failed &&
+                      (onRetry != null || onContinueManually != null)) ...[
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        if (onRetry != null)
+                          OutlinedButton.icon(
+                            onPressed: onRetry,
+                            icon: const Icon(Icons.replay_rounded, size: 18),
+                            label: Text(
+                              uiConfig.readStatusLabel(
+                                'retryAction',
+                                'Review Photos And Retry',
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: const Color(0xFFE8ECEE),
+                              side: BorderSide(color: accent),
+                              minimumSize: const Size(0, 40),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                          ),
+                        if (onContinueManually != null)
+                          TextButton.icon(
+                            onPressed: onContinueManually,
+                            icon: const Icon(Icons.edit_note_rounded, size: 18),
+                            label: Text(
+                              uiConfig.readStatusLabel(
+                                'manualRecoveryAction',
+                                'Continue Manually',
+                              ),
+                            ),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFFE8ECEE),
+                              minimumSize: const Size(0, 40),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ],
-                if (effectiveStatus == _ReceiptReadStatusKind.failed &&
-                    (onRetry != null || onContinueManually != null)) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      if (onRetry != null)
-                        OutlinedButton.icon(
-                          onPressed: onRetry,
-                          icon: const Icon(Icons.replay_rounded, size: 18),
-                          label: Text(
-                            uiConfig.readStatusLabel(
-                              'retryAction',
-                              'Review Photos And Retry',
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFFE8ECEE),
-                            side: BorderSide(color: accent),
-                            minimumSize: const Size(0, 40),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                          ),
-                        ),
-                      if (onContinueManually != null)
-                        TextButton.icon(
-                          onPressed: onContinueManually,
-                          icon: const Icon(Icons.edit_note_rounded, size: 18),
-                          label: Text(
-                            uiConfig.readStatusLabel(
-                              'manualRecoveryAction',
-                              'Continue Manually',
-                            ),
-                          ),
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFFE8ECEE),
-                            minimumSize: const Size(0, 40),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
