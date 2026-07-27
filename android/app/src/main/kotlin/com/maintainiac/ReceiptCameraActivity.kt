@@ -157,6 +157,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var maxStitchOutputHeight = 18000
     internal var sessionMinZoom = 1.0
     internal var sessionMaxZoom = 1.0
+    internal var sessionInitialZoom = 1.0
     internal var sessionMinExposureOffset = 0.0
     internal var sessionMaxExposureOffset = 0.0
     internal var lastLiveAnalysisAt = 0L
@@ -196,7 +197,11 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var tapFocusSuppressedAfterZoomCount = 0
     internal var zoomChangeCount = 0
     internal var zoomGestureStartCount = 0
+    internal var pinchZoomGestureStartRatio = 1f
     internal var zoomUnavailableCount = 0
+    internal var zoomApplyRequestSequence = 0L
+    internal var zoomApplyInFlight = false
+    internal var pendingCaptureAfterZoomTrigger: String? = null
     internal var lastZoomStatus = "not_used"
     internal var lastZoomRatio = 1.0
     internal var manualExposureChangeCount = 0
@@ -245,6 +250,9 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var pendingCloseAfterCapture = false
     internal var closeResultDelivered = false
     internal val capturedPhotoPaths = arrayListOf<String>()
+    // Keep the shutter zoom with the photo that actually used it. A single
+    // session-level zoom value is insufficient for multi-section receipts.
+    internal val captureShutterZoomByPath = linkedMapOf<String, Double>()
     internal var firstCapturedAt: String? = null
     internal var totalCapturedByteSize = 0L
     internal var latestCapturedPhotoWidth = 0
@@ -264,6 +272,8 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var latestCapturedSharpnessBucket = "unknown"
     internal var latestCapturedQualitySignal = "unknown"
     internal var latestCaptureLiveBrightnessAtShutter = -1.0
+    internal var latestCaptureShutterZoomRatio = 1.0
+    internal var latestCaptureShutterExposureIndex = 0
     internal var latestCapturedLiveToSavedLumaDelta = -10000.0
     internal var latestCapturedLiveToSavedLumaDeltaBucket = "unknown"
     internal var latestCapturedPreviewParitySignal = "unknown"

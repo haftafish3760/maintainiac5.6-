@@ -8,10 +8,15 @@ extension _ReceiptNativeCaptureStagingDiagnostics
     required int index,
     required int stagedPhotoCount,
     required String recoveryManifestPath,
+    double? shutterZoomRatio,
   }) {
     final bottomEdgeEvidence = _bottomEdgeEvidence(baseDiagnostics);
     return Map.unmodifiable({
       ...baseDiagnostics,
+      if (shutterZoomRatio case final zoom?) ...{
+        ReceiptCaptureDiagnosticKeys.latestCaptureShutterZoomRatio: zoom,
+        'captureShutterZoomScope': 'per_photo',
+      },
       ReceiptCaptureDiagnosticKeys.receiptBottomEdgeDetected:
           bottomEdgeEvidence.detected,
       ReceiptCaptureDiagnosticKeys.receiptBottomEdgeStatus:

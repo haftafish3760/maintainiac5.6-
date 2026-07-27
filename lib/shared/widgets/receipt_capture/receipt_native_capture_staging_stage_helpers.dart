@@ -6,6 +6,7 @@ Future<ReceiptNativeCaptureStagingResult> _stageNativeCapture(
   required ReceiptDataSaverLevel dataSaverLevel,
 }) async {
   final stagedPaths = <String>[];
+  final stagedOriginalPaths = <String>[];
   final pathMap = <String, String>{};
   final captureDiagnosticsByPath = <String, Map<String, Object?>>{};
   final stagedAttachments = <ReceiptAttachmentRecord>[];
@@ -32,6 +33,7 @@ Future<ReceiptNativeCaptureStagingResult> _stageNativeCapture(
       ),
     );
     stagedPaths.add(staged.path);
+    stagedOriginalPaths.add(originalPath);
     pathMap[originalPath] = staged.path;
     stagedAttachments.add(staged);
   }
@@ -46,12 +48,17 @@ Future<ReceiptNativeCaptureStagingResult> _stageNativeCapture(
         );
   for (var index = 0; index < stagedAttachments.length; index++) {
     final staged = stagedAttachments[index];
+    final shutterZoom = _stagedShutterZoom(
+      captureDiagnostics,
+      stagedOriginalPaths[index],
+    );
     captureDiagnosticsByPath[staged.path] = staging._stagedPhotoDiagnostics(
       baseDiagnostics: captureDiagnostics,
       staged: staged,
       index: index,
       stagedPhotoCount: stagedAttachments.length,
       recoveryManifestPath: manifestPath,
+      shutterZoomRatio: shutterZoom,
     );
   }
   return ReceiptNativeCaptureStagingResult(
@@ -61,4 +68,15 @@ Future<ReceiptNativeCaptureStagingResult> _stageNativeCapture(
     stagedAttachments: stagedAttachments,
     recoveryManifestPath: manifestPath,
   );
+}
+
+double? _stagedShutterZoom(
+  Map<String, Object?> diagnostics,
+  String originalPath,
+) {
+  final raw = diagnostics['captureShutterZoomByPath'];
+  if (raw is! Map) return null;
+  final value = raw[originalPath];
+  final zoom = value is num ? value.toDouble() : double.tryParse('$value');
+  return zoom != null && zoom.isFinite && zoom >= 1 ? zoom : null;
 }

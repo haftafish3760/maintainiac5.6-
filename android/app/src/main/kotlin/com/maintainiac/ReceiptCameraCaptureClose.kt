@@ -8,11 +8,14 @@ import java.io.File
 import java.time.Instant
 
 
-internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutter") {
+internal fun ReceiptCameraActivity.capturePhoto(
+    trigger: String = "manual_shutter",
+    recordUserIntent: Boolean = true,
+) {
     lastCaptureBlockReason = "none"
-    if (trigger == "manual_shutter" || trigger == "manual_add_photo") {
+    if (recordUserIntent && (trigger == "manual_shutter" || trigger == "manual_add_photo")) {
         manualShutterTapCount += 1
-    } else if (trigger == "auto_capture") {
+    } else if (recordUserIntent && trigger == "auto_capture") {
         autoCaptureAttemptCount += 1
     }
     val capture = imageCapture
@@ -40,6 +43,16 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
         reportManualCaptureBlocked(trigger, "camera_surface_inactive")
         return
     }
+    if (zoomApplyInFlight) {
+        if (trigger == "manual_shutter" || trigger == "manual_add_photo") {
+            pendingCaptureAfterZoomTrigger = trigger
+            lastCaptureBlockReason = "waiting_for_zoom"
+            guidance.text = "Applying zoom, then capturing your receipt."
+        } else {
+            latestAutoCaptureStatus = "waiting_for_zoom"
+        }
+        return
+    }
     // Keep provenance tied to the capture that actually begins. A blocked
     // double-tap or auto-capture attempt must not overwrite an in-flight
     // manual capture's trigger.
@@ -58,8 +71,13 @@ internal fun ReceiptCameraActivity.capturePhoto(trigger: String = "manual_shutte
     latestCaptureToReviewReadyMs = -1L
     latestCaptureLatencyBucket = "capture_started"
     latestCaptureLiveBrightnessAtShutter = latestFrameBrightness
+    val exposureState = camera?.cameraInfo?.exposureState
+    val zoomState = camera?.cameraInfo?.zoomState?.value
+    latestCaptureShutterExposureIndex = exposureState?.exposureCompensationIndex ?: 0
+    latestCaptureShutterZoomRatio = (zoomState?.zoomRatio ?: 1f).toDouble()
     shutterButton.isEnabled = false
     val outputFile = newReceiptCaptureFile()
+    captureShutterZoomByPath[outputFile.absolutePath] = latestCaptureShutterZoomRatio
     val outputOptions = ImageCapture.OutputFileOptions.Builder(outputFile).build()
     shutterButton.postDelayed(
         { handleCaptureTimeout(captureAttemptId, outputFile) },
@@ -160,6 +178,7 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
 
             override fun onError(exception: ImageCaptureException) {
                 if (!finishCaptureAttempt(captureAttemptId)) return
+                captureShutterZoomByPath.remove(outputFile.absolutePath)
                 if (!isCameraSurfaceActive() || closeResultDelivered) return
                 if (pendingCloseAfterCapture) {
                     finishPendingCloseAfterCaptureFailure()
@@ -192,6 +211,7 @@ internal fun ReceiptCameraActivity.handleCaptureTimeout(
     if (!finishCaptureAttempt(captureAttemptId) || closeResultDelivered) return
     captureTimeoutCount += 1
     outputFile.delete()
+    captureShutterZoomByPath.remove(outputFile.absolutePath)
     latestCaptureLatencyBucket = "capture_timed_out"
     lastCaptureBlockReason = "capture_timeout"
     latestAutoCaptureStatus = "capture_timeout"
