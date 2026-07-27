@@ -306,7 +306,11 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
   void _handleManualReceiptBack() {
     switch (_manualReceiptStep) {
       case _ManualReceiptStep.details:
-        Navigator.of(context).maybePop();
+        if (!_hasDraftContentWorthRecovering) {
+          Navigator.of(context).maybePop();
+          return;
+        }
+        unawaited(_confirmLeaveManualReceipt());
       case _ManualReceiptStep.items:
         _setReceiptEntryState(
           () => _manualReceiptStep = _ManualReceiptStep.details,
@@ -316,6 +320,60 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
           () => _manualReceiptStep = _ManualReceiptStep.items,
         );
     }
+  }
+
+  Future<void> _confirmLeaveManualReceipt() async {
+    final decision = await showDialog<_ManualReceiptExitDecision>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF283337),
+        title: const Text(
+          'Leave this receipt?',
+          style: TextStyle(
+            color: Color(0xFFF2F7F8),
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        content: const Text(
+          'Your receipt is not finished. Save a local draft to continue later, or exit without saving this work.',
+          style: TextStyle(
+            color: Color(0xFFB7C8CE),
+            fontWeight: FontWeight.w700,
+            height: 1.3,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Keep editing'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_ManualReceiptExitDecision.discard),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: const Text('Exit without saving'),
+          ),
+          FilledButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_ManualReceiptExitDecision.saveDraft),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF28A745),
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Save draft and exit'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || decision == null) return;
+    if (decision == _ManualReceiptExitDecision.saveDraft) {
+      if (await _saveDraftNow() && mounted) {
+        Navigator.of(context).maybePop();
+      }
+      return;
+    }
+    await _drafts?.deleteDraft(_draftId);
+    if (mounted) Navigator.of(context).maybePop();
   }
 
   void _continueFromManualReceiptDetails() {
@@ -365,6 +423,8 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     await _setReceiptLineUse(index, use);
   }
 }
+
+enum _ManualReceiptExitDecision { saveDraft, discard }
 
 extension _ManualReceiptStepSettings on _ManualReceiptStep {
   String get vehicleHeaderLabel => switch (this) {
