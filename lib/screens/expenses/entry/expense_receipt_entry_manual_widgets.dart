@@ -1,10 +1,15 @@
 part of 'expense_receipt_entry_screen.dart';
 
 class _ManualReceiptHeader extends StatelessWidget {
-  const _ManualReceiptHeader({required this.step, required this.onBack});
+  const _ManualReceiptHeader({
+    required this.step,
+    required this.onBack,
+    required this.onStepSelected,
+  });
 
   final _ManualReceiptStep step;
   final VoidCallback onBack;
+  final ValueChanged<_ManualReceiptStep> onStepSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -58,37 +63,77 @@ class _ManualReceiptHeader extends StatelessWidget {
                     padding: EdgeInsets.only(
                       right: itemIndex == labels.length - 1 ? 0 : 6,
                     ),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: itemIndex == index
-                            ? const Color(0xFFFFD166)
-                            : itemIndex < index
-                            ? const Color(0xFF2D7A4B)
-                            : const Color(0xFF344247),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 7),
-                        child: Text(
-                          labels[itemIndex],
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: itemIndex == index
-                                ? const Color(0xFF1F2528)
-                                : itemIndex < index
-                                ? Colors.white
-                                : const Color(0xFFB7C8CE),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
+                    child: _ManualReceiptStepButton(
+                      label: labels[itemIndex],
+                      step: _ManualReceiptStep.values[itemIndex],
+                      selected: itemIndex == index,
+                      completed: itemIndex < index,
+                      enabled: itemIndex <= index,
+                      onPressed: onStepSelected,
                     ),
                   ),
                 ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ManualReceiptStepButton extends StatelessWidget {
+  const _ManualReceiptStepButton({
+    required this.label,
+    required this.step,
+    required this.selected,
+    required this.completed,
+    required this.enabled,
+    required this.onPressed,
+  });
+
+  final String label;
+  final _ManualReceiptStep step;
+  final bool selected;
+  final bool completed;
+  final bool enabled;
+  final ValueChanged<_ManualReceiptStep> onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final background = selected
+        ? const Color(0xFFFFD166)
+        : completed
+        ? const Color(0xFF2D7A4B)
+        : const Color(0xFF344247);
+    final foreground = selected
+        ? const Color(0xFF1F2528)
+        : completed
+        ? Colors.white
+        : const Color(0xFFB7C8CE);
+    return Semantics(
+      button: true,
+      selected: selected,
+      enabled: enabled,
+      label: '$label step',
+      child: Material(
+        color: background,
+        borderRadius: BorderRadius.circular(6),
+        child: InkWell(
+          onTap: enabled ? () => onPressed(step) : null,
+          borderRadius: BorderRadius.circular(6),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 7),
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: foreground,
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

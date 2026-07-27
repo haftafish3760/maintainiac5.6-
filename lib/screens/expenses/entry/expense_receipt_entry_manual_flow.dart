@@ -17,6 +17,7 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
             _ManualReceiptHeader(
               step: _manualReceiptStep,
               onBack: _handleManualReceiptBack,
+              onStepSelected: _selectManualReceiptStep,
             ),
             GlobalOdometerHeader(
               section: AppSection.expenses,
@@ -379,6 +380,12 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
   void _continueFromManualReceiptDetails() {
     _setReceiptEntryState(() => _manualReceiptStep = _ManualReceiptStep.items);
     _scheduleDraftSave();
+  }
+
+  void _selectManualReceiptStep(_ManualReceiptStep target) {
+    if (target.index > _manualReceiptStep.index) return;
+    if (target == _ManualReceiptStep.review && _lines.isEmpty) return;
+    _setReceiptEntryState(() => _manualReceiptStep = target);
   }
 
   void _continueFromManualReceiptItems() {
