@@ -42,3 +42,26 @@ Source: visible user message, 2026-07-12
   Use localizable UI copy rather than hard-coded English so Spanish support
   does not become a later rewrite. Receipt evidence and user-entered merchant
   text remain unchanged; only app-controlled UI is translated.
+
+Source: visible user messages, 2026-07-26 Receipt entry refactor
+
+- After photo review, show one concise Extracting Receipt Information surface,
+  then reveal the selected editable receipt form rather than developer-style
+  pipeline cards.
+- The detailed form begins with OCR-suggested merchant/contact information and
+  presents numbered printed item rows with description, quantity, unit price,
+  line total, classification, and category controls. The user confirms all
+  suggestions before saving.
+- Total Only and Category Summary intentionally hide item rows. Detailed Items
+  always provides Add Item, including when OCR returns no usable text.
+- Failed or timed-out OCR keeps the receipt proof and opens the same form for
+  manual completion instead of leaving an indefinite spinner.
+
+Source: visible user message, 2026-07-26 Manual receipt layout polish
+
+- The manual Details step must not lead with generic helper copy. Its first
+  action is a compact bordered Odometer card using concise instructional copy:
+  "Enter your current odometer to add it to the receipt."
+- Details, Items, and Review keep the pinned vehicle header and each header gear
+  opens settings titled for the exact current step. Step indicators use compact
+  squared tabs, not social-media-style pill containers.

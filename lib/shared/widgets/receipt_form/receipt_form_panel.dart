@@ -61,8 +61,8 @@ class ReceiptFormPanel extends StatelessWidget {
                       Expanded(
                         child: Text(
                           title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          maxLines: 2,
+                          softWrap: true,
                           style: const TextStyle(
                             color: Color(0xFFE8ECEE),
                             fontSize: 16,

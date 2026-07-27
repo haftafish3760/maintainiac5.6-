@@ -216,9 +216,14 @@ class _ReceiptReadProgressSteps extends StatelessWidget {
               labels[index],
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: index <= current
+                // Keep the current phase unmistakable. Completed work is
+                // quiet green; future work is muted instead of appearing
+                // active while OCR is still running.
+                color: index == current
                     ? const Color(0xFFFFD166)
-                    : const Color(0xFF8FA0A8),
+                    : index < current
+                    ? const Color(0xFF8EF6A4)
+                    : const Color(0xFF6F7D83),
                 fontSize: 10,
                 fontWeight: FontWeight.w900,
                 height: 1.12,

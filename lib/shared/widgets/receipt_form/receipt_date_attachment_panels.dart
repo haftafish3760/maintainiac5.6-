@@ -116,8 +116,8 @@ class _ReceiptContextButton extends StatelessWidget {
                     Text(requiredText, style: _style(10, FontWeight.w700)),
                     Text(
                       value,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      softWrap: true,
                       style: _style(13, FontWeight.w800),
                     ),
                   ],

@@ -5,11 +5,13 @@ class _OverlayIconButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.foregroundColor = Colors.white,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
+  final Color foregroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +21,7 @@ class _OverlayIconButton extends StatelessWidget {
       icon: Icon(icon),
       style: IconButton.styleFrom(
         backgroundColor: const Color(0xDD11181B),
-        foregroundColor: Colors.white,
+        foregroundColor: foregroundColor,
         disabledBackgroundColor: const Color(0x6611181B),
         disabledForegroundColor: const Color(0xFF6E7B81),
         minimumSize: const Size(44, 44),

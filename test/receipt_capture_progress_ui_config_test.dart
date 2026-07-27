@@ -29,6 +29,9 @@ void main() {
     expect(panel, contains('_ReceiptReadProgressPhase.idle'));
     expect(status, contains('class _ReceiptReadProgressSteps'));
     expect(status, contains('uiConfig.showReadProgressSteps'));
+    expect(status, contains('color: index == current'));
+    expect(status, contains('index < current'));
+    expect(status, isNot(contains('color: index <= current')));
     expect(reviewRead, contains('_ReceiptReadProgressPhase.accepted'));
     expect(ocr, contains('_ReceiptReadProgressPhase.readingText'));
     expect(ocr, contains('_ReceiptReadProgressPhase.openingDetails'));

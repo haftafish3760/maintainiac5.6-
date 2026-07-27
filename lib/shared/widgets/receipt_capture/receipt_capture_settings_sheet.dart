@@ -6,12 +6,14 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
     required this.area,
     required this.hasSavedReceiptProof,
     this.uiConfig = const ReceiptCaptureUiConfig(),
+    this.screenContext,
   });
 
   final ReceiptCaptureSettingsController settings;
   final ReceiptCaptureArea area;
   final bool hasSavedReceiptProof;
   final ReceiptCaptureUiConfig uiConfig;
+  final ReceiptSettingsScreenContext? screenContext;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _settingsTitle(area),
+                      screenContext?.title ?? _settingsTitle(area),
                       style: const TextStyle(
                         color: Color(0xFFE8ECEE),
                         fontSize: 20,
@@ -60,6 +62,7 @@ class _ReceiptCaptureSettingsScreen extends StatelessWidget {
                 hasSavedReceiptProof: hasSavedReceiptProof,
                 showTitle: false,
                 uiConfig: uiConfig,
+                screenContext: screenContext,
               ),
             ),
           ],
@@ -84,6 +87,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
     required this.hasSavedReceiptProof,
     this.uiConfig = const ReceiptCaptureUiConfig(),
     this.showTitle = true,
+    this.screenContext,
   });
 
   final ReceiptCaptureSettingsController settings;
@@ -91,6 +95,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
   final bool hasSavedReceiptProof;
   final bool showTitle;
   final ReceiptCaptureUiConfig uiConfig;
+  final ReceiptSettingsScreenContext? screenContext;
 
   @override
   Widget build(BuildContext context) {
@@ -119,7 +124,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 const SizedBox(height: 6),
               ],
               Text(
-                _settingsSubtitle(area),
+                screenContext?.subtitle ?? _settingsSubtitle(area),
                 style: const TextStyle(
                   color: Color(0xFFC8D0D3),
                   fontSize: 12,
@@ -128,10 +133,18 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const _ReceiptSettingsNote(
+              if (screenContext != null) ...[
+                _ReceiptSettingsNote(
+                  icon: Icons.tune_rounded,
+                  text: screenContext!.description,
+                ),
+                const SizedBox(height: 8),
+              ],
+              _ReceiptSettingsNote(
                 icon: Icons.route_rounded,
                 text:
-                    'Recommended flow: add receipt, review photos, then Save & Continue to review the filled details. Capture settings do not replace your phone camera software.',
+                    screenContext?.workflowNote ??
+                    'Recommended flow: add receipt, review photos, then continue to review the filled details. Capture settings do not replace your phone camera software.',
               ),
               const SizedBox(height: 8),
               const _ReceiptBackupStorageSummary(),
@@ -142,10 +155,8 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 title: _assistedReceiptTitle(area),
                 detail: _assistedReceiptDetail(area),
               ),
-              if (hasSavedReceiptProof) ...[
-                const SizedBox(height: 8),
-                _ReceiptDataSaverDefaultPicker(settings: settings),
-              ],
+              const SizedBox(height: 8),
+              _ReceiptDataSaverDefaultPicker(settings: settings),
               if (expenseSettings != null) ...[
                 const SizedBox(height: 8),
                 _ExpenseReceiptReviewDefaultPicker(settings: expenseSettings),
@@ -167,7 +178,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                 const _ReceiptSettingsNote(
                   icon: Icons.photo_library_outlined,
                   text:
-                      'Saved Receipt Proof Size appears after your first receipt photo or file is attached. The review screen then shows the actual proof size and lets you inspect readability before saving.',
+                      'Your next receipt review shows the actual saved-proof size and lets you inspect readability before saving.',
                 ),
                 const SizedBox(height: 8),
                 const _ReceiptSettingsNote(

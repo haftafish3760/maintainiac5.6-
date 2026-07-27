@@ -1,9 +1,13 @@
 part of 'receipt_store_panel.dart';
 
 class _StoreInformationSheet extends StatefulWidget {
-  const _StoreInformationSheet({required this.initial});
+  const _StoreInformationSheet({
+    required this.initial,
+    required this.storeRequired,
+  });
 
   final _StoreInformationDraft initial;
+  final bool storeRequired;
 
   @override
   State<_StoreInformationSheet> createState() => _StoreInformationSheetState();
@@ -50,8 +54,10 @@ class _StoreInformationSheetState extends State<_StoreInformationSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
-    final heightFactor = bottomInset > 0 ? 0.74 : 0.92;
+    final keyboardInset = MediaQuery.viewInsetsOf(context).bottom;
+    final safeBottom = MediaQuery.paddingOf(context).bottom;
+    final bottomInset = keyboardInset > safeBottom ? keyboardInset : safeBottom;
+    final heightFactor = keyboardInset > 0 ? 0.74 : 0.92;
 
     return AnimatedPadding(
       duration: const Duration(milliseconds: 180),
@@ -91,8 +97,10 @@ class _StoreInformationSheetState extends State<_StoreInformationSheet> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Store name is required. Everything else is optional.',
+                Text(
+                  widget.storeRequired
+                      ? 'Store name is required. Everything else is optional.'
+                      : 'All store details are optional.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFFD4DDE1),
@@ -109,7 +117,7 @@ class _StoreInformationSheetState extends State<_StoreInformationSheet> {
                     children: [
                       RecordTextField(
                         label: 'Store Name',
-                        helperText: 'Required',
+                        helperText: widget.storeRequired ? 'Required' : null,
                         controller: _store,
                         textInputAction: TextInputAction.next,
                       ),
@@ -148,10 +156,7 @@ class _StoreInformationSheetState extends State<_StoreInformationSheet> {
                               controller: _zip,
                               keyboardType: TextInputType.number,
                               textInputAction: TextInputAction.next,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(5),
-                              ],
+                              inputFormatters: [UsZipCodeFormatter()],
                             ),
                           ),
                         ],
@@ -194,14 +199,11 @@ class _StoreInformationSheetState extends State<_StoreInformationSheet> {
                 Row(
                   children: [
                     Expanded(
-                      child: OutlinedButton(
+                      child: FilledButton(
                         onPressed: () => Navigator.of(context).pop(),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFFE8ECEE),
-                          side: const BorderSide(
-                            color: Color(0xFF8F9BA1),
-                            width: 1.2,
-                          ),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFFC62828),
+                          foregroundColor: Colors.white,
                           minimumSize: const Size.fromHeight(48),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(5),
@@ -222,7 +224,7 @@ class _StoreInformationSheetState extends State<_StoreInformationSheet> {
                             borderRadius: BorderRadius.circular(5),
                           ),
                         ),
-                        child: const Text('Save And Continue'),
+                        child: const Text('Save Store Details'),
                       ),
                     ),
                   ],
@@ -236,7 +238,7 @@ class _StoreInformationSheetState extends State<_StoreInformationSheet> {
   }
 
   void _save() {
-    if (_store.text.trim().isEmpty) {
+    if (widget.storeRequired && _store.text.trim().isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Store name is required.')));

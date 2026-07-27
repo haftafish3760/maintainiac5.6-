@@ -33,6 +33,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
             _OverlayIconButton(
               icon: Icons.close_rounded,
               label: 'Cancel crop',
+              foregroundColor: const Color(0xFFFF8A80),
               onPressed: onClose,
             ),
             const SizedBox(width: 8),
@@ -85,6 +86,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
           _OverlayIconButton(
             icon: Icons.arrow_back_rounded,
             label: 'Leave photo review',
+            foregroundColor: const Color(0xFFFF8A80),
             onPressed: onClose,
           ),
           const SizedBox(width: 8),

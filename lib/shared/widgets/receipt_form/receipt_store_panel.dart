@@ -6,6 +6,7 @@ import 'receipt_form_panel.dart';
 
 part 'receipt_store_panel_sheet.dart';
 part 'receipt_store_panel_support.dart';
+part 'receipt_store_panel_controller.dart';
 
 class SharedReceiptStorePanel extends StatefulWidget {
   const SharedReceiptStorePanel({
@@ -20,6 +21,8 @@ class SharedReceiptStorePanel extends StatefulWidget {
     required this.website,
     required this.notes,
     required this.onChanged,
+    this.storeRequired = false,
+    this.controller,
   });
 
   final TextEditingController store;
@@ -32,6 +35,8 @@ class SharedReceiptStorePanel extends StatefulWidget {
   final TextEditingController website;
   final TextEditingController notes;
   final VoidCallback onChanged;
+  final bool storeRequired;
+  final SharedReceiptStorePanelController? controller;
 
   @override
   State<SharedReceiptStorePanel> createState() =>
@@ -40,6 +45,18 @@ class SharedReceiptStorePanel extends StatefulWidget {
 
 class _SharedReceiptStorePanelState extends State<SharedReceiptStorePanel> {
   bool _sheetOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller?._bind(() => _openStoreForm(context));
+  }
+
+  @override
+  void dispose() {
+    widget.controller?._detach();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,8 +73,9 @@ class _SharedReceiptStorePanelState extends State<SharedReceiptStorePanel> {
 
     return ReceiptFormPanel(
       title: 'Store Information',
-      subtitle:
-          'Store name is required. Contact and address details can be added when available.',
+      subtitle: widget.storeRequired
+          ? 'Store name is required. Contact and address details can be added when available.'
+          : 'Optional. Add the store details when they are useful for this record.',
       icon: Icons.storefront_rounded,
       accentColor: const Color(0xFF79C8FF),
       children: [
@@ -94,8 +112,8 @@ class _SharedReceiptStorePanelState extends State<SharedReceiptStorePanel> {
                     children: [
                       Text(
                         hasStore ? widget.store.text.trim() : 'Store Info',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
                         style: const TextStyle(
                           color: Color(0xFFE8ECEE),
                           fontSize: 15,
@@ -110,8 +128,8 @@ class _SharedReceiptStorePanelState extends State<SharedReceiptStorePanel> {
                                   ? 'Address not entered'
                                   : location)
                             : 'Name, street, city, state, ZIP, phone, web',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        maxLines: 3,
+                        softWrap: true,
                         style: const TextStyle(
                           color: Color(0xFFD4DDE1),
                           fontSize: 11,
@@ -142,6 +160,7 @@ class _SharedReceiptStorePanelState extends State<SharedReceiptStorePanel> {
         useSafeArea: true,
         backgroundColor: Colors.transparent,
         builder: (context) => _StoreInformationSheet(
+          storeRequired: widget.storeRequired,
           initial: _StoreInformationDraft(
             store: widget.store.text,
             phone: widget.phone.text,

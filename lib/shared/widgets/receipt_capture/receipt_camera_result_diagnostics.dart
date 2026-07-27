@@ -19,6 +19,11 @@ extension ReceiptCameraCaptureEvidenceDiagnostics
       'exposurePointSupported': exposurePointSupported,
       'focusPointSupported': focusPointSupported,
       'zoomLevelBucket': _zoomBucket(zoomLevel),
+      // Keep the exact native shutter zoom in the review handoff. The bucket
+      // is useful for diagnostics, but it cannot prove that capture and
+      // review used the same framing.
+      ReceiptCaptureDiagnosticKeys.latestCaptureShutterZoomRatio:
+          _finiteDouble(zoomLevel),
       'nativeZoomRangeBucket':
           '${_zoomBucket(minZoomLevel)}_${_zoomBucket(maxZoomLevel)}',
       'latestBrightnessBucket': _brightnessBucket(
