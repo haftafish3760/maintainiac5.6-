@@ -2,8 +2,27 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
   Widget _buildReceiptEntryScaffold(BuildContext context) {
+    if (_usesRebuiltManualDetailedReceiptFlow) {
+      return _buildManualDetailedReceiptFlow(context);
+    }
+    return _buildLegacyReceiptEntryScaffold(context);
+  }
+
+  Widget _buildLegacyReceiptEntryScaffold(BuildContext context) {
     final showAttachmentBeforeReview = !_receiptReviewFlowStarted;
     final receiptAttachmentPanel = _buildReceiptAttachmentPanel(context);
+    final showSharedReceiptLines =
+        _lines.isNotEmpty &&
+        (_detailEntryMode != _ReceiptDetailEntryMode.basicReceipt ||
+            widget.initialCategory == 'Fuel' ||
+            _isMaterialsFlow ||
+            _isMaintenanceRepairFlow);
+    final showClassificationSuggestion =
+        _receiptClassification != null &&
+        _receiptClassification!.kind !=
+            ExpenseReceiptClassificationKind.expenseReceipt &&
+        _receiptClassification!.kind !=
+            ExpenseReceiptClassificationKind.ambiguous;
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
       body: SafeArea(
@@ -25,7 +44,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                   : 'Expense Receipt',
             ),
             const SizedBox(height: 8),
-            if (showAttachmentBeforeReview) ...[
+            if (showAttachmentBeforeReview && _showReceiptEntryGuide) ...[
               const _ReceiptEntryStartGuide(),
               const SizedBox(height: 8),
             ],
@@ -44,7 +63,17 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
             const SizedBox(height: 6),
             const GlobalOdometerHeader(section: AppSection.expenses),
             const SizedBox(height: 8),
+            _ExpenseOdometerPanel(
+              reading: _expenseOdometerReading,
+              onEdit: _editExpenseOdometerReading,
+            ),
+            const SizedBox(height: 8),
             _buildJobContextPanel(context),
+            const SizedBox(height: 8),
+            _ReceiptDetailLevelPanel(
+              selectedMode: _detailEntryMode,
+              onSelected: _selectReceiptDetailMode,
+            ),
             const SizedBox(height: 8),
             if (_isMaterialsFlow) ...[
               _InventoryTrackingPrompt(
@@ -69,6 +98,25 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               },
             ),
             const SizedBox(height: 8),
+            SharedReceiptStorePanel(
+              store: _storeController,
+              phone: _phoneController,
+              street: _streetController,
+              city: _cityController,
+              state: _stateController,
+              zip: _zipController,
+              email: _emailController,
+              website: _websiteController,
+              notes: _storeNotesController,
+              onChanged: () {
+                _setReceiptEntryState(() {});
+                _scheduleDraftSave();
+              },
+            ),
+            const SizedBox(height: 8),
+            // A receipt belongs to a merchant. Put the optional proof after
+            // the store fields so a manual detailed receipt reads top to
+            // bottom like a real receipt form: date, merchant, proof, lines.
             KeyedSubtree(
               key: _receiptReadHandoffKey,
               child: Column(
@@ -89,10 +137,18 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                     ),
                     const SizedBox(height: 8),
                   ],
-                  if (showAttachmentBeforeReview) ...[
-                    receiptAttachmentPanel,
-                    const SizedBox(height: 8),
-                  ],
+                  // OCR is started by the shared attachment panel. Keep that
+                  // stateful widget mounted while the parent swaps from the
+                  // capture controls to the receipt-review progress card.
+                  Offstage(
+                    offstage: !showAttachmentBeforeReview,
+                    child: Column(
+                      children: [
+                        receiptAttachmentPanel,
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -113,7 +169,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                       onAddMissingBottomSection: _scrollToReceiptPhotoRecovery,
                     ),
                     const SizedBox(height: 8),
-                    if (_receiptClassification != null) ...[
+                    if (showClassificationSuggestion) ...[
                       _ReceiptClassificationReviewPanel(
                         classification: _receiptClassification!,
                         parseQuality: _lastParseQuality,
@@ -129,47 +185,6 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                     ],
                     if (_lines.isEmpty) ...[
                       _buildReceiptNoLineRecoveryPanel(),
-                      const SizedBox(height: 8),
-                    ],
-                    if (_lines.isNotEmpty) ...[
-                      _ReceiptWholeUseReviewPanel(
-                        lines: _lines,
-                        onMarkBusiness: () =>
-                            _markAllReceiptLines(_ExpenseLineUse.business),
-                        onMarkPersonal: () =>
-                            _markAllReceiptLines(_ExpenseLineUse.personal),
-                        onMarkMixed: () =>
-                            _markAllReceiptLines(_ExpenseLineUse.split),
-                      ),
-                      const SizedBox(height: 8),
-                      if (_lines.any((line) => line.hasParserReview)) ...[
-                        _ReceiptLineEvidenceReviewPanel(
-                          lines: _lines,
-                          onConfirm: _confirmParsedLine,
-                          onEdit: (index) =>
-                              _editLine(index: index, initial: _lines[index]),
-                          onMarkExpenseOnly: _markLineExpenseOnly,
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      _ReceiptRecapPanel(
-                        lines: _lines,
-                        storeName: _storeController.text.trim(),
-                        storeAddress: _receiptStoreAddressLabel,
-                        receiptDateLabel: _receiptDateLabel,
-                        receiptSubtotal: _enteredReceiptSubtotal,
-                        salesTax: _enteredReceiptTax,
-                        receiptTotal: _receiptTotal,
-                        businessTotal: _businessTotal,
-                        personalTotal: _personalTotal,
-                        onEdit: (index) =>
-                            _editLine(index: index, initial: _lines[index]),
-                        onSetUse: _setReceiptLineUse,
-                        onDelete: (index) {
-                          _setReceiptEntryState(() => _lines.removeAt(index));
-                          _scheduleDraftSave();
-                        },
-                      ),
                       const SizedBox(height: 8),
                     ],
                   ],
@@ -192,27 +207,6 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               ),
               const SizedBox(height: 8),
             ],
-            SharedReceiptStorePanel(
-              store: _storeController,
-              phone: _phoneController,
-              street: _streetController,
-              city: _cityController,
-              state: _stateController,
-              zip: _zipController,
-              email: _emailController,
-              website: _websiteController,
-              notes: _storeNotesController,
-              onChanged: () {
-                _setReceiptEntryState(() {});
-                _scheduleDraftSave();
-              },
-            ),
-            const SizedBox(height: 8),
-            _ExpenseOdometerPanel(
-              reading: _expenseOdometerReading,
-              onEdit: _editExpenseOdometerReading,
-            ),
-            const SizedBox(height: 8),
             _ReceiptLineActionsPanel(
               nextLineNumber: _lines.length + 1,
               materialMode: _isMaterialsFlow,
@@ -226,15 +220,15 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                 use: _ExpenseLineUse.business,
                 category: _isMaterialsFlow
                     ? 'Materials'
-                    : widget.initialCategory ?? 'Uncategorized',
+                    : _newReceiptLineCategory,
               ),
               onAddPersonal: () => _addReceiptLineForMode(
                 use: _ExpenseLineUse.personal,
-                category: widget.initialCategory ?? 'Uncategorized',
+                category: _newReceiptLineCategory,
               ),
               onAddShared: () => _addReceiptLineForMode(
                 use: _ExpenseLineUse.split,
-                category: widget.initialCategory ?? 'Uncategorized',
+                category: _newReceiptLineCategory,
               ),
               onAddMaterial: () => _editLine(
                 initial: _ExpenseReceiptLine.blank(category: 'Materials'),
@@ -246,8 +240,52 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                       : 'Repair',
                 ),
               ),
+              onSwitchToCategoryLines: () => _selectReceiptDetailMode(
+                _ReceiptDetailEntryMode.quickClassify,
+              ),
             ),
             const SizedBox(height: 8),
+            if (showSharedReceiptLines) ...[
+              _ReceiptWholeUseReviewPanel(
+                lines: _lines,
+                onMarkBusiness: () =>
+                    _markAllReceiptLines(_ExpenseLineUse.business),
+                onMarkPersonal: () =>
+                    _markAllReceiptLines(_ExpenseLineUse.personal),
+                onMarkMixed: () => _markAllReceiptLines(_ExpenseLineUse.split),
+              ),
+              const SizedBox(height: 8),
+              _ReceiptRecapPanel(
+                lines: _lines,
+                storeName: _storeController.text.trim(),
+                storeAddress: _receiptStoreAddressLabel,
+                receiptDateLabel: _receiptDateLabel,
+                receiptSubtotal: _enteredReceiptSubtotal,
+                salesTax: _enteredReceiptTax,
+                receiptTotal: _receiptTotal,
+                businessTotal: _businessTotal,
+                personalTotal: _personalTotal,
+                detailMode: _detailEntryMode,
+                onEdit: (index) =>
+                    _editLine(index: index, initial: _lines[index]),
+                onSetUse: _setReceiptLineUse,
+                onDelete: (index) {
+                  _setReceiptEntryState(() => _lines.removeAt(index));
+                  _scheduleDraftSave();
+                },
+              ),
+              const SizedBox(height: 8),
+              if (_lines.any((line) => line.hasParserReview)) ...[
+                _ReceiptLineEvidenceReviewPanel(
+                  lines: _lines,
+                  onConfirm: _confirmParsedLine,
+                  onEdit: (index) =>
+                      _editLine(index: index, initial: _lines[index]),
+                  onMarkExpenseOnly: _markLineExpenseOnly,
+                ),
+                const SizedBox(height: 8),
+              ],
+            ],
             _ReceiptTotalsPanel(
               detailMode: _detailEntryMode,
               lineSubtotal: _lineSubtotal,
@@ -256,7 +294,17 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               receiptTotalController: _receiptTotalController,
             ),
             const SizedBox(height: 8),
+            if (_detailEntryMode == _ReceiptDetailEntryMode.basicReceipt) ...[
+              _ReceiptSummaryUsePanel(
+                detailMode: _detailEntryMode,
+                selectedCategory: _receiptCategory,
+                onCategorySelected: _selectReceiptCategory,
+                onUseSelected: _setReceiptSummaryUse,
+              ),
+              const SizedBox(height: 8),
+            ],
             _ReceiptSavePanel(
+              detailMode: _detailEntryMode,
               lineCount: _lines.length,
               reviewCount: _lines
                   .where((line) => line.parserNeedsReview)
