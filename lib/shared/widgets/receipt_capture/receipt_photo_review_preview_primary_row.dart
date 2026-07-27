@@ -301,7 +301,8 @@ class _ReceiptCompactPreviewActions extends StatelessWidget {
               _ReceiptCompactPreviewTextAction(
                 icon: Icons.add_a_photo_rounded,
                 label: 'Add photo',
-                tooltip: strings.addAnotherReceiptPhoto,
+                tooltip: 'Add another receipt photo',
+                semanticLabel: strings.addAnotherReceiptPhoto,
                 onPressed: savingPhotos ? null : onAddPhoto,
               ),
               Expanded(
@@ -356,12 +357,14 @@ class _ReceiptCompactPreviewTextAction extends StatelessWidget {
     required this.label,
     required this.tooltip,
     required this.onPressed,
+    this.semanticLabel,
   });
 
   final IconData icon;
   final String label;
   final String tooltip;
   final VoidCallback? onPressed;
+  final String? semanticLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -371,7 +374,7 @@ class _ReceiptCompactPreviewTextAction extends StatelessWidget {
         message: tooltip,
         child: Semantics(
           button: true,
-          label: tooltip,
+          label: semanticLabel ?? tooltip,
           child: TextButton.icon(
             onPressed: onPressed,
             icon: Icon(icon, size: 15),
