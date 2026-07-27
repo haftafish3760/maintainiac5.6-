@@ -60,8 +60,10 @@ class _ManualReceiptHeader extends StatelessWidget {
                     ),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: itemIndex <= index
-                            ? const Color(0xFF2383C7)
+                        color: itemIndex == index
+                            ? const Color(0xFFFFD166)
+                            : itemIndex < index
+                            ? const Color(0xFF2D7A4B)
                             : const Color(0xFF344247),
                         borderRadius: BorderRadius.circular(6),
                       ),
@@ -71,7 +73,9 @@ class _ManualReceiptHeader extends StatelessWidget {
                           labels[itemIndex],
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: itemIndex <= index
+                            color: itemIndex == index
+                                ? const Color(0xFF1F2528)
+                                : itemIndex < index
                                 ? Colors.white
                                 : const Color(0xFFB7C8CE),
                             fontSize: 11,
