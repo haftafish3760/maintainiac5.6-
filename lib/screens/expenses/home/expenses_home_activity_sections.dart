@@ -205,9 +205,19 @@ class _ReceiptDraftsPanelState extends State<ReceiptDraftsPanel> {
                 ),
               ),
               const SizedBox(height: 10),
-              for (final draft in drafts) _DraftRow(draft: draft),
-              for (final photoDraft in photoDrafts)
-                _PhotoDraftRow(draft: photoDraft),
+              ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(sheetContext).height * .78,
+                ),
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final draft in drafts) _DraftRow(draft: draft),
+                    for (final photoDraft in photoDrafts)
+                      _PhotoDraftRow(draft: photoDraft),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -267,6 +277,7 @@ class _PhotoDraftRow extends StatelessWidget {
                 IconButton(
                   tooltip: 'Delete receipt draft',
                   onPressed: () async {
+                    if (!await _confirmDraftDeletion(context)) return;
                     await const ReceiptNativeCaptureStaging()
                         .discardRecoveryRecord(draft);
                     if (context.mounted) Navigator.of(context).pop();
@@ -293,9 +304,18 @@ class _DraftRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final draftController = ExpenseDraftScope.maybeOf(context);
     final lineText = draft.lines.length == 1
         ? '1 line'
         : '${draft.lines.length} lines';
+    final proofText = draft.hasReceiptAttachment
+        ? '${draft.attachments.length} receipt ${draft.attachments.length == 1 ? 'photo' : 'photos'} attached'
+        : 'No receipt photo attached';
+    final reviewText = draft.receiptReadAttemptedWithoutText
+        ? 'Needs manual review'
+        : draft.rawOcrText.trim().isNotEmpty || draft.lines.isNotEmpty
+        ? 'Receipt details ready to review'
+        : 'Continue entering receipt details';
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Material(
@@ -333,15 +353,28 @@ class _DraftRow extends StatelessWidget {
                           letterSpacing: 0,
                         ),
                       ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$proofText | $reviewText',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF9CB0B8),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          height: 1.2,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
-                    onTap: () => ExpenseDraftScope.maybeOf(
-                      context,
-                    )?.deleteDraft(draft.id),
+                    onTap: () async {
+                      if (!await _confirmDraftDeletion(context)) return;
+                      await draftController?.deleteDraft(draft.id);
+                    },
                     borderRadius: BorderRadius.circular(6),
                     child: const Padding(
                       padding: EdgeInsets.all(6),
@@ -360,4 +393,28 @@ class _DraftRow extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<bool> _confirmDraftDeletion(BuildContext context) async {
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Delete this draft?'),
+      content: const Text(
+        'This saved receipt draft and its attached photos will be removed.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(backgroundColor: _red),
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+  return result ?? false;
 }
