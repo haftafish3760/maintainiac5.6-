@@ -12,6 +12,11 @@ extension _ExpenseReceiptEntryLifecycleHelpers
             : 'EXPD-EDIT-${widget.receiptId}');
     final date = widget.initialDate ?? DateTime.now();
     _selectedDate = DateTime(date.year, date.month, date.day);
+    _receiptCategory = widget.initialCategory?.trim().isNotEmpty == true
+        ? widget.initialCategory!.trim()
+        : 'Uncategorized';
+    _receiptCategoryAppliesToAll =
+        widget.initialCategory?.trim().isNotEmpty == true;
     _receiptAttachments.addAll(widget.initialAttachments);
     _lastAttachmentCount = _receiptAttachments.length;
     _hasReceipt = _receiptAttachments.isNotEmpty;
@@ -68,6 +73,7 @@ extension _ExpenseReceiptEntryLifecycleHelpers
   void _handleReceiptEntryDependencies() {
     _telemetrySnapshot = ExpenseScreenTelemetryRecorder.snapshot(context);
     _drafts = ExpenseDraftScope.maybeOf(context);
+    final expenseSettings = ExpenseSettingsScope.of(context);
     if (_expenseContext.isEmpty) {
       final activeVehicle = AppStateScope.of(context).activeVehicle;
       final activeWorkProfile = ExpenseWorkProfileScope.of(
@@ -88,8 +94,16 @@ extension _ExpenseReceiptEntryLifecycleHelpers
     if (!_appliedReceiptReviewStyleDefault) {
       _appliedReceiptReviewStyleDefault = true;
       _detailEntryMode = _ReceiptDetailEntryModeX.fromSettingsStyle(
-        ExpenseSettingsScope.of(context).receiptReviewStyle,
+        expenseSettings.receiptReviewStyle,
       );
+    }
+    if (!_receiptEntryGuideInitialized) {
+      _receiptEntryGuideInitialized = true;
+      _showReceiptEntryGuide =
+          !_isEditingReceipt && !expenseSettings.receiptEntryGuideSeen;
+      if (_showReceiptEntryGuide) {
+        unawaited(expenseSettings.markReceiptEntryGuideSeen());
+      }
     }
     if (_draftLoaded) return;
     _draftLoaded = true;

@@ -6,7 +6,8 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
       widget.mode == ExpenseReceiptFlowMode.general &&
       widget.initialCategory != 'Fuel' &&
       !_isMaterialsFlow &&
-      !_isMaintenanceRepairFlow;
+      !_isMaintenanceRepairFlow &&
+      _detailEntryMode == _ReceiptDetailEntryMode.detailedItems;
 
   Widget _buildManualDetailedReceiptFlow(BuildContext context) {
     return Scaffold(
