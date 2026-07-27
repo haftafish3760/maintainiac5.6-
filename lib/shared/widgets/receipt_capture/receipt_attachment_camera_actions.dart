@@ -165,6 +165,7 @@ extension _ReceiptAttachmentCameraActions
             ? ReceiptNativeReviewDepth.pricesOnly
             : ReceiptNativeReviewDepth.detailedLines,
       ExpenseReceiptReviewStyle.simpleAmounts ||
+      ExpenseReceiptReviewStyle.askEachTime ||
       null => ReceiptNativeReviewDepth.pricesOnly,
     };
   }

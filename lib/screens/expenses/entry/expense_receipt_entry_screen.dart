@@ -32,6 +32,7 @@ import '../data/expense_receipt_user_review_merge.dart';
 import '../data/expense_screen_telemetry.dart';
 import '../data/expense_screen_telemetry_recorder.dart';
 import '../../../shared/odometer/odometer_correction_review.dart';
+import '../../../shared/odometer/open_odometer_entry.dart';
 import '../../../shared/odometer/odometer_mileage_review.dart';
 import '../../../shared/odometer/odometer_review_dialogs.dart';
 import '../../../shared/odometer/odometer_vehicle_snapshot.dart';
@@ -109,10 +110,18 @@ part 'expense_receipt_entry_read_handoff_metadata.dart';
 part 'expense_receipt_entry_read_handoff_no_line_labels.dart';
 part 'expense_receipt_entry_capture_diagnostic_helpers.dart';
 part 'expense_receipt_entry_line_mode_helpers.dart';
+part 'expense_receipt_detail_level_panel.dart';
+part 'expense_receipt_category_scope_panel.dart';
 part 'expense_receipt_entry_lifecycle_helpers.dart';
 part 'expense_receipt_entry_attachment_panel.dart';
 part 'expense_receipt_entry_start_guide.dart';
 part 'expense_receipt_entry_scaffold.dart';
+part 'expense_receipt_entry_manual_flow.dart';
+part 'expense_receipt_entry_manual_flow_editors.dart';
+part 'expense_receipt_entry_manual_widgets.dart';
+part 'expense_receipt_entry_manual_details_widgets.dart';
+part 'expense_receipt_entry_manual_summary_widgets.dart';
+part 'expense_receipt_entry_manual_date_time.dart';
 part 'expense_receipt_entry_no_line_recovery_panel.dart';
 part 'expense_receipt_entry_byte_bucket.dart';
 part 'expense_receipt_entry_odometer_prompt.dart';
@@ -123,6 +132,8 @@ part 'expense_receipt_entry_job_context_panel.dart';
 enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 
 enum _ReceiptDetailEntryMode { basicReceipt, quickClassify, detailedItems }
+
+enum _ManualReceiptStep { details, items, review }
 
 extension _ReceiptDetailEntryModeX on _ReceiptDetailEntryMode {
   static _ReceiptDetailEntryMode fromSettingsStyle(
@@ -135,8 +146,19 @@ extension _ReceiptDetailEntryModeX on _ReceiptDetailEntryMode {
         _ReceiptDetailEntryMode.quickClassify,
       ExpenseReceiptReviewStyle.fullItemDetails =>
         _ReceiptDetailEntryMode.detailedItems,
+      ExpenseReceiptReviewStyle.askEachTime =>
+        _ReceiptDetailEntryMode.quickClassify,
     };
   }
+
+  ExpenseReceiptReviewStyle get settingsStyle => switch (this) {
+    _ReceiptDetailEntryMode.basicReceipt =>
+      ExpenseReceiptReviewStyle.basicReceipt,
+    _ReceiptDetailEntryMode.quickClassify =>
+      ExpenseReceiptReviewStyle.simpleAmounts,
+    _ReceiptDetailEntryMode.detailedItems =>
+      ExpenseReceiptReviewStyle.fullItemDetails,
+  };
 }
 
 class ExpenseReceiptEntryScreen extends StatefulWidget {
@@ -195,6 +217,8 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   TimeOfDay? _selectedTime;
   var _hasReceipt = false;
   final _receiptAttachments = <ReceiptAttachmentRecord>[];
+  final _manualReceiptAttachmentController = ReceiptAttachmentPanelController();
+  final _manualReceiptStoreController = SharedReceiptStorePanelController();
   var _rawReceiptText = '';
   var _scanningReceiptPhotos = false;
   var _receiptReviewFlowStarted = false;
@@ -232,8 +256,13 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   var _trackMaterialsInInventory = false;
   int? _expenseOdometerReading;
   var _detailEntryMode = _ReceiptDetailEntryMode.quickClassify;
+  var _manualReceiptStep = _ManualReceiptStep.details;
+  var _receiptCategory = 'Uncategorized';
+  var _receiptCategoryAppliesToAll = false;
   var _receiptReviewModeChangedByUser = false;
   var _appliedReceiptReviewStyleDefault = false;
+  var _receiptEntryGuideInitialized = false;
+  var _showReceiptEntryGuide = false;
   var _applyingParsedFieldValues = false;
   var _merchantValueLockedByUser = false;
   var _receiptDateLockedByUser = false;

@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import 'expense_backup_schedule.dart';
 import 'expense_settings_write_queue.dart';
 
@@ -9,33 +8,38 @@ part 'expense_settings_scope.dart';
 enum ExpenseReceiptReviewStyle {
   basicReceipt,
   simpleAmounts,
-  fullItemDetails;
+  fullItemDetails,
+  askEachTime;
 
   static ExpenseReceiptReviewStyle fromName(String? value) {
     final normalized = value?.trim().toLowerCase();
     return switch (normalized) {
       'basicreceipt' => ExpenseReceiptReviewStyle.basicReceipt,
       'fullitemdetails' => ExpenseReceiptReviewStyle.fullItemDetails,
+      'askeachtime' => ExpenseReceiptReviewStyle.askEachTime,
       _ => ExpenseReceiptReviewStyle.simpleAmounts,
     };
   }
 
   String get label {
     return switch (this) {
-      ExpenseReceiptReviewStyle.basicReceipt => 'Quick total',
-      ExpenseReceiptReviewStyle.simpleAmounts => 'Category summary',
-      ExpenseReceiptReviewStyle.fullItemDetails => 'Detailed receipt',
+      ExpenseReceiptReviewStyle.basicReceipt => 'Simple Receipt',
+      ExpenseReceiptReviewStyle.simpleAmounts => 'Basic Receipt',
+      ExpenseReceiptReviewStyle.fullItemDetails => 'Detailed Receipt',
+      ExpenseReceiptReviewStyle.askEachTime => 'Ask me each time',
     };
   }
 
   String get description {
     return switch (this) {
       ExpenseReceiptReviewStyle.basicReceipt =>
-        'Record the final receipt total as Business, Personal, or Split. Keep the receipt image as proof without entering categories or item lines.',
+        'Record the store, optional whole-receipt category, final total, and Business, Personal, or Split use.',
       ExpenseReceiptReviewStyle.simpleAmounts =>
-        'Record the final total, choose an expense category, and mark it Business, Personal, or Split by dollars or percentage.',
+        'Add category and price lines without quantities or unit-price details. Each line can be Business, Personal, or Split.',
       ExpenseReceiptReviewStyle.fullItemDetails =>
         'Preserve editable receipt lines as printed, including quantities, prices, discounts, taxes, and totals. Each line can have its own category and Business, Personal, or Split choice.',
+      ExpenseReceiptReviewStyle.askEachTime =>
+        'Choose Simple, Basic, or Detailed when you begin each receipt.',
     };
   }
 }
@@ -86,6 +90,8 @@ class ExpenseSettingsController extends ChangeNotifier {
   bool get pushNotifications => _readBool(_Keys.pushNotifications, false);
   bool get audibleNotifications => _readBool(_Keys.audibleNotifications, false);
   bool get draftReminder => _readBool(_Keys.draftReminder, true);
+  bool get receiptEntryGuideSeen =>
+      _readBool(_Keys.receiptEntryGuideSeen, false);
   ExpenseReceiptReviewStyle get receiptReviewStyle {
     final value = _box.get(_Keys.receiptReviewStyle);
     return ExpenseReceiptReviewStyle.fromName(value is String ? value : null);
@@ -200,6 +206,8 @@ class ExpenseSettingsController extends ChangeNotifier {
       _writeBool(_Keys.audibleNotifications, value);
   Future<void> setDraftReminder(bool value) =>
       _writeBool(_Keys.draftReminder, value);
+  Future<void> markReceiptEntryGuideSeen() =>
+      _writeBool(_Keys.receiptEntryGuideSeen, true);
   Future<void> setReceiptReviewStyle(ExpenseReceiptReviewStyle value) =>
       _writes.enqueue(() async {
         await _box.put(_Keys.receiptReviewStyle, value.name);
@@ -472,6 +480,7 @@ class _Keys {
   static const pushNotifications = 'push_notifications';
   static const audibleNotifications = 'audible_notifications';
   static const draftReminder = 'draft_reminder';
+  static const receiptEntryGuideSeen = 'receipt_entry_guide_seen';
   static const receiptReviewStyle = 'receipt_review_style';
   static const backupSyncMode = 'expense_backup_sync_mode';
   static const backupScheduleTimes = 'expense_backup_schedule_times';

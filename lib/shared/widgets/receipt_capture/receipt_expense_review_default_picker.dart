@@ -72,6 +72,18 @@ class _ExpenseReceiptReviewDefaultPicker extends StatelessWidget {
               ExpenseReceiptReviewStyle.fullItemDetails,
             ),
           ),
+          const SizedBox(height: 8),
+          _ReceiptReviewStyleChoice(
+            selected:
+                settings.receiptReviewStyle ==
+                ExpenseReceiptReviewStyle.askEachTime,
+            icon: Icons.help_outline_rounded,
+            title: ExpenseReceiptReviewStyle.askEachTime.label,
+            detail: ExpenseReceiptReviewStyle.askEachTime.description,
+            onTap: () => settings.setReceiptReviewStyle(
+              ExpenseReceiptReviewStyle.askEachTime,
+            ),
+          ),
         ],
       ),
     );

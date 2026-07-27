@@ -348,10 +348,7 @@ void main() {
     );
     expect(reviewScreen, contains('late final List<String> _photoPaths'));
     expect(reviewScreen, contains('_initialPhotoPaths.length'));
-    expect(
-      saveActions,
-      contains('receiptPhotoPathSetContains(_initialPhotoPaths, photoPath)'),
-    );
+    expect(saveActions, contains('photoPaths: savedPaths'));
   });
 
   test('photo review normalizes initial quality check keys', () async {
