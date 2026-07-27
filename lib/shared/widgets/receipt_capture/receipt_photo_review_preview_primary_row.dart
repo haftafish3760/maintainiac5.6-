@@ -55,6 +55,18 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     final continueIcon = continueLabel == 'Review Photos'
         ? Icons.join_full_rounded
         : Icons.check_rounded;
+    if (compact) {
+      return _ReceiptCompactPreviewActions(
+        statusText: statusText,
+        savingPhotos: savingPhotos,
+        continueLabel: continueLabel,
+        continueIcon: continueIcon,
+        onCrop: onCrop,
+        onRetake: onRetake,
+        onAddPhoto: onAddPhoto,
+        onContinue: onContinue,
+      );
+    }
     return DecoratedBox(
       decoration: BoxDecoration(
         color: uiConfig.controlsBackgroundColor,
@@ -237,6 +249,150 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   }
 }
 
+class _ReceiptCompactPreviewActions extends StatelessWidget {
+  const _ReceiptCompactPreviewActions({
+    required this.statusText,
+    required this.savingPhotos,
+    required this.continueLabel,
+    required this.continueIcon,
+    required this.onCrop,
+    required this.onRetake,
+    required this.onAddPhoto,
+    required this.onContinue,
+  });
+
+  final String statusText;
+  final bool savingPhotos;
+  final String continueLabel;
+  final IconData continueIcon;
+  final VoidCallback? onCrop;
+  final VoidCallback? onRetake;
+  final VoidCallback? onAddPhoto;
+  final VoidCallback? onContinue;
+
+  @override
+  Widget build(BuildContext context) {
+    final strings = MaintaniacLocalizations.of(context);
+    final label = savingPhotos ? 'Opening' : continueLabel;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1316),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: const Color(0xFF344047)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+        child: Semantics(
+          label: statusText,
+          child: Row(
+            children: [
+              _ReceiptCompactPreviewTextAction(
+                icon: Icons.crop_rounded,
+                label: 'Crop',
+                tooltip: 'Crop receipt photo',
+                onPressed: savingPhotos ? null : onCrop,
+              ),
+              _ReceiptCompactPreviewTextAction(
+                icon: Icons.camera_alt_rounded,
+                label: 'Retake',
+                tooltip: 'Retake receipt photo',
+                onPressed: savingPhotos ? null : onRetake,
+              ),
+              _ReceiptCompactPreviewTextAction(
+                icon: Icons.add_a_photo_rounded,
+                label: 'Add photo',
+                tooltip: strings.addAnotherReceiptPhoto,
+                onPressed: savingPhotos ? null : onAddPhoto,
+              ),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: savingPhotos ? null : onContinue,
+                  icon: savingPhotos
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Icon(continueIcon, size: 16),
+                  label: Tooltip(
+                    message: label,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 132),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(label),
+                      ),
+                    ),
+                  ),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 42),
+                    backgroundColor: const Color(0xFF28A745),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptCompactPreviewTextAction extends StatelessWidget {
+  const _ReceiptCompactPreviewTextAction({
+    required this.icon,
+    required this.label,
+    required this.tooltip,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final String tooltip;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: label == 'Add photo' ? 82 : 64,
+      child: Tooltip(
+        message: tooltip,
+        child: Semantics(
+          button: true,
+          label: tooltip,
+          child: TextButton.icon(
+            onPressed: onPressed,
+            icon: Icon(icon, size: 15),
+            label: Text(label, maxLines: 1),
+            style: TextButton.styleFrom(
+              minimumSize: const Size(0, 38),
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              foregroundColor: const Color(0xFFE8ECEE),
+              disabledForegroundColor: const Color(0xFF758188),
+              textStyle: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ReceiptReviewDecisionHeader extends StatelessWidget {
   const _ReceiptReviewDecisionHeader({
     required this.photoCount,
@@ -311,7 +467,7 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
 
   String get _guidance {
     if (coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Add the bottom section if the receipt continues. Save & Continue only when this is complete.';
+      return 'Add the bottom section if the receipt continues. Continue only when this is complete.';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
       return 'Add another photo if more receipt lines continue below this section.';
@@ -319,6 +475,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
     if (photoCount > 1 && continueLabel == 'Review Photos') {
       return 'Review the photos in order, then continue to the receipt.';
     }
-    return 'Save & Continue opens the details review. Add Another is only for long receipts.';
+    return 'Continue opens the details review. Add Another is only for long receipts.';
   }
 }
