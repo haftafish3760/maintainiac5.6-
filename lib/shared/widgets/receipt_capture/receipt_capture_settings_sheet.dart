@@ -211,8 +211,8 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
                   icon: const Icon(Icons.restart_alt_rounded),
                   label: Text(uiConfig.settings.resetLabel),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFFFD166),
-                    side: const BorderSide(color: Color(0xFFC7922E)),
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Color(0xFFD04A42)),
                     backgroundColor: const Color(0xFF1F2528),
                     minimumSize: const Size.fromHeight(44),
                     shape: RoundedRectangleBorder(
@@ -275,6 +275,10 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
             ),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Reset Defaults'),
             ),
           ],
