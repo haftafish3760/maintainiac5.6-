@@ -14,11 +14,16 @@ android_serial="${ANDROID_SERIAL:-R5CX14WC8FA}"
 ios_device="${IOS_DEVICE:-robbies-iPhone.coredevice.local}"
 mode="${1:-both}"
 wait_seconds="${2:-20}"
+batch_count="${3:-1}"
 run_stamp="$(date +%Y%m%d_%H%M%S)"
 run_dir="/tmp/maintainiac_trip_device_background_${run_stamp}"
 
 if [ "${wait_seconds}" -lt 5 ] || [ "${wait_seconds}" -gt 60 ]; then
   printf 'wait seconds must be between 5 and 60\n' >&2
+  exit 64
+fi
+if [ "${batch_count}" -lt 1 ] || [ "${batch_count}" -gt 10 ]; then
+  printf 'batch count must be between 1 and 10\n' >&2
   exit 64
 fi
 case "${mode}" in
@@ -42,30 +47,40 @@ run_android() {
     android_result="NOT_CONNECTED"
     return
   fi
-  if ! adb -s "${android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
-    > "${run_dir}/android_launch.log" 2>&1; then
-    android_result="LAUNCH_FAILED"
-    return
-  fi
-  sleep 2
-  adb -s "${android_serial}" shell pidof "${bundle_id}" \
-    > "${run_dir}/android_foreground_pid.log" 2>&1 || true
-  adb -s "${android_serial}" shell input keyevent HOME \
-    > "${run_dir}/android_background_action.log" 2>&1 || true
-  sleep "${wait_seconds}"
-  adb -s "${android_serial}" shell pidof "${bundle_id}" \
-    > "${run_dir}/android_background_pid.log" 2>&1 || true
-  adb -s "${android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
-    > "${run_dir}/android_resume.log" 2>&1 || true
-  sleep 2
-  adb -s "${android_serial}" shell pidof "${bundle_id}" \
-    > "${run_dir}/android_resume_pid.log" 2>&1 || true
+  batch=1
+  android_survived_batches=0
+  while [ "${batch}" -le "${batch_count}" ]; do
+    batch_dir="${run_dir}/android_batch_${batch}"
+    mkdir -p "${batch_dir}"
+    if ! adb -s "${android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
+      > "${batch_dir}/launch.log" 2>&1; then
+      android_result="LAUNCH_FAILED"
+      return
+    fi
+    sleep 2
+    adb -s "${android_serial}" shell pidof "${bundle_id}" \
+      > "${batch_dir}/foreground_pid.log" 2>&1 || true
+    adb -s "${android_serial}" shell input keyevent HOME \
+      > "${batch_dir}/background_action.log" 2>&1 || true
+    sleep "${wait_seconds}"
+    adb -s "${android_serial}" shell pidof "${bundle_id}" \
+      > "${batch_dir}/background_pid.log" 2>&1 || true
+    adb -s "${android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
+      > "${batch_dir}/resume.log" 2>&1 || true
+    sleep 2
+    adb -s "${android_serial}" shell pidof "${bundle_id}" \
+      > "${batch_dir}/resume_pid.log" 2>&1 || true
+    if [ -s "${batch_dir}/background_pid.log" ] && \
+      [ -s "${batch_dir}/resume_pid.log" ]; then
+      android_survived_batches=$((android_survived_batches + 1))
+    fi
+    batch=$((batch + 1))
+  done
   adb -s "${android_serial}" logcat -d -v epoch \
     | grep -Ei 'maintainiac|triptracking|trip_tracking' \
     > "${run_dir}/android_trip_logcat.log" || true
-  if [ -s "${run_dir}/android_background_pid.log" ] && \
-    [ -s "${run_dir}/android_resume_pid.log" ]; then
-    android_result="PROCESS_SURVIVED_HOME"
+  if [ "${android_survived_batches}" -eq "${batch_count}" ]; then
+    android_result="PROCESS_SURVIVED_HOME_${batch_count}_BATCHES"
   else
     android_result="PROCESS_NOT_CONFIRMED"
   fi
@@ -88,8 +103,8 @@ run_ios() {
 if [ "${mode}" = "android" ] || [ "${mode}" = "both" ]; then run_android; fi
 if [ "${mode}" = "ios" ] || [ "${mode}" = "both" ]; then run_ios; fi
 
-printf 'TRIP_DEVICE_BACKGROUND_QA android=%s ios=%s logs=%s\n' \
-  "${android_result}" "${ios_result}" "${run_dir}"
+printf 'TRIP_DEVICE_BACKGROUND_QA android=%s ios=%s batches=%s logs=%s\n' \
+  "${android_result}" "${ios_result}" "${batch_count}" "${run_dir}"
 printf '%s\n' \
   'Interpretation: process survival is lifecycle evidence only. Start a real GPS trip, press Home on the iPhone, and drive the planned route for background GPS field evidence.' \
   > "${run_dir}/RESULT.txt"
