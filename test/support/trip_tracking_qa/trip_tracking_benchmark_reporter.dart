@@ -68,6 +68,33 @@ class TripTrackingFieldEvidenceReport {
 
   int get falseWalkingStops => detectedWalkingStops - matchedWalkingStops;
 
+  int get providerRequestObservedRuns => evidence
+      .where((entry) => entry.providerRequestObserved)
+      .length;
+
+  int get backgroundCollectionObservedRuns => evidence
+      .where((entry) => entry.backgroundCollectionObserved)
+      .length;
+
+  int get recoveryAfterBackgroundObservedRuns => evidence
+      .where((entry) => entry.recoveryAfterBackgroundObserved)
+      .length;
+
+  double? get providerRequestObservationRate => _rate(
+    providerRequestObservedRuns,
+    caseCount,
+  );
+
+  double? get backgroundCollectionObservationRate => _rate(
+    backgroundCollectionObservedRuns,
+    caseCount,
+  );
+
+  double? get recoveryAfterBackgroundObservationRate => _rate(
+    recoveryAfterBackgroundObservedRuns,
+    caseCount,
+  );
+
   double? get walkingStopPrecision {
     final denominator = detectedWalkingStops;
     return denominator == 0 ? null : matchedWalkingStops / denominator;
@@ -89,6 +116,17 @@ class TripTrackingFieldEvidenceReport {
     'falseWalkingStops': falseWalkingStops,
     'walkingStopPrecision': _rounded(walkingStopPrecision),
     'walkingStopRecall': _rounded(walkingStopRecall),
+    'providerRequestObservedRuns': providerRequestObservedRuns,
+    'backgroundCollectionObservedRuns': backgroundCollectionObservedRuns,
+    'recoveryAfterBackgroundObservedRuns':
+        recoveryAfterBackgroundObservedRuns,
+    'providerRequestObservationRate': _rounded(providerRequestObservationRate),
+    'backgroundCollectionObservationRate': _rounded(
+      backgroundCollectionObservationRate,
+    ),
+    'recoveryAfterBackgroundObservationRate': _rounded(
+      recoveryAfterBackgroundObservationRate,
+    ),
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
     'preciseTimestampIncluded': false,
@@ -277,6 +315,9 @@ double? _percentile(Iterable<double?> source, double percentile) {
 
 double? _rounded(double? value) =>
     value == null ? null : double.parse(value.toStringAsFixed(4));
+
+double? _rate(int numerator, int denominator) =>
+    denominator <= 0 ? null : numerator / denominator;
 
 bool _defaultStopReviewDetector(SimulatedTripResult result) =>
     result.needsWalkingReview;

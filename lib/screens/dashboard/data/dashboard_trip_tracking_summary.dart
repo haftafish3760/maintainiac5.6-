@@ -336,7 +336,7 @@ class DashboardTripTrackingSummary {
     final status = platformStatus ?? tripTracking?.platformStatus;
     final gpsSignalStale = status == 'gps_signal_stale';
     final activeTrip = tripTracking?.isTracking == true;
-    final nativeTracking = tripTracking?.nativeTracking == true;
+    final nativeTracking = tripTracking?.nativeProviderRegistered == true;
     final recoveryDecision = tripTracking?.recoveryDecision;
     final signalQuality = tripTracking == null
         ? null

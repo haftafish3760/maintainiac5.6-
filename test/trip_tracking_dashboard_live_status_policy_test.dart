@@ -121,6 +121,24 @@ void main() {
       TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
         activeTrip: true,
         nativeTracking: false,
+        hasLiveProjection: false,
+        gpsAssistanceEnabled: false,
+      ),
+      'GPS OFF',
+    );
+    expect(
+      TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+        activeTrip: true,
+        nativeTracking: false,
+        hasLiveProjection: true,
+        platformStatus: 'awaiting_provider_registration',
+      ),
+      'GPS STARTING',
+    );
+    expect(
+      TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
+        activeTrip: true,
+        nativeTracking: false,
         hasLiveProjection: true,
         platformStatus: 'recoverable',
       ),

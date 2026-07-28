@@ -40,6 +40,13 @@ class TripTrackingForegroundService : Service() {
         var isRunning = false
             private set
 
+        @Volatile
+        var isStarting = false
+            private set
+
+        val isCollectorActive: Boolean
+            get() = isRunning || isStarting
+
         // Activity Recognition broadcasts can be buffered after a user stops
         // tracking. Bind each subscription to the current foreground-service
         // epoch so an old walking classification cannot influence a later trip.
@@ -63,6 +70,7 @@ class TripTrackingForegroundService : Service() {
         /// queued fused or activity callback could otherwise still emit.
         fun retireForExplicitStop() {
             isRunning = false
+            isStarting = false
             activeActivityEpoch = null
             activeActivityStartedAtMillis = null
         }
@@ -168,7 +176,7 @@ class TripTrackingForegroundService : Service() {
         // update, but it can still disappear in the tiny interval afterward.
         // An update intent is never authorization to create a new collector.
         val samplingUpdate = intent.getBooleanExtra(samplingUpdateExtra, false)
-        if (samplingUpdate && !isRunning) {
+        if (samplingUpdate && !isCollectorActive) {
             stopSelf(startId)
             return START_NOT_STICKY
         }
@@ -176,9 +184,12 @@ class TripTrackingForegroundService : Service() {
         // one after the collector is already live. Treat that as idempotent:
         // never replace the callback, reset the session boundary, or count the
         // same movement twice. Sampling changes use the explicit update path.
-        if (!samplingUpdate && isRunning) {
+        if (!samplingUpdate && isCollectorActive) {
             TripTrackingEventEmitter.emit(
-                mapOf("type" to "status", "status" to "tracking"),
+                mapOf(
+                    "type" to "status",
+                    "status" to if (isRunning) "tracking" else "starting",
+                ),
             )
             return START_NOT_STICKY
         }
@@ -213,6 +224,12 @@ class TripTrackingForegroundService : Service() {
             return START_NOT_STICKY
         }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        // A cadence change can arrive while the previous provider request is
+        // still registering. Treat it as a replacement request, not as a
+        // reason to tear down the foreground service. Retiring `isRunning`
+        // before installing the replacement callback also prevents a queued
+        // result from the old request from crossing the session boundary.
+        isRunning = false
         stopLocationUpdates()
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, interval)
             .setMinUpdateIntervalMillis((interval / 2).coerceAtLeast(1000L))
@@ -230,28 +247,35 @@ class TripTrackingForegroundService : Service() {
             }
         }
         locationCallback = callback
-        // A fused provider may deliver a cached first fix immediately. Mark
-        // the service live before registering so that credible first evidence
-        // is not lost between registration and the tracking status event.
-        // Keep a session boundary as well: a buffered fix from before this
-        // collection must not become mileage in a newly started trip.
+        // Keep a session boundary so a buffered fix from before this
+        // collection cannot become mileage in a newly started trip. Do not
+        // call the collector live until Play Services confirms registration.
         trackingStartedAtMillis = System.currentTimeMillis()
-        isRunning = true
-        TripTrackingRecoveryState.markTrackingStarted(this)
+        isStarting = true
+        TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "starting"))
         @Suppress("MissingPermission")
         try {
             fusedLocationClient.requestLocationUpdates(
                 request,
                 callback,
                 Looper.getMainLooper(),
-            ).addOnFailureListener { error ->
+            ).addOnSuccessListener {
+                if (!isStarting || locationCallback !== callback) return@addOnSuccessListener
+                isRunning = true
+                isStarting = false
+                TripTrackingRecoveryState.markTrackingStarted(this)
+                TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
+                startHeartbeat()
+            }.addOnFailureListener { error ->
                 // A delayed failure from a replaced or stopped request must
                 // never interrupt a newer GPS session.
-                if (!isRunning || locationCallback !== callback) return@addOnFailureListener
+                if (!isStarting || locationCallback !== callback) return@addOnFailureListener
+                isStarting = false
                 TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register location updates: ${error.message ?: "provider unavailable"}"))
                 stopSelf(startId)
             }
         } catch (error: SecurityException) {
+            isStarting = false
             TripTrackingEventEmitter.emit(mapOf("type" to "error", "errorCode" to "trip_tracking_location_registration_failed", "errorMessage" to "Android could not register location updates: ${error.message ?: "permission denied"}"))
             stopSelf()
             return START_NOT_STICKY
@@ -299,8 +323,6 @@ class TripTrackingForegroundService : Service() {
             // valid again when motion assistance is turned back on.
             retireActivityRecognitionEpoch()
         }
-        TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to "tracking"))
-        startHeartbeat()
         // Re-deliver only the driver-approved request after Android restarts
         // this foreground service, retaining its sampling and sensor consent.
         return START_REDELIVER_INTENT

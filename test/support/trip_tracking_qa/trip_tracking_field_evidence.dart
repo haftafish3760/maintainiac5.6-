@@ -9,6 +9,9 @@ class TripTrackingFieldEvidence {
     this.expectedWalkingStops = 0,
     this.detectedWalkingStops = 0,
     this.matchedWalkingStops = 0,
+    this.providerRequestObserved = false,
+    this.backgroundCollectionObserved = false,
+    this.recoveryAfterBackgroundObserved = false,
   });
 
   final String platform;
@@ -17,6 +20,9 @@ class TripTrackingFieldEvidence {
   final int expectedWalkingStops;
   final int detectedWalkingStops;
   final int matchedWalkingStops;
+  final bool providerRequestObserved;
+  final bool backgroundCollectionObserved;
+  final bool recoveryAfterBackgroundObserved;
 
   factory TripTrackingFieldEvidence.fromMap(Map<String, Object?> map) {
     const allowedKeys = {
@@ -26,6 +32,9 @@ class TripTrackingFieldEvidence {
       'expectedWalkingStops',
       'detectedWalkingStops',
       'matchedWalkingStops',
+      'providerRequestObserved',
+      'backgroundCollectionObserved',
+      'recoveryAfterBackgroundObserved',
     };
     for (final key in map.keys) {
       if (!allowedKeys.contains(key)) {
@@ -53,6 +62,15 @@ class TripTrackingFieldEvidence {
     final expectedStops = _nonNegativeInt(map['expectedWalkingStops']) ?? 0;
     final detectedStops = _nonNegativeInt(map['detectedWalkingStops']) ?? 0;
     final matchedStops = _nonNegativeInt(map['matchedWalkingStops']) ?? 0;
+    final providerObserved = map.containsKey('providerRequestObserved')
+        ? _bool(map['providerRequestObserved'])
+        : false;
+    final backgroundObserved = map.containsKey('backgroundCollectionObserved')
+        ? _bool(map['backgroundCollectionObserved'])
+        : false;
+    final recoveryObserved = map.containsKey('recoveryAfterBackgroundObserved')
+        ? _bool(map['recoveryAfterBackgroundObserved'])
+        : false;
     if (platform is! String ||
         (platform != 'android' && platform != 'ios') ||
         odometer == null ||
@@ -67,8 +85,13 @@ class TripTrackingFieldEvidence {
             _nonNegativeInt(map['detectedWalkingStops']) == null) ||
         (map.containsKey('matchedWalkingStops') &&
             _nonNegativeInt(map['matchedWalkingStops']) == null) ||
+        providerObserved == null ||
+        backgroundObserved == null ||
+        recoveryObserved == null ||
         matchedStops > expectedStops ||
-        matchedStops > detectedStops) {
+        matchedStops > detectedStops ||
+        (backgroundObserved && !providerObserved) ||
+        (recoveryObserved && (!providerObserved || !backgroundObserved))) {
       throw const FormatException(
         'invalid_coordinate_minimized_field_evidence',
       );
@@ -80,6 +103,9 @@ class TripTrackingFieldEvidence {
       expectedWalkingStops: expectedStops,
       detectedWalkingStops: detectedStops,
       matchedWalkingStops: matchedStops,
+      providerRequestObserved: providerObserved,
+      backgroundCollectionObserved: backgroundObserved,
+      recoveryAfterBackgroundObserved: recoveryObserved,
     );
   }
 
@@ -97,6 +123,9 @@ class TripTrackingFieldEvidence {
     'missedWalkingStops': expectedWalkingStops - matchedWalkingStops,
     'falseWalkingStops': detectedWalkingStops - matchedWalkingStops,
     'walkingStopCountDelta': detectedWalkingStops - expectedWalkingStops,
+    'providerRequestObserved': providerRequestObserved,
+    'backgroundCollectionObserved': backgroundCollectionObserved,
+    'recoveryAfterBackgroundObserved': recoveryAfterBackgroundObserved,
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
     'realDeviceEvidenceIsNotAutomaticCertification': true,
@@ -113,5 +142,7 @@ int? _nonNegativeInt(Object? value) =>
     value is int && value >= 0 && value <= _maxWalkingStopsPerRun
     ? value
     : null;
+
+bool? _bool(Object? value) => value is bool ? value : null;
 
 double _round(double value) => double.parse(value.toStringAsFixed(3));

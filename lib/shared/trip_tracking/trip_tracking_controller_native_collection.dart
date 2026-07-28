@@ -276,6 +276,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     _pendingNativeStartActivityUnavailable = false;
     _pendingNativeStartPreferenceSaveFailed = false;
     _pendingNativeStartStopped = false;
+    _pendingNativeStartProviderRegistered = false;
     _pendingNativeStartAuthorizationRevoked = false;
     _pendingNativeStartErrorCode = null;
     final signalEpochBaseline = diagnostics;
@@ -342,6 +343,8 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     final preferenceSaveFailedDuringStart =
         _pendingNativeStartPreferenceSaveFailed;
     final nativeStoppedDuringStart = _pendingNativeStartStopped;
+    final nativeProviderRegisteredDuringStart =
+        _pendingNativeStartProviderRegistered;
     final authorizationRevokedDuringStart =
         _pendingNativeStartAuthorizationRevoked;
     final nativeErrorDuringStart = _pendingNativeStartErrorCode;
@@ -446,6 +449,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       return false;
     }
     _nativeTracking = true;
+    _nativeProviderRegistered = nativeProviderRegisteredDuringStart;
     _awaitingInitialFix = true;
     _engine?.recordInitialFixAssessment(null);
     _nativeSampling = request.sampling;
@@ -464,7 +468,9 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     _lowBatteryWarningDismissed = lowBatteryWarningDismissed;
     _lastBatterySafetyCheckUtc = _clockNow().toUtc();
     _platformError = null;
-    _platformStatus = 'tracking';
+    _platformStatus = _nativeProviderRegistered
+        ? 'awaiting_initial_fix'
+        : 'awaiting_provider_registration';
     if (!await _tryTransitionSession(
       TripTrackingSessionLifecycleState.active,
       health: TripTrackingHealthState.healthy,
@@ -480,6 +486,7 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       await _platformSubscription?.cancel();
       _platformSubscription = null;
       _nativeTracking = false;
+      _nativeProviderRegistered = false;
       _nativeSampling = null;
       _nativeSamplingPlan = null;
       _lastNativeHeartbeatUtc = null;

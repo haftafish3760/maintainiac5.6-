@@ -34,6 +34,12 @@ void main() {
     expect(evidence.toSafeSummary()['walkingStopCountDelta'], -1);
     expect(evidence.toSafeSummary()['missedWalkingStops'], 1);
     expect(evidence.toSafeSummary()['falseWalkingStops'], 0);
+    expect(evidence.toSafeSummary()['providerRequestObserved'], isFalse);
+    expect(evidence.toSafeSummary()['backgroundCollectionObserved'], isFalse);
+    expect(
+      evidence.toSafeSummary()['recoveryAfterBackgroundObserved'],
+      isFalse,
+    );
   });
 
   test('field evidence rejects coordinates and invalid values', () {
@@ -116,5 +122,28 @@ void main() {
       }),
       throwsFormatException,
     );
+  });
+
+  test('field evidence requires provider proof before background recovery', () {
+    for (final evidence in [
+      {
+        'platform': 'android',
+        'odometerMiles': 1.0,
+        'filteredGpsMiles': 1.0,
+        'backgroundCollectionObserved': true,
+      },
+      {
+        'platform': 'android',
+        'odometerMiles': 1.0,
+        'filteredGpsMiles': 1.0,
+        'providerRequestObserved': true,
+        'recoveryAfterBackgroundObserved': true,
+      },
+    ]) {
+      expect(
+        () => TripTrackingFieldEvidence.fromMap(evidence),
+        throwsFormatException,
+      );
+    }
   });
 }

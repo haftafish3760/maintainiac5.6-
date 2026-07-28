@@ -68,6 +68,7 @@ class _DashboardGpsGateway implements TripTrackingNativeGateway {
     startCalls += 1;
     this.request = request;
     running = true;
+    addStatus('tracking');
     return true;
   }
 

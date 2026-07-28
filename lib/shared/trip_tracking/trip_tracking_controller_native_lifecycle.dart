@@ -355,6 +355,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     // final credible sample cannot be dropped before review is recorded.
     await _platformEventQueue;
     _nativeTracking = false;
+    _nativeProviderRegistered = false;
     _awaitingInitialFix = false;
     _nativeSampling = null;
     _nativeSamplingPlan = null;
@@ -418,6 +419,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     _pendingNativeStartActivityUnavailable = false;
     _pendingNativeStartPreferenceSaveFailed = false;
     _pendingNativeStartStopped = false;
+    _pendingNativeStartProviderRegistered = false;
     _pendingNativeStartAuthorizationRevoked = false;
     _pendingNativeStartErrorCode = null;
   }

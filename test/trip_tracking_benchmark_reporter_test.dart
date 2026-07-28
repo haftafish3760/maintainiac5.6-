@@ -91,6 +91,9 @@ void main() {
           expectedWalkingStops: 3,
           detectedWalkingStops: 2,
           matchedWalkingStops: 2,
+          providerRequestObserved: true,
+          backgroundCollectionObserved: true,
+          recoveryAfterBackgroundObserved: true,
         ),
         const TripTrackingFieldEvidence(
           platform: 'ios',
@@ -99,6 +102,7 @@ void main() {
           expectedWalkingStops: 1,
           detectedWalkingStops: 2,
           matchedWalkingStops: 1,
+          providerRequestObserved: true,
         ),
       ]);
 
@@ -112,6 +116,12 @@ void main() {
       expect(report.falseWalkingStops, 1);
       expect(report.walkingStopPrecision, .75);
       expect(report.walkingStopRecall, .75);
+      expect(report.providerRequestObservedRuns, 2);
+      expect(report.backgroundCollectionObservedRuns, 1);
+      expect(report.recoveryAfterBackgroundObservedRuns, 1);
+      expect(report.providerRequestObservationRate, 1);
+      expect(report.backgroundCollectionObservationRate, .5);
+      expect(report.recoveryAfterBackgroundObservationRate, .5);
       expect(report.toSafeSummary()['coordinatesIncluded'], isFalse);
       expect(
         report.toSafeSummary()['realDeviceEvidenceIsNotAutomaticCertification'],

@@ -70,9 +70,16 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
             builder: (context, _) {
               final gpsStatus =
                   TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
-                    activeTrip: tripTracking?.isTracking == true,
-                    nativeTracking: tripTracking?.nativeTracking == true,
+                    activeTrip:
+                        activeSession != null || tripTracking?.isTracking == true,
+                    nativeTracking:
+                        tripTracking?.nativeProviderRegistered == true,
                     hasLiveProjection: odometer.hasLiveTripProjection,
+                    gpsAssistanceEnabled:
+                        TripTrackingSettingsScope.maybeOf(
+                          context,
+                        )?.settings.gpsAssistedTrackingEnabled ??
+                        true,
                     platformStatus: tripTracking?.platformStatus,
                     awaitingInitialFix:
                         tripTracking?.awaitingInitialFix == true,

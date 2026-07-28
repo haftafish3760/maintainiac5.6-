@@ -60,6 +60,9 @@ class _RoundStartGpsGateway implements TripTrackingNativeGateway {
   Future<bool> start(TripTrackingNativeRequest request) async {
     startCalls += 1;
     running = true;
+    _events.add(
+      TripTrackingPlatformEvent.fromMap({'type': 'status', 'status': 'tracking'}),
+    );
     return true;
   }
 

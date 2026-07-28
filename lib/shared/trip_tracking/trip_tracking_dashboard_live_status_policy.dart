@@ -19,6 +19,7 @@ class TripTrackingDashboardLiveStatusPolicy {
     required bool activeTrip,
     required bool nativeTracking,
     required bool hasLiveProjection,
+    bool gpsAssistanceEnabled = true,
     String? platformStatus,
     bool awaitingInitialFix = false,
     bool signalReviewRequired = false,
@@ -31,6 +32,10 @@ class TripTrackingDashboardLiveStatusPolicy {
       return 'LIVE GPS';
     }
     if (activeTrip || hasLiveProjection) {
+      if (!gpsAssistanceEnabled) return 'GPS OFF';
+      if (platformStatus == 'awaiting_provider_registration') {
+        return 'GPS STARTING';
+      }
       if (_isExplicitPause(platformStatus)) return 'GPS PAUSED';
       return 'GPS RECOVERY';
     }

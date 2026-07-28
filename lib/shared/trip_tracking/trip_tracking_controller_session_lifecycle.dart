@@ -700,6 +700,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
             }
           } else {
             _nativeTracking = true;
+            _nativeProviderRegistered = true;
             _deviceLocationIntervalFloorSeconds =
                 session.deviceLocationIntervalFloorSeconds;
             _backgroundTrackingAllowed = true;

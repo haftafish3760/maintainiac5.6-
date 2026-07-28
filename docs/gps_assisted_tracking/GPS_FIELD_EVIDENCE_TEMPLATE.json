@@ -4,5 +4,8 @@
   "filteredGpsMiles": 0.0,
   "expectedWalkingStops": 0,
   "detectedWalkingStops": 0,
-  "matchedWalkingStops": 0
+  "matchedWalkingStops": 0,
+  "providerRequestObserved": false,
+  "backgroundCollectionObserved": false,
+  "recoveryAfterBackgroundObserved": false
 }

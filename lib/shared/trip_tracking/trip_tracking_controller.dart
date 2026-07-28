@@ -174,6 +174,7 @@ class TripTrackingController extends ChangeNotifier {
   // releasing the live odometer projection mid-write.
   bool _sessionOperationInProgress = false;
   bool _nativeTracking = false;
+  bool _nativeProviderRegistered = false;
   bool _awaitingInitialFix = false;
   // Distinguishes a driver/app-requested shutdown from a collector that
   // stopped on its own. An unexpected stop must remain recoverable evidence,
@@ -187,6 +188,7 @@ class TripTrackingController extends ChangeNotifier {
   bool _pendingNativeStartActivityUnavailable = false;
   bool _pendingNativeStartPreferenceSaveFailed = false;
   bool _pendingNativeStartStopped = false;
+  bool _pendingNativeStartProviderRegistered = false;
   bool _pendingNativeStartAuthorizationRevoked = false;
   String? _pendingNativeStartErrorCode;
   String? _pendingNativeSystemPauseStatus;
@@ -327,6 +329,8 @@ class TripTrackingController extends ChangeNotifier {
         currentConfirmedOdometer: _odometer.confirmedReading,
       );
   bool get nativeTracking => _nativeTracking;
+  /// True only after the native collector confirms its provider request.
+  bool get nativeProviderRegistered => _nativeProviderRegistered;
   bool get deviceAdjustedSampling =>
       _nativeSamplingPlan?.deviceAdjusted == true;
   int? get nativeSamplingIntervalSeconds =>

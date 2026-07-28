@@ -288,6 +288,7 @@ String? _safePlatformStatus(Object? value) {
   final clean = _safePlatformToken(value);
   return switch (clean) {
     'idle' ||
+    'starting' ||
     'tracking' ||
     'paused' ||
     'recovering' ||

@@ -52,7 +52,16 @@ class TripTrackingNativeBridge(
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
         TripTrackingEventEmitter.attach(events)
-        TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to if (isTracking()) "tracking" else "idle"))
+        // `isTracking()` intentionally treats a registration in progress as
+        // occupied so a second trip cannot start. The event stream has a
+        // stricter truth boundary: Flutter must not present the collector as
+        // live until Fused Location confirms registration.
+        val status = when {
+            TripTrackingForegroundService.isRunning -> "tracking"
+            TripTrackingForegroundService.isStarting -> "starting"
+            else -> "idle"
+        }
+        TripTrackingEventEmitter.emit(mapOf("type" to "status", "status" to status))
     }
 
     override fun onCancel(arguments: Any?) {
@@ -359,5 +368,5 @@ class TripTrackingNativeBridge(
                 manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         }
 
-    private fun isTracking(): Boolean = TripTrackingForegroundService.isRunning
+    private fun isTracking(): Boolean = TripTrackingForegroundService.isCollectorActive
 }

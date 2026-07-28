@@ -333,6 +333,13 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
             );
           } else if (event.type == TripTrackingPlatformEventType.status) {
             final status = event.status;
+            if (status == 'starting' &&
+                (_nativeTracking || _pendingNativeStartRequest != null)) {
+              _nativeProviderRegistered = false;
+              _platformStatus = 'awaiting_provider_registration';
+              notifyListeners();
+              return;
+            }
             if (status == 'tracking' && _awaitingInitialFix) {
               await _markExpiredInitialFixPreparation(
                 _clockNow().toUtc(),
@@ -364,6 +371,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                     'GPS updates stopped unexpectedly. Your local trip is preserved for review.';
               }
               _nativeTracking = false;
+              _nativeProviderRegistered = false;
               _nativeSampling = null;
               _nativeSamplingPlan = null;
               _lastNativeHeartbeatUtc = null;
@@ -415,7 +423,13 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
                   );
                 }
               }
+            } else if (status == 'tracking' &&
+                !_nativeTracking &&
+                _pendingNativeStartRequest != null) {
+              _pendingNativeStartProviderRegistered = true;
+              _platformStatus = 'awaiting_initial_fix';
             } else if (status == 'tracking' && _nativeTracking) {
+              _nativeProviderRegistered = true;
               final now = _clockNow().toUtc();
               _lastNativeHeartbeatUtc = _nonRegressingNativeHeartbeatTime(now);
               if (_engine?.snapshot.initialFixAssessment?.quality !=
@@ -425,7 +439,9 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               if (_platformStatus != 'gps_signal_stale' &&
                   _platformStatus != 'initial_fix_unavailable' &&
                   _platformStatus != 'storage_failed') {
-                _platformStatus = status;
+                _platformStatus = _awaitingInitialFix
+                    ? 'awaiting_initial_fix'
+                    : status;
               }
             } else if (status == 'idle' && !_nativeTracking) {
               _platformStatus = status;
