@@ -116,6 +116,9 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 - PASS 23
 - Objective: keep process recovery from treating a collector probe as live provider evidence
 - State: passed; recovery enters provider wait pending native status event
+- PASS 24
+- Objective: rerun complete trip regression after provider-wait recovery hardening
+- State: passed; `TRIP_QA_PASS`
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -165,6 +168,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 21 | PASSED | Complete trip-tracking regression | `TRIP_QA_PASS` after iOS readiness, Bluetooth stress, automatic-start, and field protocol checkpoints |
 | 22 | PASSED | Provider-wait watchdog integrity | Unregistered native collector degrades without mileage; iPhone Release installed/launched |
 | 23 | PASSED | Provider-wait recovery integrity | Native recovery probe stays non-live until provider status is observed |
+| 24 | PASSED | Complete trip regression rerun | `TRIP_QA_PASS` after provider-wait watchdog and recovery repairs |
 
 ## Safest repair order
 
