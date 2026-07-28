@@ -36,21 +36,22 @@ void main() {
     expect(find.text('Contractor Dashboard'), findsOneWidget);
   });
 
-  testWidgets('driver dashboard supports enlarged Android text in contractor mode', (
-    tester,
-  ) async {
-    final harness = await _pumpDashboard(
-      tester,
-      OperationalDashboardMode.soloContractor,
-      textScaler: const TextScaler.linear(2),
-    );
-    addTearDown(harness.dispose);
+  testWidgets(
+    'driver dashboard supports enlarged Android text in contractor mode',
+    (tester) async {
+      final harness = await _pumpDashboard(
+        tester,
+        OperationalDashboardMode.soloContractor,
+        textScaler: const TextScaler.linear(2),
+      );
+      addTearDown(harness.dispose);
 
-    expect(find.text('Independent Dashboard'), findsOneWidget);
-    expect(find.text('Contractor Dashboard'), findsOneWidget);
-    expect(find.text('Mock banner placement'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+      expect(find.text('Independent Dashboard'), findsOneWidget);
+      expect(find.text('Contractor Dashboard'), findsOneWidget);
+      expect(find.text('Mock banner placement'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 Future<_DashboardHarness> _pumpDashboard(

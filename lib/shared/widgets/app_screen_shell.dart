@@ -17,7 +17,6 @@ import '../odometer/odometer_vehicle_snapshot.dart';
 import '../state/app_state.dart';
 import '../state/global_odometer.dart';
 import '../trip_tracking/trip_tracking_controller.dart';
-import 'app_banner_ad_reserve.dart';
 import 'industrial_panel_surface.dart';
 
 part 'app_textured_background.dart';
@@ -48,13 +47,7 @@ class AppScreenShell extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF2A3337),
       extendBodyBehindAppBar: true,
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppBannerAdReserve(),
-          AppBottomNavigation(currentSection: section),
-        ],
-      ),
+      bottomNavigationBar: AppBottomNavigation(currentSection: section),
       floatingActionButton: floatingActionButton,
       body: AppTexturedBackground(
         child: SafeArea(
