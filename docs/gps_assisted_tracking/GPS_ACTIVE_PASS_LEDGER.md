@@ -107,6 +107,9 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 - PASS 19
 - Objective: provide owner-driven iPhone/S24 physical-route evidence criteria
 - State: passed; labeled protocol separates device/field evidence from simulation and preserves failures for regression
+- PASS 21
+- Objective: complete broad trip-tracking regression after current hardening checkpoints
+- State: passed; `TRIP_QA_PASS`
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -153,6 +156,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 17 | PASSED | Bluetooth stress state integrity | 100,000 seed A, same-seed repeat, and different seed all passed with zero failures |
 | 18 | PASSED | Production automatic-start boundary | Bluetooth wiring test confirms no implicit trip start; focused automatic-start and Bluetooth tests passed |
 | 19 | PASSED | Two-phone field route protocol | 111-line owner protocol defines permissions, drive-stop-walk-drive, background, and review evidence |
+| 21 | PASSED | Complete trip-tracking regression | `TRIP_QA_PASS` after iOS readiness, Bluetooth stress, automatic-start, and field protocol checkpoints |
 
 ## Safest repair order
 
