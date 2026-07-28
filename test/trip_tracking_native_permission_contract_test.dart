@@ -175,7 +175,7 @@ void main() {
     expect(androidBridge, contains('catch (error: IllegalStateException)'));
     expect(android, contains('trip_tracking_location_registration_failed'));
     expect(androidBridge, contains('trip_tracking_native_already_running'));
-    expect(android, contains('if (!samplingUpdate && isRunning)'));
+    expect(android, contains('if (!samplingUpdate && isCollectorActive)'));
     expect(android, contains('"type" to "status", "status" to "tracking"'));
     expect(ios, contains('guard !tracking else'));
     expect(ios, contains('trip_tracking_native_already_running'));
@@ -699,7 +699,7 @@ void main() {
     );
     expect(
       service.indexOf('if (intent.action == stopAction)'),
-      lessThan(service.indexOf('if (!samplingUpdate && isRunning)')),
+      lessThan(service.indexOf('if (!samplingUpdate && isCollectorActive)')),
     );
     expect(service, contains('samplingUpdateExtra'));
     expect(
@@ -708,7 +708,7 @@ void main() {
         'val samplingUpdate = intent.getBooleanExtra(samplingUpdateExtra, false)',
       ),
     );
-    expect(service, contains('if (samplingUpdate && !isRunning)'));
+    expect(service, contains('if (samplingUpdate && !isCollectorActive)'));
     expect(
       bridge,
       contains(

@@ -1489,7 +1489,8 @@ void main() {
 
     expect(native.requestAuthorizationCalls, 1);
     expect(native.startCalls, 1);
-    expect(controller.platformStatus, 'tracking');
+    expect(controller.platformStatus, 'awaiting_provider_registration');
+    expect(controller.nativeProviderRegistered, isFalse);
     expect(controller.platformError, isNull);
   });
 
@@ -1565,7 +1566,8 @@ void main() {
     expect(native.startCalls, 1);
     expect(controller.lastKnownCapabilities, isNotNull);
     expect(controller.lastKnownCapabilities!.lowPowerModeAvailable, isFalse);
-    expect(controller.platformStatus, 'tracking');
+    expect(controller.platformStatus, 'awaiting_provider_registration');
+    expect(controller.nativeProviderRegistered, isFalse);
     expect(controller.platformError, isNull);
   });
 
@@ -1695,13 +1697,14 @@ void main() {
     'runtime battery check allows a plugged-in device below twenty percent',
     () async {
       final native = _FakeTripTrackingPlatform();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
       var now = DateTime.utc(2026, 7, 12, 12);
       final controller = TestTripTrackingController(
         sessionStore: TripTrackingSessionStore.memory(),
-        odometer: GlobalOdometerController(
-          vehicleId: 'vehicle_1',
-          initialReading: 1000,
-        ),
+        odometer: odometer,
         platform: native,
         clockNow: () => now,
       );
@@ -1717,6 +1720,11 @@ void main() {
         await controller.startNativeTracking(allowBackground: false),
         isTrue,
       );
+      native.addStatus('tracking');
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
+      );
 
       native.batterySnapshot = const TripTrackingBatterySnapshot(
         batteryPercent: 19,
@@ -1724,14 +1732,15 @@ void main() {
         lowPowerModeEnabled: false,
       );
       now = now.add(const Duration(minutes: 6));
-      native.addLocation(sample(-80, 0));
+      native.addLocation(sample(-80, 360));
       await drainNativeTripEventsUntil(
-        () => controller.platformStatus == 'tracking',
+        () => controller.activeSession?.batteryStateSummary?.isCharging == true,
       );
 
       expect(controller.nativeTracking, isTrue);
       expect(native.stopCalls, 0);
       expect(controller.platformStatus, 'tracking');
+      expect(odometer.confirmedReading, 1000);
     },
   );
 
@@ -2011,12 +2020,18 @@ void main() {
       startedAt: start,
     );
     expect(await controller.startNativeTracking(allowBackground: true), isTrue);
-
-    now = now.add(const Duration(minutes: 2));
     native.addStatus('tracking');
+    native.addLocation(sample(-80, 0));
     await drainNativeTripEventsUntil(
       () => controller.platformStatus == 'tracking',
     );
+    expect(controller.nativeProviderRegistered, isTrue);
+    expect(controller.lifecycleState, TripTrackingSessionLifecycleState.active);
+
+    now = now.add(const Duration(minutes: 2));
+    native.addStatus('tracking');
+    await Future<void>.delayed(Duration.zero);
+    await Future<void>.delayed(Duration.zero);
 
     expect(controller.lifecycleState, TripTrackingSessionLifecycleState.active);
     expect(controller.healthState, TripTrackingHealthState.healthy);
@@ -3054,9 +3069,7 @@ void main() {
         );
       }
       for (var seconds = 60; seconds <= 432; seconds += 12) {
-        await controller.ingest(
-          sample(-79.988, seconds, speed: 0.2),
-        );
+        await controller.ingest(sample(-79.988, seconds, speed: 0.2));
       }
 
       expect(controller.motionState, TripMotionState.stopCandidate);
@@ -4237,6 +4250,7 @@ void main() {
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
+        clockNow: () => start,
       );
       await controller.start(
         tripId: 'trip_malformed_native_payload',
@@ -4247,6 +4261,11 @@ void main() {
       expect(
         await controller.startNativeTracking(allowBackground: false),
         isTrue,
+      );
+      native.addStatus('tracking');
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
       );
 
       native.addMalformedPayload();
@@ -6159,6 +6178,7 @@ void main() {
         sessionStore: TripTrackingSessionStore.memory(),
         odometer: GlobalOdometerController(initialReading: 1000),
         platform: native,
+        clockNow: () => start,
       );
       await controller.start(
         tripId: 'trip_active_status_guard',
@@ -6167,6 +6187,11 @@ void main() {
         startedAt: start,
       );
       await controller.startNativeTracking(allowBackground: false);
+      native.addStatus('tracking');
+      native.addLocation(sample(-80, 0));
+      await drainNativeTripEventsUntil(
+        () => controller.platformStatus == 'tracking',
+      );
       expect(controller.platformStatus, 'tracking');
 
       native.addStatus('idle');
