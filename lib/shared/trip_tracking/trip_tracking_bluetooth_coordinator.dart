@@ -3,6 +3,9 @@ import 'trip_automatic_start_detector.dart';
 import 'trip_tracking_bluetooth.dart';
 import 'trip_tracking_settings_store.dart';
 
+typedef BluetoothVehicleDecisionResolver =
+    BluetoothVehicleMatchDecision Function(String opaqueDeviceId);
+
 /// Serializes user-approved Bluetooth vehicle hints outside an active trip.
 /// It never discovers devices, changes mileage, or bypasses review settings.
 class TripTrackingBluetoothCoordinator {
@@ -13,6 +16,7 @@ class TripTrackingBluetoothCoordinator {
     required this.hasUnfinishedStoredSession,
     required this.currentVehicleId,
     required this.switchVehicle,
+    this.decisionResolver,
     this.automaticStartAccess = _freeAutomaticStartAccess,
     this.startAutomaticTracking,
   });
@@ -23,6 +27,7 @@ class TripTrackingBluetoothCoordinator {
   final bool Function() hasUnfinishedStoredSession;
   final String Function() currentVehicleId;
   final Future<bool> Function(String vehicleId) switchVehicle;
+  final BluetoothVehicleDecisionResolver? decisionResolver;
   final TripAutomaticStartAccessLevel Function() automaticStartAccess;
   final Future<bool> Function(String vehicleId, DateTime startedAt)?
   startAutomaticTracking;
@@ -59,13 +64,15 @@ class TripTrackingBluetoothCoordinator {
     }
     late final BluetoothVehicleMatchDecision decision;
     try {
-      decision = resolveBluetoothVehicleMatchDecision(
-        settings: settings(),
-        link: linkStore.linkForDevice(observation.opaqueDeviceId),
-        hasActiveGpsTrip: hasActiveSession(),
-        hasUnfinishedStoredSession: hasUnfinishedStoredSession(),
-        activeVehicleId: currentVehicleId(),
-      );
+      decision =
+          decisionResolver?.call(observation.opaqueDeviceId) ??
+          resolveBluetoothVehicleMatchDecision(
+            settings: settings(),
+            link: linkStore.linkForDevice(observation.opaqueDeviceId),
+            hasActiveGpsTrip: hasActiveSession(),
+            hasUnfinishedStoredSession: hasUnfinishedStoredSession(),
+            activeVehicleId: currentVehicleId(),
+          );
     } catch (_) {
       return const BluetoothVehicleMatchDecision(
         disposition: BluetoothVehicleMatchDisposition.noMatch,

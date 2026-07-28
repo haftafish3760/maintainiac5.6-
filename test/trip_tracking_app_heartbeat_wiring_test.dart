@@ -17,7 +17,7 @@ void main() {
     expect(appTree.indexOf('TripTrackingScope('), greaterThanOrEqualTo(0));
     expect(
       appTree.indexOf('TripTrackingScope('),
-      lessThan(appTree.indexOf('const MaintaniacApp()')),
+      lessThan(appTree.indexOf('MaintaniacApp(')),
     );
   });
 }

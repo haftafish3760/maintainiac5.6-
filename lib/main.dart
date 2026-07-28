@@ -35,6 +35,9 @@ import 'shared/storage/app_storage_guard.dart';
 import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
+import 'shared/trip_tracking/trip_tracking_bluetooth.dart';
+import 'shared/trip_tracking/trip_tracking_bluetooth_binding.dart';
+import 'shared/trip_tracking/trip_tracking_bluetooth_coordinator.dart';
 import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_route_point_store.dart';
@@ -201,6 +204,48 @@ Future<void> main() async {
 
   syncTripCalibrationAssist();
   tripTrackingSettings.addListener(syncTripCalibrationAssist);
+  TripTrackingBluetoothVehicleLinkStore bluetoothVehicleLinks;
+  try {
+    bluetoothVehicleLinks =
+        await TripTrackingBluetoothVehicleLinkStore.create();
+  } catch (_) {
+    bluetoothVehicleLinks = TripTrackingBluetoothVehicleLinkStore.memory();
+  }
+  final bluetoothTripCoordinator = TripTrackingBluetoothCoordinator(
+    linkStore: bluetoothVehicleLinks,
+    settings: () => tripTrackingSettings.settings,
+    hasActiveSession: () => tripTracking.isTracking,
+    hasUnfinishedStoredSession: () => tripTracking.isTracking,
+    currentVehicleId: () => globalOdometer.vehicleId,
+    decisionResolver: (deviceId) =>
+        tripTracking.evaluateBluetoothVehicleIdentity(
+          deviceId: deviceId,
+          settings: tripTrackingSettings.settings,
+          linkStore: bluetoothVehicleLinks,
+        ),
+    switchVehicle: (vehicleId) async {
+      final vehicle = appState.vehicleById(vehicleId);
+      if (vehicle == null || vehicle.isArchived) return false;
+      final switched = await globalOdometer.switchVehicleById(
+        odometerVehicleIdForVehicleId(
+          vehicle.id,
+          fallbackLabel: vehicle.nickname,
+        ),
+      );
+      if (!switched) return false;
+      await appState.selectVehicle(vehicle);
+      await operationalContext.setActiveVehicle(
+        vehicleId: globalOdometer.vehicleId,
+        vehicleLabel: vehicle.nickname,
+        usage: vehicle.usage,
+      );
+      return true;
+    },
+  );
+  final bluetoothTripBinding = TripTrackingBluetoothBinding(
+    probe: DeviceCapabilityService.instance,
+    coordinator: bluetoothTripCoordinator,
+  );
   final activeDashboardMirror = dashboardMirror;
   if (activeDashboardMirror != null) {
     final dashboardReporter = DashboardTripTrackingSummaryReporter(
@@ -282,7 +327,10 @@ Future<void> main() async {
                                           controller: operationalContext,
                                           child: InvoiceLedgerScope(
                                             controller: invoiceLedger,
-                                            child: const MaintaniacApp(),
+                                            child: MaintaniacApp(
+                                              bluetoothTripBinding:
+                                                  bluetoothTripBinding,
+                                            ),
                                           ),
                                         ),
                                       ),

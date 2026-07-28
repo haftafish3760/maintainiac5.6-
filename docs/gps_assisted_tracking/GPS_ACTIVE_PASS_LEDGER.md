@@ -62,7 +62,7 @@ Updated: 2026-07-28 EDT
 - Existing simulator: rebuilds the same 27 deterministic fixtures up to 1,000 times; it is a repeatability benchmark, not a 100,000-scenario generator.
 - Existing fuzz tests: seeded hostile and mixed-motion inputs provide useful engine coverage but do not cover the complete lifecycle/Bluetooth state space.
 
-## Current failure list
+## Original failure list (repaired)
 
 Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 
@@ -75,26 +75,30 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 7. Native source contract expects the old `isRunning` guard; implementation now uses `isCollectorActive`.
 8. Native source ordering assertion searches for the obsolete guard and fails.
 
-## Root-cause hypotheses requiring proof
+## Proven root causes
 
-- Failures 1, 2, 5, and 6 likely have obsolete test setup: the fake platform does not emit the provider-registration status now required by the authoritative startup contract.
-- Failure 7 likely has an obsolete source assertion: `isCollectorActive` is the stronger guard because it suppresses duplicate starts during registration and after registration.
-- Failure 8 is coupled to the same obsolete string and must be rewritten around the stronger contract, not merely made green.
-- Failure 3 may be a real time-domain test defect or projection/lifecycle defect; its test clock starts before the shared sample fixture timestamp.
-- Failure 4 may be a boundary mismatch between initial-fix expiration and heartbeat freshness; it requires isolated lifecycle evidence.
+- Failures 1, 2, 5, and 6 used obsolete test setup that never emitted the now-required provider-registration status.
+- Failures 7 and 8 asserted the obsolete `isRunning` guard; `isCollectorActive` correctly suppresses starts while registering and running.
+- Failure 3 supplied a six-minute-old cached point, so stale-evidence rejection correctly prevented the projected odometer update.
+- Failure 4 crossed the 45-second initial-fix deadline without first supplying a valid fix, so degraded state was correct before heartbeat freshness was evaluated.
 
 ## Current pass
 
-- PASS 5
-- Objective: complete trip-domain gate after original failure reconciliation
+- PASS 6
+- Objective: wire approved Bluetooth observations into the production lifecycle exactly once
 - State: passed
-- Source changes: none
-- Test changes: none in this pass
-- Regression cases added: none in this pass
-- Complete trip gate: `TRIP_QA_PASS`, exit 0
+- Source changes: production construction/injection, root lifecycle start/resume/dispose, authoritative decision delegation
+- Test changes: coordinator resolver regression and production source-contract coverage
+- Regression cases added: authoritative device-resolution delegation and production lifecycle wiring
+- Focused Bluetooth tests: 18 passed, exit 0
+- Focused analysis: exit 0
+- Complete trip gate: `TRIP_QA_PASS`, exit 0 after repairing its obsolete root-widget constructor assertion
 - Retained logs:
-  - gate-managed log under `${TMPDIR}/maintainiac_trip_qa_*`
-- Result: all trip-domain tests pass at the repaired checkpoint
+  - `/tmp/maintainiac_pass6_bluetooth.log`
+  - `/tmp/maintainiac_pass6_analyze.log`
+  - `/tmp/maintainiac_pass6_complete_gate_rerun.log`
+- Result: Android-capable approved observations now reach the existing coordinator; retries are idempotent and disposal is owned by the root lifecycle
+- Limitation: no production UI yet creates a user-approved device link; automatic start remains fail-closed because no real paid entitlement owner exists
 
 ## Completed passes
 
@@ -105,6 +109,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 3 | PASSED | Charging and live projection boundary | Focused and adjacent battery tests exit 0 |
 | 4 | PASSED | Heartbeat freshness after valid initial fix | Heartbeat family and original eight exit 0 |
 | 5 | PASSED | Complete trip-domain gate | `TRIP_QA_PASS`, exit 0 |
+| 6 | PASSED | Production Bluetooth lifecycle wiring | 18 focused tests and analysis exit 0 |
 
 ## Safest repair order
 
@@ -120,4 +125,4 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 
 ## Next smallest justified action
 
-Create and push the verified original-failure reconciliation checkpoint, then begin production Bluetooth bootstrap wiring.
+Add the user-reviewable Bluetooth association path without exposing opaque identifiers or silently changing an active trip.

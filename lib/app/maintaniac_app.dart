@@ -11,12 +11,15 @@ import '../shared/navigation/app_page_routes.dart';
 import '../shared/device_capabilities/device_capability_scope.dart';
 import '../shared/theme/app_theme.dart';
 import '../shared/trip_tracking/trip_tracking_controller.dart';
+import '../shared/trip_tracking/trip_tracking_bluetooth_binding.dart';
 import '../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../shared/widgets/receipt_capture/incoming_receipt_share.dart';
 import '../shared/localization/maintaniac_localizations.dart';
 
 class MaintaniacApp extends StatefulWidget {
-  const MaintaniacApp({super.key});
+  const MaintaniacApp({super.key, this.bluetoothTripBinding});
+
+  final TripTrackingBluetoothBinding? bluetoothTripBinding;
 
   @override
   State<MaintaniacApp> createState() => _MaintaniacAppState();
@@ -45,6 +48,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
       (_) => unawaited(_checkForegroundTripHeartbeat()),
     );
     unawaited(_deviceCapabilities.initialize());
+    unawaited(widget.bluetoothTripBinding?.start());
   }
 
   @override
@@ -64,6 +68,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
     _tripHeartbeatTimer?.cancel();
     _deviceCapabilities.dispose();
     _incomingShare?.removeListener(_handleIncomingShare);
+    unawaited(widget.bluetoothTripBinding?.dispose());
     super.dispose();
   }
 
@@ -72,6 +77,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
     _appLifecycleState = state;
     if (state == AppLifecycleState.resumed) {
       unawaited(_deviceCapabilities.refreshRuntime());
+      unawaited(widget.bluetoothTripBinding?.start());
     }
     final tripTracking = TripTrackingScope.maybeOf(context);
     final settings = TripTrackingSettingsScope.maybeOf(context);

@@ -10,6 +10,48 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dar
 
 void main() {
   test(
+    'connection coordinator delegates to the authoritative resolver',
+    () async {
+      final now = DateTime.utc(2026, 7, 28, 9);
+      var resolvedDeviceId = '';
+      var switchedVehicleId = '';
+      final coordinator = TripTrackingBluetoothCoordinator(
+        linkStore: TripTrackingBluetoothVehicleLinkStore.memory(),
+        settings: () => const TripTrackingSettings(),
+        hasActiveSession: () => false,
+        hasUnfinishedStoredSession: () => false,
+        currentVehicleId: () => 'vehicle_1',
+        decisionResolver: (deviceId) {
+          resolvedDeviceId = deviceId;
+          return const BluetoothVehicleMatchDecision(
+            disposition:
+                BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+            vehicleId: 'vehicle_2',
+            safeReason: 'authoritative_test_decision',
+          );
+        },
+        switchVehicle: (vehicleId) async {
+          switchedVehicleId = vehicleId;
+          return true;
+        },
+      );
+
+      final decision = await coordinator.handleConnection(
+        DeviceBluetoothConnectionObservation(
+          opaqueDeviceId: 'approved-head-unit',
+          connected: true,
+          observedAtUtc: now,
+        ),
+        nowUtc: now,
+      );
+
+      expect(resolvedDeviceId, 'approved-head-unit');
+      expect(switchedVehicleId, 'vehicle_2');
+      expect(decision.safeReason, 'authoritative_test_decision');
+    },
+  );
+
+  test(
     'connection coordinator switches once and absorbs duplicate callbacks',
     () async {
       final now = DateTime.utc(2026, 7, 23, 9);
