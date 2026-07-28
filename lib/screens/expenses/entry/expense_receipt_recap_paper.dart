@@ -12,6 +12,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
     required this.businessTotal,
     required this.personalTotal,
     required this.showLineUseControls,
+    required this.showItemDetails,
     required this.onEdit,
     required this.onSetUse,
     required this.onDelete,
@@ -27,6 +28,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
   final double businessTotal;
   final double personalTotal;
   final bool showLineUseControls;
+  final bool showItemDetails;
   final ValueChanged<int> onEdit;
   final FutureOr<void> Function(int index, _ExpenseLineUse use) onSetUse;
   final ValueChanged<int> onDelete;
@@ -44,7 +46,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'SCANNED RECEIPT REVIEW',
+            'RECEIPT DETAILS',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Color(0xFF25211A),
@@ -94,6 +96,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
               lineNumber: index + 1,
               line: lines[index],
               showLineUseControls: showLineUseControls,
+              showItemDetails: showItemDetails,
               onEdit: () => onEdit(index),
               onSetUse: (use) => onSetUse(index, use),
               onDelete: () => onDelete(index),

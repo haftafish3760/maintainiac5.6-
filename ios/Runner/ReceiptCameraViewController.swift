@@ -112,7 +112,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var bestShotCandidateCount = 3
   var cameraResolutionTier = "high"
   var cameraWorkloadTier = "balanced"
-  let nativePreviewScaleMode = "resize_aspect_capture_parity"
+  let nativePreviewScaleMode = "resize_aspect_fill_receipt_viewer"
   let nativeControlDensity = "compact_receipt_controls"
   var previewExposurePolicy = "receipt_paper_metering_safe_auto_lift_manual_slider"
   var previewBrightnessGuardPolicy = "avoid_dark_preview_full_receipt_sampling"
@@ -133,6 +133,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var maxStitchOutputHeight = 18000
   var sessionMinZoom = 1.0
   var sessionMaxZoom = 1.0
+  var sessionInitialZoom = 1.0
   var sessionMinExposureOffset = 0.0
   var sessionMaxExposureOffset = 0.0
   var lastLiveAnalysisAt = 0.0
@@ -233,6 +234,8 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var latestCapturedSharpnessBucket = "unknown"
   var latestCapturedQualitySignal = "unknown"
   var latestCaptureLiveBrightnessAtShutter = -1.0
+  var latestCaptureShutterExposureTargetBias = 0.0
+  var latestCaptureShutterZoomRatio = 1.0
   var latestCapturedLiveToSavedLumaDelta = -10000.0
   var latestCapturedLiveToSavedLumaDeltaBucket = "unknown"
   var latestCapturedPreviewParitySignal = "unknown"

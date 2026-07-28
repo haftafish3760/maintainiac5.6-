@@ -2,8 +2,10 @@ part of '../../receipts/receipt_ocr_contract.dart';
 
 extension ReceiptOcrResultParserViews on ReceiptOcrResult {
   List<ReceiptOcrParserLineSignal> get parserLineSignals {
+    final cached = _receiptParserLineSignalsCache[this];
+    if (cached != null) return cached;
     final lines = orderedParserLines;
-    return List.unmodifiable([
+    return _receiptParserLineSignalsCache[this] = List.unmodifiable([
       for (var index = 0; index < lines.length; index++)
         _parserLineSignalFor(
           lines[index],
@@ -16,6 +18,8 @@ extension ReceiptOcrResultParserViews on ReceiptOcrResult {
   }
 
   ReceiptOcrParserHandoff get parserHandoff {
+    final cached = _receiptParserHandoffCache[this];
+    if (cached != null) return cached;
     final signals = parserLineSignals;
     List<ReceiptOcrParserLineSignal> whereKind(
       bool Function(ReceiptOcrParserLineSignal signal) test,
@@ -23,7 +27,7 @@ extension ReceiptOcrResultParserViews on ReceiptOcrResult {
       return List.unmodifiable(signals.where(test));
     }
 
-    return ReceiptOcrParserHandoff(
+    return _receiptParserHandoffCache[this] = ReceiptOcrParserHandoff(
       lines: signals,
       vendorLines: whereKind(
         (signal) => signal.kind == ReceiptOcrParserLineKind.vendorCandidate,

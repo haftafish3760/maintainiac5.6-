@@ -2,15 +2,18 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryAttachmentPanel
     on _ExpenseReceiptEntryScreenState {
-  Widget _buildReceiptAttachmentPanel(BuildContext context) {
+  Widget _buildReceiptAttachmentPanel(
+    BuildContext context, {
+    ReceiptAttachmentPanelController? controller,
+  }) {
     return SharedReceiptAttachmentPanel(
+      controller: controller,
       hasReceipt: _hasReceipt,
       area: _receiptCaptureArea,
-      openImportOptionsOnFirstBuild:
-          widget.receiptId == null &&
-          widget.draftId == null &&
-          widget.initialAttachments.isEmpty &&
-          widget.initialImportedText.trim().isEmpty,
+      // Receipt proof is optional. A new manual expense must open as a calm,
+      // editable form; camera and upload choices belong behind the explicit
+      // Add Receipt button, never as an automatic sheet on screen entry.
+      openImportOptionsOnFirstBuild: false,
       showInterruptedCaptureRecovery: widget.showInterruptedCaptureRecovery,
       initialAttachments: _receiptAttachments,
       receiptContinuationReasonCode:
@@ -68,7 +71,6 @@ extension _ExpenseReceiptEntryAttachmentPanel
       onImportedText: _parseImportedReceiptText,
       onReceiptPhotoReviewAccepted: _markReceiptPhotoReviewAccepted,
       onReceiptReadStarted: _markReceiptReadStarted,
-      onReceiptOcrCompleted: _markReceiptOcrCompleted,
       onReceiptOcrResultForReview: _parseReceiptOcrResultFromCapture,
       onReceiptReadFinished: _markReceiptReadFinished,
       onReceiptCaptureDiagnostic: _recordReceiptCaptureDiagnostic,

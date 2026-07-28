@@ -112,6 +112,8 @@ void main() {
       reviewScreen,
       contains('return proportional < absolute ? proportional : absolute;'),
     );
+    expect(reviewScreen, contains('safeHeight <= 1100'));
+    expect(reviewScreen, contains('phonePreviewControlsHeight = 100.0'));
     expect(
       reviewScreen,
       contains('backgroundColor: widget.uiConfig.previewBackgroundColor'),
@@ -125,6 +127,7 @@ void main() {
     expect(reviewScreen, contains('Expanded(\n                child: Stack('));
     expect(reviewScreen, isNot(contains('_reviewSurfaceBottomPadding')));
     expect(uiConfig, contains('class ReceiptPhotoReviewUiConfig'));
+    expect(uiConfig, contains('this.cropControlsHeight = 120'));
     expect(uiConfig, isNot(contains('keepControlsOutsidePreview')));
     expect(uiConfig, contains('String addPhotoLabel'));
     expect(reviewScreen, contains('_reviewPreviewCacheWidth(context)'));
@@ -162,6 +165,17 @@ void main() {
     );
     expect(previewControls, contains('height: 32'));
     expect(previewControls, contains('minimumSize: const Size(0, 48)'));
+    expect(previewControls, contains('class _ReceiptCompactPreviewActions'));
+    expect(previewControls, contains('if (compact) {'));
+    expect(previewControls, contains("tooltip: 'Crop receipt photo'"));
+    expect(previewControls, contains("tooltip: 'Retake receipt photo'"));
+    expect(previewControls, contains("tooltip: 'Add another receipt photo'"));
+    expect(previewControls, contains("label: 'Crop'"));
+    expect(previewControls, contains("label: 'Retake'"));
+    expect(previewControls, contains("label: 'Add photo'"));
+    expect(previewControls, contains('class _ReceiptCompactPreviewTextAction'));
+    expect(previewControls, contains('minimumSize: const Size(0, 42)'));
+    expect(previewControls, contains("width: label == 'Add photo' ? 82 : 64"));
     expect(previewControls, contains('SizedBox(height: compact ? 5 : 7)'));
     expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
     expect(cropControls, contains('height: 52'));
@@ -239,11 +253,9 @@ void main() {
     expect(commonControls, contains('class _ReceiptNextReviewLabel'));
     expect(commonControls, contains('class _ReceiptStackedButtonLabel'));
     expect(commonControls, contains("normalized == 'Add Another Photo'"));
-    expect(commonControls, contains("normalized == 'Save & Continue'"));
-    expect(
-      commonControls,
-      contains('maxLines: 2, textAlign: TextAlign.center'),
-    );
+    expect(commonControls, isNot(contains("normalized == 'Save & Continue'")));
+    expect(previewControls, contains('maxLines: 2'));
+    expect(previewControls, contains('textAlign: TextAlign.center'));
     expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(previewControls, contains('Tooltip('));
     expect(previewControls, contains('Semantics('));

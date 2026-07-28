@@ -121,12 +121,17 @@ internal fun ReceiptCameraActivity.canUseLongReceiptMode(): Boolean {
 }
 
 internal fun ReceiptCameraActivity.effectiveMinZoom(cameraMinZoom: Float): Float {
-    return max(cameraMinZoom.toDouble(), sessionMinZoom).toFloat()
+    // The live CameraX lens owns its lower zoom bound. A capability result
+    // collected before binding must not force the capture screen to start
+    // zoomed or keep the user from returning to 1x.
+    return max(cameraMinZoom.toDouble(), 1.0).toFloat()
 }
 
 internal fun ReceiptCameraActivity.effectiveMaxZoom(cameraMinZoom: Float, cameraMaxZoom: Float): Float {
     val minZoom = effectiveMinZoom(cameraMinZoom)
-    val maxZoom = min(cameraMaxZoom.toDouble(), sessionMaxZoom).toFloat()
+    // The bound CameraX camera is authoritative for the actual rear lens.
+    // Do not clamp it to a possibly stale preflight capability snapshot.
+    val maxZoom = cameraMaxZoom
     return max(minZoom, maxZoom)
 }
 

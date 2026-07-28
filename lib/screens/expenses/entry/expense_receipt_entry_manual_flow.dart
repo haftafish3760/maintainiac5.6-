@@ -6,8 +6,7 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
       widget.mode == ExpenseReceiptFlowMode.general &&
       widget.initialCategory != 'Fuel' &&
       !_isMaterialsFlow &&
-      !_isMaintenanceRepairFlow &&
-      _detailEntryMode == _ReceiptDetailEntryMode.detailedItems;
+      !_isMaintenanceRepairFlow;
 
   Widget _buildManualDetailedReceiptFlow(BuildContext context) {
     return Scaffold(
@@ -175,11 +174,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
   }
 
   Widget _buildManualReceiptItemsStep(BuildContext context) {
-    final scopeValue = _receiptCategoryAppliesToAll
-        ? _receiptCategory == 'Uncategorized'
-              ? 'One receipt category has not been selected yet.'
-              : 'One category for this receipt: $_receiptCategory'
-        : 'Categories are optional and chosen per item.';
     return ListView(
       key: const ValueKey('manual-receipt-items'),
       controller: _receiptScrollController,
@@ -195,15 +189,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
           ),
         ),
         const SizedBox(height: 14),
-        _ManualReceiptActionTile(
-          icon: Icons.category_outlined,
-          label: 'Categories',
-          value: scopeValue,
-          actionLabel: 'Choose',
-          onTap: () => unawaited(_showManualReceiptCategoryScope(context)),
-          color: const Color(0xFFFFD166),
-        ),
-        const SizedBox(height: 14),
         if (_lines.isEmpty)
           const _ManualReceiptEmptyItems()
         else
@@ -216,8 +201,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
                 _setReceiptEntryState(() => _lines.removeAt(index));
                 _scheduleDraftSave();
               },
-              onUseChanged: (use) =>
-                  unawaited(_changeManualReceiptLineUse(index, use)),
             ),
             const SizedBox(height: 8),
           ],
@@ -269,8 +252,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
               _setReceiptEntryState(() => _lines.removeAt(index));
               _scheduleDraftSave();
             },
-            onUseChanged: (use) =>
-                unawaited(_changeManualReceiptLineUse(index, use)),
           ),
           const SizedBox(height: 8),
         ],
@@ -384,8 +365,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
   }
 
   void _selectManualReceiptStep(_ManualReceiptStep target) {
-    if (target.index > _manualReceiptStep.index) return;
-    if (target == _ManualReceiptStep.review && _lines.isEmpty) return;
     _setReceiptEntryState(() => _manualReceiptStep = target);
   }
 
@@ -407,28 +386,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
         category: _newReceiptLineCategory,
       ),
     );
-  }
-
-  Future<void> _changeManualReceiptLineUse(
-    int index,
-    _ExpenseLineUse use,
-  ) async {
-    if (index < 0 || index >= _lines.length || _lines[index].use == use) {
-      return;
-    }
-    if (use == _ExpenseLineUse.split) {
-      final line = _lines[index];
-      await _editLine(
-        index: index,
-        initial: line.copyWith(
-          use: _ExpenseLineUse.split,
-          businessPercent: null,
-          splitAllocation: null,
-        ),
-      );
-      return;
-    }
-    await _setReceiptLineUse(index, use);
   }
 }
 

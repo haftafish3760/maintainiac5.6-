@@ -78,127 +78,37 @@ class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
           color: reviewGuidance.primaryNextStepColor,
           icon: reviewGuidance.primaryNextStepIcon,
         ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 7,
-          runSpacing: 7,
-          children: [
-            _ReceiptReviewInstructionChip(
-              icon: Icons.receipt_long_rounded,
-              label: _modeLabel,
-              color: const Color(0xFF34A9E8),
-            ),
-            _ReceiptReviewInstructionChip(
-              icon: needsLineReview
-                  ? Icons.manage_search_rounded
-                  : Icons.verified_rounded,
-              label: needsLineReview
-                  ? 'Check highlighted lines'
-                  : 'No line warnings',
-              color: needsLineReview
-                  ? const Color(0xFFFFD166)
-                  : const Color(0xFF8EF6A4),
-            ),
-            _ReceiptReviewInstructionChip(
-              icon: hasWarnings
-                  ? Icons.warning_amber_rounded
-                  : Icons.document_scanner_rounded,
-              label: _ocrStatusLabel,
-              color: hasWarnings
-                  ? const Color(0xFFFFD166)
-                  : const Color(0xFF8EF6A4),
-            ),
-            _ReceiptReviewInstructionChip(
-              icon: reviewGuidance.reviewIcon,
-              label: reviewGuidance.reviewLabel,
-              color: reviewGuidance.reviewColor,
-            ),
-            _ReceiptReviewInstructionChip(
-              icon: reviewGuidance.classificationIcon,
-              label: reviewGuidance.classificationLabel,
-              color: reviewGuidance.classificationColor,
-            ),
-            if (reviewGuidance.materialPrepLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.inventory_2_rounded,
-                label: reviewGuidance.materialPrepLabel,
-                color: const Color(0xFF34A9E8),
-              ),
-            if (reviewGuidance.readyLineLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.playlist_add_check_rounded,
-                label: reviewGuidance.readyLineLabel,
-                color: const Color(0xFF8EF6A4),
-              ),
-            if (reviewGuidance.reviewLineLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.manage_search_rounded,
-                label: reviewGuidance.reviewLineLabel,
-                color: const Color(0xFFFFD166),
-              ),
-            if (reviewGuidance.lineMapLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.format_list_numbered_rounded,
-                label: reviewGuidance.lineMapLabel,
-                color: const Color(0xFF34A9E8),
-              ),
-            if (reviewGuidance.parserTaskSummaryLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.rule_folder_rounded,
-                label: reviewGuidance.parserTaskSummaryLabel,
-                color: const Color(0xFF34A9E8),
-              ),
-            if (reviewGuidance.receiptBrainLimitLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.sd_storage_rounded,
-                label: reviewGuidance.receiptBrainLimitLabel,
-                color: reviewGuidance.receiptBrainLimitColor,
-              ),
-            if (reviewGuidance.downstreamReadinessLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.hub_rounded,
-                label: reviewGuidance.downstreamReadinessLabel,
-                color: reviewGuidance.downstreamReadinessColor,
-              ),
-            if (reviewGuidance.classificationReadinessLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.call_split_rounded,
-                label: reviewGuidance.classificationReadinessLabel,
-                color: reviewGuidance.classificationReadinessColor,
-              ),
-            if (reviewGuidance.itemFamilyReviewLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: reviewGuidance.itemFamilyReviewIcon,
-                label: reviewGuidance.itemFamilyReviewLabel,
-                color: reviewGuidance.itemFamilyReviewColor,
-              ),
-            if (reviewGuidance.lineIdentityLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.format_list_numbered_rtl_rounded,
-                label: reviewGuidance.lineIdentityLabel,
-                color: reviewGuidance.lineIdentityColor,
-              ),
-            if (reviewGuidance.coverageReviewLabel.isNotEmpty)
-              _ReceiptReviewInstructionChip(
-                icon: Icons.vertical_align_bottom_rounded,
-                label: reviewGuidance.coverageReviewLabel,
-                color: reviewGuidance.coverageReviewColor,
-              ),
-            for (final field in reviewGuidance.fieldStatusChips)
-              _ReceiptReviewInstructionChip(
-                icon: field.icon,
-                label: field.label,
-                color: field.color,
-              ),
-          ],
+        const SizedBox(height: 6),
+        Text(
+          _modeLabel,
+          style: const TextStyle(
+            color: Color(0xFF8BBFDD),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0,
+          ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 3),
+        Text(
+          needsLineReview
+              ? 'Check highlighted lines • $_ocrStatusLabel'
+              : 'No line warnings • $_ocrStatusLabel',
+          style: TextStyle(
+            color: needsLineReview
+                ? const Color(0xFFFFD166)
+                : const Color(0xFF8EF6A4),
+            fontSize: 11.5,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0,
+          ),
+        ),
         if (_showBottomSectionAlert) ...[
           _buildBottomSectionAlert(),
           const SizedBox(height: 8),
         ],
         Text(
-          reviewGuidance.detailText,
+          '$lineCount ${lineCount == 1 ? 'line is' : 'lines are'} ready below. '
+          'Edit anything that does not match the receipt, then choose Business, Personal, or Split before saving.',
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 11.5,
@@ -213,20 +123,21 @@ class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
 
   String get _modeLabel {
     return switch (detailMode) {
-      _ReceiptDetailEntryMode.basicReceipt => 'Basic receipt review',
-      _ReceiptDetailEntryMode.quickClassify => 'Simple price review',
+      _ReceiptDetailEntryMode.basicReceipt => 'Simple receipt review',
+      _ReceiptDetailEntryMode.quickClassify => 'Basic price review',
       _ReceiptDetailEntryMode.detailedItems => 'Detailed item review',
     };
   }
 
   String get _ocrStatusLabel {
     final diagnostics = ocrDiagnostics;
-    if (diagnostics == null) return 'Receipt reading not measured';
     if (ocrWarnings.isNotEmpty) {
       return '${ocrWarnings.length} receipt reading ${ocrWarnings.length == 1 ? 'warning' : 'warnings'}';
     }
+    if (diagnostics == null) return 'Receipt text is ready for review';
     return diagnostics.severity == ReceiptOcrReviewSeverity.good
         ? 'Receipt reading looked good'
         : 'Receipt reading needs review';
   }
+
 }

@@ -10,13 +10,14 @@ double contractorMetricTileExtent(BuildContext context) {
 }
 
 class ContractorMetricTile extends StatelessWidget {
-  const ContractorMetricTile({required this.metric, super.key});
+  const ContractorMetricTile({required this.metric, this.onTap, super.key});
 
   final ContractorMetric metric;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    final content = DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF050909),
         borderRadius: BorderRadius.circular(5),
@@ -46,17 +47,43 @@ class ContractorMetricTile extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              metric.value,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: metric.color,
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    metric.value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: metric.color,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                if (onTap != null)
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    color: metric.color,
+                    size: 22,
+                  ),
+              ],
             ),
           ],
+        ),
+      ),
+    );
+    if (onTap == null) return content;
+    return Semantics(
+      button: true,
+      label: 'Open ${metric.label}',
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(5),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(5),
+          child: content,
         ),
       ),
     );

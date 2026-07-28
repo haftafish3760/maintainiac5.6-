@@ -71,19 +71,21 @@ class _ReceiptNextReviewLabel extends StatelessWidget {
         secondary: 'Photo',
       );
     }
-    if (normalized == 'Save & Continue') {
-      return const _ReceiptStackedButtonLabel(
-        primary: 'Save',
-        secondary: '& Continue',
-      );
-    }
     if (normalized == 'Review Photos') {
       return const _ReceiptStackedButtonLabel(
         primary: 'Review',
         secondary: 'Photos',
       );
     }
-    return Text(normalized, maxLines: 2, textAlign: TextAlign.center);
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Text(
+        normalized,
+        maxLines: 1,
+        softWrap: false,
+        textAlign: TextAlign.center,
+      ),
+    );
   }
 }
 

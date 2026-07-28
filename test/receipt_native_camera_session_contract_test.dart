@@ -122,6 +122,7 @@ void main() {
     expect(config.bestShotCandidateCount, 5);
     expect(config.cameraResolutionTier, ReceiptCameraResolutionTier.max);
     expect(config.cameraWorkloadTier, ReceiptCameraWorkloadTier.flagship);
+    expect(config.initialZoomRatio, 1.0);
     expect(config.maxLocalPhotoBytes, 20 * 1024 * 1024);
     expect(
       config.nativeCaptureMemoryPolicy,
@@ -294,7 +295,7 @@ void main() {
   );
 
   test(
-    'session does not send fake camera controls when native lacks support',
+    'session lets the bound native camera resolve an uncertain zoom range',
     () {
       const native = ReceiptNativeCameraCapabilities(
         engine: ReceiptNativeCameraEngine.cameraX,
@@ -312,7 +313,10 @@ void main() {
       );
 
       expect(config.tapFocusEnabled, isFalse);
-      expect(config.pinchZoomEnabled, isFalse);
+      // Zoom capability discovery can precede binding the selected rear lens.
+      // Native CameraX/AVFoundation must resolve the actual range at runtime,
+      // rather than disabling a user's gesture from a stale 1x preflight.
+      expect(config.pinchZoomEnabled, isTrue);
       expect(config.exposureSliderEnabled, isFalse);
       expect(config.exposureResetEnabled, isFalse);
       expect(config.autoExposureAssistEnabled, isFalse);
@@ -332,7 +336,7 @@ void main() {
       );
       expect(
         config.zoomGesturePolicy,
-        'pinch_zoom_unavailable_keep_native_scale',
+        'pinch_zoom_receipt_preview_1.0_to_1.0',
       );
       expect(config.nativeControlContractTags, [
         'settings',
@@ -342,6 +346,7 @@ void main() {
         'receipt_guidance',
         'native_camera_baseline',
         'safe_close',
+        'pinch_zoom',
         'focus_readability_review',
         'manual_focus_optional_future',
         'edge_overlay',

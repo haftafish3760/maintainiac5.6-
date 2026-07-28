@@ -9,9 +9,13 @@ void main() {
       final framing = await File(
         'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraFraming.kt',
       ).readAsString();
-      final analysis = await File(
-        'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt',
-      ).readAsString();
+      final analysis =
+          await File(
+            'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt',
+          ).readAsString() +
+          await File(
+            'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysisFrame.kt',
+          ).readAsString();
 
       expect(
         framing,
@@ -32,7 +36,10 @@ void main() {
           'val tallScreenLikePanel = heightRatio >= 0.88 && widthRatio in 0.46..0.82',
         ),
       );
-      expect(framing, contains('return nearFullDisplay || tallScreenLikePanel'));
+      expect(
+        framing,
+        contains('return nearFullDisplay || tallScreenLikePanel'),
+      );
       expect(
         framing,
         contains(
@@ -50,16 +57,20 @@ void main() {
       expect(framing, contains('if (!edgeDetectionEnabled) return false'));
       expect(
         framing,
-        contains('if (!framing.found || !hasUsableLiveFramingBounds(framing)) return false'),
+        contains(
+          'if (!framing.found || !hasUsableLiveFramingBounds(framing)) return false',
+        ),
       );
       expect(framing, contains('if (framing.touchesEdge) return false'));
       expect(
         framing,
-        contains('if (framing.widthRatio < 0.42 || framing.heightRatio < 0.36) return false'),
+        contains(
+          'if (framing.widthRatio < 0.42 || framing.heightRatio < 0.36) return false',
+        ),
       );
       expect(
         analysis,
-        contains('if (!hasReliableLiveReceiptTargetForQualityWarnings(framing)) {'),
+        contains('!hasReliableLiveReceiptTargetForQualityWarnings(framing)'),
       );
       expect(
         analysis,

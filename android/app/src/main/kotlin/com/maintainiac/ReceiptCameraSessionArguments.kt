@@ -125,6 +125,11 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     maxStitchOutputHeight = intent.getIntExtra("maxStitchOutputHeight", 18000).coerceAtLeast(0)
     sessionMinZoom = finiteDoubleExtra("minZoom", 1.0).coerceAtLeast(1.0)
     sessionMaxZoom = finiteDoubleExtra("maxZoom", 1.0).coerceAtLeast(sessionMinZoom)
+    sessionInitialZoom = finiteDoubleExtra(
+        "initialZoomRatio",
+        sessionMinZoom
+    ).coerceIn(sessionMinZoom, sessionMaxZoom)
+        .coerceIn(sessionMinZoom, sessionMaxZoom)
     sessionMinExposureOffset = finiteDoubleExtra("minExposureOffset", 0.0)
     sessionMaxExposureOffset = finiteDoubleExtra("maxExposureOffset", 0.0)
     maxSectionCount = intent.getIntExtra("maxSectionCount", 8).coerceIn(1, 24)

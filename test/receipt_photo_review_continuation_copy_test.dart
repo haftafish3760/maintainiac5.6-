@@ -36,10 +36,7 @@ void main() {
       controls,
       contains('Use Match Photos to check whether one combined receipt image'),
     );
-    expect(
-      controls,
-      contains('Save & Continue will use one combined receipt image.'),
-    );
+    expect(controls, contains('Continue will use one combined receipt image.'));
     expect(controls, contains('ordered sections from top to bottom'));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));

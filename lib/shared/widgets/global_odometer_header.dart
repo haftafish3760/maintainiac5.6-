@@ -1,9 +1,16 @@
 part of 'app_screen_shell.dart';
 
 class GlobalOdometerHeader extends StatelessWidget {
-  const GlobalOdometerHeader({super.key, this.section = AppSection.dashboard});
+  const GlobalOdometerHeader({
+    super.key,
+    this.section = AppSection.dashboard,
+    this.onSettingsPressed,
+    this.headerLabel,
+  });
 
   final AppSection section;
+  final VoidCallback? onSettingsPressed;
+  final String? headerLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +27,7 @@ class GlobalOdometerHeader extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  _headerLabelFor(section),
+                  headerLabel ?? _headerLabelFor(section),
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: const Color(0xFF101416),
                     fontSize: 12,
@@ -89,7 +96,9 @@ class GlobalOdometerHeader extends StatelessWidget {
                       width: 38,
                       height: 40,
                       child: IconButton(
-                        onPressed: () => _openDashboardSettings(context),
+                        onPressed:
+                            onSettingsPressed ??
+                            () => _openDashboardSettings(context),
                         constraints: const BoxConstraints.tightFor(
                           width: 38,
                           height: 40,

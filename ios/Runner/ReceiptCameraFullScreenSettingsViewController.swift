@@ -66,30 +66,6 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
       "Estos controles se aplican mientras esta cámara está abierta. Configure sus valores predeterminados de recibos en Configuración de recibos."
     )))
     content.addArrangedSubview(section(camera.receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
-    content.addArrangedSubview(toggle(camera.receiptCameraText("Long receipt mode", "Modo de recibo largo"), value: camera.longReceiptMode) { [weak self] enabled in
-      guard enabled else {
-        camera.longReceiptMode = false
-        camera.updateDoneButton()
-        camera.updateSettingsStatusStrip()
-        self?.reloadContent()
-        return
-      }
-      guard camera.canUseLongReceiptMode() else {
-        camera.longReceiptMode = false
-        camera.guidanceLabel.text = camera.receiptCameraText(
-          "Long receipt mode is unavailable for this device or storage setting.",
-          "El modo de recibo largo no está disponible para este dispositivo o ajuste de almacenamiento."
-        )
-        camera.updateDoneButton()
-        camera.updateSettingsStatusStrip()
-        self?.reloadContent()
-        return
-      }
-      camera.longReceiptMode = true
-      camera.updateDoneButton()
-      camera.updateSettingsStatusStrip()
-      self?.reloadContent()
-    })
     content.addArrangedSubview(toggle(camera.receiptCameraText("Automatic capture", "Captura automática"), value: camera.autoCaptureEnabled) { [weak self] enabled in
       guard enabled else {
         camera.autoCaptureEnabled = false
@@ -137,6 +113,39 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
       self?.reloadContent()
     })
     content.addArrangedSubview(section(camera.receiptCameraText("CAMERA CONTROLS", "CONTROLES DE CÁMARA")))
+    content.addArrangedSubview(toggle(camera.receiptCameraText("Auto brightness assist", "Asistencia automática de brillo"), value: camera.autoExposureAssistEnabled) { [weak self] enabled in
+      camera.autoExposureAssistEnabled = enabled
+      if enabled {
+        camera.userExposureOverride = false
+        camera.resetExposure()
+      }
+      camera.updateSettingsStatusStrip()
+      self?.reloadContent()
+    })
+    let imageCleanupEnabled = camera.perspectiveCorrectionEnabled &&
+      camera.manualCropAfterCapture &&
+      camera.autoCropSuggestionEnabled &&
+      camera.orientationCorrectionEnabled &&
+      camera.contrastBoostEnabled &&
+      camera.sharpeningEnabled &&
+      camera.shadowReductionEnabled
+    content.addArrangedSubview(toggle(camera.receiptCameraText("Image cleanup", "Limpieza de imagen"), value: imageCleanupEnabled) { [weak self] enabled in
+      camera.perspectiveCorrectionEnabled = enabled
+      camera.manualCropAfterCapture = enabled
+      camera.autoCropSuggestionEnabled = enabled
+      camera.orientationCorrectionEnabled = enabled
+      camera.grayscalePreviewEnabled = enabled
+      camera.contrastBoostEnabled = enabled
+      camera.sharpeningEnabled = enabled
+      camera.shadowReductionEnabled = enabled
+      camera.adaptiveThresholdEnabled = enabled
+      camera.updateSettingsStatusStrip()
+      self?.reloadContent()
+    })
+    content.addArrangedSubview(note(camera.receiptCameraText(
+      "Image cleanup prepares crop, straighten, grayscale, contrast, sharpness, and shadow corrections for receipt review.",
+      "La limpieza de imagen prepara correcciones de recorte, enderezado, escala de grises, contraste, nitidez y sombras para revisar el recibo."
+    )))
     content.addArrangedSubview(note(camera.receiptCameraText(
       "Your phone handles autofocus. Pinch to zoom, and use the shutter anytime. Maintainiac does not use tap-to-focus.",
       "El teléfono controla el enfoque automático. Pellizque para acercar y use el disparador en cualquier momento. Maintainiac no usa tocar para enfocar."

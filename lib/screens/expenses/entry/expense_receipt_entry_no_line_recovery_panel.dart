@@ -2,6 +2,16 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryNoLineRecoveryPanel
     on _ExpenseReceiptEntryScreenState {
+  Future<void> _beginManualReceiptLineEntry() async {
+    if (_detailEntryMode == _ReceiptDetailEntryMode.basicReceipt) {
+      _selectReceiptDetailMode(_ReceiptDetailEntryMode.quickClassify);
+    }
+    await _addReceiptLineForMode(
+      use: _ExpenseLineUse.business,
+      category: widget.initialCategory ?? 'Uncategorized',
+    );
+  }
+
   Widget _buildReceiptNoLineRecoveryPanel() {
     return ReceiptFormPanel(
       title: _receiptNoLineTitleLabel,
@@ -84,12 +94,13 @@ extension _ExpenseReceiptEntryNoLineRecoveryPanel
         ),
         const SizedBox(height: 10),
         FilledButton.icon(
-          onPressed: () => _addReceiptLineForMode(
-            use: _ExpenseLineUse.business,
-            category: widget.initialCategory ?? 'Uncategorized',
-          ),
+          onPressed: _beginManualReceiptLineEntry,
           icon: const Icon(Icons.add_rounded),
-          label: const Text('Add Line Manually'),
+          label: Text(
+            _detailEntryMode == _ReceiptDetailEntryMode.basicReceipt
+                ? 'Use Basic Receipt Lines'
+                : 'Add Line Manually',
+          ),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFFFFD166),
             foregroundColor: const Color(0xFF101416),

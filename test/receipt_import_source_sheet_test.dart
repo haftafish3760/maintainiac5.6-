@@ -6,7 +6,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_attachment_pan
 
 void main() {
   test(
-    'new expense opens receipt source choices without a second tap',
+    'new expense keeps receipt source choices behind an explicit Add Receipt tap',
     () async {
       final panel = await File(
         'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
@@ -23,9 +23,11 @@ void main() {
         ),
       );
       expect(panel, contains('unawaited(openReceiptImportOptions())'));
-      expect(expenseAttachment, contains('openImportOptionsOnFirstBuild:'));
-      expect(expenseAttachment, contains('widget.receiptId == null'));
-      expect(expenseAttachment, contains('widget.draftId == null'));
+      expect(expenseAttachment, contains('openImportOptionsOnFirstBuild: false'));
+      expect(
+        expenseAttachment,
+        contains('camera and upload choices belong behind the explicit'),
+      );
     },
   );
 

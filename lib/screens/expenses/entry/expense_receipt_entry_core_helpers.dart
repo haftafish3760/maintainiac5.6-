@@ -6,7 +6,6 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
   bool get _hasAppAssistedReceiptReview {
     return _receiptReviewFlowStarted ||
         _receiptClassification != null ||
-        _lines.isNotEmpty ||
         _rawReceiptText.trim().isNotEmpty ||
         _receiptReadAttemptedWithoutText ||
         _lastParseQuality != null ||

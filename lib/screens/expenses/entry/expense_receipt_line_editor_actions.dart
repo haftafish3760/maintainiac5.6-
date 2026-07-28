@@ -7,29 +7,59 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         _availableExpenseCategoryNames(context).contains(typedCategory)
         ? typedCategory
         : _category;
-    final subtotal = _parseMoneyInput(_subtotalController.text) ?? 0;
+    final subtotal = _resolvedLineSubtotal ?? 0;
     if (subtotal <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter the line subtotal first.')),
-      );
-      return;
-    }
-    final enteredBusinessPercent = _use == _ExpenseLineUse.split
-        ? _enteredBusinessPercent
-        : null;
-    if (_use == _ExpenseLineUse.split && enteredBusinessPercent == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Enter a business percentage from 0 to 100 before saving this split line.',
+            'Enter quantity and price, or enter the printed line total.',
           ),
         ),
       );
       return;
     }
-    final splitAllocation = enteredBusinessPercent == null
-        ? null
-        : _splitAllocationForEditedLine(enteredBusinessPercent);
+    final enteredBusinessPercent =
+        _use == _ExpenseLineUse.split &&
+            _splitMethod == ExpenseSplitAllocationMethod.percentage
+        ? _enteredBusinessPercent
+        : null;
+    final enteredBusinessAmount =
+        _use == _ExpenseLineUse.split &&
+            _splitMethod == ExpenseSplitAllocationMethod.amount
+        ? _enteredBusinessAmount
+        : null;
+    if (_use == _ExpenseLineUse.split &&
+        ((_splitMethod == ExpenseSplitAllocationMethod.percentage &&
+                enteredBusinessPercent == null) ||
+            (_splitMethod == ExpenseSplitAllocationMethod.amount &&
+                enteredBusinessAmount == null))) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _splitMethod == ExpenseSplitAllocationMethod.amount
+                ? 'Enter a business dollar amount before saving this split line.'
+                : 'Enter a business percentage from 0 to 100 before saving this split line.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (enteredBusinessAmount != null &&
+        enteredBusinessAmount > subtotal.abs()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Business amount cannot exceed this printed line total.',
+          ),
+        ),
+      );
+      return;
+    }
+    final splitAllocation = _splitAllocationForEditedLine(
+      percent: enteredBusinessPercent,
+      amount: enteredBusinessAmount,
+      subtotal: subtotal,
+    );
     final rule = expenseReceiptRuleForCategory(category);
     final isFuel = rule.isFuel;
     final odometerReading = int.tryParse(
@@ -104,12 +134,10 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
     }
     if (!mounted) return;
     final description = _descriptionController.text.trim();
-    final quantity = rule.usesQuantityFields ? _quantityForSave : 1.0;
-    final unitsPerPackage = rule.usesQuantityFields
-        ? _unitsPerPackageForSave
-        : 1.0;
-    final stockUnit = rule.usesQuantityFields ? _stockUnit : 'each';
-    final unitPrice = isFuel ? _unitPriceForSave : null;
+    final quantity = _quantityForSave;
+    final unitsPerPackage = _unitsPerPackageForSave;
+    final stockUnit = _stockUnit;
+    final unitPrice = _unitPriceForSave;
     final parserReviewLabel = _parserReviewLabelForSavedLine(
       description: description,
       category: category,
@@ -159,20 +187,35 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
     );
   }
 
-  ExpenseSplitAllocation _splitAllocationForEditedLine(double percent) {
+  ExpenseSplitAllocation? _splitAllocationForEditedLine({
+    required double? percent,
+    required double? amount,
+    required double subtotal,
+  }) {
+    if (_use != _ExpenseLineUse.split) return null;
+    if (_splitMethod == ExpenseSplitAllocationMethod.amount) {
+      final entered = amount;
+      if (entered == null) return null;
+      return ExpenseSplitAllocation(
+        method: ExpenseSplitAllocationMethod.amount,
+        businessValue: subtotal < 0 ? -entered : entered,
+      );
+    }
+    final entered = percent;
+    if (entered == null) return null;
     final existing = widget.initial.splitAllocation;
     if (existing != null) {
       final existingPercent = existing.businessPercentFor(
         widget.initial.toLedgerLine(),
       );
       if (existingPercent != null &&
-          (existingPercent - percent).abs() < .0001) {
+          (existingPercent - entered).abs() < .0001) {
         return existing;
       }
     }
     return ExpenseSplitAllocation(
       method: ExpenseSplitAllocationMethod.percentage,
-      businessValue: percent,
+      businessValue: entered,
     );
   }
 
@@ -246,7 +289,7 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
   double get _quantityForSave => double.tryParse(_quantityController.text) ?? 1;
   double get _unitsPerPackageForSave =>
       double.tryParse(_unitsPerPackageController.text) ?? 1;
-  double? get _unitPriceForSave => double.tryParse(_unitPriceController.text);
+  double? get _unitPriceForSave => _parseMoneyInput(_unitPriceController.text);
 
   String _defaultReceiptLineDescription(_ExpenseLineUse use) {
     return switch (use) {

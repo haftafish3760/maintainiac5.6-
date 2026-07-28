@@ -84,6 +84,16 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       _ReceiptReviewMode.stitch => widget.uiConfig.stitchControlsHeight,
       _ReceiptReviewMode.dataSaver => widget.uiConfig.dataSaverControlsHeight,
     };
+    // On a phone, the photo itself is the primary review surface. Keep the
+    // preview tray compact enough to preserve readable receipt pixels; its
+    // secondary actions already scroll within the tray. Larger layouts retain
+    // the configured tool-space cap below.
+    if (_reviewMode == _ReceiptReviewMode.preview && safeHeight <= 1100) {
+      const phonePreviewControlsHeight = 100.0;
+      return proportional < phonePreviewControlsHeight
+          ? proportional
+          : phonePreviewControlsHeight;
+    }
     return proportional < absolute ? proportional : absolute;
   }
 

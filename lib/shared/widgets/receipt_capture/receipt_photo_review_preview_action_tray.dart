@@ -160,12 +160,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                             nativeWarning: nativeWarning,
                             compact: compactControls,
                             hasCriticalQualityIssue: hasCriticalQualityIssue,
-                            openingCamera: interactionLocked,
-                            onAddPhoto: onAddPhoto,
-                            onRetake: onRetake,
-                            onCrop: interactionLocked
-                                ? null
-                                : () => onModeChanged(_ReceiptReviewMode.crop),
                             coverageDecision: coverageDecision,
                           ),
                         ],

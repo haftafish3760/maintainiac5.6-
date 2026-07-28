@@ -55,3 +55,9 @@ job command center remain separate unfinished work.
   legacy migration, real Work Supplies directory, and receipt create/choose/
   clear flow. Analyzer and Android Kotlin compile passed; 9 focused Jobs/
   context tests plus 9 adjacent receipt regressions passed.
+- 2026-07-25: Replaced the fragile Create Job dialog with a dedicated form;
+  added client contact/address, schedule, recurrence, reminder preferences,
+  reviewed estimate selection from the existing invoice ledger, and explicit
+  feedback for still-unconnected job expense/inventory actions. The job record
+  preserves the estimate id rather than creating another estimate owner. See
+  `docs/jobs_commercial_readiness_blueprint.md` for the staged system contract.

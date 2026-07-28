@@ -125,6 +125,12 @@ void main() {
     );
     expect(
       cameraActivity,
+      contains(
+        'sessionInitialZoom = finiteDoubleExtra("initialZoomRatio", sessionMinZoom).coerceIn(sessionMinZoom, sessionMaxZoom)',
+      ),
+    );
+    expect(
+      cameraActivity,
       contains('motionScore in 0.0..autoCaptureMaxMotionScore'),
     );
     expect(cameraActivity, contains('hasUsableLiveFramingBounds(framing)'));
@@ -297,6 +303,7 @@ void main() {
       cameraActivity,
       contains('"sessionMinExposureOffset" to sessionMinExposureOffset'),
     );
+    expect(cameraActivity, contains('"sessionInitialZoom" to sessionInitialZoom'));
     expect(
       cameraActivity,
       contains('"sessionMaxExposureOffset" to sessionMaxExposureOffset'),

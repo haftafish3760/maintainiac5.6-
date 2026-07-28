@@ -185,9 +185,7 @@ void main() {
       attachmentPanel.indexOf('Future<void> reviewReceiptPhotos'),
     );
     expect(
-      importAcceptedFlow.indexOf(
-        'widget.onReceiptPhotoReviewAccepted?.call(result);',
-      ),
+      importAcceptedFlow.indexOf('_notifyReviewedPhotoAccepted(result)'),
       lessThan(
         importAcceptedFlow.indexOf('_pauseReviewedPhotoReadUntilNextSection'),
       ),
@@ -195,13 +193,7 @@ void main() {
     expect(
       importAcceptedFlow.indexOf('_pauseReviewedPhotoReadUntilNextSection'),
       lessThan(
-        importAcceptedFlow.indexOf('_startReviewedPhotoReadStatus(result);'),
-      ),
-    );
-    expect(
-      importAcceptedFlow.indexOf('_startReviewedPhotoReadStatus(result);'),
-      lessThan(
-        importAcceptedFlow.indexOf('_readReviewedPhotosForReceiptForm(result)'),
+        importAcceptedFlow.indexOf('_readAcceptedPhotosForReceiptForm(result)'),
       ),
     );
     final reviewedPhotoReadStatusBlock = attachmentPanel.substring(
@@ -212,7 +204,7 @@ void main() {
     );
     expect(
       reviewedPhotoReadStatusBlock,
-      contains('widget.onReceiptReadStarted?.call();'),
+      isNot(contains('widget.onReceiptReadStarted?.call();')),
     );
     expect(
       reviewedPhotoReadStatusBlock.indexOf(
@@ -239,7 +231,7 @@ void main() {
     );
     expect(
       handoffLayout.indexOf('_ReceiptReadHandoffPanel('),
-      lessThan(handoffLayout.indexOf('if (showAttachmentBeforeReview)')),
+      lessThan(handoffLayout.indexOf('offstage: !showAttachmentBeforeReview')),
     );
     expect(handoffLayout, isNot(contains('SharedReceiptAttachmentPanel(')));
     expect(
@@ -250,7 +242,7 @@ void main() {
     expect(parseReview, contains('Use this only if a section is missing'));
     expect(parseReview, contains('manualReviewOnly'));
     expect(parseReview, contains('Manual receipt review stays below.'));
-    expect(parseReview, contains("'Open Manual Review'"));
+    expect(parseReview, contains("'Open Receipt Form'"));
     expect(parseReview, contains("'Back To Review'"));
     expect(entryScreen, contains("return 'Checking photo';"));
     expect(
@@ -259,12 +251,10 @@ void main() {
         'Keep this screen open. Receipt details appear here as soon as the store, date, total, and item prices are ready.',
       ),
     );
-    expect(parseReview, contains("'Getting Receipt Ready'"));
-    expect(parseReview, contains("'Reading Receipt'"));
-    expect(
-      parseReview,
-      contains('if (!processingInFlight)\n              OutlinedButton.icon'),
-    );
+    expect(parseReview, contains("'Extracting Receipt Information'"));
+    expect(parseReview, contains("'Reading receipt text'"));
+    expect(parseReview, contains('OutlinedButton.icon'));
+    expect(parseReview, contains('onPressed: onAddOrRetakePhoto'));
     expect(entryScreen, contains('_receiptReadAttemptedWithoutText = true;'));
     expect(
       entryScreen.indexOf(

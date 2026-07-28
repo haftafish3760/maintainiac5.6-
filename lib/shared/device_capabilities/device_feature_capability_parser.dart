@@ -58,12 +58,14 @@ class DeviceFeatureCapabilityParser {
     return DeviceBatteryCapabilities(
       levelPercent: _boundedPercent(value['levelPercent']),
       isCharging: value['isCharging'] == true,
+      isExternalPowerConnected: value['isExternalPowerConnected'] == true,
       powerSource: _powerSource(value['powerSource']),
       health: _batteryHealth(value['health']),
       temperatureCelsius: _number(value['temperatureCelsius']),
       remainingChargeMah: _positiveInt(value['remainingChargeMah']),
       estimatedFullCapacityMah: _positiveInt(value['estimatedFullCapacityMah']),
       capacityEstimateReliable: value['capacityEstimateReliable'] == true,
+      technology: _text(value['technology']),
     );
   }
 

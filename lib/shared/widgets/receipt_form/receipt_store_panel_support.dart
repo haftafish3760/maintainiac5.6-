@@ -80,3 +80,23 @@ class _UsPhoneNumberFormatter extends TextInputFormatter {
         '${digits.substring(3, 6)}-${digits.substring(6)}';
   }
 }
+
+/// Normalizes a U.S. ZIP code as five digits with an optional ZIP+4 suffix.
+/// The visible value never exceeds `12345-6789` (ten characters).
+class UsZipCodeFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    final limited = digits.length > 9 ? digits.substring(0, 9) : digits;
+    final formatted = limited.length <= 5
+        ? limited
+        : '${limited.substring(0, 5)}-${limited.substring(5)}';
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}

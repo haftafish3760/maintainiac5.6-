@@ -46,7 +46,7 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         receiptCameraText("Live camera", "Cámara en vivo"),
         receiptCameraText(
             "Changes apply to this camera session. The phone keeps control of its supported autofocus, lens, exposure, and stabilization features.",
-            "Los cambios se aplican a esta sesión. El teléfono conserva el control de las funciones compatibles de enfoque, lente, exposición y estabilización.",
+            "Estos controles se aplican mientras esta cámara está abierta. Configure sus valores predeterminados de recibos en Configuración de recibos. El teléfono conserva el control de las funciones compatibles de enfoque, lente, exposición y estabilización.",
         ),
     ))
     content.addView(settingSectionHeader(receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))

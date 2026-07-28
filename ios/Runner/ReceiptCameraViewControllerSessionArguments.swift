@@ -111,6 +111,7 @@ extension ReceiptCameraViewController {
     maxStitchOutputHeight = max(arguments["maxStitchOutputHeight"] as? Int ?? 18000, 0)
     sessionMinZoom = max(doubleArgument("minZoom", fallback: 1.0), 1.0)
     sessionMaxZoom = max(doubleArgument("maxZoom", fallback: 1.0), sessionMinZoom)
+    sessionInitialZoom = min(max(doubleArgument("initialZoomRatio", fallback: sessionMinZoom), sessionMinZoom), sessionMaxZoom)
     sessionMinExposureOffset = doubleArgument("minExposureOffset", fallback: 0.0)
     sessionMaxExposureOffset = doubleArgument("maxExposureOffset", fallback: 0.0)
     if let sectionLimit = arguments["maxSectionCount"] as? Int {

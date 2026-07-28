@@ -3,6 +3,24 @@
 This log tracks each cleanup/QA pass during the receipt camera, OCR, and shared
 receipt pipeline repair work. Times are local to the development machine.
 
+## Pass 904 - 12:46:52 EDT
+
+Scope:
+- Completed the Expenses manual receipt-form structure: Simple receipt with an
+  optional whole-receipt category, Basic category-and-price lines, and full
+  Detailed receipt lines.
+- Kept receipt photo attachment on the same editable receipt form for every
+  detail level and persisted the selected detail level and category in drafts.
+- Added the focused manual-receipt QA runner and preserved the shared Work
+  Supplies receipt-memory integration test without changing parser code.
+
+Verification:
+- Manual receipt QA passed: formatter, changed-source analysis, draft storage,
+  receipt level, attachment, save guardrail, split, category, and custom
+  category regressions.
+- Shared Work Supplies receipt-memory integration test passed unchanged.
+- Every touched production source file is below 500 lines.
+
 ## Pass 903 - 07:52:00 EDT to active cleanup
 
 Scope:

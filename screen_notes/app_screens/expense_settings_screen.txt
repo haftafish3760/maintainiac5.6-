@@ -3,3 +3,11 @@ Screen: lib/screens/expenses/settings/expense_settings_screen.dart
 Batch 1 status:
 No recovered Batch 1 notes yet for this exact screen.
 
+Source: visible user messages, 2026-07-26 Receipt settings
+
+- Receipt settings must provide working controls, including the default receipt
+  detail level: Total Only, Category Summary, or Detailed Items.
+- Settings describe Receipt Assist in user language rather than exposing OCR
+  implementation terminology. The default remains overridable on a receipt.
+- Expense defaults may follow the active contractor or gig-driver work profile
+  without silently overwriting a user's explicit receipt choice.

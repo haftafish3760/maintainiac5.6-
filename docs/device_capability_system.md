@@ -16,10 +16,12 @@ hardware and operating conditions.
   stabilization, RAW, depth, HDR, and torch support where the OS exposes it.
 - Sensors: normalized availability for motion, heading, pressure, steps,
   proximity/light, environmental, and vendor-defined Android sensor types.
-- Battery: current percentage, charging/source, temperature and health where
-  public. Android may provide an explicitly unreliable full-capacity estimate.
-  iOS does not expose battery size or health publicly, so those fields remain
-  unknown instead of being guessed.
+- Battery: current percentage, whether external power is connected, whether the
+  battery is actively charging, source type, temperature, chemistry, and health
+  where public. Android can distinguish USB, AC, and wireless power and may
+  provide an explicitly unreliable full-capacity estimate. iOS exposes only
+  external-power/charging state; charger type, battery size, chemistry, and
+  health remain unknown instead of being guessed.
 - Display: physical pixel dimensions, density scale, maximum refresh rate, HDR,
   and wide-color support.
 - Media and graphics: hardware video codecs, OpenGL ES/Vulkan or Metal feature
@@ -38,6 +40,9 @@ import 'package:maintaniac/shared/device_capabilities/device_capabilities.dart';
 final controller = DeviceCapabilityScope.of(context);
 final profile = controller.profile;
 final freeStorageMb = profile?.runtime.freeStorageMb;
+final hardwareGrade = profile?.baselineGrade; // 1 through 10
+final currentGrade = profile?.effectiveGrade; // May drop under live pressure
+final pluggedIn = profile?.extended.battery.isExternalPowerConnected;
 final sensors = profile?.extended.sensors;
 final lenses = profile?.extended.cameraLenses;
 final policy = profile?.operationalPolicy;
@@ -71,6 +76,12 @@ pressure into reusable module guidance:
 The policy lowers work for low storage, low unplugged battery, power saving,
 thermal pressure, low available memory, and constrained/metered connectivity.
 Model name and release year never increase a device's tier.
+
+The six stable workload tiers remain the module-policy contract. A finer 1-10
+grade is also reported for commercial device-range decisions: grade 1 is the
+minimum supported capability and grade 10 is verified flagship-class hardware.
+The baseline grade describes hardware; the effective grade can only decrease
+under storage, memory, power-saving, battery, or thermal pressure.
 
 ## Privacy and diagnostics
 

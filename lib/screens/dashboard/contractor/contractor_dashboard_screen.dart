@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/jobs/maintainiac_job_store.dart';
+import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../expenses/data/expense_ledger_store.dart';
 import '../../expenses/data/expense_ledger_models.dart';
 import '../../expenses/data/expense_work_profile_store.dart';
 import '../../expenses/entry/expense_receipt_entry_screen.dart';
+import '../../expenses/home/expenses_home_screen.dart';
 import '../../profiles/employee_permissions_screen.dart';
 import '../../invoices/data/invoice_ledger_store.dart';
 import '../../invoices/home/invoice_workspace_screen.dart';
@@ -30,9 +32,12 @@ import '../vehicle_profile_widgets.dart';
 import '../workday_note_sheet.dart';
 import 'contractor_active_shift_panel.dart';
 import 'contractor_dashboard_models.dart';
+import 'contractor_dashboard_jobs_panel.dart';
 import 'contractor_dashboard_pulse.dart';
 import 'contractor_dashboard_sections.dart';
 import 'contractor_dashboard_snapshot.dart';
+import 'contractor_weekly_expenses_screen.dart';
+import 'contractor_weekly_payments_screen.dart';
 
 part 'contractor_dashboard_actions.dart';
 
@@ -84,7 +89,21 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
         children: [
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: AppScreenHeader(title: 'Contractor Command Center'),
+          ),
+          const SizedBox(height: 8),
           const GlobalOdometerHeader(),
+          const SizedBox(height: 10),
+          ContractorScaleStrip(metrics: snapshot.scaleMetrics),
+          const SizedBox(height: 10),
+          ContractorOperationsPulse(
+            items: snapshot.operationsMetrics,
+            onMetricSelected: _openMetric,
+          ),
+          const SizedBox(height: 10),
+          ContractorAttentionPanel(items: snapshot.attentionItems),
           const SizedBox(height: 10),
           if (dayStarted) ...[
             AnimatedBuilder(
@@ -104,38 +123,35 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
               ),
             ),
             const SizedBox(height: 10),
+            ContractorCommandGrid(
+              commands: contractorActiveCommands,
+              onCommand: _handleCommand,
+            ),
+            const SizedBox(height: 10),
             ContractorDayControlPanel(
               dayStarted: true,
               onStartDay: _startContractorDay,
               onOpenDay: _openActiveWorkday,
               onStartGps: () => _openActiveWorkday(startGpsWhenOpened: true),
             ),
-            const SizedBox(height: 10),
-            ContractorCommandGrid(
-              commands: contractorActiveCommands,
-              onCommand: _handleCommand,
-            ),
           ] else ...[
-            ContractorDayControlPanel(
-              dayStarted: false,
-              onStartDay: _startContractorDay,
-            ),
-            const SizedBox(height: 10),
             ContractorCommandGrid(
               commands: contractorPreDayCommands,
               onCommand: _handleCommand,
             ),
+            const SizedBox(height: 10),
+            ContractorDayControlPanel(
+              dayStarted: false,
+              onStartDay: _startContractorDay,
+            ),
           ],
           const SizedBox(height: 10),
-          ContractorScaleStrip(metrics: snapshot.scaleMetrics),
+          ContractorJobsPanel(jobs: snapshot.jobsToday, onOpenJobs: _openJobs),
           const SizedBox(height: 10),
-          ContractorOperationsPulse(items: snapshot.operationsMetrics),
-          const SizedBox(height: 10),
-          ContractorAttentionPanel(items: snapshot.attentionItems),
-          const SizedBox(height: 10),
-          ContractorJobsPanel(jobs: snapshot.jobsToday),
-          const SizedBox(height: 10),
-          ContractorMetricsStrip(metrics: snapshot.businessMetrics),
+          ContractorMetricsStrip(
+            metrics: snapshot.businessMetrics,
+            onMetricSelected: _openMetric,
+          ),
           const SizedBox(height: 76),
           const ContractorCalendar(),
           const SizedBox(height: 18),

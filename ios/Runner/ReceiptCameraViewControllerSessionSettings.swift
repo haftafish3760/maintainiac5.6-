@@ -36,10 +36,11 @@ extension ReceiptCameraViewController {
       self.session.addInput(input)
       self.photoOutput.isHighResolutionCaptureEnabled = true
       if #available(iOS 13.0, *) {
-        self.photoOutput.maxPhotoQualityPrioritization = .quality
+      self.photoOutput.maxPhotoQualityPrioritization = .quality
       }
       self.session.addOutput(self.photoOutput)
       self.configureVideoAnalysisIfNeeded()
+      self.applySessionInitialZoom(for: device)
       self.session.commitConfiguration()
       DispatchQueue.main.async {
         guard self.isCameraUiUsable else { return }
@@ -48,6 +49,32 @@ extension ReceiptCameraViewController {
         self.configureExposureControls(for: device)
         self.updateCaptureOrientation()
       }
+    }
+  }
+
+  func applySessionInitialZoom(for device: AVCaptureDevice) {
+    guard pinchZoomEnabled else {
+      lastZoomRatio = 1.0
+      return
+    }
+    let minimumZoom = effectiveMinZoom(for: device)
+    let maximumZoom = effectiveMaxZoom(for: device)
+    guard maximumZoom > minimumZoom else {
+      if minimumZoom.isFinite {
+        lastZoomRatio = roundedDiagnostic(Double(minimumZoom))
+      }
+      return
+    }
+    let initialZoom = min(max(CGFloat(sessionInitialZoom), minimumZoom), maximumZoom)
+    do {
+      try device.lockForConfiguration()
+      device.videoZoomFactor = initialZoom
+      device.unlockForConfiguration()
+      lastZoomRatio = roundedDiagnostic(Double(initialZoom))
+      guidanceLabel.text = String(format: "Zoom %.1fx", initialZoom)
+    } catch {
+      lastZoomRatio = roundedDiagnostic(Double(minimumZoom))
+      guidanceLabel.text = "Receipt camera preview is ready."
     }
   }
 

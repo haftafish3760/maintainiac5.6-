@@ -68,7 +68,7 @@ class _ManualReceiptHeader extends StatelessWidget {
                       step: _ManualReceiptStep.values[itemIndex],
                       selected: itemIndex == index,
                       completed: itemIndex < index,
-                      enabled: itemIndex <= index,
+                      enabled: true,
                       onPressed: onStepSelected,
                     ),
                   ),
@@ -261,14 +261,12 @@ class _ManualReceiptItemCard extends StatelessWidget {
     required this.line,
     required this.onEdit,
     required this.onDelete,
-    required this.onUseChanged,
   });
 
   final int lineNumber;
   final _ExpenseReceiptLine line;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-  final ValueChanged<_ExpenseLineUse> onUseChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -277,9 +275,9 @@ class _ManualReceiptItemCard extends StatelessWidget {
         ? ''
         : 'Qty ${line.quantityText}';
     final priceLabel = unitPrice == null ? '' : '${_money(unitPrice)} each';
-    final category = line.category == 'Uncategorized'
-        ? 'No category'
-        : line.category;
+    final categoryLabel = line.category == 'Uncategorized'
+        ? ''
+        : ' · ${line.category}';
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF283337),
@@ -287,30 +285,18 @@ class _ManualReceiptItemCard extends StatelessWidget {
         border: Border.all(color: const Color(0xFF41545B)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(13, 12, 8, 11),
+        padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF132B39),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 7,
-                      vertical: 4,
-                    ),
-                    child: Text(
-                      '$lineNumber',
-                      style: const TextStyle(
-                        color: Color(0xFF8FC9FF),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                Text(
+                  '$lineNumber.',
+                  style: const TextStyle(
+                    color: Color(0xFF8FC9FF),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -339,15 +325,12 @@ class _ManualReceiptItemCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 7),
+            const SizedBox(height: 2),
             Row(
               children: [
                 Expanded(
                   child: Text(
-                    [
-                      quantityLabel,
-                      priceLabel,
-                    ].where((label) => label.isNotEmpty).join(' · '),
+                    '${line.use.label}$categoryLabel${[quantityLabel, priceLabel].where((label) => label.isNotEmpty).map((label) => ' · $label').join()}',
                     style: const TextStyle(
                       color: Color(0xFFB7C8CE),
                       fontSize: 12,
@@ -365,35 +348,8 @@ class _ManualReceiptItemCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              category,
-              style: const TextStyle(
-                color: Color(0xFF91A4AB),
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 7,
-              runSpacing: 5,
-              children: [
-                for (final use in const [
-                  _ExpenseLineUse.business,
-                  _ExpenseLineUse.personal,
-                  _ExpenseLineUse.split,
-                ])
-                  _ManualReceiptUseButton(
-                    use: use,
-                    selected: line.use == use,
-                    color: _colorForUse(use),
-                    onPressed: () => onUseChanged(use),
-                  ),
-              ],
-            ),
             if (line.use == _ExpenseLineUse.split) ...[
-              const SizedBox(height: 7),
+              const SizedBox(height: 3),
               Text(
                 line.allocationDetail,
                 style: const TextStyle(
@@ -404,64 +360,6 @@ class _ManualReceiptItemCard extends StatelessWidget {
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-
-  Color _colorForUse(_ExpenseLineUse use) => switch (use) {
-    _ExpenseLineUse.business => const Color(0xFF2E78B7),
-    _ExpenseLineUse.personal => const Color(0xFF59636A),
-    _ExpenseLineUse.split => const Color(0xFF3B7C73),
-    _ExpenseLineUse.unclassified => const Color(0xFF182226),
-  };
-}
-
-class _ManualReceiptUseButton extends StatelessWidget {
-  const _ManualReceiptUseButton({
-    required this.use,
-    required this.selected,
-    required this.color,
-    required this.onPressed,
-  });
-
-  final _ExpenseLineUse use;
-  final bool selected;
-  final Color color;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: selected,
-      label: '${use.label} receipt line',
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(5),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 34, minWidth: 86),
-          child: Ink(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: selected ? color : const Color(0xFF182226),
-              borderRadius: BorderRadius.circular(5),
-              border: Border.all(
-                color: selected ? color : const Color(0xFF526168),
-              ),
-            ),
-            child: Center(
-              child: Text(
-                use.label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: selected ? Colors.white : const Color(0xFFC8D0D3),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ),
-          ),
         ),
       ),
     );

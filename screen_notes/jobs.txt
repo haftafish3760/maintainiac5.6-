@@ -18,3 +18,34 @@ Source: visible user message, 2026-06-20 Batch 1
 mileage tracker, expense tracking, obviously, inventory, which is materials,
 invoices, maintenance."
 
+Source: visible user message, 2026-07-25 Jobs commercial-grade batch
+
+- The Jobs screen is the active work lane. Do not change the contractor
+  dashboard while another Codex conversation owns it.
+- Create Job must not crash when Cancel, the visible back control, or Android
+  system back is used.
+- No Jobs source file may exceed 500 lines. Oversized app files must be split in
+  bounded, regression-backed passes without breaking unrelated work.
+- A direct job needs real client information: name, phone, email, service
+  address, scope/notes, and a reusable future customer-record link.
+- Jobs must support a date, time/arrival window, unscheduled work, recurring
+  weekly work, calendar visibility, and user-selected reminders.
+- Reminder choices include in-app, phone notification, and optional sound. The
+  user must be able to reach the phone's app notification settings and choose
+  platform-supported sound behavior; permissions remain user-controlled.
+- A user must be able to view saved estimates and review/import one into a job,
+  including its client, scope, materials/line items, price/tax snapshots, and
+  stable estimate reference. Do not create a second estimate store.
+- The target market is residential and light-industrial service work including
+  plumbing, electrical, HVAC, roofing, lawn care, and other trades.
+- Jobs should support repeat service, assignments, material readiness, labor,
+  expenses, receipts, mileage links, photos, notes, change orders, completion,
+  invoices, payments, and audit/export history as staged releases.
+- GPS/Bluetooth/map assistance may stage a likely arrival at a scheduled job.
+  The user must confirm the job was performed before completion, inventory use,
+  invoice creation, or invoice sending occurs.
+- Manual workflows must be dependable before AI automation is introduced.
+- Premium automation may receive an introductory two-week trial, while core
+  manual records and user-owned exports remain dependable.
+- Security-suite execution is deferred for this pass; secure/local-first design
+  and focused correctness tests are still required during implementation.

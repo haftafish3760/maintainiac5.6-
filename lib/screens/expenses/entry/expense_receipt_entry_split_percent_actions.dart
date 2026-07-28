@@ -2,8 +2,14 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntrySplitPercentActions
     on _ExpenseReceiptEntryScreenState {
-  Future<ExpenseSplitAllocation?> _chooseSplitAllocation(int index) async {
-    final method = await _chooseSplitAllocationMethod(index);
+  Future<ExpenseSplitAllocation?> _chooseSplitAllocation(
+    int index, {
+    bool allowQuantity = true,
+  }) async {
+    final method = await _chooseSplitAllocationMethod(
+      index,
+      allowQuantity: allowQuantity,
+    );
     if (!mounted || method == null) return null;
     if (method == ExpenseSplitAllocationMethod.percentage) {
       final percent = await _chooseSplitBusinessPercent(index);
@@ -14,8 +20,15 @@ extension _ExpenseReceiptEntrySplitPercentActions
   }
 
   Future<ExpenseSplitAllocationMethod?> _chooseSplitAllocationMethod(
-    int index,
-  ) {
+    int index, {
+    required bool allowQuantity,
+  }) {
+    final methods = ExpenseSplitAllocationMethod.values
+        .where(
+          (method) =>
+              allowQuantity || method != ExpenseSplitAllocationMethod.quantity,
+        )
+        .toList(growable: false);
     return showModalBottomSheet<ExpenseSplitAllocationMethod>(
       context: context,
       backgroundColor: const Color(0xFF1F2528),
@@ -29,12 +42,17 @@ extension _ExpenseReceiptEntrySplitPercentActions
             icon: Icons.call_split_rounded,
             accentColor: const Color(0xFF3B7C73),
             children: [
-              for (final method in ExpenseSplitAllocationMethod.values) ...[
+              for (
+                var methodIndex = 0;
+                methodIndex < methods.length;
+                methodIndex++
+              ) ...[
                 _SplitAllocationMethodButton(
-                  method: method,
-                  onPressed: () => Navigator.of(context).pop(method),
+                  method: methods[methodIndex],
+                  onPressed: () =>
+                      Navigator.of(context).pop(methods[methodIndex]),
                 ),
-                if (method != ExpenseSplitAllocationMethod.values.last)
+                if (methodIndex != methods.length - 1)
                   const SizedBox(height: 8),
               ],
             ],

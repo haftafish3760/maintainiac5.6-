@@ -27,34 +27,30 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Your receipt proof is saved. Maintainiac is extracting text and filling receipt details now. Keep this screen open.',
+        'Maintainiac is reading the saved receipt photo and preparing editable fields.',
       ),
     );
-    expect(parseReview, contains('Receipt Details Ready'));
+    expect(parseReview, contains('Receipt Ready To Review'));
     expect(
       parseReview,
       contains(
-        'Your receipt proof is saved. Maintainiac already prepared receipt details, but this receipt still needs review before saving.',
+        'The saved receipt is available while you correct or complete its details.',
       ),
     );
     expect(
       parseReview,
       contains(
-        'Review the store, date, total, tax, item prices, and Business/Personal/Mixed choices below before saving.',
+        'Check every filled field against the saved receipt before saving.',
       ),
-    );
-    expect(
-      parseReview,
-      contains('Do not go back unless you want to keep checking the photo.'),
     );
     expect(parseReview, contains('Review What The App Filled In'));
     expect(
       parseReview,
       contains('Check the store, date, total, tax, and item prices.'),
     );
-    expect(parseReview, contains('Simple price review'));
+    expect(parseReview, contains('Basic price review'));
     expect(parseReview, contains('Detailed item review'));
-    expect(parseReview, contains('Basic receipt review'));
+    expect(parseReview, contains('Simple receipt review'));
     expect(
       entryScreen,
       contains('var _receiptReviewModeChangedByUser = false;'),
@@ -125,7 +121,11 @@ void main() {
     expect(entryScreen, contains('No Receipt Lines Yet'));
     expect(
       entryScreen,
-      contains('void _markReceiptOcrCompleted(ReceiptOcrResult result)'),
+      isNot(contains('void _markReceiptOcrCompleted(ReceiptOcrResult result)')),
+    );
+    expect(
+      entryScreen,
+      isNot(contains('prepareReceiptOcrDiagnosticsInWorker')),
     );
     expect(
       entryScreen,
@@ -197,11 +197,11 @@ void main() {
     expect(entryScreen, contains('receiptTotalCandidateLineCount'));
     expect(
       entryScreen,
-      contains('onReceiptOcrCompleted: _markReceiptOcrCompleted'),
+      isNot(contains('onReceiptOcrCompleted: _markReceiptOcrCompleted')),
     );
     expect(
       stateActions,
-      contains('parseExpenseReceiptOcrResultWithLocalMemory'),
+      contains('prepareGenericExpenseReceiptOcrReviewInWorker'),
     );
     expect(
       stateActions,
@@ -333,9 +333,9 @@ void main() {
     expect(entryScreen, contains('ReceiptOcrWarning.compareByPriority'));
     expect(
       entryScreen,
-      contains(r'Needs manual review: ${primaryWarning.label}'),
+      isNot(contains(r'Needs manual review: ${primaryWarning.label}')),
     );
-    expect(parseReview, contains('maxLines: 2'));
+    expect(parseReview, isNot(contains('TextOverflow.ellipsis')));
     expect(entryScreen, contains('Add Line Manually'));
     expect(entryScreen, contains('_addReceiptTotalLine'));
     expect(entryScreen, contains('Use Total As Business'));

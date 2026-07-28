@@ -142,14 +142,10 @@ void main() {
     );
     expect(cameraController, contains('bottom_darker_than_top'));
     expect(cameraController, contains('bottom_brighter_than_top'));
-    expect(cameraController, contains('preview.videoGravity = .resizeAspect'));
+    expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
     expect(
       cameraController,
-      isNot(contains('preview.videoGravity = .resizeAspectFill')),
-    );
-    expect(
-      cameraController,
-      contains('nativePreviewScaleMode = "resize_aspect_capture_parity"'),
+      contains('nativePreviewScaleMode = "resize_aspect_fill_receipt_viewer"'),
     );
     expect(cameraController, contains('nativeControlDensity'));
     expect(fullScreenSettings, contains('Reset this camera session'));
@@ -330,6 +326,12 @@ void main() {
       cameraController,
       contains(
         'sessionMaxZoom = max(doubleArgument("maxZoom", fallback: 1.0), sessionMinZoom)',
+      ),
+    );
+    expect(
+      cameraController,
+      contains(
+        'sessionInitialZoom = min(max(doubleArgument("initialZoomRatio", fallback: sessionMinZoom), sessionMinZoom), sessionMaxZoom)',
       ),
     );
     expect(

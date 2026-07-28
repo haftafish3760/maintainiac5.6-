@@ -46,6 +46,19 @@ class ReceiptEdgeCropper extends StatelessWidget {
           suggestedNormalizedCrop,
         );
         final activeCropRect = cropRect ?? suggestedCropRect ?? imageRect;
+        final viewportScale = _cropViewportScale(canvasSize, activeCropRect);
+        final displayedImageRect = _scaleRectAroundCrop(
+          imageRect,
+          activeCropRect,
+          canvasSize,
+          viewportScale,
+        );
+        final displayedCropRect = _scaleRectAroundCrop(
+          activeCropRect,
+          activeCropRect,
+          canvasSize,
+          viewportScale,
+        );
         if (cropRect == null) {
           _notifyAfterLayout(context, () => onCropRectChanged(activeCropRect));
         }
@@ -53,27 +66,64 @@ class ReceiptEdgeCropper extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Positioned.fromRect(
-              rect: imageRect,
+              rect: displayedImageRect,
               child: Image.memory(imageBytes, fit: BoxFit.fill),
             ),
             Positioned.fill(
               child: CustomPaint(
                 painter: _ReceiptCropOverlayPainter(
-                  imageRect: imageRect,
-                  cropRect: activeCropRect,
+                  imageRect: displayedImageRect,
+                  cropRect: displayedCropRect,
                 ),
               ),
             ),
             for (final handle in _ReceiptCropHandle.values)
               _CropHandle(
-                imageRect: imageRect,
-                cropRect: activeCropRect,
+                imageRect: displayedImageRect,
+                cropRect: displayedCropRect,
                 handle: handle,
-                onDrag: _dragCropHandle,
+                onDrag: (handle, details, _, _) => _dragCropHandle(
+                  handle,
+                  details,
+                  imageRect,
+                  activeCropRect,
+                  viewportScale,
+                ),
               ),
           ],
         );
       },
+    );
+  }
+
+  double _cropViewportScale(Size canvasSize, Rect activeCropRect) {
+    if (canvasSize.isEmpty || activeCropRect.isEmpty) return 1;
+    const viewportPadding = 32.0;
+    final availableWidth = math.max(1, canvasSize.width - viewportPadding * 2);
+    final availableHeight = math.max(
+      1,
+      canvasSize.height - viewportPadding * 2,
+    );
+    return math
+        .min(
+          availableWidth / activeCropRect.width,
+          availableHeight / activeCropRect.height,
+        )
+        .clamp(1.0, 3.0);
+  }
+
+  Rect _scaleRectAroundCrop(
+    Rect rect,
+    Rect activeCropRect,
+    Size canvasSize,
+    double scale,
+  ) {
+    final viewportCenter = Offset(canvasSize.width / 2, canvasSize.height / 2);
+    Offset transform(Offset point) =>
+        viewportCenter + (point - activeCropRect.center) * scale;
+    return Rect.fromPoints(
+      transform(rect.topLeft),
+      transform(rect.bottomRight),
     );
   }
 
@@ -127,6 +177,7 @@ class ReceiptEdgeCropper extends StatelessWidget {
     DragUpdateDetails details,
     Rect imageRect,
     Rect current,
+    double viewportScale,
   ) {
     const minSize = 72.0;
     var left = current.left;
@@ -135,40 +186,58 @@ class ReceiptEdgeCropper extends StatelessWidget {
     var bottom = current.bottom;
     switch (handle) {
       case _ReceiptCropHandle.left:
-        left = (left + details.delta.dx).clamp(imageRect.left, right - minSize);
+        left = (left + details.delta.dx / viewportScale).clamp(
+          imageRect.left,
+          right - minSize,
+        );
       case _ReceiptCropHandle.right:
-        right = (right + details.delta.dx).clamp(
+        right = (right + details.delta.dx / viewportScale).clamp(
           left + minSize,
           imageRect.right,
         );
       case _ReceiptCropHandle.top:
-        top = (top + details.delta.dy).clamp(imageRect.top, bottom - minSize);
+        top = (top + details.delta.dy / viewportScale).clamp(
+          imageRect.top,
+          bottom - minSize,
+        );
       case _ReceiptCropHandle.bottom:
-        bottom = (bottom + details.delta.dy).clamp(
+        bottom = (bottom + details.delta.dy / viewportScale).clamp(
           top + minSize,
           imageRect.bottom,
         );
       case _ReceiptCropHandle.topLeft:
-        left = (left + details.delta.dx).clamp(imageRect.left, right - minSize);
-        top = (top + details.delta.dy).clamp(imageRect.top, bottom - minSize);
+        left = (left + details.delta.dx / viewportScale).clamp(
+          imageRect.left,
+          right - minSize,
+        );
+        top = (top + details.delta.dy / viewportScale).clamp(
+          imageRect.top,
+          bottom - minSize,
+        );
       case _ReceiptCropHandle.topRight:
-        right = (right + details.delta.dx).clamp(
+        right = (right + details.delta.dx / viewportScale).clamp(
           left + minSize,
           imageRect.right,
         );
-        top = (top + details.delta.dy).clamp(imageRect.top, bottom - minSize);
+        top = (top + details.delta.dy / viewportScale).clamp(
+          imageRect.top,
+          bottom - minSize,
+        );
       case _ReceiptCropHandle.bottomLeft:
-        left = (left + details.delta.dx).clamp(imageRect.left, right - minSize);
-        bottom = (bottom + details.delta.dy).clamp(
+        left = (left + details.delta.dx / viewportScale).clamp(
+          imageRect.left,
+          right - minSize,
+        );
+        bottom = (bottom + details.delta.dy / viewportScale).clamp(
           top + minSize,
           imageRect.bottom,
         );
       case _ReceiptCropHandle.bottomRight:
-        right = (right + details.delta.dx).clamp(
+        right = (right + details.delta.dx / viewportScale).clamp(
           left + minSize,
           imageRect.right,
         );
-        bottom = (bottom + details.delta.dy).clamp(
+        bottom = (bottom + details.delta.dy / viewportScale).clamp(
           top + minSize,
           imageRect.bottom,
         );

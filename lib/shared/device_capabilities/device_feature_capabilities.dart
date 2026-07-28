@@ -1,6 +1,6 @@
 enum DeviceBatteryHealth { unknown, good, degraded, overheating, failure }
 
-enum DevicePowerSource { unknown, battery, usb, ac, wireless }
+enum DevicePowerSource { unknown, battery, external, usb, ac, wireless }
 
 class DeviceCameraLensCapability {
   const DeviceCameraLensCapability({
@@ -88,16 +88,19 @@ class DeviceBatteryCapabilities {
   const DeviceBatteryCapabilities({
     this.levelPercent,
     this.isCharging = false,
+    this.isExternalPowerConnected = false,
     this.powerSource = DevicePowerSource.unknown,
     this.health = DeviceBatteryHealth.unknown,
     this.temperatureCelsius,
     this.remainingChargeMah,
     this.estimatedFullCapacityMah,
     this.capacityEstimateReliable = false,
+    this.technology,
   });
 
   final int? levelPercent;
   final bool isCharging;
+  final bool isExternalPowerConnected;
   final DevicePowerSource powerSource;
   final DeviceBatteryHealth health;
   final double? temperatureCelsius;
@@ -107,6 +110,7 @@ class DeviceBatteryCapabilities {
   /// capacity publicly, so this remains null rather than guessing.
   final int? estimatedFullCapacityMah;
   final bool capacityEstimateReliable;
+  final String? technology;
 
   bool get isLow => levelPercent != null && levelPercent! <= 20;
   bool get isCritical => levelPercent != null && levelPercent! <= 10;

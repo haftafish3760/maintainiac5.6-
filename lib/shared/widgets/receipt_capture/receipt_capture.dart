@@ -20,5 +20,6 @@ export 'receipt_photo_review_screen.dart';
 export 'receipt_photo_review_ui_config.dart';
 export 'receipt_pdf_viewer_screen.dart';
 export 'receipt_picker_status.dart';
+export 'receipt_pipeline_trace.dart';
 export 'receipt_scanner_service.dart';
 export 'receipt_storage_guard.dart';

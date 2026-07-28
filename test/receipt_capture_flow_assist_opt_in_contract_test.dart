@@ -164,9 +164,7 @@ void main() {
     expect(settingsSheet, contains('if (!hasSavedReceiptProof) ...['));
     expect(
       settingsSheet,
-      contains(
-        'Saved Receipt Proof Size appears after your first receipt photo or file is attached.',
-      ),
+      contains('Your next receipt review shows the actual saved-proof size'),
     );
     expect(
       settingsSheet,

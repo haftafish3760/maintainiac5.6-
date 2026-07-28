@@ -2,30 +2,31 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
   String get _lineMathPreview {
-    final quantity = double.tryParse(_quantityController.text) ?? 0;
-    final units = double.tryParse(_unitsPerPackageController.text) ?? 1;
-    final totalUnits = quantity * units;
-    final enteredBusinessPercent = _enteredBusinessPercent;
-    final split = _use != _ExpenseLineUse.split
-        ? ''
-        : enteredBusinessPercent == null
-        ? ' Enter the business allocation; the remainder is personal.'
-        : ' Business ${_percent(enteredBusinessPercent)}, personal ${_percent(1 - enteredBusinessPercent)}.';
-    if (!_usesMeasuredLine) {
-      return '${_categoryRule.guidance}$split';
+    final quantity = double.tryParse(_quantityController.text.trim());
+    final unitPrice = _parseMoneyInput(_unitPriceController.text);
+    final printedTotal = _enteredLineSubtotal;
+    final calculated = _calculatedLineSubtotal;
+    if (quantity != null &&
+        quantity > 0 &&
+        unitPrice != null &&
+        calculated != null) {
+      final totalNote = printedTotal == null
+          ? ' The receipt total is calculated automatically.'
+          : ' The receipt total is calculated from quantity and price.';
+      return '${_formatNumber(quantity)} × ${_money(unitPrice)} = ${_money(calculated)}.$totalNote';
     }
-    if (quantity <= 0) {
-      return _usesPackageContents
-          ? 'Enter how many packages were bought.'
-          : 'Enter how many $_stockUnitLabelPlural were bought.';
-    }
-    if (!_usesPackageContents || units <= 1) {
-      return 'This line adds ${_formatNumber(quantity)} $_stockUnitLabelPlural.$split';
-    }
-    return 'This line adds ${_formatNumber(totalUnits)} items total from ${_formatNumber(quantity)} $_stockUnitLabelPlural.$split';
+    return 'Enter a printed total when quantity and price each are not available.';
   }
 
-  bool get _usesMeasuredLine => _categoryRule.usesQuantityFields;
+  double? get _calculatedLineSubtotal {
+    final quantity = double.tryParse(_quantityController.text.trim());
+    final unitPrice = _parseMoneyInput(_unitPriceController.text);
+    if (quantity == null || quantity <= 0 || unitPrice == null) return null;
+    return quantity * unitPrice;
+  }
+
+  double? get _resolvedLineSubtotal =>
+      _calculatedLineSubtotal ?? _enteredLineSubtotal;
 
   ExpenseReceiptCategoryRule get _categoryRule =>
       expenseReceiptRuleForCategory(_category);
@@ -43,27 +44,14 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
     return percent;
   }
 
-  String get _descriptionLabel {
-    if (_isFuelLine) {
-      return 'Fuel Receipt Description';
-    }
-    if (!_usesMeasuredLine) {
-      return 'Receipt Line Description';
-    }
-    return 'Receipt Item Description';
+  double? get _enteredBusinessAmount {
+    final value = _parseMoneyInput(_businessAmountController.text);
+    if (value == null || !value.isFinite || value < 0) return null;
+    return value;
   }
 
-  String get _descriptionHint {
-    if (_isFuelLine) {
-      return _fuelType == 'Electric'
-          ? 'Example: EV charge'
-          : 'Example: $_fuelType fuel';
-    }
-    if (!_usesMeasuredLine) {
-      return 'Example: loan payment, insurance premium, permit fee';
-    }
-    return _categoryRule.descriptionHint;
-  }
+  double? get _enteredLineSubtotal =>
+      _parseMoneyInput(_subtotalController.text);
 
   bool get _usesPackageContents {
     return switch (_stockUnit) {
@@ -75,59 +63,6 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
       'roll' ||
       'set' => true,
       _ => false,
-    };
-  }
-
-  String get _stockUnitLabelPlural {
-    return switch (_stockUnit) {
-      'each' => 'items',
-      'foot' => 'feet',
-      'kWh' => 'kWh',
-      _ => _stockUnit,
-    };
-  }
-
-  Widget get _quantityFields {
-    if (_usesPackageContents) {
-      return Row(
-        children: [
-          Expanded(
-            child: RecordTextField(
-              label: 'How Many $_stockUnitLabelPlural?',
-              controller: _quantityController,
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: RecordTextField(
-              label: 'Items In Each',
-              controller: _unitsPerPackageController,
-              keyboardType: TextInputType.number,
-            ),
-          ),
-        ],
-      );
-    }
-    return RecordTextField(
-      label: _quantityLabel,
-      controller: _quantityController,
-      keyboardType: TextInputType.number,
-    );
-  }
-
-  String get _quantityLabel {
-    return switch (_stockUnit) {
-      'each' => 'How Many Items?',
-      'kWh' => 'How Many kWh?',
-      'gallon' => 'How Many Gallons?',
-      'quart' => 'How Many Quarts?',
-      'ounce' => 'How Many Ounces?',
-      'pound' => 'How Many Pounds?',
-      'foot' || 'linear foot' => 'How Many Feet?',
-      'sheet' => 'How Many Sheets?',
-      'tube' => 'How Many Tubes?',
-      _ => 'How Many $_stockUnitLabelPlural?',
     };
   }
 

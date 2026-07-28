@@ -43,9 +43,9 @@ extension ReceiptCameraViewController {
 
   func buildLayout() {
     let preview = AVCaptureVideoPreviewLayer(session: session)
-    // Match the captured receipt framing in review instead of cropping the
-    // live preview to fill a taller phone display.
-    preview.videoGravity = .resizeAspect
+    // Fill the receipt viewer edge-to-edge. Aspect-fit leaves large bands on
+    // portrait phones and shrinks the usable receipt area unnecessarily.
+    preview.videoGravity = .resizeAspectFill
     view.layer.addSublayer(preview)
     previewLayer = preview
     let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(zoomPreview(_:)))

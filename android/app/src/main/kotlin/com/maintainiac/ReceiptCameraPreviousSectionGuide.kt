@@ -21,12 +21,15 @@ import kotlin.math.roundToInt
 internal fun ReceiptCameraActivity.buildPreviousSectionGuide(): View {
     previousSectionGuidePanel = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        setPadding(dp(10), dp(7), dp(10), dp(7))
-        setBackgroundColor(Color.argb(132, 5, 6, 7))
+        // Keep continuation help visible without turning it into a second
+        // toolbar that hides the receipt. The guide is optional assistance,
+        // never a control that traps or obstructs the capture view.
+        setPadding(dp(10), dp(4), dp(10), dp(4))
+        setBackgroundColor(Color.argb(100, 5, 6, 7))
         visibility = View.GONE
         layoutParams = FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(102),
+            dp(84),
             Gravity.TOP,
         ).apply {
             topMargin = dp(130)
@@ -34,20 +37,37 @@ internal fun ReceiptCameraActivity.buildPreviousSectionGuide(): View {
             rightMargin = dp(18)
         }
     }
-    previousSectionGuidePanel.addView(TextView(this).apply {
-        text = previousSectionGhostGuideTitle()
-        setTextColor(Color.WHITE)
-        textSize = 12f
-        setTypeface(typeface, android.graphics.Typeface.BOLD)
+    previousSectionGuidePanel.addView(LinearLayout(this).apply {
+        gravity = Gravity.CENTER_VERTICAL
+        addView(TextView(this@buildPreviousSectionGuide).apply {
+            text = previousSectionGhostGuideTitle()
+            setTextColor(Color.WHITE)
+            textSize = 12f
+            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            layoutParams = LinearLayout.LayoutParams(
+                0,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                1f,
+            )
+        })
+        addView(TextView(this@buildPreviousSectionGuide).apply {
+            text = "Hide"
+            contentDescription = "Hide receipt overlap guide"
+            setTextColor(Color.rgb(255, 209, 102))
+            textSize = 12f
+            setPadding(dp(8), 0, 0, 0)
+            isClickable = true
+            isFocusable = true
+            setOnClickListener { previousSectionGuidePanel.visibility = View.GONE }
+        })
     })
     previousSectionGuideImage = ImageView(this).apply {
         contentDescription = "Previous receipt section overlap guide"
         scaleType = ImageView.ScaleType.CENTER_CROP
-        alpha = previousSectionGhostOpacity.toFloat()
+        alpha = previousSectionGhostOpacity.coerceIn(0.0, 1.0).toFloat()
         layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            0,
-            1f,
+            dp(22),
         )
     }
     previousSectionGuidePanel.addView(previousSectionGuideImage)
@@ -58,14 +78,17 @@ internal fun ReceiptCameraActivity.buildPreviousSectionGuide(): View {
         visibility = View.GONE
         layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            dp(34),
+            dp(18),
         )
     }
     previousSectionGuidePanel.addView(nextSectionGuideImage)
     previousSectionGuidePanel.addView(TextView(this).apply {
-        text = previousSectionGhostGuideInstruction()
+        // The detailed reason stays in accessibility text and review. During
+        // capture, one complete instruction is faster to understand and does
+        // not cover the receipt with a paragraph.
+        text = "Repeat 3–5 readable lines in this guide."
         setTextColor(Color.rgb(255, 209, 102))
-        textSize = 11f
+        textSize = 10f
         gravity = Gravity.CENTER
     })
     updatePreviousSectionGuide(previousSectionGuidePhotoPath)

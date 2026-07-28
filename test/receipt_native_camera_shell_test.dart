@@ -81,7 +81,11 @@ void main() {
     expect(find.text('Auto sharpness'), findsNothing);
     expect(find.text('Pinch to zoom'), findsNothing);
     expect(find.text('Brightness assist'), findsNothing);
-    expect(find.byTooltip('Reset brightness'), findsNothing);
+    expect(find.byType(Slider), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('receipt-exposure-reset')),
+      findsOneWidget,
+    );
     expect(find.text('Next'), findsNothing);
     expect(find.text('Add Photo'), findsNothing);
 
@@ -111,8 +115,15 @@ void main() {
     expect(resetExposure, isFalse);
     expect(zoomValue, greaterThan(2));
 
-    expect(find.byType(Slider), findsNothing);
-    expect(exposureValue, isNull);
+    final sliderFinder = find.byType(Slider);
+    expect(sliderFinder, findsOneWidget);
+    await tester.drag(sliderFinder, const Offset(80, 0));
+    await tester.pump();
+    expect(exposureValue, isNotNull);
+
+    await tester.tap(find.byKey(const ValueKey('receipt-exposure-reset')));
+    await tester.pump();
+    expect(resetExposure, isTrue);
 
     final previewRect = tester.getRect(
       find.byKey(const ValueKey('receipt-preview')),
@@ -239,35 +250,39 @@ void main() {
     expect(find.text('Auto sharpness'), findsNothing);
   });
 
-  testWidgets('native camera shell shows custom guidance message when status is absent', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: ReceiptNativeCameraShell(
-          capabilities: const ReceiptNativeCameraCapabilities(
-            engine: ReceiptNativeCameraEngine.cameraX,
-            available: true,
-            hasRearCamera: true,
+  testWidgets(
+    'native camera shell shows custom guidance message when status is absent',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReceiptNativeCameraShell(
+            capabilities: const ReceiptNativeCameraCapabilities(
+              engine: ReceiptNativeCameraEngine.cameraX,
+              available: true,
+              hasRearCamera: true,
+            ),
+            settings: const ReceiptNativeCameraSettings(
+              assistedReceiptFill: false,
+            ),
+            preview: const ColoredBox(color: Color(0xFF38444B)),
+            onBack: () {},
+            onCapture: () {},
+            onSettings: () {},
+            guidanceTitle: 'Line up the receipt',
+            guidanceMessage:
+                'Keep the receipt inside the frame from top to bottom.',
           ),
-          settings: const ReceiptNativeCameraSettings(
-            assistedReceiptFill: false,
-          ),
-          preview: const ColoredBox(color: Color(0xFF38444B)),
-          onBack: () {},
-          onCapture: () {},
-          onSettings: () {},
-          guidanceTitle: 'Line up the receipt',
-          guidanceMessage: 'Keep the receipt inside the frame from top to bottom.',
         ),
-      ),
-    );
+      );
 
-    expect(
-      find.text('Keep the receipt inside the frame from top to bottom.'),
-      findsOneWidget,
-    );
-    expect(find.text('Fill the screen with readable receipt text'), findsNothing);
-  });
-
+      expect(
+        find.text('Keep the receipt inside the frame from top to bottom.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Fill the screen with readable receipt text'),
+        findsNothing,
+      );
+    },
+  );
 }

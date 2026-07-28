@@ -7,9 +7,14 @@ import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_tiles.dart';
 
 class ContractorMetricsStrip extends StatelessWidget {
-  const ContractorMetricsStrip({required this.metrics, super.key});
+  const ContractorMetricsStrip({
+    required this.metrics,
+    required this.onMetricSelected,
+    super.key,
+  });
 
   final List<ContractorMetric> metrics;
+  final ValueChanged<ContractorMetricTarget> onMetricSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +30,13 @@ class ContractorMetricsStrip extends StatelessWidget {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           children: [
-            for (final metric in metrics) ContractorMetricTile(metric: metric),
+            for (final metric in metrics)
+              ContractorMetricTile(
+                metric: metric,
+                onTap: metric.target == null
+                    ? null
+                    : () => onMetricSelected(metric.target!),
+              ),
           ],
         ),
       ),
@@ -224,7 +235,7 @@ class ContractorAttentionPanel extends StatelessWidget {
                   const SizedBox(width: 7),
                   const Expanded(
                     child: Text(
-                      'Record Review',
+                      'Needs Attention',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16,
@@ -252,44 +263,6 @@ class ContractorAttentionPanel extends StatelessWidget {
                 ],
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class ContractorJobsPanel extends StatelessWidget {
-  const ContractorJobsPanel({required this.jobs, super.key});
-
-  final List<ContractorJobPreview> jobs;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: BorderLabel(
-        label: 'Today Work Queue',
-        child: Column(
-          children: [
-            if (jobs.isEmpty)
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'No jobs are scheduled for today.',
-                  style: TextStyle(
-                    color: Color(0xFFC7D0D4),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              )
-            else
-              for (final job in jobs) ...[
-                _JobRow(job: job),
-                if (job != jobs.last)
-                  const Divider(height: 12, color: Color(0x668B9089)),
-              ],
-          ],
         ),
       ),
     );
@@ -366,66 +339,6 @@ class _AttentionRow extends StatelessWidget {
                 ),
               ),
             ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _JobRow extends StatelessWidget {
-  const _JobRow({required this.job});
-
-  final ContractorJobPreview job;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 58,
-          child: Text(
-            job.time,
-            style: const TextStyle(
-              color: AppColors.yellow,
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                job.title,
-                style: const TextStyle(
-                  color: AppColors.text,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                job.summary,
-                style: const TextStyle(
-                  color: Color(0xFFC7D0D4),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  height: 1.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          job.status,
-          style: const TextStyle(
-            color: Color(0xFFE8ECEE),
-            fontSize: 10.5,
-            fontWeight: FontWeight.w800,
           ),
         ),
       ],

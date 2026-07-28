@@ -55,19 +55,23 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
       await continueReceiptPhotoReview();
       return;
     }
-    final keptForLaterResult = ReceiptPhotoReviewResult.keptForLater(
-      photoPaths: _photoPaths,
-      dataSaverLevel: _dataSaverLevel,
-      photoQualityChecksByPath: _qualityChecksByPath,
-      captureDiagnosticsByPhotoPath:
-          _captureDiagnosticsWithReceiptBrainDefaults(
-            _captureDiagnosticsByPath,
-            _photoPaths,
-            captureRoute: 'saved_without_filling',
-          ),
-    );
+    final reviewResult = action == _ReceiptReviewExitAction.saveDraft
+        ? ReceiptPhotoReviewResult.keptForLater(
+            photoPaths: _photoPaths,
+            dataSaverLevel: _dataSaverLevel,
+            photoQualityChecksByPath: _qualityChecksByPath,
+            captureDiagnosticsByPhotoPath:
+                _captureDiagnosticsWithReceiptBrainDefaults(
+                  _captureDiagnosticsByPath,
+                  _photoPaths,
+                  captureRoute: 'saved_as_draft',
+                ),
+          )
+        : ReceiptPhotoReviewResult.discardedByUser(
+            dataSaverLevel: _dataSaverLevel,
+          );
     if (!beginReceiptReviewClose()) return;
-    navigator.pop(keptForLaterResult);
+    navigator.pop(reviewResult);
   }
 
   bool beginReceiptReviewClose() {
@@ -86,7 +90,8 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
 
   Future<_ReceiptReviewExitAction> _confirmReceiptReviewExit() async {
     if (!_reviewWorkActive) return _ReceiptReviewExitAction.keepReviewing;
-    if (_photoPaths.isEmpty) return _ReceiptReviewExitAction.leaveSafely;
+    if (_photoPaths.isEmpty)
+      return _ReceiptReviewExitAction.discardWithoutSaving;
     final hasMultipleSections = _photoPaths.length > 1;
     final hasEditedReviewPhotos = _photoPaths.any(_generatedEditPaths.contains);
     final coverageDecision = _selectedExitCoverageDecision();
@@ -103,9 +108,6 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
       coverageDecision: coverageDecision,
       nextLabel: nextLabel,
     );
-    final leaveLabel = hasMultipleSections
-        ? 'Save Photos Without Filling'
-        : 'Save Photo Without Filling';
     final result = await showDialog<_ReceiptReviewExitAction>(
       context: context,
       builder: (context) => AlertDialog(
@@ -127,18 +129,24 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
         ),
         actions: [
           TextButton(
-            onPressed: () =>
-                Navigator.of(context).pop(_ReceiptReviewExitAction.leaveSafely),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFFFFD166),
-            ),
-            child: Text(leaveLabel),
-          ),
-          TextButton(
             onPressed: () => Navigator.of(
               context,
             ).pop(_ReceiptReviewExitAction.keepReviewing),
             child: const Text('Back to Photos'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(_ReceiptReviewExitAction.discardWithoutSaving),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFFF8A80),
+            ),
+            child: const Text('Exit Without Saving'),
+          ),
+          TextButton(
+            onPressed: () =>
+                Navigator.of(context).pop(_ReceiptReviewExitAction.saveDraft),
+            child: const Text('Exit & Save Draft'),
           ),
           FilledButton(
             onPressed: () =>
@@ -163,8 +171,8 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
     required String nextLabel,
   }) {
     final savedCopy = hasMultipleSections
-        ? 'You can return to these photos later.'
-        : 'You can return to this photo later.';
+        ? 'Save Draft keeps these photos on this device so you can return later. Exit Without Saving discards them.'
+        : 'Save Draft keeps this photo on this device so you can return later. Exit Without Saving discards it.';
     final editCopy = hasEditedReviewPhotos
         ? 'Edited crop/rotation copies currently shown here will also be kept for this review.'
         : '';

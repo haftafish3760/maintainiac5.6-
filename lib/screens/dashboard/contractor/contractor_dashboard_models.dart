@@ -15,16 +15,27 @@ enum ContractorCommandTarget {
   note,
 }
 
+enum ContractorMetricTarget {
+  openJobs,
+  jobsToday,
+  receiptsToReview,
+  unpaidInvoices,
+  paymentsThisWeek,
+  expensesThisWeek,
+}
+
 class ContractorMetric {
   const ContractorMetric({
     required this.label,
     required this.value,
     required this.color,
+    this.target,
   });
 
   final String label;
   final String value;
   final Color color;
+  final ContractorMetricTarget? target;
 }
 
 class ContractorAttentionItem {
@@ -71,6 +82,12 @@ class ContractorCommand {
 
 const contractorPreDayCommands = [
   ContractorCommand(
+    label: 'Jobs',
+    icon: Icons.work_outline_rounded,
+    color: Color(0xFF1976B9),
+    target: ContractorCommandTarget.jobs,
+  ),
+  ContractorCommand(
     label: 'Create Job',
     icon: Icons.work_rounded,
     color: Color(0xFF2E6FA8),
@@ -109,6 +126,12 @@ const contractorPreDayCommands = [
 ];
 
 const contractorActiveCommands = [
+  ContractorCommand(
+    label: 'Jobs',
+    icon: Icons.work_outline_rounded,
+    color: Color(0xFF1976B9),
+    target: ContractorCommandTarget.jobs,
+  ),
   ContractorCommand(
     label: 'Add Stop',
     icon: Icons.place_rounded,

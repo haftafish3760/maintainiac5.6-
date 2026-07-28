@@ -39,10 +39,7 @@ void main() {
       controls,
       contains('Use Match Photos to check whether one combined receipt image'),
     );
-    expect(
-      controls,
-      contains('Save & Continue will use one combined receipt image.'),
-    );
+    expect(controls, contains('Continue will use one combined receipt image.'));
     expect(controls, contains('ordered sections from top to bottom'));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));
@@ -103,6 +100,10 @@ void main() {
     expect(cropper, contains('static const _edgeVisibleSize = 8.0'));
     expect(cropper, contains('Semantics('));
     expect(cropper, contains('Move bottom right receipt crop corner'));
+    expect(cropper, contains('double _cropViewportScale('));
+    expect(cropper, contains('.clamp(1.0, 3.0)'));
+    expect(cropper, contains('details.delta.dx / viewportScale'));
+    expect(cropper, contains('details.delta.dy / viewportScale'));
     expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
     expect(
       cropControls,

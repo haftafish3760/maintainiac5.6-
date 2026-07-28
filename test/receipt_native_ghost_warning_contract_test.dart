@@ -52,8 +52,11 @@ void main() {
     );
     expect(nativeService, contains('previousSectionGhostOpacity'));
     expect(nativeService, contains('previousSectionGhostSlicePercent'));
-    expect(nativeGuidance, contains('Repeat 3-5 readable lines here'));
-    expect(nativeGuidance, contains('Line up 3-5 repeated receipt lines here'));
+    expect(
+      nativeGuidance,
+      contains('Repeat 3-5 readable lines from the prior photo.'),
+    );
+    expect(nativeGuidance, contains('Repeat 3-5 lines in this guide'));
     expect(
       reviewActions,
       contains('Put 3-5 repeated readable lines in the top ghost slice'),

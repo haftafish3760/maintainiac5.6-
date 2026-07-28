@@ -6,12 +6,14 @@ class _ExpenseCategorySearch extends StatelessWidget {
     required this.controller,
     required this.matches,
     required this.onSelected,
+    this.onQueryChanged,
   });
 
   final String selectedCategory;
   final TextEditingController controller;
   final List<String> matches;
   final ValueChanged<String> onSelected;
+  final ValueChanged<String>? onQueryChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -27,8 +29,8 @@ class _ExpenseCategorySearch extends StatelessWidget {
         children: [
           Text(
             selectedCategory == 'Uncategorized'
-                ? 'Expense Category: No category selected'
-                : 'Expense Category: $selectedCategory',
+                ? 'Optional Expense Category: No category selected'
+                : 'Optional Expense Category: $selectedCategory',
             style: const TextStyle(
               color: Color(0xFFE8ECEE),
               fontSize: 13,
@@ -39,6 +41,7 @@ class _ExpenseCategorySearch extends StatelessWidget {
           const SizedBox(height: 8),
           TextField(
             controller: controller,
+            onChanged: onQueryChanged,
             style: const TextStyle(
               color: Color(0xFFE8ECEE),
               fontWeight: FontWeight.w800,

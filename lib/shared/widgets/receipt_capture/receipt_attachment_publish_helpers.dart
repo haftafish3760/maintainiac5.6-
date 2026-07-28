@@ -118,7 +118,9 @@ extension _ReceiptAttachmentPublishHelpers
     widget.onAttachmentsChanged?.call(attachments);
   }
 
-  Future<bool> openReceiptCaptureSettings() async {
+  Future<bool> openReceiptCaptureSettings({
+    ReceiptSettingsScreenContext? screenContext,
+  }) async {
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
     if (settings == null) {
       showPickerError('Receipt settings are not available yet.');
@@ -133,6 +135,7 @@ extension _ReceiptAttachmentPublishHelpers
           hasSavedReceiptProof:
               _photoPaths.isNotEmpty || _documentAttachments.isNotEmpty,
           uiConfig: widget.uiConfig,
+          screenContext: screenContext,
         ),
       ),
     );

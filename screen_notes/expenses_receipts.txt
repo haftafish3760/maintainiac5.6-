@@ -89,3 +89,39 @@ Source: visible user message, 2026-07-23 trip tracking command-center pass
 - Expense records that happen during the day must retain enough context to link
   to active vehicle, work profile, workday/trip day, and dashboard calendar
   records.
+
+Source: visible user messages, 2026-07-26 Receipt Assist and Expenses workflow
+
+- Expenses serves contractors and gig drivers and must retain the active work
+  profile so its dashboard, defaults, categories, and receipt suggestions can
+  fit the work the user is doing. A user may keep more than one work profile.
+- Receipt Assist has three user-selectable detail levels: Total Only, Category
+  Summary, and Detailed Items. The default is an Expenses receipt setting and
+  the receipt form must provide a clear contextual override.
+- Total Only captures the final amount and Business, Personal, or Split. Split
+  accepts either a dollar amount or percentage and derives the remaining side.
+- Category Summary adds a receipt-level category without requiring purchased
+  item lines.
+- Detailed Items faithfully reconstructs the printed merchant/contact details,
+  date/time, totals, and every purchased-item row found by OCR. Each editable
+  item supports printed description, quantity, unit price, line total, and
+  review state without inventing an exact product identity.
+- Detailed receipts ask whether one category applies to the entire receipt. If
+  yes, category is chosen once at receipt level. If no, every item can choose
+  its own category and Business, Personal, or Split allocation.
+- Manual entry uses the same forms and must always expose Add Item in Detailed
+  Items mode. OCR suggestions never remove manual correction, split/merge, add,
+  or delete controls.
+- Receipt progress uses one concise, bounded status surface. It must identify
+  the actual current stage, finish or offer manual recovery within the device
+  deadline, and never show a completed step as still spinning.
+- Receipt forms are responsive from small phones through tablets and desktop
+  windows, respect accessibility text scaling, and never clip or ellipsize
+  instructional sentences.
+- Expense categories need consistent matching icons and broad coverage for
+  contractor and gig-driver records. Category-specific fields should appear
+  only when relevant; unrelated category forms must not be combined merely
+  because they share the Expenses section.
+- PDF receipt import remains part of the receipt system, but camera capture,
+  local OCR extraction, editable review, and manual receipt entry must be
+  completed and proven before PDF-specific polish.

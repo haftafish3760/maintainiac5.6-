@@ -39,6 +39,12 @@ while IFS= read -r path; do
     docs/receipt_bug_regression_ledger_archive_*.md | \
     lib/shared/receipts/* | \
     lib/shared/widgets/receipt_capture/* | \
+    lib/screens/expenses/data/expense_receipt_item_memory_store.dart | \
+    lib/screens/expenses/entry/expense_receipt_* | \
+    lib/shared/state/expense_settings_store.dart | \
+    screen_notes/expenses_receipts.txt | \
+    screen_notes/app_screens/expense_receipt_entry_screen.txt | \
+    screen_notes/app_screens/expense_settings_screen.txt | \
     test/helpers/receipt_native_* | \
     test/helpers/receipt_recovery_handoff_fixture.dart | \
 	    test/helpers/receipt_stitching_* | \
@@ -47,10 +53,12 @@ while IFS= read -r path; do
 	    test/receipt_capture_flow_barcode_handoff_test.dart | \
 	    test/receipt_capture_flow_ocr_source_count_test.dart | \
 	    test/receipt_attachment_panel_actions_test.dart | \
+	    test/receipt_attachment_panel_recovery_contract_test.dart | \
 	    test/receipt_import_source_sheet_test.dart | \
     test/receipt_camera_dataset_qa_gate_contract_test.dart | \
     test/receipt_camera_* | \
     test/receipt_native_* | \
+    test/receipt_ocr_* | \
     test/receipt_ocr_source_* | \
     test/receipt_photo_review_* | \
     test/receipt_photo_section_labels_test.dart | \
@@ -60,6 +68,8 @@ while IFS= read -r path; do
     test/receipt_stitch_fallback_metadata_test.dart | \
     test/fixtures/receipt_qa/external_dataset_manifest.json | \
     test/receipt_stitching_* | \
+    test/expense_receipt_* | \
+    test/expense_settings_store_test.dart | \
     tool/android_receipt_camera_* | \
     tool/ios_receipt_camera_* | \
 	    tool/receipt_bug_regression_ledger_archive.dart | \

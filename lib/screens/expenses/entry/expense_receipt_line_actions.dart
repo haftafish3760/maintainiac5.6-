@@ -13,6 +13,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
     required this.onAddShared,
     required this.onAddMaterial,
     required this.onAddMaintenanceRepair,
+    required this.onSwitchToCategoryLines,
   });
 
   final int nextLineNumber;
@@ -26,21 +27,29 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
   final VoidCallback onAddShared;
   final VoidCallback onAddMaterial;
   final VoidCallback onAddMaintenanceRepair;
+  final VoidCallback onSwitchToCategoryLines;
 
   @override
   Widget build(BuildContext context) {
-    if (basicMode ||
-        (!detailedMode &&
-            !fuelMode &&
-            !maintenanceRepairMode &&
-            !materialMode)) {
-      return const SizedBox.shrink();
+    if (basicMode) {
+      return _ReceiptActionButton(
+        label: 'Add Itemized Category Lines',
+        helper:
+            'Simple Receipt saves one final total. Switch to Category Receipt to add one price and an optional category for each line.',
+        icon: Icons.playlist_add_rounded,
+        color: const Color(0xFF2E78B7),
+        onTap: onSwitchToCategoryLines,
+      );
     }
     final label = nextLineNumber == 1
-        ? 'Add Receipt Items'
-        : 'Add Another Receipt Item';
+        ? detailedMode
+              ? 'Add Item'
+              : 'Add Category Lines'
+        : detailedMode
+        ? 'Add Another Item'
+        : 'Add Another Category Line';
     final helper = !detailedMode && !fuelMode && !maintenanceRepairMode
-        ? 'Simple review records the final receipt total as Business or Personal.'
+        ? 'Basic receipt: add a category and price without quantity or unit-price details.'
         : fuelMode
         ? 'Enter the fuel line from this receipt.'
         : maintenanceRepairMode
@@ -56,6 +65,10 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
   }
 
   Future<void> _showReceiptItemChoice(BuildContext context) async {
+    if (detailedMode) {
+      onAddBusiness();
+      return;
+    }
     if (fuelMode) {
       onAddBusiness();
       return;
@@ -93,7 +106,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _ReceiptActionButton(
-                  label: 'Business Item',
+                  label: 'Business',
                   helper: 'For a receipt line bought for work.',
                   icon: Icons.business_center_rounded,
                   color: const Color(0xFF2E78B7),
@@ -101,7 +114,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _ReceiptActionButton(
-                  label: 'Personal Item',
+                  label: 'Personal',
                   helper: 'For a personal receipt line.',
                   icon: Icons.person_rounded,
                   color: const Color(0xFF59636A),
@@ -109,7 +122,7 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 _ReceiptActionButton(
-                  label: 'Shared Item',
+                  label: 'Split',
                   helper: 'For one line split between business and personal.',
                   icon: Icons.call_split_rounded,
                   color: const Color(0xFF3B7C73),

@@ -5,6 +5,7 @@ class _ReceiptPaperLineRow extends StatelessWidget {
     required this.lineNumber,
     required this.line,
     required this.showLineUseControls,
+    required this.showItemDetails,
     required this.onEdit,
     required this.onSetUse,
     required this.onDelete,
@@ -13,6 +14,7 @@ class _ReceiptPaperLineRow extends StatelessWidget {
   final int lineNumber;
   final _ExpenseReceiptLine line;
   final bool showLineUseControls;
+  final bool showItemDetails;
   final VoidCallback onEdit;
   final FutureOr<void> Function(_ExpenseLineUse use) onSetUse;
   final VoidCallback onDelete;
@@ -45,7 +47,9 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      line.description,
+                      showItemDetails
+                          ? line.description
+                          : 'Receipt line $lineNumber',
                       style: const TextStyle(
                         color: Color(0xFF25211A),
                         fontSize: 12.5,
@@ -56,7 +60,9 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${line.allocationSummary} | ${line.category} | ${line.packageSummary}',
+                      showItemDetails
+                          ? '${line.allocationSummary} | ${line.category} | ${line.packageSummary}'
+                          : '${line.allocationSummary} | ${line.category}',
                       style: const TextStyle(
                         color: Color(0xFF62584C),
                         fontSize: 10.5,

@@ -7,30 +7,58 @@ void main() {
     final android = File(
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt',
     ).readAsStringSync();
+    final androidCameraBinding = File(
+      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraAnalysis.kt',
+    ).readAsStringSync();
+    final androidCapture = File(
+      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraCaptureClose.kt',
+    ).readAsStringSync();
     final ios = File(
       'ios/Runner/ReceiptCameraViewControllerControls.swift',
     ).readAsStringSync();
 
     expect(android, contains('ScaleGestureDetector('));
-    expect(android, contains('MotionEvent.ACTION_DOWN'));
+    final chrome = File(
+      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt',
+    ).readAsStringSync();
+
+    expect(chrome, contains('setOnTouchListener'));
+    expect(chrome, contains('detector.onTouchEvent(event)'));
+    expect(chrome, contains('event.pointerCount >= 2 || detector.isInProgress'));
+    expect(
+      android,
+      isNot(contains('previewView.setOnTouchListener')),
+    );
+    expect(android, contains('setZoomRatio(nextZoom)'));
+    expect(android, contains('pinchZoomGestureStartRatio = nextZoom'));
+    expect(
+      android,
+      contains('completeZoomApplication(zoomRequestId, applied)'),
+    );
     expect(
       android,
       contains(
-        'MotionEvent.ACTION_DOWN -> {\n'
-        '                // Own the stream from DOWN',
+        'capturePhoto(trigger = queuedTrigger, recordUserIntent = false)',
       ),
+    );
+    expect(androidCapture, contains('if (zoomApplyInFlight)'));
+    expect(
+      androidCapture,
+      contains('pendingCaptureAfterZoomTrigger = trigger'),
     );
     expect(
-      android,
-      isNot(
-        contains(
-          'MotionEvent.ACTION_DOWN -> {\n'
-          '                return@OnTouchListener false',
-        ),
-      ),
+      androidCapture,
+      contains('Applying zoom, then capturing your receipt.'),
     );
-    expect(android, contains('setZoomRatio(nextZoom)'));
     expect(android, isNot(contains('FocusMeteringAction')));
+    expect(androidCameraBinding, contains('previewView.viewPort'));
+    expect(androidCameraBinding, contains('UseCaseGroup.Builder()'));
+    expect(androidCameraBinding, contains('.setViewPort(captureViewPort)'));
+    expect(androidCameraBinding, contains('.addUseCase(stillCapture)'));
+    expect(
+      androidCameraBinding,
+      contains('val initialZoom = minZoom.coerceIn(1.0, maxZoom)'),
+    );
 
     expect(ios, contains('UIPinchGestureRecognizer'));
     expect(ios, contains('cameraDevice.videoZoomFactor = nextZoom'));

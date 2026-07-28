@@ -2,7 +2,8 @@ part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
   Future<void> _saveReceipt() async {
-    if (_expenseOdometerReading == null) {
+    if (_expenseOdometerReading == null &&
+        !_usesRebuiltManualDetailedReceiptFlow) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(

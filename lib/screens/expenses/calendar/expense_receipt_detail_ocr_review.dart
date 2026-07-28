@@ -15,7 +15,7 @@ class _ReceiptOcrReviewPanel extends StatelessWidget {
       if (review.parserLineCount > 0)
         '${review.parserLineCount} receipt ${review.parserLineCount == 1 ? 'line' : 'lines'} ready',
       if (review.warningCount > 0)
-        '${review.warningCount} reading ${review.warningCount == 1 ? 'warning' : 'warnings'}',
+        '${review.warningCount} OCR ${review.warningCount == 1 ? 'warning' : 'warnings'}',
     ];
     final warning = review.primaryWarningLabel;
     final primaryIssue = review.commandCenterPrimaryIssue;

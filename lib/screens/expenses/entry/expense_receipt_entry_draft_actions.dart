@@ -4,6 +4,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
   Future<bool> _saveDraftNow() async {
     final drafts = _drafts;
     if (drafts == null) return true;
+    if (!_isEditingReceipt && !_hasDraftContentWorthRecovering) return true;
     final draft = ExpenseReceiptDraftRecord(
       id: _draftId,
       receiptDate: _selectedDate,
@@ -34,6 +35,8 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
       receiptReadHandoffCoverageWarning: _receiptReadHandoffCoverageWarning,
       receiptReviewMode: _detailEntryMode.name,
       receiptReviewModeChangedByUser: _receiptReviewModeChangedByUser,
+      receiptCategory: _receiptCategory,
+      receiptCategoryAppliesToAll: _receiptCategoryAppliesToAll,
       enteredSubtotal: _enteredReceiptSubtotal,
       enteredTax: _enteredReceiptTax,
       enteredTotal: _enteredReceiptTotal,
@@ -67,6 +70,31 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
       ).showSnackBar(SnackBar(content: Text(message)));
       return false;
     }
+  }
+
+  bool get _hasDraftContentWorthRecovering {
+    if (_hasReceipt || _receiptAttachments.isNotEmpty) return true;
+    if (_rawReceiptText.trim().isNotEmpty || _receiptReviewFlowStarted) {
+      return true;
+    }
+    if (_lines.isNotEmpty ||
+        _enteredReceiptSubtotal != null ||
+        _enteredReceiptTax != null ||
+        _enteredReceiptTotal != null ||
+        _expenseOdometerReading != null) {
+      return true;
+    }
+    return [
+      _storeController.text,
+      _phoneController.text,
+      _streetController.text,
+      _cityController.text,
+      _stateController.text,
+      _zipController.text,
+      _emailController.text,
+      _websiteController.text,
+      _storeNotesController.text,
+    ].any((value) => value.trim().isNotEmpty);
   }
 
   ExpenseReceiptOcrReview _currentOcrReview() {
@@ -124,6 +152,7 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
     _receiptReadHandoffCoverageWarning =
         draft.receiptReadHandoffCoverageWarning;
     _receiptReviewModeChangedByUser = draft.receiptReviewModeChangedByUser;
+    _receiptCategoryAppliesToAll = draft.receiptCategoryAppliesToAll;
     _detailEntryMode =
         _receiptDetailEntryModeFromDraftName(draft.receiptReviewMode) ??
         _detailEntryMode;
@@ -145,6 +174,9 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
     _lines
       ..clear()
       ..addAll(draft.lines.map(_ExpenseReceiptLine.fromLedgerLine));
+    _receiptCategory = _lines.isNotEmpty
+        ? _lines.first.category
+        : draft.receiptCategory;
   }
 
   _ReceiptDetailEntryMode? _receiptDetailEntryModeFromDraftName(String name) {

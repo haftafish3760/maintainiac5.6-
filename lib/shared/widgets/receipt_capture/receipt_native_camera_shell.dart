@@ -113,6 +113,10 @@ class ReceiptNativeCameraShell extends StatelessWidget {
                 onBack: onBack,
                 onTorch: onTorch,
                 onSettings: onSettings,
+                capabilities: capabilities,
+                currentExposureOffset: currentExposureOffset,
+                onExposureChanged: onExposureChanged,
+                onExposureReset: onExposureReset,
                 uiConfig: uiConfig,
               ),
             ),
@@ -157,7 +161,7 @@ class ReceiptNativeCameraShell extends StatelessWidget {
 
   double get _guidanceBottomOffset {
     if (capturedPhotoCount > 0 && onReviewCapturedPhotos != null) {
-      return 140;
+      return 152;
     }
     return 92;
   }

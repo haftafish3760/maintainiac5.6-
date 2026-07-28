@@ -2,6 +2,7 @@ part of 'expense_receipt_entry_screen.dart';
 
 class _ReceiptSavePanel extends StatelessWidget {
   const _ReceiptSavePanel({
+    required this.detailMode,
     required this.lineCount,
     required this.reviewCount,
     required this.splitPercentIssueCount,
@@ -9,6 +10,7 @@ class _ReceiptSavePanel extends StatelessWidget {
     required this.onSave,
   });
 
+  final _ReceiptDetailEntryMode detailMode;
   final int lineCount;
   final int reviewCount;
   final int splitPercentIssueCount;
@@ -18,9 +20,19 @@ class _ReceiptSavePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final issueCount = reviewCount + splitPercentIssueCount;
+    final canSave = lineCount > 0 && total > 0;
+    final saveLabel = switch (detailMode) {
+      _ReceiptDetailEntryMode.basicReceipt => 'Save Receipt | ${_money(total)}',
+      _ReceiptDetailEntryMode.quickClassify =>
+        'Save Categorized Receipt | ${_money(total)}',
+      _ReceiptDetailEntryMode.detailedItems =>
+        'Save $lineCount ${lineCount == 1 ? 'Item' : 'Items'} | ${_money(total)}',
+    };
     return ReceiptFormPanel(
       title: 'Save Receipt',
-      subtitle: 'Save these lines to the expense ledger for this vehicle.',
+      subtitle: canSave
+          ? 'Save this reviewed expense to the ledger for the selected vehicle and work profile.'
+          : 'Enter the receipt total and complete its Business, Personal, or Split classification first.',
       icon: Icons.save_rounded,
       accentColor: issueCount > 0
           ? const Color(0xFFFFD166)
@@ -82,9 +94,9 @@ class _ReceiptSavePanel extends StatelessWidget {
           const SizedBox(height: 8),
         ],
         FilledButton.icon(
-          onPressed: onSave,
+          onPressed: canSave ? onSave : null,
           icon: const Icon(Icons.check_rounded),
-          label: Text('Save $lineCount Lines | ${_money(total)}'),
+          label: Text(saveLabel),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF28A745),
             foregroundColor: Colors.white,

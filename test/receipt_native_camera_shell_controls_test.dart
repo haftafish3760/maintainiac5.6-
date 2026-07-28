@@ -241,22 +241,15 @@ void main() {
       find.byKey(const ValueKey('previous-section-ghost')),
       findsOneWidget,
     );
-    expect(find.text('Match the bottom section'), findsOneWidget);
+    expect(find.text('Match the bottom section'), findsNothing);
     expect(
       find.text('Keep the last readable lines in the top ghost slice.'),
-      findsOneWidget,
+      findsNothing,
     );
-    expect(
-      find.text('Line up 3-5 repeated receipt lines here'),
-      findsOneWidget,
-    );
+    expect(find.text('Repeat 3-5 lines in this guide'), findsOneWidget);
     expect(find.text('Tap text to focus'), findsNothing);
     expect(find.text('Pinch to zoom'), findsNothing);
     expect(find.text('Brightness assist'), findsNothing);
-    expect(
-      find.text('Keep the last readable lines in the top ghost slice.'),
-      findsOneWidget,
-    );
     expect(find.text('Manual receipt'), findsNothing);
     expect(find.text('Save photo only'), findsNothing);
     expect(find.text('Saved proof'), findsNothing);
@@ -438,6 +431,41 @@ void main() {
 
       expect(guidanceRect.bottom, lessThan(nextRect.top));
       expect(guidanceRect.bottom, lessThan(addRect.top));
+    },
+  );
+
+  testWidgets(
+    'native camera shell shows Add Photo whenever handler is provided',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(390, 844));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReceiptNativeCameraShell(
+            capabilities: const ReceiptNativeCameraCapabilities(
+              engine: ReceiptNativeCameraEngine.cameraX,
+              available: true,
+              hasRearCamera: true,
+            ),
+            settings: const ReceiptNativeCameraSettings(
+              assistedReceiptFill: true,
+            ),
+            preview: const ColoredBox(color: Color(0xFF38444B)),
+            onBack: () {},
+            onCapture: () {},
+            onSettings: () {},
+            onReviewCapturedPhotos: _noop,
+            onAddPhoto: _noop,
+            capturedPhotoCount: 2,
+            longReceiptMode: false,
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Done (2)'), findsOneWidget);
+      expect(find.text('Add Photo'), findsOneWidget);
     },
   );
 }

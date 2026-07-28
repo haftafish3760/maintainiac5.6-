@@ -142,6 +142,47 @@ void main() {
     );
   });
 
+  test(
+    'round-trips client, schedule, recurrence, and reminder preferences',
+    () async {
+      final controller = MaintainiacJobController.memory();
+      final start = DateTime(2026, 7, 27, 8, 30);
+      final saved = await controller.save(
+        MaintainiacJobRecord(
+          id: 'JOB-scheduled',
+          name: 'Service call',
+          customerReference: 'Jordan Smith',
+          customerPhone: '555-0100',
+          customerEmail: 'jordan@example.com',
+          address: '12 Main Street',
+          notes: 'Call before arrival.',
+          scheduledStart: start,
+          scheduledEnd: start.add(const Duration(hours: 2)),
+          repeatRule: 'weekly',
+          inAppReminder: true,
+          pushReminder: true,
+          soundReminder: true,
+          reminderLeadMinutes: 30,
+          createdAt: start,
+          updatedAt: start,
+        ),
+      );
+
+      final restored = MaintainiacJobRecord.fromMap(saved.toMap());
+      expect(restored.customerReference, 'Jordan Smith');
+      expect(restored.customerPhone, '555-0100');
+      expect(restored.customerEmail, 'jordan@example.com');
+      expect(restored.address, '12 Main Street');
+      expect(restored.notes, 'Call before arrival.');
+      expect(restored.scheduledStart, start);
+      expect(restored.repeatRule, 'weekly');
+      expect(restored.inAppReminder, isTrue);
+      expect(restored.pushReminder, isTrue);
+      expect(restored.soundReminder, isTrue);
+      expect(restored.reminderLeadMinutes, 30);
+    },
+  );
+
   test('rejects unsafe references and invalid schedule windows', () async {
     final controller = MaintainiacJobController.memory();
     final now = DateTime.utc(2026, 7, 22);

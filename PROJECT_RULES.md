@@ -37,6 +37,35 @@ This is a top-priority operating rule for every Codex agent working on Maintania
 - For coding tasks, inspect the smallest relevant files first. Do not use whole-repo searches unless narrow searches fail or the task requires repo-wide proof.
 - Long-running checks must run non-interactively. Do not narrate or monitor scrolling output; inspect final logs and summarize actionable results only.
 
+## User-Only Confirmation And Destructive-Action Rule
+
+This is a permanent, top-priority operating rule for every Codex agent working
+on Maintaniac.
+
+- Any operating-system, browser, website, IDE, or application dialog that asks
+  for permission, approval, confirmation, or consent is reserved for the user.
+  Codex must not click `OK`, `Allow`, `Confirm`, `Continue`, `Approve`, or an
+  equivalent positive button.
+- Any dialog or control that deletes, removes, replaces, overwrites, publishes,
+  grants access, changes permissions, or otherwise risks losing work is also
+  reserved for the user. Codex must stop, quote or summarize the exact prompt,
+  explain the effect, and wait for the user to act.
+- General authorization to perform a task is not authorization to approve a
+  later confirmation dialog. The user must explicitly authorize that exact
+  confirmation after it appears unless the user has clearly provided a narrow
+  advance authorization for the specific action and circumstance.
+- Codex must never delete or remove a Maintainiac repository, project folder,
+  source file, documentation file, Git work, Custom GPT Action, Custom GPT
+  knowledge file, or other user work without explicit user approval for the
+  exact target.
+- In Custom GPT Builder, Codex may inspect and prepare configuration fields, but
+  it must not click `Save`, `Update`, `Publish`, `Delete`, or any permission or
+  confirmation button. Codex must tell the user when the configuration is ready
+  and let the user perform the final action.
+- If the user explicitly authorizes Codex to handle confirmations while the
+  user is away, that exception applies only to the exact scope, destination,
+  and time stated by the user. It does not become standing permission.
+
 ## Codex Bundling And Non-Idle Testing Rule
 
 This is a top-priority operating rule for every Codex agent working on Maintaniac.

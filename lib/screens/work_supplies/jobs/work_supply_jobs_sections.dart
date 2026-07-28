@@ -1,9 +1,10 @@
 part of 'work_supply_jobs_screen.dart';
 
 class _JobsHeader extends StatelessWidget {
-  const _JobsHeader({required this.jobCount});
+  const _JobsHeader({required this.jobCount, required this.onCreateJob});
 
   final int jobCount;
+  final VoidCallback onCreateJob;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +49,7 @@ class _JobsHeader extends StatelessWidget {
               compact: true,
               tone: AppButtonTone.commit,
               icon: const Icon(Icons.add_rounded, color: Colors.white),
-              onPressed: () {},
+              onPressed: onCreateJob,
             ),
           ],
         ),
@@ -210,13 +211,13 @@ class _JobScheduleSection extends StatelessWidget {
 class _JobQuickActions extends StatelessWidget {
   const _JobQuickActions({
     required this.onCreateJob,
-    required this.onLinkMileage,
+    required this.onImportEstimate,
     required this.onAddExpense,
     required this.onUseInventory,
   });
 
   final VoidCallback onCreateJob;
-  final VoidCallback onLinkMileage;
+  final VoidCallback onImportEstimate;
   final VoidCallback onAddExpense;
   final VoidCallback onUseInventory;
 
@@ -236,9 +237,9 @@ class _JobQuickActions extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: _QuickAction(
-                label: 'Link Mileage',
-                icon: Icons.route_rounded,
-                onTap: onLinkMileage,
+                label: 'Import Estimate',
+                icon: Icons.request_quote_rounded,
+                onTap: onImportEstimate,
               ),
             ),
           ],

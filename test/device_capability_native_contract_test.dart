@@ -20,6 +20,7 @@ void main() {
       expect(source, contains('readCameraLenses'));
       expect(source, contains('readSensors'));
       expect(source, contains('readBattery'));
+      expect(source, contains('isExternalPowerConnected'));
       expect(source, contains('readDisplay'));
       expect(source, contains('readMedia'));
       expect(source, contains('readGraphics'));
@@ -34,7 +35,9 @@ void main() {
     expect(android, contains('sharedDevicePerformance'));
     expect(android, contains('performanceInstance'));
     expect(android, contains('availableRamMb'));
+    expect(android, contains('EXTRA_TECHNOLOGY'));
     expect(ios, contains('isLowPowerModeEnabled'));
+    expect(ios, contains('"external"'));
     expect(ios, contains('ProcessInfo.ThermalState'));
   });
 

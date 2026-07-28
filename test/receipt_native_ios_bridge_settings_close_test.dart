@@ -295,7 +295,14 @@ void main() {
       );
       expect(cameraController, contains('settingsSummary'));
       expect(cameraController, contains('Assisted receipt fill'));
-      expect(cameraController, contains('Long receipt mode'));
+      expect(
+        cameraController,
+        isNot(
+          contains(
+            'content.addArrangedSubview(toggle(camera.receiptCameraText("Long receipt mode"',
+          ),
+        ),
+      );
       expect(
         cameraController,
         contains("Hold steady for the phone camera's autofocus."),
@@ -305,18 +312,7 @@ void main() {
         isNot(contains('continuous autofocus/readability guidance')),
       );
       expect(cameraController, isNot(contains('Use focus assist only if')));
-      expect(cameraController, contains('if !canUseLongReceiptMode()'));
       expect(cameraController, contains('func canUseLongReceiptMode()'));
-      expect(
-        cameraController,
-        contains('if !self.longReceiptMode && !self.canUseLongReceiptMode()'),
-      );
-      expect(
-        cameraController,
-        contains(
-          'Long receipt mode is unavailable for this device or storage setting.',
-        ),
-      );
       expect(cameraController, contains('Automatic capture'));
       expect(
         cameraController,
@@ -328,7 +324,6 @@ void main() {
           'Automatic capture waits for several steady, readable frames.',
         ),
       );
-      expect(cameraController, contains('auto brightness assist'));
       expect(cameraController, contains('Auto brightness assist'));
       expect(cameraController, contains('Receipt edge guidance'));
       expect(cameraController, contains('Image cleanup'));
@@ -353,15 +348,16 @@ void main() {
         cameraController,
         contains('latestAutoCaptureStatus = "edge_detection_off"'),
       );
-      expect(cameraController, contains('Turn receipt edge guidance off'));
-      expect(cameraController, contains('Receipt edge guidance is on.'));
+      expect(
+        cameraController,
+        contains('camera.edgeDetectionEnabled = enabled'),
+      );
       expect(
         cameraController,
         contains(
-          'Receipt edge guidance is off. Take the clearest photo you can.',
+          'camera.receiptFrameGuide.isHidden = !(enabled && camera.edgeOverlayEnabled)',
         ),
       );
-      expect(cameraController, contains('receipt framing checks'));
       expect(cameraController, contains('Receipt framing checks'));
       expect(cameraController, isNot(contains('Receipt guidance warnings')));
       expect(
@@ -395,11 +391,6 @@ void main() {
       );
       expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
       expect(cameraController, contains('Review style'));
-      expect(cameraController, contains('Receipt details style: prices only'));
-      expect(
-        cameraController,
-        contains('Receipt details style: detailed lines'),
-      );
       expect(cameraController, contains('func setReceiptReviewStyle('));
       expect(cameraController, contains('safeReceiptReviewDepth'));
       expect(cameraController, contains('reviewDepth = value'));
@@ -417,11 +408,11 @@ void main() {
         contains(': receiptCameraText("Price-only receipt lines"'),
       );
       expect(cameraController, contains('Saved proof size'));
-      expect(cameraController, contains('Save-space proof: local original'));
-      expect(cameraController, contains('Save-space proof: high quality'));
-      expect(cameraController, contains('Save-space proof: normal proof'));
-      expect(cameraController, contains('Save-space proof: low storage'));
-      expect(cameraController, contains('Save-space proof: tiny proof'));
+      expect(cameraController, contains('"Local original"'));
+      expect(cameraController, contains('"High quality"'));
+      expect(cameraController, contains('"Normal proof"'));
+      expect(cameraController, contains('"Low storage"'));
+      expect(cameraController, contains('"Tiny proof"'));
       expect(
         cameraController,
         contains(
@@ -435,7 +426,7 @@ void main() {
         contains('Maintainiac reads the temporary full-quality photo first.'),
       );
       expect(cameraController, contains('Receipt camera settings'));
-      expect(cameraController, contains('showReceiptCameraSettings'));
+      expect(cameraController, contains('openReceiptCameraSettingsFullScreen'));
       expect(cameraController, isNot(contains('showSettingsPlaceholder')));
       expect(cameraController, contains('capturedPhotoPaths'));
       expect(cameraController, contains('settingsStatusStrip'));
@@ -455,7 +446,7 @@ void main() {
         cameraController,
         contains('Maintainiac reads the temporary full-quality photo first'),
       );
-      expect(cameraController, contains('Close settings'));
+      expect(cameraController, contains('receiptCameraText("Done", "Listo")'));
       expect(cameraController, contains('proof and cloud backup'));
       expect(
         cameraController,

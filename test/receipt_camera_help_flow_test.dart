@@ -123,7 +123,10 @@ void main() {
       contains('_ReceiptFirstUseCameraAction.useReceiptAssist'),
     );
     expect(helpSheet, contains('_ReceiptFirstUseCameraAction.manualEntry'));
-    expect(attachmentPublishHelpers, contains('openReceiptCaptureSettings()'));
+    expect(
+      attachmentPublishHelpers,
+      contains('Future<bool> openReceiptCaptureSettings({'),
+    );
     expect(settingsSheet, contains('Expense Receipt Settings'));
     expect(settingsSheet, contains('Use Receipt Assist For Expenses'));
     expect(settingsSheet, contains("title: 'Capture Flow'"));
@@ -141,9 +144,11 @@ void main() {
     expect(settingsSheet, contains('if (!hasSavedReceiptProof) ...['));
     expect(
       settingsSheet,
-      contains(
-        'Saved Receipt Proof Size appears after your first receipt photo or file is attached.',
-      ),
+      contains('_ReceiptDataSaverDefaultPicker(settings: settings)'),
+    );
+    expect(
+      settingsSheet,
+      contains('Your next receipt review shows the actual saved-proof size'),
     );
     expect(
       settingsSheet,
@@ -234,7 +239,7 @@ void main() {
     expect(reviewPreviewActionTray, contains('Use this receipt'));
     expect(
       reviewPreviewActionTray,
-      contains('Save & Continue will use one combined receipt image.'),
+      contains('Continue will use one combined receipt image.'),
     );
     expect(sectionLabels, contains(r'Section ${index + 1} of $total'));
     expect(reviewPreviewControls, contains("label: 'Reorder Photos'"));
@@ -258,7 +263,8 @@ void main() {
     );
     expect(reviewActions, contains('final navigator = Navigator.of(context);'));
     expect(reviewActions, contains('ReceiptPhotoReviewResult.keptForLater'));
-    expect(reviewActions, contains('navigator.pop(keptForLaterResult);'));
+    expect(reviewActions, contains('ReceiptPhotoReviewResult.discardedByUser'));
+    expect(reviewActions, contains('navigator.pop(reviewResult);'));
     expect(
       reviewActions,
       isNot(contains('Future<void> _cleanupAbandonedReceiptReview()')),

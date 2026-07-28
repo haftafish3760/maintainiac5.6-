@@ -46,6 +46,18 @@ void main() {
       expect(_value(snapshot.businessMetrics, 'Payments this week'), r'$0.00');
       expect(_value(snapshot.businessMetrics, 'Expenses this week'), r'$0.00');
       expect(_value(snapshot.businessMetrics, 'Miles today'), '14');
+      expect(
+        _metric(snapshot.scaleMetrics, 'Open jobs').target,
+        ContractorMetricTarget.openJobs,
+      );
+      expect(
+        _metric(snapshot.businessMetrics, 'Payments this week').target,
+        ContractorMetricTarget.paymentsThisWeek,
+      );
+      expect(
+        _metric(snapshot.businessMetrics, 'Expenses this week').target,
+        ContractorMetricTarget.expensesThisWeek,
+      );
       expect(snapshot.jobsToday, hasLength(1));
       expect(snapshot.jobsToday.single.title, 'Service call');
       expect(snapshot.jobsToday.single.time, '1:30 PM');
@@ -56,5 +68,8 @@ void main() {
 }
 
 String _value(List<ContractorMetric> metrics, String label) {
-  return metrics.singleWhere((metric) => metric.label == label).value;
+  return _metric(metrics, label).value;
 }
+
+ContractorMetric _metric(List<ContractorMetric> metrics, String label) =>
+    metrics.singleWhere((metric) => metric.label == label);

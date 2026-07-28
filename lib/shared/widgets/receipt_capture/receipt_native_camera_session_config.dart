@@ -42,6 +42,7 @@ class ReceiptNativeCameraSessionConfig {
     required this.whiteBalanceLockEnabled,
     required this.minZoom,
     required this.maxZoom,
+    required this.initialZoomRatio,
     required this.minExposureOffset,
     required this.maxExposureOffset,
     required this.maxLiveAnalysisPixels,
@@ -109,6 +110,7 @@ class ReceiptNativeCameraSessionConfig {
   final bool whiteBalanceLockEnabled;
   final double minZoom;
   final double maxZoom;
+  final double initialZoomRatio;
   final double minExposureOffset;
   final double maxExposureOffset;
   final int maxLiveAnalysisPixels;

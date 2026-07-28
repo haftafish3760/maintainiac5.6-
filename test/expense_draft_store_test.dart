@@ -44,6 +44,10 @@ void main() {
       receiptDate: DateTime(2026, 6, 11),
       updatedAt: DateTime(2026, 6, 11, 12),
       merchantName: 'Lowes',
+      receiptReviewMode: 'basicReceipt',
+      receiptReviewModeChangedByUser: true,
+      receiptCategory: 'Materials',
+      receiptCategoryAppliesToAll: true,
       enteredSubtotal: 42,
       enteredTax: 2.94,
       enteredTotal: 44.94,
@@ -69,6 +73,10 @@ void main() {
     expect(loaded.receiptTax, 2.94);
     expect(loaded.total, 44.94);
     expect(loaded.rawOcrText, 'LOWES MATERIALS 42.00');
+    expect(loaded.receiptReviewMode, 'basicReceipt');
+    expect(loaded.receiptReviewModeChangedByUser, isTrue);
+    expect(loaded.receiptCategory, 'Materials');
+    expect(loaded.receiptCategoryAppliesToAll, isTrue);
     expect(drafts.drafts.map((item) => item.id), ['draft-1']);
   });
 
@@ -439,6 +447,23 @@ void main() {
       expect(drafts.draftById('empty'), isNotNull);
     },
   );
+
+  test('new receipt form does not create a draft before meaningful input', () {
+    final source = File(
+      'lib/screens/expenses/entry/expense_receipt_entry_draft_actions.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('_hasDraftContentWorthRecovering'));
+    expect(
+      source,
+      contains('if (!_isEditingReceipt && !_hasDraftContentWorthRecovering)'),
+    );
+    expect(
+      source,
+      contains('if (_hasReceipt || _receiptAttachments.isNotEmpty)'),
+    );
+    expect(source, contains('if (_lines.isNotEmpty ||'));
+  });
 
   test(
     'receipt proof promotion checkpoints the draft before ledger save',

@@ -46,6 +46,8 @@ class PreDayStartContent extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           FastRecordGrid(onStartTrip: onStartDay),
+          const SizedBox(height: 12),
+          const WeeklyDetailLinks(),
         ],
       ),
     );

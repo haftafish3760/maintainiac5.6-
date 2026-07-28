@@ -1,8 +1,6 @@
 package com.maintainiac
 
-import android.view.MotionEvent
 import android.view.ScaleGestureDetector
-import android.view.View
 import kotlin.math.roundToInt
 
 
@@ -13,6 +11,7 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
             override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
                 if (!pinchZoomEnabled) return false
                 zoomGestureStartCount += 1
+                pinchZoomGestureStartRatio = camera?.cameraInfo?.zoomState?.value?.zoomRatio ?: 1f
                 lastZoomStatus = if (camera == null) {
                     zoomUnavailableCount += 1
                     "camera_unavailable"
@@ -47,7 +46,7 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
                     return false
                 }
                 val nextZoom = (
-                    zoomState.zoomRatio * detector.scaleFactor
+                    pinchZoomGestureStartRatio * detector.scaleFactor
                 ).coerceIn(minZoom, maxZoom)
                 if (!nextZoom.isFinite()) {
                     zoomUnavailableCount += 1
@@ -59,7 +58,24 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
                     zoomUnavailableCount += 1
                     return false
                 }
-                activeCamera.cameraControl.setZoomRatio(nextZoom)
+                // ScaleGestureDetector reports the scale change since its
+                // previous callback, not from the beginning of the gesture.
+                // Advance our gesture baseline after every accepted update so
+                // a real pinch can continue beyond a tiny movement at 1x.
+                pinchZoomGestureStartRatio = nextZoom
+                val zoomRequestId = ++zoomApplyRequestSequence
+                zoomApplyInFlight = true
+                val zoomFuture = activeCamera.cameraControl.setZoomRatio(nextZoom)
+                zoomFuture.addListener(
+                    {
+                        val applied = runCatching {
+                            zoomFuture.get()
+                            true
+                        }.getOrDefault(false)
+                        completeZoomApplication(zoomRequestId, applied)
+                    },
+                    mainExecutor(),
+                )
                 zoomChangeCount += 1
                 lastZoomRatio = roundedDiagnostic(nextZoom.toDouble())
                 lastZoomStatus = "zoom_changed"
@@ -68,49 +84,23 @@ internal fun ReceiptCameraActivity.configureTouchControls() {
             }
         },
     )
-    val previewTouchListener = View.OnTouchListener { view, event ->
-        if (!pinchZoomEnabled) {
-            return@OnTouchListener false
-        }
-        // ScaleGestureDetector must see the initial DOWN event before the
-        // second pointer arrives; forwarding only multi-touch events leaves
-        // pinch zoom unable to initialize on real devices.
-        scaleGestureDetector?.onTouchEvent(event)
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                // Own the stream from DOWN so Android continues delivering the
-                // second pointer to ScaleGestureDetector on real devices.
-                return@OnTouchListener true
-            }
-            MotionEvent.ACTION_POINTER_DOWN -> {
-                view.parent?.requestDisallowInterceptTouchEvent(true)
-                return@OnTouchListener true
-            }
-            MotionEvent.ACTION_POINTER_UP -> {
-                view.parent?.requestDisallowInterceptTouchEvent(false)
-                restoreWorkflowGuidanceIfNeeded()
-                return@OnTouchListener true
-            }
-            MotionEvent.ACTION_MOVE -> {
-                return@OnTouchListener true
-            }
-            MotionEvent.ACTION_UP -> {
-                view.parent?.requestDisallowInterceptTouchEvent(false)
-                restoreWorkflowGuidanceIfNeeded()
-                return@OnTouchListener true
-            }
-            MotionEvent.ACTION_CANCEL -> {
-                view.parent?.requestDisallowInterceptTouchEvent(false)
-                restoreWorkflowGuidanceIfNeeded()
-                return@OnTouchListener true
-            }
-            else -> return@OnTouchListener false
-        }
+}
+
+internal fun ReceiptCameraActivity.completeZoomApplication(
+    requestId: Long,
+    applied: Boolean,
+) {
+    if (requestId != zoomApplyRequestSequence) return
+    zoomApplyInFlight = false
+    val queuedTrigger = pendingCaptureAfterZoomTrigger ?: return
+    pendingCaptureAfterZoomTrigger = null
+    if (!applied) {
+        zoomUnavailableCount += 1
+        lastZoomStatus = "zoom_apply_failed"
+        guidance.text = "Zoom did not apply. Pinch again, then capture."
+        return
     }
-    previewView.setOnTouchListener(previewTouchListener)
-    if (hasInitializedReceiptCameraField { receiptFrameGuide }) {
-        receiptFrameGuide.setOnTouchListener(previewTouchListener)
-    }
+    capturePhoto(trigger = queuedTrigger, recordUserIntent = false)
 }
 
 internal fun ReceiptCameraActivity.maybeAutoCapture(

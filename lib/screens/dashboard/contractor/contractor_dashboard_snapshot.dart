@@ -67,6 +67,7 @@ class ContractorDashboardSnapshot {
           label: 'Open jobs',
           value: activeJobs.length.toString(),
           color: const Color(0xFF55D68A),
+          target: ContractorMetricTarget.openJobs,
         ),
         ContractorMetric(
           label: 'Vehicles',
@@ -84,6 +85,7 @@ class ContractorDashboardSnapshot {
           label: 'Jobs today',
           value: jobsToday.length.toString(),
           color: const Color(0xFF7CC7FF),
+          target: ContractorMetricTarget.jobsToday,
         ),
         ContractorMetric(
           label: 'Receipts to review',
@@ -91,6 +93,7 @@ class ContractorDashboardSnapshot {
           color: receiptReviewCount == 0
               ? const Color(0xFF55D68A)
               : const Color(0xFFFFD166),
+          target: ContractorMetricTarget.receiptsToReview,
         ),
         ContractorMetric(
           label: 'Unpaid invoices',
@@ -98,6 +101,7 @@ class ContractorDashboardSnapshot {
           color: unpaidRecords.isEmpty
               ? const Color(0xFF55D68A)
               : const Color(0xFFFF8552),
+          target: ContractorMetricTarget.unpaidInvoices,
         ),
       ],
       businessMetrics: [
@@ -105,16 +109,19 @@ class ContractorDashboardSnapshot {
           label: 'Open jobs',
           value: activeJobs.length.toString(),
           color: const Color(0xFF4DA3FF),
+          target: ContractorMetricTarget.openJobs,
         ),
         ContractorMetric(
           label: 'Payments this week',
           value: _money(paymentsCents),
           color: const Color(0xFF55D68A),
+          target: ContractorMetricTarget.paymentsThisWeek,
         ),
         ContractorMetric(
           label: 'Expenses this week',
           value: _money(expenseCents),
           color: const Color(0xFFFF5C5C),
+          target: ContractorMetricTarget.expensesThisWeek,
         ),
         ContractorMetric(
           label: 'Miles today',

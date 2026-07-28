@@ -1,3 +1,5 @@
+import 'dart:isolate';
+
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../work_supplies/data/work_supply_catalog.dart';
@@ -6,6 +8,7 @@ import '../../work_supplies/data/work_supply_receipt_parser.dart';
 import '../../../shared/receipts/receipt_ocr_contract.dart';
 import '../../../shared/receipts/receipt_line_models.dart';
 import '../../../shared/widgets/receipt_capture/receipt_assistance_policy.dart';
+import '../../../shared/widgets/receipt_capture/receipt_pipeline_trace.dart';
 import 'expense_ledger_models.dart';
 import 'expense_receipt_parser.dart';
 
@@ -17,13 +20,22 @@ Future<ExpenseReceiptParseResult> parseExpenseReceiptTextWithLocalMemory(
   ReceiptParserDepth parserDepth = ReceiptParserDepth.inventoryMatching,
   int maxCatalogCandidates = 80,
 }) async {
+  if (parserDepth != ReceiptParserDepth.inventoryMatching) {
+    return Isolate.run(
+      () => parseExpenseReceiptText(
+        sourceText,
+        fallbackDate: fallbackDate,
+        parserDepth: parserDepth,
+        maxCatalogCandidates: maxCatalogCandidates,
+      ),
+    );
+  }
   final firstPass = parseExpenseReceiptText(
     sourceText,
     fallbackDate: fallbackDate,
     parserDepth: parserDepth,
     maxCatalogCandidates: maxCatalogCandidates,
   );
-  if (parserDepth != ReceiptParserDepth.inventoryMatching) return firstPass;
   final merchantName = firstPass.merchantName?.trim();
   if (merchantName == null || merchantName.isEmpty) return firstPass;
   try {
@@ -54,6 +66,17 @@ Future<ExpenseReceiptParseResult> parseExpenseReceiptOcrResultWithLocalMemory(
       maxCatalogCandidates ??
       capability?.cloudAssistPlan.localCatalogMatchLimit ??
       80;
+  if (effectiveDepth != ReceiptParserDepth.inventoryMatching) {
+    return Isolate.run(
+      () => parseExpenseReceiptOcrResult(
+        ocr,
+        fallbackDate: fallbackDate,
+        capability: capability,
+        parserDepth: effectiveDepth,
+        maxCatalogCandidates: effectiveMaxCatalogCandidates,
+      ),
+    );
+  }
   final firstPass = parseExpenseReceiptOcrResult(
     ocr,
     fallbackDate: fallbackDate,
@@ -61,9 +84,6 @@ Future<ExpenseReceiptParseResult> parseExpenseReceiptOcrResultWithLocalMemory(
     parserDepth: effectiveDepth,
     maxCatalogCandidates: effectiveMaxCatalogCandidates,
   );
-  if (effectiveDepth != ReceiptParserDepth.inventoryMatching) {
-    return firstPass;
-  }
   final merchantName = firstPass.merchantName?.trim();
   if (merchantName == null || merchantName.isEmpty) return firstPass;
   try {
@@ -80,6 +100,64 @@ Future<ExpenseReceiptParseResult> parseExpenseReceiptOcrResultWithLocalMemory(
   } catch (_) {
     return firstPass;
   }
+}
+
+Future<ReceiptOcrDiagnostics> prepareReceiptOcrDiagnosticsInWorker(
+  ReceiptOcrResult ocr,
+) {
+  return Isolate.run(() => ocr.diagnostics);
+}
+
+class PreparedExpenseReceiptOcrReview {
+  const PreparedExpenseReceiptOcrReview({
+    required this.parsed,
+    this.ocrDiagnostics,
+    required this.ocrWarnings,
+  });
+
+  final ExpenseReceiptParseResult parsed;
+  final ReceiptOcrDiagnostics? ocrDiagnostics;
+  final List<ReceiptOcrWarning> ocrWarnings;
+}
+
+Future<PreparedExpenseReceiptOcrReview>
+prepareGenericExpenseReceiptOcrReviewInWorker(
+  ReceiptOcrResult ocr, {
+  DateTime? fallbackDate,
+  ReceiptDeviceCapability? capability,
+  String? traceId,
+}) {
+  final effectiveTraceId = traceId ?? newReceiptPipelineTraceId();
+  // Do not copy the full coordinate-rich OCR graph into a worker isolate.
+  // On a real phone that serialization can keep the receipt screen in a busy
+  // state long after text extraction has completed. Generic Expenses needs a
+  // faithful editable text reconstruction first; detailed layout diagnostics
+  // remain optional review evidence and must never block the form.
+  final textForGenericReview = ocr.appFillText;
+  final warnings = ocr.structuredWarnings;
+  return Isolate.run(() {
+    final stopwatch = Stopwatch()..start();
+    traceReceiptPipelineStage(
+      'review_worker_started',
+      traceId: effectiveTraceId,
+      deviceTier: capability?.tier.name,
+    );
+    final parsed = parseExpenseReceiptText(
+      textForGenericReview,
+      fallbackDate: fallbackDate,
+      parserDepth: ReceiptParserDepth.lineItems,
+      maxCatalogCandidates: 0,
+    );
+    traceReceiptPipelineStage(
+      'review_worker_parse_ready',
+      traceId: effectiveTraceId,
+      elapsedMs: stopwatch.elapsedMilliseconds,
+    );
+    return PreparedExpenseReceiptOcrReview(
+      parsed: parsed,
+      ocrWarnings: warnings,
+    );
+  });
 }
 
 class ExpenseReceiptItemMemoryStore {

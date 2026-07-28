@@ -14,7 +14,10 @@ class MaintainiacJobRecord {
     this.number = '',
     this.customerId = '',
     this.customerReference = '',
+    this.customerPhone = '',
+    this.customerEmail = '',
     this.address = '',
+    this.notes = '',
     this.workProfileId = '',
     this.vehicleIds = const [],
     this.assignedMemberIds = const [],
@@ -22,6 +25,11 @@ class MaintainiacJobRecord {
     this.invoiceId = '',
     this.scheduledStart,
     this.scheduledEnd,
+    this.repeatRule = 'none',
+    this.inAppReminder = false,
+    this.pushReminder = false,
+    this.soundReminder = false,
+    this.reminderLeadMinutes = 60,
     this.archived = false,
   });
 
@@ -37,7 +45,10 @@ class MaintainiacJobRecord {
       name: _jobString(map['name']),
       customerId: _jobString(map['customerId']),
       customerReference: _jobString(map['customerReference']),
+      customerPhone: _jobString(map['customerPhone']),
+      customerEmail: _jobString(map['customerEmail']),
       address: _jobString(map['address']),
+      notes: _jobString(map['notes']),
       workProfileId: _jobString(map['workProfileId']),
       vehicleIds: vehicleIds.isEmpty && legacyVehicleId.isNotEmpty
           ? [legacyVehicleId]
@@ -47,6 +58,13 @@ class MaintainiacJobRecord {
       invoiceId: _jobString(map['invoiceId']),
       scheduledStart: _jobDate(map['scheduledStart']),
       scheduledEnd: _jobDate(map['scheduledEnd']),
+      repeatRule: _jobString(map['repeatRule']).isEmpty
+          ? 'none'
+          : _jobString(map['repeatRule']),
+      inAppReminder: map['inAppReminder'] == true,
+      pushReminder: map['pushReminder'] == true,
+      soundReminder: map['soundReminder'] == true,
+      reminderLeadMinutes: _jobInt(map['reminderLeadMinutes'], fallback: 60),
       archived: map['archived'] == true,
       createdAt:
           _jobDate(map['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
@@ -60,7 +78,10 @@ class MaintainiacJobRecord {
   final String name;
   final String customerId;
   final String customerReference;
+  final String customerPhone;
+  final String customerEmail;
   final String address;
+  final String notes;
   final String workProfileId;
   final List<String> vehicleIds;
   final List<String> assignedMemberIds;
@@ -68,6 +89,11 @@ class MaintainiacJobRecord {
   final String invoiceId;
   final DateTime? scheduledStart;
   final DateTime? scheduledEnd;
+  final String repeatRule;
+  final bool inAppReminder;
+  final bool pushReminder;
+  final bool soundReminder;
+  final int reminderLeadMinutes;
   final bool archived;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -78,7 +104,10 @@ class MaintainiacJobRecord {
     'name': name,
     'customerId': customerId,
     'customerReference': customerReference,
+    'customerPhone': customerPhone,
+    'customerEmail': customerEmail,
     'address': address,
+    'notes': notes,
     'workProfileId': workProfileId,
     'vehicleIds': vehicleIds,
     'assignedMemberIds': assignedMemberIds,
@@ -86,6 +115,11 @@ class MaintainiacJobRecord {
     'invoiceId': invoiceId,
     'scheduledStart': scheduledStart?.toIso8601String(),
     'scheduledEnd': scheduledEnd?.toIso8601String(),
+    'repeatRule': repeatRule,
+    'inAppReminder': inAppReminder,
+    'pushReminder': pushReminder,
+    'soundReminder': soundReminder,
+    'reminderLeadMinutes': reminderLeadMinutes,
     'archived': archived,
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
@@ -97,7 +131,10 @@ class MaintainiacJobRecord {
     String? name,
     String? customerId,
     String? customerReference,
+    String? customerPhone,
+    String? customerEmail,
     String? address,
+    String? notes,
     String? workProfileId,
     List<String>? vehicleIds,
     List<String>? assignedMemberIds,
@@ -105,6 +142,11 @@ class MaintainiacJobRecord {
     String? invoiceId,
     DateTime? scheduledStart,
     DateTime? scheduledEnd,
+    String? repeatRule,
+    bool? inAppReminder,
+    bool? pushReminder,
+    bool? soundReminder,
+    int? reminderLeadMinutes,
     bool? archived,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -115,7 +157,10 @@ class MaintainiacJobRecord {
       name: name ?? this.name,
       customerId: customerId ?? this.customerId,
       customerReference: customerReference ?? this.customerReference,
+      customerPhone: customerPhone ?? this.customerPhone,
+      customerEmail: customerEmail ?? this.customerEmail,
       address: address ?? this.address,
+      notes: notes ?? this.notes,
       workProfileId: workProfileId ?? this.workProfileId,
       vehicleIds: vehicleIds ?? this.vehicleIds,
       assignedMemberIds: assignedMemberIds ?? this.assignedMemberIds,
@@ -123,6 +168,11 @@ class MaintainiacJobRecord {
       invoiceId: invoiceId ?? this.invoiceId,
       scheduledStart: scheduledStart ?? this.scheduledStart,
       scheduledEnd: scheduledEnd ?? this.scheduledEnd,
+      repeatRule: repeatRule ?? this.repeatRule,
+      inAppReminder: inAppReminder ?? this.inAppReminder,
+      pushReminder: pushReminder ?? this.pushReminder,
+      soundReminder: soundReminder ?? this.soundReminder,
+      reminderLeadMinutes: reminderLeadMinutes ?? this.reminderLeadMinutes,
       archived: archived ?? this.archived,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -221,7 +271,10 @@ class MaintainiacJobController extends ChangeNotifier {
         name: job.name.trim(),
         customerId: job.customerId.trim(),
         customerReference: job.customerReference.trim(),
+        customerPhone: job.customerPhone.trim(),
+        customerEmail: job.customerEmail.trim(),
         address: job.address.trim(),
+        notes: job.notes.trim(),
         workProfileId: job.workProfileId.trim(),
         vehicleIds: _normalizedIds(job.vehicleIds),
         assignedMemberIds: _normalizedIds(job.assignedMemberIds),
@@ -229,6 +282,11 @@ class MaintainiacJobController extends ChangeNotifier {
         invoiceId: job.invoiceId.trim(),
         scheduledStart: job.scheduledStart,
         scheduledEnd: job.scheduledEnd,
+        repeatRule: job.repeatRule.trim(),
+        inAppReminder: job.inAppReminder,
+        pushReminder: job.pushReminder,
+        soundReminder: job.soundReminder,
+        reminderLeadMinutes: job.reminderLeadMinutes,
         archived: job.archived,
         createdAt: existing?.createdAt ?? job.createdAt.toUtc(),
         updatedAt: now,
@@ -319,6 +377,11 @@ DateTime? _jobDate(dynamic value) {
   return DateTime.tryParse(_jobString(value));
 }
 
+int _jobInt(dynamic value, {required int fallback}) {
+  if (value is int) return value;
+  return int.tryParse(_jobString(value)) ?? fallback;
+}
+
 List<String> _jobStringList(dynamic value) {
   if (value is! Iterable) return const [];
   return _normalizedIds(value.map(_jobString));
@@ -358,6 +421,12 @@ void _validate(MaintainiacJobRecord job) {
   final start = job.scheduledStart;
   if (start != null && end != null && end.isBefore(start)) {
     throw ArgumentError('A job cannot end before it starts.');
+  }
+  if (job.soundReminder && !job.pushReminder) {
+    throw ArgumentError('A sound reminder requires a push reminder.');
+  }
+  if (job.reminderLeadMinutes < 0) {
+    throw ArgumentError('Reminder lead time cannot be negative.');
   }
 }
 

@@ -126,7 +126,7 @@ void main() {
     final ios = await readIosReceiptCameraBridgeSources();
     final cameraController = ios.cameraController;
 
-    expect(cameraController, contains('preview.videoGravity = .resizeAspect'));
+    expect(cameraController, contains('preview.videoGravity = .resizeAspectFill'));
     expect(cameraController, contains('previewLayer?.frame = view.bounds'));
     expect(
       cameraController,

@@ -11,6 +11,7 @@ class _ReceiptRecapPanel extends StatelessWidget {
     required this.receiptTotal,
     required this.businessTotal,
     required this.personalTotal,
+    required this.detailMode,
     required this.onEdit,
     required this.onSetUse,
     required this.onDelete,
@@ -25,6 +26,7 @@ class _ReceiptRecapPanel extends StatelessWidget {
   final double receiptTotal;
   final double businessTotal;
   final double personalTotal;
+  final _ReceiptDetailEntryMode detailMode;
   final ValueChanged<int> onEdit;
   final FutureOr<void> Function(int index, _ExpenseLineUse use) onSetUse;
   final ValueChanged<int> onDelete;
@@ -33,10 +35,10 @@ class _ReceiptRecapPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final showLineUseControls = _showLineUseControls(lines);
     return ReceiptFormPanel(
-      title: 'Receipt Recap',
+      title: 'Receipt Items',
       subtitle: showLineUseControls
-          ? 'Mixed receipt: classify each line. Tap a line to edit details.'
-          : 'Tap Mixed Receipt above if only some lines are for work.',
+          ? 'Review each numbered line. Change its category or business allocation at any time.'
+          : 'Review each numbered line. Tap any item to edit its description, quantity, category, or price.',
       icon: Icons.receipt_rounded,
       accentColor: const Color(0xFF34A9E8),
       children: [
@@ -60,6 +62,8 @@ class _ReceiptRecapPanel extends StatelessWidget {
             businessTotal: businessTotal,
             personalTotal: personalTotal,
             showLineUseControls: showLineUseControls,
+            showItemDetails:
+                detailMode == _ReceiptDetailEntryMode.detailedItems,
             onEdit: onEdit,
             onSetUse: onSetUse,
             onDelete: onDelete,
@@ -69,13 +73,9 @@ class _ReceiptRecapPanel extends StatelessWidget {
   }
 
   static bool _showLineUseControls(List<_ExpenseReceiptLine> lines) {
-    final hasBusiness = lines.any(
-      (line) => line.use == _ExpenseLineUse.business,
-    );
-    final hasPersonal = lines.any(
-      (line) => line.use == _ExpenseLineUse.personal,
-    );
-    final hasSplit = lines.any((line) => line.use == _ExpenseLineUse.split);
-    return hasSplit || (hasBusiness && hasPersonal);
+    // Every detailed line remains independently classifiable. Hiding these
+    // controls on an all-business or all-personal receipt would force the user
+    // to reclassify the entire receipt just to correct one item.
+    return lines.isNotEmpty;
   }
 }

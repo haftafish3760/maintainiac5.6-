@@ -300,6 +300,7 @@ class DeviceCapabilityBridge(private val activity: Activity) {
             "levelPercent" to (percent ?: -1),
             "isCharging" to (status == BatteryManager.BATTERY_STATUS_CHARGING ||
                 status == BatteryManager.BATTERY_STATUS_FULL),
+            "isExternalPowerConnected" to (plugged != 0),
             "powerSource" to powerSource(plugged),
             "health" to batteryHealth(intent?.getIntExtra(BatteryManager.EXTRA_HEALTH, -1)),
             "temperatureCelsius" to ((intent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)
@@ -307,6 +308,7 @@ class DeviceCapabilityBridge(private val activity: Activity) {
             "remainingChargeMah" to (remainingMah ?: -1),
             "estimatedFullCapacityMah" to (estimatedFull ?: -1),
             "capacityEstimateReliable" to false,
+            "technology" to (intent?.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY) ?: ""),
         )
     }
 

@@ -254,7 +254,8 @@ final class DeviceCapabilityBridge {
     return [
       "levelPercent": level >= 0 ? Int((level * 100).rounded()) : -1,
       "isCharging": charging,
-      "powerSource": charging ? "ac" : "battery",
+      "isExternalPowerConnected": charging,
+      "powerSource": charging ? "external" : "battery",
       "health": "unknown",
       "capacityEstimateReliable": false
     ]

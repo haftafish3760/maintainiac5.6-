@@ -27,325 +27,373 @@ class _ReceiptReadHandoffPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final proofLabel = savedProofCount <= 0
-        ? 'Receipt photo saved'
-        : savedProofCount == 1
-        ? '1 saved proof photo'
-        : '$savedProofCount saved proof photos';
-    final sourceLabel = ocrSourceCount <= 0
-        ? 'checking readable source'
-        : ocrSourceCount == 1
-        ? '1 clear original photo'
-        : '$ocrSourceCount clear original photos';
-    final stage = stageLabel.trim().isEmpty
-        ? processingInFlight
-              ? 'Preparing receipt details'
-              : 'Receipt details ready'
-        : stageLabel.trim();
-    final extractingText =
-        processingInFlight &&
-        (stage.toLowerCase().contains('read') ||
-            stage.toLowerCase().contains('extract'));
-    final decision = decisionLabel.trim();
-    final action = actionLabel.trim();
-    final routeResult = routeResultLabel.trim();
-    final coverageWarning = coverageWarningLabel.trim();
-    final reviewReady =
-        !processingInFlight &&
-        (stage.toLowerCase().contains('review ready') ||
-            decision.toLowerCase().contains('open receipt details') ||
-            routeResult.toLowerCase().contains('review opened'));
-    final manualReviewOnly =
-        !processingInFlight &&
-        (decision.toLowerCase().contains('open manual receipt details') ||
-            stage.toLowerCase().contains('manual entry') ||
-            routeResult.toLowerCase().contains('manual receipt line review') ||
-            routeResult.toLowerCase().contains('no readable text'));
-    const progressLabels = [
-      'Photo accepted',
-      'Image quality checked',
-      'Receipt text extracted',
-      'Receipt form filled',
-      'Review and confirm',
-    ];
-    final progressStep = _receiptProgressStep(
+    final presentation = _ReceiptHandoffPresentation.from(
       processingInFlight: processingInFlight,
-      extractingText: extractingText,
-      reviewReady: reviewReady,
-      stageLabel: stage,
+      decisionLabel: decisionLabel,
+      actionLabel: actionLabel,
+      stageLabel: stageLabel,
+      routeResultLabel: routeResultLabel,
+      coverageWarningLabel: coverageWarningLabel,
     );
-    final needsBottomSection =
-        decision.toLowerCase().contains('add bottom receipt section') ||
-        stage.toLowerCase().contains('need bottom section') ||
-        routeResult.toLowerCase().contains('bottom receipt section') ||
-        coverageWarning.toLowerCase().contains('bottom receipt section');
-    final photoRecoveryLabel = needsBottomSection
-        ? 'Add Bottom Section'
-        : 'Retake / Add Photo';
-    final photoRecoveryIcon = needsBottomSection
-        ? Icons.vertical_align_bottom_rounded
-        : Icons.add_photo_alternate_rounded;
-    return ReceiptFormPanel(
-      title: processingInFlight
-          ? 'Getting Receipt Ready'
-          : reviewReady
-          ? 'Receipt Details Ready'
-          : 'Receipt Details Need Review',
-      subtitle: processingInFlight
-          ? 'Your receipt proof is saved. Maintainiac is extracting text and filling receipt details now. Keep this screen open.'
-          : reviewReady
-          ? 'Your receipt photo is saved. Maintainiac used the clearest original photo before creating the smaller proof copy; review what it filled in below before saving.'
-          : 'Your receipt proof is saved. Maintainiac already prepared receipt details, but this receipt still needs review before saving.',
-      icon: processingInFlight
-          ? Icons.hourglass_top_rounded
-          : reviewReady
-          ? Icons.fact_check_rounded
-          : Icons.document_scanner_rounded,
-      accentColor: processingInFlight
-          ? const Color(0xFFFFD166)
-          : reviewReady
-          ? const Color(0xFF8EF6A4)
-          : const Color(0xFFFFD166),
-      children: [
-        if (processingInFlight) ...[
-          Row(
-            children: [
-              const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.2,
-                  color: Color(0xFFFFD166),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text(
-                  'Reading the receipt',
-                  style: TextStyle(
-                    color: Color(0xFFC8D0D3),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    height: 1.22,
-                    letterSpacing: 0,
-                  ),
-                ),
-              ),
-            ],
+    return Semantics(
+      liveRegion: processingInFlight,
+      label: '${presentation.title}. ${presentation.status}',
+      child: ReceiptFormPanel(
+        title: presentation.title,
+        subtitle: presentation.subtitle,
+        icon: presentation.icon,
+        accentColor: presentation.accent,
+        children: [
+          _ReceiptHandoffStatus(
+            processingInFlight: processingInFlight,
+            status: presentation.status,
+            supportingText: presentation.supportingText,
+            currentStep: presentation.currentStep,
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Step $progressStep of ${progressLabels.length}: ${progressLabels[progressStep - 1]}',
-            style: const TextStyle(
-              color: Color(0xFFFFD166),
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
+          if (!processingInFlight) ...[
+            const SizedBox(height: 10),
+            Text(
+              _sourceSummary,
+              style: const TextStyle(
+                color: Color(0xFFC8D0D3),
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                height: 1.3,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          for (var index = 0; index < progressLabels.length; index++) ...[
-            _ReceiptReadProgressStep(
-              number: index + 1,
-              label: progressLabels[index],
-              active: index + 1 == progressStep,
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: onReviewDetails,
+                  icon: const Icon(Icons.fact_check_rounded),
+                  label: Text(presentation.primaryActionLabel),
+                  style: _primaryButtonStyle(presentation.accent),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onAddOrRetakePhoto,
+                  icon: Icon(presentation.photoActionIcon),
+                  label: Text(presentation.photoActionLabel),
+                  style: _photoButtonStyle,
+                ),
+              ],
             ),
-            if (index < progressLabels.length - 1) const SizedBox(height: 5),
           ],
-        ] else ...[
-          Row(
-            children: [
-              Expanded(
-                child: _ReceiptReviewStepMetric(
-                  label: 'Saved Proof',
-                  value: proofLabel,
-                  color: const Color(0xFF8EF6A4),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _ReceiptReviewStepMetric(
-                  label: 'Clear Original Photo',
-                  value: sourceLabel,
-                  color: const Color(0xFF34A9E8),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _ReceiptReviewInstructionChip(
-            icon: Icons.sync_rounded,
-            label: stage,
-            color: const Color(0xFF8EF6A4),
-          ),
         ],
-        if (decision.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _ReceiptReviewInstructionChip(
-            icon: Icons.route_rounded,
-            label: decision,
-            color: const Color(0xFFFFD166),
-          ),
-        ],
-        if (action.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _ReceiptReviewInstructionChip(
-            icon: Icons.fact_check_rounded,
-            label: action,
-            color: const Color(0xFF34A9E8),
-          ),
-        ],
-        if (routeResult.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _ReceiptReviewInstructionChip(
-            icon: Icons.alt_route_rounded,
-            label: routeResult,
-            color: const Color(0xFF8EF6A4),
-          ),
-        ],
-        if (coverageWarning.isNotEmpty) ...[
-          const SizedBox(height: 8),
-          _ReceiptReviewInstructionChip(
-            icon: Icons.add_photo_alternate_rounded,
-            label: coverageWarning,
-            color: const Color(0xFFFFD166),
-          ),
-        ],
-        const SizedBox(height: 8),
-        Text(
-          processingInFlight
-              ? 'This should usually finish in seconds on newer phones. If it cannot read the receipt, manual review stays available below.'
-              : reviewReady
-              ? 'Review the store, date, total, tax, item prices, and Business/Personal/Mixed choices below before saving.'
-              : 'Do not go back unless you want to keep checking the photo. '
-                    'The app uses the clearest original photo first; when receipt '
-                    'details are ready, check the store, date, total, tax, and '
-                    'item prices before saving.',
-          style: const TextStyle(
-            color: Color(0xFFC8D0D3),
-            fontSize: 11.5,
-            fontWeight: FontWeight.w800,
-            height: 1.22,
-            letterSpacing: 0,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
+      ),
+    );
+  }
+
+  String get _sourceSummary {
+    final proof = savedProofCount == 1
+        ? '1 receipt photo saved'
+        : '$savedProofCount receipt photos saved';
+    if (ocrSourceCount <= 0) return '$proof. Manual entry remains available.';
+    final source = ocrSourceCount == 1
+        ? '1 clear photo was read'
+        : '$ocrSourceCount clear photos were read';
+    return '$proof. $source.';
+  }
+
+  ButtonStyle _primaryButtonStyle(Color accent) {
+    return FilledButton.styleFrom(
+      backgroundColor: accent,
+      foregroundColor: const Color(0xFF101618),
+      minimumSize: const Size(180, 48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w900),
+    );
+  }
+
+  ButtonStyle get _photoButtonStyle {
+    return OutlinedButton.styleFrom(
+      foregroundColor: const Color(0xFFFFD166),
+      side: const BorderSide(color: Color(0xFFFFD166), width: 1.2),
+      minimumSize: const Size(180, 48),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+      textStyle: const TextStyle(fontWeight: FontWeight.w900),
+    );
+  }
+}
+
+class _ReceiptHandoffStatus extends StatelessWidget {
+  const _ReceiptHandoffStatus({
+    required this.processingInFlight,
+    required this.status,
+    required this.supportingText,
+    required this.currentStep,
+  });
+
+  final bool processingInFlight;
+  final String status;
+  final String supportingText;
+  final int currentStep;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF182124),
+        border: Border.all(color: const Color(0xFF43515A)),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
-              child: FilledButton.icon(
-                onPressed: processingInFlight ? null : onReviewDetails,
-                icon: processingInFlight
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF101618),
-                        ),
-                      )
-                    : const Icon(Icons.fact_check_rounded),
-                label: Text(
-                  processingInFlight
-                      ? 'Reading Receipt'
-                      : reviewReady
-                      ? 'Review Details'
-                      : manualReviewOnly
-                      ? 'Open Manual Review'
-                      : 'Show Filled Review',
-                ),
-                style: FilledButton.styleFrom(
-                  backgroundColor: processingInFlight
-                      ? const Color(0xFFFFD166)
-                      : reviewReady
-                      ? const Color(0xFF8EF6A4)
-                      : const Color(0xFFFFD166),
-                  foregroundColor: const Color(0xFF101618),
-                  minimumSize: const Size.fromHeight(44),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (processingInFlight)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.4,
+                        color: Color(0xFFFFD166),
+                      ),
+                    ),
+                  )
+                else
+                  const Icon(
+                    Icons.fact_check_rounded,
+                    size: 22,
+                    color: Color(0xFF8EF6A4),
                   ),
-                  textStyle: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    status,
+                    style: const TextStyle(
+                      color: Color(0xFFE8ECEE),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      height: 1.25,
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
-            const SizedBox(width: 8),
-            if (!processingInFlight)
-              OutlinedButton.icon(
-                onPressed: onAddOrRetakePhoto,
-                icon: Icon(photoRecoveryIcon),
-                label: Text(photoRecoveryLabel),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFFFD166),
-                  side: const BorderSide(color: Color(0xFFFFD166), width: 1.2),
-                  minimumSize: const Size(0, 44),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  textStyle: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0,
-                  ),
+            if (processingInFlight) ...[
+              const SizedBox(height: 10),
+              _ReceiptHandoffSteps(currentStep: currentStep),
+              const SizedBox(height: 10),
+              LinearProgressIndicator(
+                value: currentStep / 3,
+                minHeight: 4,
+                color: const Color(0xFFFFD166),
+                backgroundColor: const Color(0xFF43515A),
+              ),
+            ],
+            if (supportingText.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Text(
+                supportingText,
+                style: const TextStyle(
+                  color: Color(0xFFC8D0D3),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 1.3,
                 ),
               ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ReceiptHandoffSteps extends StatelessWidget {
+  const _ReceiptHandoffSteps({required this.currentStep});
+
+  final int currentStep;
+
+  static const _labels = [
+    'Reading receipt',
+    'Preparing details',
+    'Opening review',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Step $currentStep of ${_labels.length}',
+          style: const TextStyle(
+            color: Color(0xFFFFD166),
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 6),
+        for (var index = 0; index < _labels.length; index++)
+          _ReceiptHandoffStep(
+            label: _labels[index],
+            isCurrent: index + 1 == currentStep,
+            isComplete: index + 1 < currentStep,
+          ),
       ],
     );
   }
 }
 
-int _receiptProgressStep({
-  required bool processingInFlight,
-  required bool extractingText,
-  required bool reviewReady,
-  required String stageLabel,
-}) {
-  if (!processingInFlight || reviewReady) return 5;
-  final stage = stageLabel.toLowerCase();
-  if (stage.contains('accepted')) return 1;
-  if (stage.contains('quality')) return 2;
-  if (extractingText) return 3;
-  if (stage.contains('fill') || stage.contains('prepar')) return 4;
-  return 4;
-}
-
-class _ReceiptReadProgressStep extends StatelessWidget {
-  const _ReceiptReadProgressStep({
-    required this.number,
+class _ReceiptHandoffStep extends StatelessWidget {
+  const _ReceiptHandoffStep({
     required this.label,
-    required this.active,
+    required this.isCurrent,
+    required this.isComplete,
   });
 
-  final int number;
   final String label;
-  final bool active;
+  final bool isCurrent;
+  final bool isComplete;
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? const Color(0xFF8EF6A4) : const Color(0xFF68767A);
+    final color = isCurrent
+        ? const Color(0xFFFFD166)
+        : isComplete
+        ? const Color(0xFF8EF6A4)
+        : const Color(0xFF71808A);
+    // The user should be able to tell the active operation at a glance.
+    // Completed steps stay visible as evidence; future steps deliberately
+    // recede instead of looking like parallel, active work.
+    final opacity = isCurrent
+        ? 1.0
+        : isComplete
+        ? 0.68
+        : 0.42;
     return Opacity(
-      opacity: active ? 1 : 0.5,
-      child: Row(
-        children: [
-          Icon(
-            active ? Icons.radio_button_checked_rounded : Icons.circle_outlined,
-            color: color,
-            size: 16,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            '$number. $label',
-            style: TextStyle(
+      opacity: opacity,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 4),
+        child: Row(
+          children: [
+            Icon(
+              isComplete ? Icons.check_circle_rounded : Icons.circle_rounded,
               color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
+              size: 15,
             ),
-          ),
-        ],
+            const SizedBox(width: 7),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _ReceiptHandoffPresentation {
+  const _ReceiptHandoffPresentation({
+    required this.title,
+    required this.subtitle,
+    required this.status,
+    required this.supportingText,
+    required this.primaryActionLabel,
+    required this.photoActionLabel,
+    required this.photoActionIcon,
+    required this.icon,
+    required this.accent,
+    required this.currentStep,
+  });
+
+  factory _ReceiptHandoffPresentation.from({
+    required bool processingInFlight,
+    required String decisionLabel,
+    required String actionLabel,
+    required String stageLabel,
+    required String routeResultLabel,
+    required String coverageWarningLabel,
+  }) {
+    final decision = decisionLabel.trim();
+    final action = actionLabel.trim();
+    final stage = stageLabel.trim();
+    final route = routeResultLabel.trim();
+    final warning = coverageWarningLabel.trim();
+    if (processingInFlight) {
+      return _ReceiptHandoffPresentation(
+        title: 'Extracting Receipt Information',
+        subtitle:
+            'Maintainiac is reading the saved receipt photo and preparing editable fields.',
+        status: stage.isEmpty ? 'Reading receipt text' : stage,
+        supportingText:
+            'This should finish shortly. If the receipt cannot be read, the saved photo and manual receipt form remain available.',
+        primaryActionLabel: 'Review Receipt',
+        photoActionLabel: 'Retake / Add Photo',
+        photoActionIcon: Icons.add_photo_alternate_rounded,
+        icon: Icons.document_scanner_rounded,
+        accent: const Color(0xFFFFD166),
+        currentStep: _progressStepFor(stage),
+      );
+    }
+    final needsBottom = '$decision $stage $route $warning'
+        .toLowerCase()
+        .contains('bottom');
+    final manual = '$decision $stage $route'.toLowerCase().contains('manual');
+    final ready = !manual && !needsBottom;
+    return _ReceiptHandoffPresentation(
+      title: ready ? 'Receipt Ready To Review' : 'Receipt Needs Review',
+      subtitle: ready
+          ? 'Check every filled field against the saved receipt before saving.'
+          : 'The saved receipt is available while you correct or complete its details.',
+      status: stage.isNotEmpty
+          ? stage
+          : decision.isNotEmpty
+          ? decision
+          : ready
+          ? 'Editable receipt details are ready'
+          : 'Manual receipt review is ready',
+      supportingText: warning.isNotEmpty
+          ? warning
+          : action.isNotEmpty
+          ? action
+          : route,
+      primaryActionLabel: manual ? 'Open Receipt Form' : 'Review Receipt',
+      photoActionLabel: needsBottom
+          ? 'Add Bottom Section'
+          : 'Retake / Add Photo',
+      photoActionIcon: needsBottom
+          ? Icons.vertical_align_bottom_rounded
+          : Icons.add_photo_alternate_rounded,
+      icon: ready ? Icons.fact_check_rounded : Icons.edit_note_rounded,
+      accent: ready ? const Color(0xFF8EF6A4) : const Color(0xFFFFD166),
+      currentStep: 3,
+    );
+  }
+
+  final String title;
+  final String subtitle;
+  final String status;
+  final String supportingText;
+  final String primaryActionLabel;
+  final String photoActionLabel;
+  final IconData photoActionIcon;
+  final IconData icon;
+  final Color accent;
+  final int currentStep;
+
+  static int _progressStepFor(String stage) {
+    final normalized = stage.toLowerCase();
+    if (normalized.contains('preparing') || normalized.contains('filling')) {
+      return 2;
+    }
+    return 1;
   }
 }

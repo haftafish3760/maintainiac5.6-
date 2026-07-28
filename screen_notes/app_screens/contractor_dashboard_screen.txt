@@ -40,3 +40,30 @@ employees, vehicles, jobs, materials, invoices, expenses, and the contractor
 calendar. Avoid placeholder pulse boxes like cloud backup/local status; use
 useful operating metrics such as active vehicles, active employees, jobs today,
 records needing review, money in, money out, business miles, and open jobs.
+
+Source: visible user message, 2026-07-25 contractor dashboard audit
+
+- The contractor dashboard and Jobs screen are separate work lanes. This screen
+  must provide obvious direct access to the user's jobs without taking ownership
+  of the Jobs form implementation.
+- The contractor dashboard must operate as a practical daily command center,
+  with the information and actions a contractor needs to run the day presented
+  in a clear, correctly prioritized order.
+- Contractor-dashboard production source files must remain at or below 500
+  lines unless the user explicitly approves an exception first.
+- Split files must have human-readable, responsibility-based names. Numbered or
+  vague names such as file 1, file 2, or section 3 are not acceptable.
+
+Source: visible user message, 2026-07-25 actionable contractor metrics
+
+- The selected contractor dashboard replaces the gig-driver dashboard for that
+  user, so it must provide complete contractor navigation without relying on
+  controls from the hidden driver dashboard.
+- Open Jobs and Jobs Today must open the Jobs screen.
+- Payments This Week must open the actual payments recorded for that week.
+- Expenses This Week must open a weekly, day-grouped expense view. Each day must
+  expose its recap, saved expenses, expense details, and date-specific Add
+  Expense workflow.
+- Expense categories remain owned by the Expenses lane. The contractor
+  dashboard may project the saved categories and totals but must not create a
+  competing category system.

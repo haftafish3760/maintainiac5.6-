@@ -25,6 +25,7 @@ import 'receipt_photo_review_screen.dart';
 import 'receipt_pdf_inspector.dart';
 import 'receipt_pdf_viewer_screen.dart';
 import 'receipt_picker_status.dart';
+import 'receipt_pipeline_trace.dart';
 import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
 import 'receipt_storage_guard.dart';
@@ -66,6 +67,7 @@ part 'receipt_capture_review_storage_settings.dart';
 part 'receipt_camera_help_sheet.dart';
 part 'receipt_camera_first_use_intro_sheet.dart';
 part 'receipt_attachment_target_guidance.dart';
+part 'receipt_attachment_panel_controller.dart';
 
 class SharedReceiptAttachmentPanel extends StatefulWidget {
   const SharedReceiptAttachmentPanel({
@@ -88,6 +90,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.showInterruptedCaptureRecovery = true,
     this.openImportOptionsOnFirstBuild = false,
     this.uiConfig = const ReceiptCaptureUiConfig(),
+    this.controller,
   });
 
   final bool hasReceipt;
@@ -105,7 +108,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   ///
   /// Prefer this over [onImportedText] when the consumer can preserve OCR
   /// layout, coordinates, confidence, and source-image provenance.
-  final FutureOr<void> Function(ReceiptOcrResult result)?
+  final FutureOr<void> Function(ReceiptOcrResult result, String traceId)?
   onReceiptOcrResultForReview;
   final ValueChanged<bool>? onReceiptReadFinished;
   final ValueChanged<Map<String, Object?>>? onReceiptCaptureDiagnostic;
@@ -114,6 +117,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final bool showInterruptedCaptureRecovery;
   final bool openImportOptionsOnFirstBuild;
   final ReceiptCaptureUiConfig uiConfig;
+  final ReceiptAttachmentPanelController? controller;
 
   @override
   State<SharedReceiptAttachmentPanel> createState() =>
@@ -171,6 +175,12 @@ class _SharedReceiptAttachmentPanelState
   @override
   void initState() {
     super.initState();
+    widget.controller?._bind(
+      openImportOptions: openReceiptImportOptions,
+      openSettings: (screenContext) async {
+        await openReceiptCaptureSettings(screenContext: screenContext);
+      },
+    );
     _applyInitialAttachments(widget.initialAttachments);
     if (widget.showInterruptedCaptureRecovery) {
       unawaited(_loadRecoverableNativeCaptures());
@@ -186,6 +196,7 @@ class _SharedReceiptAttachmentPanelState
 
   @override
   void dispose() {
+    widget.controller?._detach();
     _panelDisposed = true;
     super.dispose();
   }

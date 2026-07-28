@@ -14,6 +14,9 @@ void main() {
     final jobsDaySections = File(
       'lib/screens/work_supplies/jobs/work_supply_jobs_day_sections.dart',
     ).readAsStringSync();
+    final estimatePicker = File(
+      'lib/screens/work_supplies/jobs/work_supply_estimate_picker_screen.dart',
+    ).readAsStringSync();
     final receiptScreen = File(
       'lib/screens/expenses/entry/expense_receipt_entry_screen.dart',
     ).readAsStringSync();
@@ -25,10 +28,12 @@ void main() {
     expect(main, contains('MaintainiacJobScope('));
     expect(jobsScreen, contains('MaintainiacJobScope.of('));
     expect(jobsScreen, contains(').activeJobs.map(_workSupplyJobFromRecord)'));
-    expect(
-      jobsActions,
-      contains('MaintainiacJobScope.of(currentContext).save'),
-    );
+    expect(jobsActions, contains('MaintainiacJobScope.of(context)'));
+    expect(jobsActions, contains('await jobController.save('));
+    expect(jobsActions, contains('WorkSupplyJobFormScreen('));
+    expect(jobsActions, contains('InvoiceLedgerScope.maybeOf(context)'));
+    expect(jobsActions, contains('estimateId: draft.estimateId'));
+    expect(estimatePicker, contains('List<InvoiceRecord> estimates'));
     expect(jobsDaySections, isNot(contains('_demoJobs')));
     expect(
       receiptScreen,

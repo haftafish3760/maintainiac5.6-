@@ -31,6 +31,21 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
         // The capture keeps the full-resolution source. The live view fills the
         // display so letterboxing never steals the receipt framing area.
         scaleType = PreviewView.ScaleType.FILL_CENTER
+        // Keep the two-finger gesture on the actual camera surface. Routing
+        // through the Activity missed gestures on some Android view stacks,
+        // which left a working S24 camera feeling like a fixed 1x preview.
+        // Once a second finger is down, consume the gesture here so the
+        // PreviewView cannot take over the stream before CameraX gets it.
+        // Single-finger events remain available to the normal preview.
+        setOnTouchListener { _, event ->
+            val detector = scaleGestureDetector
+            if (!pinchZoomEnabled || detector == null) {
+                false
+            } else {
+                detector.onTouchEvent(event)
+                event.pointerCount >= 2 || detector.isInProgress
+            }
+        }
     }
     cameraRootView.addView(previewView)
     cameraRootView.addView(buildReceiptFrameGuide())

@@ -120,10 +120,11 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
         left: 10,
         right: 10,
         top: 10,
-        bottom: math.max(
-          MediaQuery.viewInsetsOf(context).bottom,
-          MediaQuery.paddingOf(context).bottom,
-        ) +
+        bottom:
+            math.max(
+              MediaQuery.viewInsetsOf(context).bottom,
+              MediaQuery.paddingOf(context).bottom,
+            ) +
             16,
       ),
       child: ListView(
@@ -164,48 +165,16 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
             _ParserReviewNotice(line: widget.initial),
             const SizedBox(height: 12),
           ],
-          RecordTextField(
-            label: 'Printed item description',
-            controller: _descriptionController,
-            hintText: 'Example: 2 in. PVC elbow',
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: RecordTextField(
-                  label: 'Quantity',
-                  controller: _quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  hintText: 'Optional',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: RecordTextField(
-                  label: 'Price each',
-                  controller: _unitPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  hintText: 'Optional',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          RecordTextField(
-            label: 'Printed line total',
-            controller: _subtotalController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            hintText: 'Required',
+          _ExpenseCategorySearch(
+            selectedCategory: _category,
+            controller: _categorySearchController,
+            matches: _matchingCategories,
+            onSelected: _selectCategory,
           ),
           const SizedBox(height: 6),
-          Text(
-            _lineMathPreview,
-            style: const TextStyle(
+          const Text(
+            'Optional. Leave this blank when the receipt does not need a category.',
+            style: TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -234,22 +203,57 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
               businessAmountController: _businessAmountController,
               businessPercent: _enteredBusinessPercent,
               businessAmount: _enteredBusinessAmount,
-              lineTotal: _enteredLineSubtotal,
+              lineTotal: _resolvedLineSubtotal,
               onMethodChanged: (method) =>
                   setState(() => _splitMethod = method),
             ),
           ],
           const SizedBox(height: 14),
-          _ExpenseCategorySearch(
-            selectedCategory: _category,
-            controller: _categorySearchController,
-            matches: _matchingCategories,
-            onSelected: _selectCategory,
+          RecordTextField(
+            label: 'Printed item description',
+            controller: _descriptionController,
+            hintText: 'Example: 2 in. PVC elbow',
           ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: RecordTextField(
+                  label: 'Quantity',
+                  controller: _quantityController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  hintText: 'Optional',
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: RecordTextField(
+                  label: 'Price each',
+                  controller: _unitPriceController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  hintText: r'$0.00',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (_calculatedLineSubtotal == null)
+            RecordTextField(
+              label: 'Printed line total',
+              controller: _subtotalController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              hintText: r'$0.00',
+            ),
           const SizedBox(height: 6),
-          const Text(
-            'Category is optional. Leave it unresolved if you are not sure.',
-            style: TextStyle(
+          Text(
+            _lineMathPreview,
+            style: const TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 12,
               fontWeight: FontWeight.w700,

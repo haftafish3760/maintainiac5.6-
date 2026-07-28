@@ -58,6 +58,8 @@ extension ReceiptCameraViewController {
     latestCaptureToReviewReadyMs = -1
     latestCaptureLatencyBucket = "capture_started"
     latestCaptureLiveBrightnessAtShutter = latestFrameBrightness
+    latestCaptureShutterExposureTargetBias = Double(cameraDevice?.exposureTargetBias ?? 0)
+    latestCaptureShutterZoomRatio = Double(cameraDevice?.videoZoomFactor ?? 1)
     shutterButton.isEnabled = false
     prepareExposureBeforeCapture { [weak self] in
       self?.capturePhotoAfterExposurePrep()

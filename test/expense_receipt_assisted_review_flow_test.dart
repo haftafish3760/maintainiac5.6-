@@ -39,13 +39,13 @@ void main() {
         recap,
         contains('Review the store, date, totals, and line confidence'),
       );
-      expect(recap, contains('SCANNED RECEIPT REVIEW'));
+      expect(recap, contains('RECEIPT DETAILS'));
       expect(recap, contains('STORE NOT FILLED YET'));
       expect(recap, contains("label: 'Subtotal'"));
       expect(recap, contains("label: 'Tax'"));
-      expect(recap, contains('Split starts at 50/50'));
+      expect(recap, contains('Every split requires your allocation.'));
       expect(recap, contains('_showLineUseControls'));
-      expect(recap, contains('Tap Mixed Receipt above'));
+      expect(recap, contains('Review each numbered line.'));
       expect(
         recap,
         contains(
@@ -144,7 +144,7 @@ void main() {
       expect(stateActions, contains('_splitLineReviewReason(splitPercent)'));
       expect(stateActions, contains(r'split is $percent% business'));
       expect(stateActions, isNot(contains('split starts at 50% business')));
-      expect(entryScreen, contains('_quickSplitBusinessPercent'));
+      expect(entryScreen, contains('_chooseSplitAllocation('));
       expect(entryScreen, contains("replaceAll('%', '')"));
       expect(
         entryScreen,
@@ -172,7 +172,11 @@ void main() {
           'final showAttachmentBeforeReview = !_receiptReviewFlowStarted',
         ),
       );
-      expect(entryScreen, contains('if (showAttachmentBeforeReview) ...['));
+      expect(entryScreen, contains('offstage: !showAttachmentBeforeReview'));
+      expect(
+        entryScreen,
+        contains('Keep that\n                  // stateful widget mounted'),
+      );
       expect(entryScreen, contains('_shouldShowCollapsedReceiptPhotoRecovery'));
       expect(entryScreen, contains('_ReceiptPhotoRecoveryPanel('));
       expect(entryScreen, contains('_receiptPhotoRecoveryKey'));
@@ -199,19 +203,19 @@ void main() {
       expect(stateActions, contains('Open manual receipt details'));
       expect(
         entryScaffold.indexOf('_ReceiptClassificationReviewPanel'),
-        lessThan(entryScaffold.indexOf('_ReceiptWholeUseReviewPanel')),
-      );
-      expect(
-        entryScaffold.indexOf('_ReceiptWholeUseReviewPanel'),
         lessThan(entryScaffold.indexOf('_ReceiptLineEvidenceReviewPanel')),
       );
       expect(
-        entryScaffold.indexOf('_ReceiptLineEvidenceReviewPanel'),
+        entryScaffold.indexOf('_ReceiptWholeUseReviewPanel'),
         lessThan(entryScaffold.indexOf('_ReceiptRecapPanel')),
       );
       expect(
         entryScaffold.indexOf('_ReceiptRecapPanel'),
-        lessThan(entryScaffold.indexOf('SharedReceiptStorePanel')),
+        lessThan(entryScaffold.indexOf('_ReceiptLineEvidenceReviewPanel')),
+      );
+      expect(
+        entryScaffold.indexOf('SharedReceiptStorePanel'),
+        lessThan(entryScaffold.indexOf('_ReceiptRecapPanel')),
       );
       expect(attachmentPanel, contains('_ReceiptReadReviewStatus'));
       expect(attachmentPanel, contains('this.onReceiptReadStarted'));
@@ -247,12 +251,9 @@ void main() {
       expect(attachmentOcr, contains('widget.onReceiptReadStarted?.call();'));
       expect(
         attachmentOcr,
-        contains('widget.onReceiptReadFinished?.call(true);'),
+        contains('widget.onReceiptReadFinished?.call(succeeded);'),
       );
-      expect(
-        attachmentOcr,
-        contains('widget.onReceiptReadFinished?.call(false);'),
-      );
+      expect(attachmentOcr, contains('_notifyReceiptReadFinished(false);'));
       expect(
         attachmentOcr,
         contains(

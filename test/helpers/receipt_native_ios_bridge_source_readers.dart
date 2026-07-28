@@ -31,7 +31,8 @@ Future<String> readIosReceiptCameraUnit() async {
           .whereType<File>()
           .where((file) {
             final name = file.uri.pathSegments.last;
-            return name.startsWith('ReceiptCameraViewController') &&
+            return (name.startsWith('ReceiptCameraViewController') ||
+                    name.startsWith('ReceiptCameraFullScreenSettings')) &&
                 name.endsWith('.swift');
           })
           .toList(growable: false)

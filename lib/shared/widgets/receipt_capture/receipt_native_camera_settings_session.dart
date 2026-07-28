@@ -49,10 +49,13 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
         autoCropSuggestionEnabled && effectiveEdgeDetection && !lightDevice;
     final heavyCleanupAllowed = !lightDevice && !storageConstrained;
     final effectiveTapFocus = false;
-    final effectivePinchZoom =
-        pinchZoomEnabled &&
-        nativeCapabilities.supportsZoom &&
-        nativeCapabilities.maxZoom > nativeCapabilities.minZoom;
+    // Capability preflight can run before the platform has bound the rear
+    // camera (and has reported a 1x-only range on real capable phones).
+    // Keep the user's pinch setting enabled; each native camera resolves the
+    // live lens range after binding and safely reports a locked range when
+    // zoom genuinely is unavailable. Disabling this here turns a bad
+    // preflight result into a dead pinch gesture on the capture screen.
+    final effectivePinchZoom = pinchZoomEnabled;
     final effectiveExposureSlider =
         exposureSliderEnabled &&
         nativeCapabilities.supportsExposureCompensation &&
@@ -70,6 +73,13 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
     final effectiveZoomMax = effectivePinchZoom
         ? nativeCapabilities.maxZoom
         : 1.0;
+    // A receipt camera must never open already zoomed. Start at the native
+    // wide framing and let the user deliberately pinch toward the receipt.
+    final effectiveInitialZoom = (effectivePinchZoom
+            ? effectiveZoomMin
+            : 1.0)
+        .clamp(effectiveZoomMin, effectiveZoomMax)
+        .toDouble();
     final effectiveExposureMin = effectiveExposureSlider
         ? nativeCapabilities.minExposureOffset
         : 0.0;
@@ -186,6 +196,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       whiteBalanceLockEnabled: effectiveWhiteBalanceLock,
       minZoom: effectiveZoomMin,
       maxZoom: effectiveZoomMax,
+      initialZoomRatio: effectiveInitialZoom,
       minExposureOffset: effectiveExposureMin,
       maxExposureOffset: effectiveExposureMax,
       maxLiveAnalysisPixels: maxLiveAnalysisPixels,

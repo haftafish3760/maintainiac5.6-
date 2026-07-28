@@ -34,7 +34,7 @@ class FastRecordGrid extends StatelessWidget {
           startsInAddMode: true,
         ),
         DashboardShortcut(
-          title: 'Payment',
+          title: 'Pay',
           subtitle: 'Record money received',
           icon: Icons.payments_rounded,
           color: _green,
@@ -44,7 +44,7 @@ class FastRecordGrid extends StatelessWidget {
           startsInAddMode: true,
         ),
         DashboardShortcut(
-          title: 'Start Trip',
+          title: 'Trip',
           subtitle: 'Odometer first',
           icon: Icons.route_rounded,
           color: _blue,
@@ -93,6 +93,43 @@ class FastRecordGrid extends StatelessWidget {
         );
       }
     }
+  }
+}
+
+class WeeklyDetailLinks extends StatelessWidget {
+  const WeeklyDetailLinks({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const DashboardShortcutGrid(
+      title: 'Weekly totals',
+      shortcuts: [
+        DashboardShortcut(
+          title: 'Profit',
+          subtitle: 'Weekly net',
+          icon: Icons.trending_up_rounded,
+          color: _green,
+        ),
+        DashboardShortcut(
+          title: 'Fuel',
+          subtitle: 'Weekly fuel',
+          icon: Icons.local_gas_station_rounded,
+          color: _red,
+        ),
+        DashboardShortcut(
+          title: 'Expenses',
+          subtitle: 'Weekly total',
+          icon: Icons.receipt_long_rounded,
+          color: _yellow,
+        ),
+        DashboardShortcut(
+          title: 'Trips',
+          subtitle: 'Weekly trips',
+          icon: Icons.route_rounded,
+          color: _blue,
+        ),
+      ],
+    );
   }
 }
 

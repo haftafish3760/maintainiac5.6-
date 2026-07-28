@@ -2,89 +2,122 @@ part of 'work_supply_jobs_screen.dart';
 
 extension _WorkSupplyJobsActions on _WorkSupplyJobsScreenState {
   void _beginCreateJob() {
+    if (_openingCreateJob) return;
     unawaited(_createJob());
   }
 
-  Future<void> _createJob() async {
-    final nameController = TextEditingController();
-    final customerController = TextEditingController();
-    final addressController = TextEditingController();
-    final details = await showDialog<(String, String, String)>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Create job'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                autofocus: true,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Job name'),
-              ),
-              TextField(
-                controller: customerController,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Customer or reference (optional)',
-                ),
-              ),
-              TextField(
-                controller: addressController,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Job address (optional)',
-                ),
-              ),
-            ],
+  void _beginImportEstimate() {
+    if (_openingCreateJob) return;
+    unawaited(_importEstimate());
+  }
+
+  Future<void> _createJob({WorkSupplyJobDraft? initialDraft}) async {
+    _openingCreateJob = true;
+    final jobController = MaintainiacJobScope.of(context);
+    final operational = OperationalContextScope.of(context).context;
+    WorkSupplyJobDraft? draft;
+    try {
+      draft = await Navigator.of(context).push<WorkSupplyJobDraft>(
+        appNativeRoute(
+          context,
+          WorkSupplyJobFormScreen(
+            initialDay: _selectedDay,
+            initialDraft: initialDraft,
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop((
-              nameController.text,
-              customerController.text,
-              addressController.text,
-            )),
-            child: const Text('Create'),
-          ),
-        ],
-      ),
-    );
-    nameController.dispose();
-    customerController.dispose();
-    addressController.dispose();
-    if (details == null || details.$1.trim().isEmpty || !context.mounted) {
-      return;
+      );
+    } finally {
+      _openingCreateJob = false;
     }
-    final currentContext = context;
-    final operational = OperationalContextScope.of(currentContext).context;
+    if (draft == null || !mounted) return;
     final now = DateTime.now().toUtc();
     try {
-      await MaintainiacJobScope.of(currentContext).save(
+      await jobController.save(
         MaintainiacJobRecord(
           id: '',
-          name: details.$1,
-          customerReference: details.$2,
-          address: details.$3,
+          name: draft.name,
+          customerReference: draft.clientName,
+          customerPhone: draft.clientPhone,
+          customerEmail: draft.clientEmail,
+          address: draft.serviceAddress,
+          notes: draft.notes,
+          estimateId: draft.estimateId,
           workProfileId: operational.workProfileId,
           vehicleIds: [operational.activeVehicleId],
+          scheduledStart: draft.scheduledStart,
+          scheduledEnd: draft.scheduledEnd,
+          repeatRule: draft.repeatRule.name,
+          inAppReminder: draft.inAppReminder,
+          pushReminder: draft.pushReminder,
+          soundReminder: draft.soundReminder,
+          reminderLeadMinutes: draft.reminderLeadMinutes,
           createdAt: now,
           updatedAt: now,
         ),
       );
     } catch (error) {
-      if (!currentContext.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(
-        currentContext,
+        context,
       ).showSnackBar(SnackBar(content: Text('Could not save job: $error')));
     }
   }
+
+  Future<void> _importEstimate() async {
+    _openingCreateJob = true;
+    final estimates =
+        InvoiceLedgerScope.maybeOf(context)?.records
+            .where((record) => record.isEstimate)
+            .where((record) => record.status.name != 'voided')
+            .toList(growable: false) ??
+        const <InvoiceRecord>[];
+    InvoiceRecord? estimate;
+    try {
+      estimate = await Navigator.of(context).push<InvoiceRecord>(
+        appNativeRoute(
+          context,
+          WorkSupplyEstimatePickerScreen(estimates: estimates),
+        ),
+      );
+    } finally {
+      _openingCreateJob = false;
+    }
+    if (estimate == null || !mounted) return;
+    await _createJob(initialDraft: _jobDraftFromEstimate(estimate));
+  }
+
+  void _showPendingConnection(String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          '$feature is not connected yet. No job or financial record was changed.',
+        ),
+      ),
+    );
+  }
+}
+
+WorkSupplyJobDraft _jobDraftFromEstimate(InvoiceRecord estimate) {
+  final client = estimate.client;
+  return WorkSupplyJobDraft(
+    name: estimate.displayTitle,
+    clientName: client.bestName,
+    clientPhone: client.phone,
+    clientEmail: client.email,
+    serviceAddress: [
+      client.street,
+      client.city,
+      client.state,
+      client.postalCode,
+    ].where((value) => value.trim().isNotEmpty).join(', '),
+    notes: '',
+    repeatRule: JobRepeatRule.none,
+    inAppReminder: false,
+    pushReminder: false,
+    soundReminder: false,
+    reminderLeadMinutes: 60,
+    estimateId: estimate.id,
+  );
 }
 
 WorkSupplyJob _workSupplyJobFromRecord(MaintainiacJobRecord record) {

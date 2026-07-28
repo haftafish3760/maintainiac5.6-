@@ -33,10 +33,12 @@ void main() {
       'battery': {
         'levelPercent': 19,
         'isCharging': true,
+        'isExternalPowerConnected': true,
         'powerSource': 'usb',
         'health': 'good',
         'estimatedFullCapacityMah': 4100,
         'capacityEstimateReliable': false,
+        'technology': 'Li-ion',
       },
       'display': {
         'widthPixels': 1440,
@@ -72,7 +74,9 @@ void main() {
     expect(result.sensors.hasMotionStateTransitions, isTrue);
     expect(result.sensors.hasBodySignals, isTrue);
     expect(result.battery.isLow, isTrue);
+    expect(result.battery.isExternalPowerConnected, isTrue);
     expect(result.battery.powerSource.name, 'usb');
+    expect(result.battery.technology, 'Li-ion');
     expect(result.display.maxRefreshRateHz, 120);
     expect(result.media.canHardwareDecode('av1'), isTrue);
     expect(result.graphics.supportsCompute, isTrue);

@@ -128,7 +128,7 @@ class _ReceiptNativeCameraNextStepStrip extends StatelessWidget {
     );
   }
 
-  bool get _showAddPhoto => longReceiptMode && onAddPhoto != null;
+  bool get _showAddPhoto => onAddPhoto != null;
 
   String get _nextLabel {
     if (capturedPhotoCount <= 1) return uiConfig.doneLabel;

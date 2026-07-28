@@ -30,6 +30,8 @@ class ExpenseReceiptDraftRecord {
     this.receiptReadHandoffCoverageWarning = '',
     this.receiptReviewMode = '',
     this.receiptReviewModeChangedByUser = false,
+    this.receiptCategory = 'Uncategorized',
+    this.receiptCategoryAppliesToAll = false,
     this.enteredSubtotal,
     this.enteredTax,
     this.enteredTotal,
@@ -87,6 +89,12 @@ class ExpenseReceiptDraftRecord {
       receiptReviewModeChangedByUser: _expenseBool(
         map['receiptReviewModeChangedByUser'],
       ),
+      receiptCategory: _expenseString(map['receiptCategory']).trim().isEmpty
+          ? 'Uncategorized'
+          : _expenseString(map['receiptCategory']).trim(),
+      receiptCategoryAppliesToAll: _expenseBool(
+        map['receiptCategoryAppliesToAll'],
+      ),
       enteredSubtotal: _expenseAmountFromStoredMoney(
         map['enteredSubtotalCents'],
         map['enteredSubtotal'],
@@ -143,6 +151,8 @@ class ExpenseReceiptDraftRecord {
   final String receiptReadHandoffCoverageWarning;
   final String receiptReviewMode;
   final bool receiptReviewModeChangedByUser;
+  final String receiptCategory;
+  final bool receiptCategoryAppliesToAll;
   final double? enteredSubtotal;
   final double? enteredTax;
   final double? enteredTotal;
@@ -226,6 +236,8 @@ class ExpenseReceiptDraftRecord {
       'receiptReadHandoffCoverageWarning': receiptReadHandoffCoverageWarning,
       'receiptReviewMode': receiptReviewMode,
       'receiptReviewModeChangedByUser': receiptReviewModeChangedByUser,
+      'receiptCategory': receiptCategory,
+      'receiptCategoryAppliesToAll': receiptCategoryAppliesToAll,
       'enteredSubtotal': enteredSubtotal,
       'enteredTax': enteredTax,
       'enteredTotal': enteredTotal,

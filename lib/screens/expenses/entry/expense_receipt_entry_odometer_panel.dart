@@ -8,22 +8,41 @@ class _ExpenseOdometerPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RecordFormPanel(
-      children: [
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Expense odometer'),
-          subtitle: Text(
-            reading == null
-                ? 'Required before saving this expense'
-                : '${reading.toString()} miles',
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.speed_rounded,
+            color: Color(0xFF8FC9FF),
+            size: 19,
           ),
-          trailing: OutlinedButton(
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              reading == null
+                  ? 'Add the current odometer to include it with this expense.'
+                  : 'Odometer included: $reading miles',
+              style: const TextStyle(
+                color: Color(0xFFC8D0D3),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
             onPressed: onEdit,
-            child: Text(reading == null ? 'Add Reading' : 'Edit'),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFF8FC9FF),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              textStyle: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            child: Text(reading == null ? 'Add Odometer' : 'Edit'),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

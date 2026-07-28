@@ -4,10 +4,16 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/context/operational_context_store.dart';
 import '../../../shared/jobs/maintainiac_job_store.dart';
+import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
+import '../../invoices/data/invoice_ledger_store.dart';
+import '../../invoices/data/invoice_record.dart';
 import '../calendar/work_supply_calendar_panel.dart';
 import '../data/work_supply_models.dart';
+import 'work_supply_estimate_picker_screen.dart';
+import 'work_supply_job_form_models.dart';
+import 'work_supply_job_form_screen.dart';
 
 part 'work_supply_jobs_sections.dart';
 part 'work_supply_jobs_day_sections.dart';
@@ -22,6 +28,7 @@ class WorkSupplyJobsScreen extends StatefulWidget {
 
 class _WorkSupplyJobsScreenState extends State<WorkSupplyJobsScreen> {
   late DateTime _selectedDay = _dayKey(DateTime.now());
+  var _openingCreateJob = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +48,17 @@ class _WorkSupplyJobsScreenState extends State<WorkSupplyJobsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _JobsHeader(jobCount: jobs.length),
+                _JobsHeader(
+                  jobCount: jobs.length,
+                  onCreateJob: _beginCreateJob,
+                ),
                 const SizedBox(height: 10),
                 _JobQuickActions(
                   onCreateJob: _beginCreateJob,
-                  onLinkMileage: () {},
-                  onAddExpense: () {},
-                  onUseInventory: () {},
+                  onImportEstimate: _beginImportEstimate,
+                  onAddExpense: () => _showPendingConnection('Job expenses'),
+                  onUseInventory: () =>
+                      _showPendingConnection('Job inventory usage'),
                 ),
                 const SizedBox(height: 10),
                 _JobsCommandSummary(jobs: jobs),

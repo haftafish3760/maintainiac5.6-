@@ -99,6 +99,7 @@ extension _ExpenseReceiptSaveReadinessHelpers
   }
 
   _ReceiptSaveReadinessIssue? _receiptSubtotalReadinessIssue() {
+    if (_detailEntryMode != _ReceiptDetailEntryMode.detailedItems) return null;
     final enteredSubtotal = _enteredReceiptSubtotal;
     if (enteredSubtotal == null || _lines.isEmpty) return null;
     final delta = enteredSubtotal - _lineSubtotal;

@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/active_workday_screen.dart';
 import 'package:maintaniac/screens/dashboard/contractor/contractor_dashboard_sections.dart';
+import 'package:maintaniac/screens/dashboard/contractor/contractor_dashboard_jobs_panel.dart';
+import 'package:maintaniac/screens/dashboard/contractor/contractor_dashboard_models.dart';
+import 'package:maintaniac/screens/dashboard/contractor/contractor_dashboard_tiles.dart';
 import 'package:maintaniac/screens/dashboard/dashboard.dart';
 import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/dashboard/vehicle_profile_widgets.dart';
@@ -59,6 +62,59 @@ void main() {
     expect(startGpsCalls, 1);
   });
 
+  testWidgets('contractor work queue provides direct jobs access', (
+    tester,
+  ) async {
+    var openJobsCalls = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ContractorJobsPanel(
+            jobs: const [],
+            onOpenJobs: () => openJobsCalls += 1,
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('View All Jobs'), findsOneWidget);
+    await tester.tap(find.text('View All Jobs'));
+    await tester.pump();
+
+    expect(openJobsCalls, 1);
+  });
+
+  testWidgets('actionable contractor metric reports its navigation target', (
+    tester,
+  ) async {
+    var taps = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 240,
+            height: 120,
+            child: ContractorMetricTile(
+              metric: const ContractorMetric(
+                label: 'Payments this week',
+                value: r'$425.00',
+                color: Color(0xFF55D68A),
+                target: ContractorMetricTarget.paymentsThisWeek,
+              ),
+              onTap: () => taps += 1,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+    await tester.tap(find.text('Payments this week'));
+    await tester.pump();
+
+    expect(taps, 1);
+  });
+
   testWidgets('dashboard opens contractor command center', (tester) async {
     await _pumpDashboard(tester, appState, odometer, workProfiles);
 
@@ -67,10 +123,12 @@ void main() {
     await tester.tap(find.text('Contractor Dashboard'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Back'), findsNothing);
+    expect(find.text('Back'), findsOneWidget);
+    expect(find.text('Contractor Command Center'), findsOneWidget);
     expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
     expect(find.text('Mode'), findsOneWidget);
     expect(find.text('Contractor'), findsOneWidget);
+    expect(find.text('Jobs'), findsOneWidget);
     expect(find.text('Operations Pulse'), findsOneWidget);
     expect(find.text('Day status'), findsOneWidget);
     expect(find.text('Jobs today'), findsOneWidget);

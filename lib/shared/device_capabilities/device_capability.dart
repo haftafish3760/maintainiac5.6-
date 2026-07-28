@@ -1,4 +1,5 @@
 import 'device_feature_capabilities.dart';
+import 'device_capability_grade.dart';
 import 'device_storage_status.dart';
 
 enum DevicePerformanceTier {
@@ -246,6 +247,14 @@ class DeviceCapabilityProfile {
   final List<String> limitingFactors;
 
   DeviceWorkloadBudget get budget => DeviceWorkloadBudget.forTier(tier);
+  int get baselineGrade => DeviceCapabilityGradeScale.capForTier(
+    DeviceCapabilityGradeScale.fromScore(score),
+    baselineTier.index,
+  );
+  int get effectiveGrade =>
+      DeviceCapabilityGradeScale.capForTier(baselineGrade, tier.index);
+  String get effectiveGradeLabel =>
+      DeviceCapabilityGradeScale.label(effectiveGrade);
 
   /// Safe for diagnostics and future crash metadata. This intentionally omits
   /// model, hardware identifiers, exact RAM, and exact storage values.
@@ -253,6 +262,9 @@ class DeviceCapabilityProfile {
     'platform': hardware.platform,
     'baselineTier': baselineTier.name,
     'effectiveTier': tier.name,
+    'baselineGrade': baselineGrade,
+    'effectiveGrade': effectiveGrade,
+    'effectiveGradeLabel': effectiveGradeLabel,
     'confidence': confidence.name,
     'lowRam': hardware.isLowRamDevice,
     'storagePressure': _storagePressure(runtime.freeStorageMb),
@@ -270,6 +282,8 @@ class DeviceCapabilityProfile {
     'sensorClassCount': extended.sensors.types.length,
     'batteryLevel': _batteryLevelBucket(extended.battery.levelPercent),
     'batteryHealth': extended.battery.health.name,
+    'externalPowerConnected': extended.battery.isExternalPowerConnected,
+    'powerSource': extended.battery.powerSource.name,
     'network': extended.connectivity.transports.join('+'),
     'networkMetered': extended.connectivity.isMetered,
     'displayRefreshClass': _refreshClass(extended.display.maxRefreshRateHz),

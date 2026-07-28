@@ -79,7 +79,12 @@ enum _ReceiptReviewMenuAction {
   remove,
 }
 
-enum _ReceiptReviewExitAction { keepReviewing, saveAndRead, leaveSafely }
+enum _ReceiptReviewExitAction {
+  keepReviewing,
+  saveAndRead,
+  saveDraft,
+  discardWithoutSaving,
+}
 
 enum _ReceiptContinueDecision { keepReviewing, addNextSection, continueAnyway }
 
