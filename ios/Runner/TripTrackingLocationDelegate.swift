@@ -51,6 +51,12 @@ extension TripTrackingNativeBridge: CLLocationManagerDelegate {
             location.horizontalAccuracy.isFinite,
             location.timestamp.timeIntervalSince1970 > 0,
             location.timestamp <= callbackReceivedAt.addingTimeInterval(120) else { continue }
+      if !providerRegistered {
+        // Only a credible Core Location callback proves the collector became
+        // live. This precedes the sample event but does not make that sample
+        // canonical mileage; Dart still applies its own evidence rules.
+        confirmProviderRegistration()
+      }
       let reportedSpeed = location.speed >= 0 && location.speed.isFinite
         ? location.speed
         : nil

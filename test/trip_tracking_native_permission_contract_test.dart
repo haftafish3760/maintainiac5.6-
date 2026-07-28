@@ -519,13 +519,15 @@ void main() {
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
     expect(
       ios.indexOf(
-        'tracking = false\n    trackingStartedAt = nil\n    stopHeartbeat()',
+        'tracking = false\n    providerRegistered = false\n    trackingStartedAt = nil\n    stopHeartbeat()',
       ),
       greaterThanOrEqualTo(0),
     );
     expect(ios, contains('var trackingStartedAt: Date?'));
     expect(
-      ios.indexOf('trackingStartedAt = Date()\n    tracking = true'),
+      ios.indexOf(
+        'trackingStartedAt = Date()\n    tracking = true\n    providerRegistered = false',
+      ),
       greaterThanOrEqualTo(0),
     );
     expect(

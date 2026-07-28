@@ -17,6 +17,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
   var requestedBackgroundAuthorization = false
   var backgroundAuthorizationRequested = false
   var tracking = false
+  // Core Location has no registration-success callback equivalent to Android's
+  // fused provider. A credible delegate callback is the first evidence that
+  // the requested collector is actually live.
+  var providerRegistered = false
   var trackingStartedAt: Date?
   private var activityRecognitionEnabled = false
   private var activityRecognitionGeneration = 0
@@ -57,7 +61,8 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     eventSink = events
-    emit(["type": "status", "status": tracking ? "tracking" : "idle"])
+    let status = tracking ? (providerRegistered ? "tracking" : "starting") : "idle"
+    emit(["type": "status", "status": status])
     return nil
   }
 
@@ -165,10 +170,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
     // discarded solely because the start callback and delegate race.
     trackingStartedAt = Date()
     tracking = true
+    providerRegistered = false
     locationManager.startUpdatingLocation()
     setActivityRecognitionEnabled(activityEnabled)
-    emit(["type": "status", "status": "tracking"])
-    startHeartbeat()
+    emit(["type": "status", "status": "starting"])
     result(true)
   }
 
@@ -341,7 +346,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
   private func startHeartbeat() {
     heartbeatTimer?.invalidate()
     heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-      guard let self, self.tracking else { return }
+      guard let self, self.tracking, self.providerRegistered else { return }
       if self.stopForLocationServicesDisabledIfNeeded() { return }
       if self.stopForCriticalBatteryIfNeeded() { return }
       if self.activityRecognitionEnabled && !self.activityRecognitionIsEligible() {
@@ -351,6 +356,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
       // leave the native bridge in this status event.
       self.emit(["type": "status", "status": "tracking"])
     }
+  }
+
+  /// Core Location registration is only evidenced by the first credible
+  /// delegate callback. This is idempotent because duplicate callbacks must
+  /// not restart the heartbeat or create a second live transition.
+  func confirmProviderRegistration() {
+    guard tracking, !providerRegistered else { return }
+    providerRegistered = true
+    emit(["type": "status", "status": "tracking"])
+    startHeartbeat()
   }
 
   private func stopHeartbeat() {
@@ -377,6 +392,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
   /// callback must never influence a completed or replacement Dart session.
   func stopNativeCollection() {
     tracking = false
+    providerRegistered = false
     trackingStartedAt = nil
     stopHeartbeat()
     locationManager.stopUpdatingLocation()
