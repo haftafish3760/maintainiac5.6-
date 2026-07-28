@@ -95,6 +95,12 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 - Source changes: explicit app header/back control, persisted GPS opt-in confirmation, platform-specific Start Day permission guidance, readable interval tradeoffs
 - Device evidence: updated iPhone release installed/launched; Android Home/resume batch retained the Maintainiac process; iPhone launch succeeded
 - Limitation: the Mac cannot create a real iPhone Home-screen transition through CoreDevice, so iOS background-location evidence still needs the owner to press Home during an active GPS trip
+- PASS 16
+- Objective: align iOS provider readiness with Android's registration evidence
+- State: passed; iPhone Release build installed and launched
+- PASS 17
+- Objective: fail closed for untrusted Bluetooth states in deterministic stress evaluation
+- State: passed; 100,000 scenario seed A, same-seed repeat, and seed B all had zero failures and invalid cases
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -137,6 +143,8 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 10 | VERIFIED SUBSET | GPS settings UX and physical lifecycle batch | UI tests/analyze passed; Android process survived Home/resume; iPhone manual background field QA pending |
 | 11 | PASSED | Live GPS advisory odometer tenths | Tenths regression, adjacent odometer/controller tests, analysis, and complete trip gate passed |
 | 12 | VERIFIED SUBSET | S24 dashboard selector contrast and responsive layout | Dashboard tests/analyze and iPhone SE/S24-width regression passed; iPhone Release installed/launched |
+| 16 | PASSED | iOS credible provider readiness | Focused native/provider tests, analysis, commercial gate, and iPhone Release build/install/launch passed |
+| 17 | PASSED | Bluetooth stress state integrity | 100,000 seed A, same-seed repeat, and different seed all passed with zero failures |
 
 ## Safest repair order
 

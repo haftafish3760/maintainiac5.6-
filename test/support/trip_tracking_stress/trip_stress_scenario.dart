@@ -163,6 +163,42 @@ final class TripStressScenario {
     'coordinatesIncluded': false,
     'routeGeometryIncluded': false,
   };
+
+  TripStressScenario copyWith({
+    TripStressBluetoothState? bluetoothState,
+    bool? hasActiveSession,
+    bool? hasUnfinishedSession,
+    bool? paidAccess,
+    bool? bluetoothRecognitionEnabled,
+    bool? automaticVehicleSwitchEnabled,
+  }) => TripStressScenario(
+    id: id,
+    masterSeed: masterSeed,
+    scenarioSeed: scenarioSeed,
+    index: index,
+    family: family,
+    providerState: providerState,
+    permissionState: permissionState,
+    batteryState: batteryState,
+    bluetoothState: bluetoothState ?? this.bluetoothState,
+    lifecycleEvent: lifecycleEvent,
+    distanceClass: distanceClass,
+    stopClass: stopClass,
+    recoveryPath: recoveryPath,
+    initialLifecycleIndex: initialLifecycleIndex,
+    targetLifecycleIndex: targetLifecycleIndex,
+    variant: variant,
+    vehicleId: vehicleId,
+    profileId: profileId,
+    hasActiveSession: hasActiveSession ?? this.hasActiveSession,
+    hasUnfinishedSession: hasUnfinishedSession ?? this.hasUnfinishedSession,
+    paidAccess: paidAccess ?? this.paidAccess,
+    bluetoothRecognitionEnabled:
+        bluetoothRecognitionEnabled ?? this.bluetoothRecognitionEnabled,
+    automaticVehicleSwitchEnabled:
+        automaticVehicleSwitchEnabled ?? this.automaticVehicleSwitchEnabled,
+    expectedRule: expectedRule,
+  );
 }
 
 final class TripStressScenarioGenerator {

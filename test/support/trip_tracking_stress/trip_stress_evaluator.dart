@@ -196,11 +196,16 @@ final class TripStressEvaluator {
   }
 
   TripStressEvaluation _bluetooth(TripStressScenario scenario) {
-    final link = TripTrackingBluetoothVehicleLink(
-      deviceId: 'stress_device',
-      vehicleId: scenario.vehicleId,
-      createdAt: DateTime.utc(2026, 7, 28),
-    );
+    final trustedObservation =
+        scenario.bluetoothState == TripStressBluetoothState.correct ||
+        scenario.bluetoothState == TripStressBluetoothState.reconnect;
+    final link = trustedObservation
+        ? TripTrackingBluetoothVehicleLink(
+            deviceId: 'stress_device',
+            vehicleId: scenario.vehicleId,
+            createdAt: DateTime.utc(2026, 7, 28),
+          )
+        : null;
     final decision = resolveBluetoothVehicleMatchDecision(
       settings: TripTrackingSettings(
         bluetoothVehicleRecognitionEnabled:
@@ -212,8 +217,13 @@ final class TripStressEvaluator {
       hasUnfinishedStoredSession: scenario.hasUnfinishedSession,
       activeVehicleId: scenario.hasActiveSession ? 'vehicle_locked' : null,
     );
-    final passed = !scenario.hasActiveSession || !decision.canSwitchVehicle;
+    final passed =
+        (!scenario.hasActiveSession || !decision.canSwitchVehicle) &&
+        (trustedObservation ||
+            (!decision.canSwitchVehicle && decision.vehicleId == null));
     return _result(passed, {
+      'bluetoothState': scenario.bluetoothState.name,
+      'trustedObservation': trustedObservation,
       'disposition': decision.disposition.name,
       'canSwitchVehicle': decision.canSwitchVehicle,
     });
@@ -221,6 +231,9 @@ final class TripStressEvaluator {
 
   TripStressEvaluation _automaticStart(TripStressScenario scenario) {
     final start = DateTime.utc(2026, 7, 28, 12);
+    final trustedBluetooth =
+        scenario.bluetoothState == TripStressBluetoothState.correct ||
+        scenario.bluetoothState == TripStressBluetoothState.reconnect;
     final observations = List.generate(
       3,
       (index) => TripAutomaticStartObservation(
@@ -230,7 +243,7 @@ final class TripStressEvaluator {
         horizontalAccuracyMeters: 8,
         activity: TripActivity.automotive,
         activityConfidence: 90,
-        bluetoothVehicleId: scenario.vehicleId,
+        bluetoothVehicleId: trustedBluetooth ? scenario.vehicleId : null,
       ),
     );
     final decision = const TripAutomaticStartDetector().evaluate(
@@ -246,7 +259,12 @@ final class TripStressEvaluator {
         !scenario.paidAccess ||
         scenario.hasActiveSession ||
         scenario.hasUnfinishedSession;
-    return _result(!blocked || !decision.shouldSuggestStart, {
+    final passed =
+        (!blocked || !decision.shouldSuggestStart) &&
+        (trustedBluetooth || decision.suggestedVehicleId == null);
+    return _result(passed, {
+      'bluetoothState': scenario.bluetoothState.name,
+      'trustedBluetooth': trustedBluetooth,
       'disposition': decision.disposition.name,
       'shouldSuggestStart': decision.shouldSuggestStart,
     });

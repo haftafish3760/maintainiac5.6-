@@ -6,7 +6,9 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'support/trip_tracking_stress/trip_stress_evaluator.dart';
 import 'support/trip_tracking_stress/trip_stress_runner.dart';
+import 'support/trip_tracking_stress/trip_stress_scenario.dart';
 
 void main() {
   const runner = TripStressRunner();
@@ -54,6 +56,24 @@ void main() {
     );
 
     expect(first.deterministicDigest, isNot(second.deterministicDigest));
+  });
+
+  test('untrusted Bluetooth observations cannot select a vehicle', () {
+    final scenario = const TripStressScenarioGenerator(7272026)
+        .generate(5)
+        .copyWith(
+          bluetoothState: TripStressBluetoothState.wrong,
+          hasActiveSession: false,
+          hasUnfinishedSession: false,
+          bluetoothRecognitionEnabled: true,
+          automaticVehicleSwitchEnabled: true,
+        );
+
+    final result = const TripStressEvaluator().evaluate(scenario);
+
+    expect(result.passed, isTrue, reason: '${result.evidence}');
+    expect(result.evidence['trustedObservation'], isFalse);
+    expect(result.evidence['canSwitchVehicle'], isFalse);
   });
 
   test('deliberate failure injection is bounded and reproducible', () {
