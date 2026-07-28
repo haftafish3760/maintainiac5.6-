@@ -98,6 +98,23 @@ void main() {
     );
   });
 
+  test('recovery probe waits for provider status before live GPS', () {
+    final lifecycle = File(
+      'lib/shared/trip_tracking/trip_tracking_controller_session_lifecycle.dart',
+    ).readAsStringSync();
+    final recovery = lifecycle.substring(
+      lifecycle.indexOf('} else if (providerRunning) {'),
+      lifecycle.indexOf('final sampling = _nativeSampling;'),
+    );
+
+    expect(recovery, contains('_nativeProviderRegistered = false;'));
+    expect(
+      recovery,
+      contains("_platformStatus = 'awaiting_provider_registration';"),
+    );
+    expect(recovery, isNot(contains('_nativeProviderRegistered = true;')));
+  });
+
   test('dashboard GPS-live state requires provider registration evidence', () {
     final dashboard = File(
       'lib/screens/dashboard/dashboard.dart',

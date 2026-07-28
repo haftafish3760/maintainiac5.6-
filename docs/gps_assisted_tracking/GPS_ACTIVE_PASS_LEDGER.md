@@ -113,6 +113,9 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 - PASS 22
 - Objective: prevent native provider waits from refreshing GPS liveness before registration
 - State: passed; provider-wait regression, controller/native capability families, analysis, commercial gate, and iPhone Release install/launch passed
+- PASS 23
+- Objective: keep process recovery from treating a collector probe as live provider evidence
+- State: passed; recovery enters provider wait pending native status event
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -161,6 +164,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 19 | PASSED | Two-phone field route protocol | 111-line owner protocol defines permissions, drive-stop-walk-drive, background, and review evidence |
 | 21 | PASSED | Complete trip-tracking regression | `TRIP_QA_PASS` after iOS readiness, Bluetooth stress, automatic-start, and field protocol checkpoints |
 | 22 | PASSED | Provider-wait watchdog integrity | Unregistered native collector degrades without mileage; iPhone Release installed/launched |
+| 23 | PASSED | Provider-wait recovery integrity | Native recovery probe stays non-live until provider status is observed |
 
 ## Safest repair order
 

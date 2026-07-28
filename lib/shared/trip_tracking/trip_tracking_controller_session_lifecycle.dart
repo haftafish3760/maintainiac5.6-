@@ -701,7 +701,11 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
             }
           } else {
             _nativeTracking = true;
-            _nativeProviderRegistered = true;
+            // A native probe confirms only that a collector was requested.
+            // Wait for its status event before presenting a recovered session
+            // as live GPS; this matters when Core Location is still waiting
+            // for its first credible callback.
+            _nativeProviderRegistered = false;
             _deviceLocationIntervalFloorSeconds =
                 session.deviceLocationIntervalFloorSeconds;
             _backgroundTrackingAllowed = true;
@@ -726,7 +730,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
             _lastNativeHeartbeatUtc = _clockNow().toUtc();
             _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
             _lastNativeLocationReceivedUtc = null;
-            _platformStatus = 'tracking';
+            _platformStatus = 'awaiting_provider_registration';
             final sampling = _nativeSampling;
             if (sampling == null) {
               _platformError =
