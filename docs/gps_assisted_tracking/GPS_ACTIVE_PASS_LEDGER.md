@@ -119,6 +119,9 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 - PASS 24
 - Objective: rerun complete trip regression after provider-wait recovery hardening
 - State: passed; `TRIP_QA_PASS`
+- PASS 26
+- Objective: extended deterministic stress after Bluetooth-state hardening
+- State: passed; 500,000 scenarios, zero failures/invalid cases, bounded RSS
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -169,6 +172,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 22 | PASSED | Provider-wait watchdog integrity | Unregistered native collector degrades without mileage; iPhone Release installed/launched |
 | 23 | PASSED | Provider-wait recovery integrity | Native recovery probe stays non-live until provider status is observed |
 | 24 | PASSED | Complete trip regression rerun | `TRIP_QA_PASS` after provider-wait watchdog and recovery repairs |
+| 26 | PASSED | Extended GPS stress | 500,000 scenarios passed; RSS 147 MB start, 162 MB peak, 159 MB end |
 
 ## Safest repair order
 
