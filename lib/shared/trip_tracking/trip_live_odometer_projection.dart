@@ -15,16 +15,24 @@ class TripLiveOdometerProjection {
        _lastProjectedReading = _safeInitialProjection(
          startingOdometer: startingOdometer,
          maxSupportedReading: maxSupportedReading,
-       );
+       ),
+       _lastProjectedTenths =
+           _safeInitialProjection(
+             startingOdometer: startingOdometer,
+             maxSupportedReading: maxSupportedReading,
+           ) *
+           10;
 
   final int startingOdometer;
   final double acceptedMetersBaseline;
   final int maxSupportedReading;
   final double maxProjectedTripMiles;
   int _lastProjectedReading;
+  int _lastProjectedTenths;
   var _lastUpdateExceededMax = false;
 
   int get projectedReading => _lastProjectedReading;
+  int get projectedTenths => _lastProjectedTenths;
   bool get lastUpdateExceededMax => _lastUpdateExceededMax;
 
   Map<String, Object?> toSafeDashboardMap() => {
@@ -121,8 +129,7 @@ class TripLiveOdometerProjection {
     if (!relativeAcceptedMeters.isFinite || relativeAcceptedMeters < 0) {
       return _lastProjectedReading;
     }
-    final acceptedMiles =
-        (relativeAcceptedMeters / metersPerMile) * multiplier;
+    final acceptedMiles = (relativeAcceptedMeters / metersPerMile) * multiplier;
     if (!acceptedMiles.isFinite ||
         acceptedMiles > maxProjectedTripMiles ||
         acceptedMiles > maxSupportedReading - safeStart) {
@@ -130,12 +137,16 @@ class TripLiveOdometerProjection {
       return _lastProjectedReading;
     }
     final estimated = safeStart + acceptedMiles.round();
+    final estimatedTenths = safeStart * 10 + (acceptedMiles * 10).floor();
     if (estimated > maxSupportedReading) {
       _lastUpdateExceededMax = true;
       return _lastProjectedReading;
     }
     if (estimated > _lastProjectedReading) {
       _lastProjectedReading = estimated;
+    }
+    if (estimatedTenths > _lastProjectedTenths) {
+      _lastProjectedTenths = estimatedTenths;
     }
     return _lastProjectedReading;
   }

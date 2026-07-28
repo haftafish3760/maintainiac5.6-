@@ -7,8 +7,10 @@ import '../../shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/state/app_state.dart';
 import '../../shared/widgets/app_screen_shell.dart';
+import '../../shared/widgets/app_back_button.dart';
 import 'trip_background_location_settings_action.dart';
 import 'trip_tracking_gps_opt_in_flow.dart';
+import 'trip_tracking_sampling_explanation.dart';
 
 part 'trip_tracking_settings_map_controls.dart';
 part 'trip_tracking_settings_calibration_panel.dart';
@@ -35,6 +37,7 @@ class TripTrackingSettingsScreen extends StatelessWidget {
     final settings = controller.settings;
     return AppScreenShell(
       section: AppSection.dashboard,
+      pinnedHeader: const AppScreenHeader(title: 'GPS-Assisted Trip Tracking'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 10, 0, 22),
         children: [
@@ -92,25 +95,6 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            'GPS-Assisted Trip Tracking',
-            style: TextStyle(
-              color: Color(0xFFE2E8EA),
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Your confirmed vehicle odometer is always official. Phone location can assist after Start Day, and you can stop it at any time.',
-            style: TextStyle(
-              color: Color(0xFFCAD2D5),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
           const _SettingsSectionTitle('Core tracking'),
           _switch(
             title: 'Enable GPS-assisted tracking',
@@ -132,12 +116,13 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             onChanged: (value) =>
                 onChanged(settings.copyWith(samplingPreset: value)),
           ),
+          TripTrackingSamplingExplanation(preset: settings.samplingPreset),
           if (settings.samplingPreset == TripTrackingSamplingPreset.custom)
             _customInterval(settings),
           _switch(
             title: 'Continue during an active background trip',
             detail: settings.gpsAssistedTrackingEnabled
-                ? 'Keeps assisting after you leave the screen. Android may ask for additional location access when the trip starts.'
+                ? 'Keeps assisting after you leave the screen. At Start Day, iPhone asks for location access; background use needs Allow Always. Android may also need additional access.'
                 : 'Enable GPS-assisted tracking before allowing a trip to continue in the background.',
             value: settings.backgroundTrackingEnabled,
             onChanged: settings.gpsAssistedTrackingEnabled

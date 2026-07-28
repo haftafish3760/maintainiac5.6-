@@ -2,6 +2,7 @@ class LiveOdometerDisplaySnapshot {
   const LiveOdometerDisplaySnapshot({
     required this.confirmedReading,
     required this.displayReading,
+    this.displayTenths,
     required this.isLive,
     this.liveUpdatedAt,
     this.projectionRevision = 0,
@@ -9,12 +10,18 @@ class LiveOdometerDisplaySnapshot {
 
   final int confirmedReading;
   final int displayReading;
+  final int? displayTenths;
   final bool isLive;
   final DateTime? liveUpdatedAt;
   final int projectionRevision;
 
   int get deltaMiles {
     final delta = displayReading - confirmedReading;
+    return isLive && delta > 0 ? delta : 0;
+  }
+
+  int get deltaTenths {
+    final delta = safeDisplayTenths - confirmedReading * 10;
     return isLive && delta > 0 ? delta : 0;
   }
 
@@ -26,7 +33,7 @@ class LiveOdometerDisplaySnapshot {
 
   bool get manualEntryBlocked => isLive;
 
-  bool get hasAdvisoryDelta => isLive && deltaMiles > 0;
+  bool get hasAdvisoryDelta => isLive && deltaTenths > 0;
 
   bool get confirmedReadingIsCanonical => true;
 
@@ -40,19 +47,38 @@ class LiveOdometerDisplaySnapshot {
       ? confirmedReading
       : displayReading;
 
-  String get displayValue => _safeReading(safeDisplayReading).toString();
+  int get safeDisplayTenths {
+    final fallback = safeDisplayReading * 10;
+    final value = displayTenths;
+    if (!isLive || value == null || value < confirmedReading * 10) {
+      return fallback;
+    }
+    return value;
+  }
+
+  bool get hasLiveTenths => isLive && displayTenths != null;
+
+  String get displayValue => hasLiveTenths
+      ? _formatTenths(safeDisplayTenths)
+      : _safeReading(safeDisplayReading).toString();
 
   String get confirmedDisplayValue => _safeReading(confirmedReading).toString();
 
   String? get deltaLabel {
     if (!isLive) return null;
-    return hasAdvisoryDelta ? '+$deltaMiles mi live' : 'GPS live';
+    if (deltaTenths <= 0) return 'GPS live';
+    return hasLiveTenths
+        ? '+${_formatTenths(deltaTenths)} mi live'
+        : '+$deltaMiles mi live';
   }
 
   String? get advisoryLabel {
     if (!isLive) return null;
     if (hasAdvisoryDelta) {
-      return 'GPS-assisted estimate is $deltaMiles mi ahead of confirmed odometer.';
+      final delta = hasLiveTenths
+          ? _formatTenths(deltaTenths)
+          : deltaMiles.toString();
+      return 'GPS-assisted estimate is $delta mi ahead of confirmed odometer.';
     }
     return 'GPS-assisted odometer is live; confirmed mileage has not changed.';
   }
@@ -142,3 +168,8 @@ class LiveOdometerDisplaySnapshot {
 }
 
 int _safeReading(int value) => value < 0 ? 0 : value;
+
+String _formatTenths(int value) {
+  final safe = value < 0 ? 0 : value;
+  return '${safe ~/ 10}.${safe % 10}';
+}

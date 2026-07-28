@@ -84,9 +84,17 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 
 ## Current pass
 
-- PASS 7
-- Objective: add explicit, privacy-safe Bluetooth vehicle-link approval and permission flow
-- State: passed
+- PASS 12
+- Objective: protect live advisory odometer tenths and dashboard selector readability
+- State: verified subset; S24 source build cannot replace the installed app because its signing identity differs
+- Odometer integrity: canonical confirmed odometer remains whole-mile storage; an active GPS projection may display conservative tenths without rewriting confirmed history
+- Dashboard integrity: selector labels now render inside high-contrast headers rather than overlapping container borders
+- Device evidence: updated iPhone Release build installed and launched; Android replacement was safely refused with `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, so no Android app data was altered
+- Limitation: iPhone visual inspection and active-trip/permission/background field route remain owner-assisted physical QA; synthetic and installation evidence are not road accuracy evidence
+- Prior PASS 10 scope: GPS settings navigation, confirmation, sampling guidance, and device lifecycle subset passed; iPhone Home/background field QA remains pending
+- Source changes: explicit app header/back control, persisted GPS opt-in confirmation, platform-specific Start Day permission guidance, readable interval tradeoffs
+- Device evidence: updated iPhone release installed/launched; Android Home/resume batch retained the Maintainiac process; iPhone launch succeeded
+- Limitation: the Mac cannot create a real iPhone Home-screen transition through CoreDevice, so iOS background-location evidence still needs the owner to press Home during an active GPS trip
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -124,6 +132,11 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 5 | PASSED | Complete trip-domain gate | `TRIP_QA_PASS`, exit 0 |
 | 6 | PASSED | Production Bluetooth lifecycle wiring | 18 focused tests and analysis exit 0 |
 | 7 | PASSED | Reviewable Bluetooth association and Android permission | Focused tests, analysis, Android build, and complete gate exit 0 |
+| 8 | VERIFIED SUBSET | Physical iPhone release build/install/launch | Release app installed and launched; not a GPS field test |
+| 9 | PASSED | Deterministic, memory-bounded GPS stress harness | 100,000 seed A, same-seed repeat, and seed B all passed; one 500,000 run passed |
+| 10 | VERIFIED SUBSET | GPS settings UX and physical lifecycle batch | UI tests/analyze passed; Android process survived Home/resume; iPhone manual background field QA pending |
+| 11 | PASSED | Live GPS advisory odometer tenths | Tenths regression, adjacent odometer/controller tests, analysis, and complete trip gate passed |
+| 12 | VERIFIED SUBSET | S24 dashboard selector contrast and responsive layout | Dashboard tests/analyze and iPhone SE/S24-width regression passed; iPhone Release installed/launched |
 
 ## Safest repair order
 
@@ -132,11 +145,11 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 3. Repair heartbeat freshness/degraded boundary.
 4. Run the complete trip gate until green.
 5. Wire Bluetooth bootstrap and approved-association UI/runtime path.
-6. Establish permanent regression corpus and scalable stress harness.
-7. Run 100,000 scenarios, same-seed repeat, and different-seed run.
+6. Establish permanent regression corpus and scalable stress harness. Completed in PASS 9.
+7. Run 100,000 scenarios, same-seed repeat, and different-seed run. Completed in PASS 9.
 8. Run Android build/readiness, then physical S24 validation.
-9. Run physical iPhone build/readiness after the owner reports it powered on.
+9. Run an active-trip Android and iPhone road/field route: Start Day, permission, Home/background, drive-stop-walk-drive, recovery, and TripLog review.
 
 ## Next smallest justified action
 
-Establish the deterministic, memory-bounded regression corpus and scalable 100,000-scenario stress runner.
+Run the active-trip physical route protocol on both devices after the driver starts a workday and accepts the relevant system permission prompts. Resolve the S24 signing-key continuity before attempting to update its installed build.

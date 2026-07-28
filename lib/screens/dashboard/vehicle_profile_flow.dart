@@ -64,6 +64,7 @@ class ActiveVehicleDrawer extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: const Color(0xFFEAF2F5),
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0,
                         ),
@@ -76,7 +77,7 @@ class ActiveVehicleDrawer extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            color: Color(0xFF314047),
+                            color: Color(0xFFC9D9E0),
                             fontSize: 11,
                             fontWeight: FontWeight.w900,
                             letterSpacing: .2,
@@ -87,7 +88,11 @@ class ActiveVehicleDrawer extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                const Icon(Icons.chevron_right_rounded, size: 24),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFFEAF2F5),
+                  size: 24,
+                ),
               ],
             ),
           ),

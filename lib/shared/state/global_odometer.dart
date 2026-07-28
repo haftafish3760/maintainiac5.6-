@@ -43,6 +43,7 @@ class GlobalOdometerController extends ChangeNotifier {
   String _vehicleId;
   String? _liveTripId;
   int? _liveTripEstimatedReading;
+  int? _liveTripEstimatedTenths;
   DateTime? _liveTripUpdatedAt;
   var _liveTripProjectionRevision = 0;
   var _eventSequence = 0;
@@ -74,6 +75,7 @@ class GlobalOdometerController extends ChangeNotifier {
       LiveOdometerDisplaySnapshot(
         confirmedReading: _reading,
         displayReading: reading,
+        displayTenths: _liveTripEstimatedTenths,
         isLive: hasLiveTripProjection,
         liveUpdatedAt: _liveTripUpdatedAt,
         projectionRevision: _liveTripProjectionRevision,
@@ -92,7 +94,7 @@ class GlobalOdometerController extends ChangeNotifier {
       )
       .toList(growable: false);
 
-  String get displayValue => reading.toString();
+  String get displayValue => liveDisplaySnapshot.displayValue;
   bool get drivingPatternReviewEnabled => _drivingPatternReviewEnabled;
 
   OdometerVehicleSnapshot get snapshot => OdometerVehicleSnapshot(
@@ -147,6 +149,7 @@ class GlobalOdometerController extends ChangeNotifier {
     }
     _liveTripId = tripId;
     _liveTripEstimatedReading = startingOdometer;
+    _liveTripEstimatedTenths = null;
     _liveTripUpdatedAt = _safeBeginLiveProjectionUpdateTime(observedAtUtc);
     _liveTripProjectionRevision += 1;
     notifyListeners();
@@ -156,6 +159,7 @@ class GlobalOdometerController extends ChangeNotifier {
   bool updateLiveTripProjection({
     required String tripId,
     required int estimatedOdometer,
+    int? estimatedOdometerTenths,
     DateTime? observedAtUtc,
     DateTime? receivedAtUtc,
     Duration staleAfter = const Duration(minutes: 5),
@@ -166,26 +170,38 @@ class GlobalOdometerController extends ChangeNotifier {
       currentUpdatedAt: _liveTripUpdatedAt,
       staleAfter: staleAfter,
     );
+    final hasTenths = estimatedOdometerTenths != null;
+    final safeTenths = estimatedOdometerTenths ?? estimatedOdometer * 10;
     if (_liveTripId != tripId ||
         estimatedOdometer < _reading ||
         estimatedOdometer > _validationPolicy.maxSupportedReading ||
+        safeTenths < _reading * 10 ||
+        safeTenths > _validationPolicy.maxSupportedReading * 10 ||
         trustedUpdateAt == null) {
       return false;
     }
     final current = _liveTripEstimatedReading ?? _reading;
+    final currentTenths = _liveTripEstimatedTenths ?? current * 10;
     if (estimatedOdometer < current) return true;
+    if (safeTenths < currentTenths) return true;
     if (estimatedOdometer == current) {
-      if (_liveProjectionTimestampCanRefresh(
+      final tenthsAdvanced = hasTenths && safeTenths > currentTenths;
+      final timestampCanRefresh = _liveProjectionTimestampCanRefresh(
         trustedUpdateAt,
         currentUpdatedAt: _liveTripUpdatedAt,
-      )) {
-        _liveTripUpdatedAt = trustedUpdateAt;
+      );
+      if (tenthsAdvanced || timestampCanRefresh) {
+        if (tenthsAdvanced) _liveTripEstimatedTenths = safeTenths;
+        if (timestampCanRefresh) {
+          _liveTripUpdatedAt = trustedUpdateAt;
+        }
         _liveTripProjectionRevision += 1;
         notifyListeners();
       }
       return true;
     }
     _liveTripEstimatedReading = estimatedOdometer;
+    _liveTripEstimatedTenths = hasTenths ? safeTenths : null;
     _liveTripUpdatedAt = trustedUpdateAt;
     _liveTripProjectionRevision += 1;
     notifyListeners();
@@ -196,6 +212,7 @@ class GlobalOdometerController extends ChangeNotifier {
     if (_liveTripId != tripId) return false;
     _liveTripId = null;
     _liveTripEstimatedReading = null;
+    _liveTripEstimatedTenths = null;
     _liveTripUpdatedAt = null;
     _liveTripProjectionRevision += 1;
     notifyListeners();

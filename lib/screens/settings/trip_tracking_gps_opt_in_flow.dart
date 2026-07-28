@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../shared/state/app_state.dart';
@@ -7,7 +9,7 @@ import '../dashboard/vehicle_tire_setup_prompt.dart';
 Future<void> updateGpsAssistedTrackingOptIn({
   required BuildContext context,
   required TripTrackingSettings settings,
-  required ValueChanged<TripTrackingSettings> onChanged,
+  required FutureOr<void> Function(TripTrackingSettings) onChanged,
   required bool enabled,
 }) async {
   if (enabled) {
@@ -36,5 +38,28 @@ Future<void> updateGpsAssistedTrackingOptIn({
     }
   }
   if (!context.mounted) return;
-  onChanged(settings.copyWith(gpsAssistedTrackingEnabled: enabled));
+  try {
+    await Future<void>.sync(
+      () => onChanged(settings.copyWith(gpsAssistedTrackingEnabled: enabled)),
+    );
+  } catch (_) {
+    if (context.mounted && Scaffold.maybeOf(context) != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('GPS assistance could not be saved. Please try again.'),
+        ),
+      );
+    }
+    return;
+  }
+  if (!context.mounted || Scaffold.maybeOf(context) == null) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        enabled
+            ? 'GPS assistance is on. Start Day to approve location access and begin tracking.'
+            : 'GPS assistance is off. Manual trips and odometer entry remain available.',
+      ),
+    ),
+  );
 }

@@ -264,6 +264,7 @@ extension TripTrackingControllerIngestion on TripTrackingController {
       final liveProjectionUpdated = _odometer.updateLiveTripProjection(
         tripId: session.id,
         estimatedOdometer: estimatedOdometer,
+        estimatedOdometerTenths: projection.projectedTenths,
         observedAtUtc: durableSampleTime,
         receivedAtUtc: _nonRegressingSessionTime(session, projectionReceivedAt),
       );

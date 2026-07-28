@@ -431,6 +431,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         !_odometer.updateLiveTripProjection(
           tripId: session.id,
           estimatedOdometer: estimatedOdometer,
+          estimatedOdometerTenths: projection.projectedTenths,
           observedAtUtc: session.updatedAt,
           receivedAtUtc: session.updatedAt,
         )) {

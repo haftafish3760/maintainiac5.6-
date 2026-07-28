@@ -16,7 +16,7 @@ class _WorkdayContextBar extends StatelessWidget {
             const Icon(
               Icons.work_outline_rounded,
               size: 20,
-              color: Color(0xFF101416),
+              color: Color(0xFFEAF2F5),
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -25,7 +25,7 @@ class _WorkdayContextBar extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: Color(0xFF101416),
+                  color: Color(0xFFEAF2F5),
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -33,7 +33,7 @@ class _WorkdayContextBar extends StatelessWidget {
             const Icon(
               Icons.lock_outline_rounded,
               size: 18,
-              color: Color(0xFF455157),
+              color: Color(0xFFC9D9E0),
             ),
           ],
         ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/state/app_state.dart';
-import '../../shared/widgets/structural_border_label.dart';
 
 class VehicleProfilePreview {
   const VehicleProfilePreview({
@@ -60,33 +59,45 @@ class VehicleProfilePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.topCenter,
-      children: [
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.only(top: 8),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFFE2E8EA), Color(0xFFB9C3C7), Color(0xFF7D888E)],
-            ),
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: const Color(0xFF101416), width: 1.5),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x88000000),
-                blurRadius: 7,
-                offset: Offset(0, 3),
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: const Color(0xFF172023),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF607783), width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 8,
+            offset: Offset(0, 3),
           ),
-          child: child,
-        ),
-        StructuralBorderLabel(label: label),
-      ],
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: const BoxDecoration(
+              color: Color(0xFF234454),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
+            ),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFFEAF2F5),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                letterSpacing: .45,
+              ),
+            ),
+          ),
+          child,
+        ],
+      ),
     );
   }
 }
@@ -326,66 +337,70 @@ class VehicleField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          constraints: const BoxConstraints(minHeight: 54),
-          padding: const EdgeInsets.fromLTRB(12, 10, 12, 5),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFE2E8EA), Color(0xFFD3DBDE), Color(0xFFB8C2C6)],
-            ),
-            borderRadius: BorderRadius.circular(5),
-            border: Border.all(color: const Color(0xFF59636A), width: 1.4),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x66000000),
-                blurRadius: 5,
-                offset: Offset(0, 2),
-              ),
-            ],
+    return Container(
+      constraints: const BoxConstraints(minHeight: 54),
+      decoration: BoxDecoration(
+        color: const Color(0xFF172023),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF607783), width: 1.2),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            blurRadius: 5,
+            offset: Offset(0, 2),
           ),
-          child: TextField(
-            controller: controller,
-            focusNode: focusNode,
-            keyboardType: keyboardType,
-            textInputAction: textInputAction,
-            onSubmitted: (value) {
-              if (nextFocusNode != null) {
-                nextFocusNode!.requestFocus();
-                return;
-              }
-              onSubmitted?.call(value);
-            },
-            style: const TextStyle(
-              color: Color(0xFF101416),
-              fontWeight: FontWeight.w800,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: const BoxDecoration(
+              color: Color(0xFF234454),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
             ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              isDense: true,
-              hintText: hintText,
-              hintStyle: const TextStyle(
-                color: Color(0xFF647077),
-                fontWeight: FontWeight.w600,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFFEAF2F5),
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.35,
               ),
             ),
           ),
-        ),
-        Positioned(
-          left: 12,
-          right: 12,
-          top: -8,
-          child: StructuralBorderLabel(
-            label: label,
-            alignment: Alignment.centerLeft,
-            maxWidthFactor: 0.34,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 5),
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              keyboardType: keyboardType,
+              textInputAction: textInputAction,
+              onSubmitted: (value) {
+                if (nextFocusNode != null) {
+                  nextFocusNode!.requestFocus();
+                  return;
+                }
+                onSubmitted?.call(value);
+              },
+              style: const TextStyle(
+                color: Color(0xFFEAF2F5),
+                fontWeight: FontWeight.w800,
+              ),
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                isDense: true,
+                hintText: hintText,
+                hintStyle: const TextStyle(
+                  color: Color(0xFFC9D9E0),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

@@ -113,12 +113,16 @@ class _WorkProfileDrawer extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Color(0xFF101416),
+                    color: Color(0xFFEAF2F5),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ),
-              const Icon(Icons.keyboard_arrow_down_rounded, size: 20),
+              const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Color(0xFFEAF2F5),
+                size: 20,
+              ),
             ],
           ),
         ),
