@@ -75,17 +75,17 @@ class DeviceCapabilityService
   }
 
   @override
-  Stream<DeviceBluetoothConnectionObservation>
-  get approvedConnectionChanges =>
-      _approvedConnectionChanges ??=
-          _readApprovedConnectionChanges().asBroadcastStream();
+  Stream<DeviceBluetoothConnectionObservation> get approvedConnectionChanges =>
+      _approvedConnectionChanges ??= _readApprovedConnectionChanges()
+          .asBroadcastStream();
 
   Stream<DeviceBluetoothConnectionObservation>
   _readApprovedConnectionChanges() async* {
     await for (final event in _events) {
       if (event is! Map || event['reason'] != 'bluetoothConnection') continue;
-      final observation =
-          DeviceBluetoothConnectionObservation.tryParseNative(event);
+      final observation = DeviceBluetoothConnectionObservation.tryParseNative(
+        event,
+      );
       if (observation != null) yield observation;
     }
   }
@@ -116,6 +116,19 @@ class DeviceCapabilityService
       supportsApprovedDeviceObservation:
           value['supportsApprovedDeviceObservation'] == true,
     );
+  }
+
+  Future<bool> requestBluetoothConnectionAccess() async {
+    try {
+      return await _nativeChannel.invokeMethod<bool>(
+            'requestBluetoothConnectionAccess',
+          ) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException {
+      return false;
+    }
   }
 
   Future<DeviceCapabilityProfile> _detect({

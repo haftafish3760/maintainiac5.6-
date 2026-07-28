@@ -29,6 +29,8 @@ import kotlin.math.roundToInt
 
 class DeviceCapabilityBridge(private val activity: Activity) {
     private val context = activity.applicationContext
+    private val bluetoothPermissionRequestCode = 7402
+    private var pendingBluetoothPermissionResult: MethodChannel.Result? = null
     private val devicePerformance: PlayServicesDevicePerformance
         get() = sharedDevicePerformance(context)
 
@@ -40,10 +42,41 @@ class DeviceCapabilityBridge(private val activity: Activity) {
                 "readExtendedCapabilities" -> result.success(readExtendedCapabilities())
                 "readDynamicCapabilities" -> result.success(readDynamicCapabilities())
                 "readBluetoothCapabilities" -> result.success(readBluetoothCapabilities())
+                "requestBluetoothConnectionAccess" -> requestBluetoothConnectionAccess(result)
                 else -> result.notImplemented()
             }
         }
         DeviceCapabilityEvents(context).register(messenger)
+    }
+
+    private fun requestBluetoothConnectionAccess(result: MethodChannel.Result) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) ==
+                PackageManager.PERMISSION_GRANTED
+        ) {
+            result.success(true)
+            return
+        }
+        if (pendingBluetoothPermissionResult != null) {
+            result.error(
+                "bluetooth_permission_request_in_progress",
+                "Bluetooth connection access is already being requested.",
+                null,
+            )
+            return
+        }
+        pendingBluetoothPermissionResult = result
+        activity.requestPermissions(
+            arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+            bluetoothPermissionRequestCode,
+        )
+    }
+
+    fun onRequestPermissionsResult(requestCode: Int, grantResults: IntArray) {
+        if (requestCode != bluetoothPermissionRequestCode) return
+        val pending = pendingBluetoothPermissionResult ?: return
+        pendingBluetoothPermissionResult = null
+        pending.success(grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED)
     }
 
     private fun readRuntimeCapabilities(): Map<String, Any> {

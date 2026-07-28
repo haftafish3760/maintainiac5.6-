@@ -55,6 +55,11 @@ final class DeviceCapabilityBridge {
         result(self.readDynamicCapabilities())
       case "readBluetoothCapabilities":
         result(self.readBluetoothCapabilities())
+      case "requestBluetoothConnectionAccess":
+        // Generic vehicle head units are not app-approved CoreBluetooth
+        // peripherals. Keep this path unavailable rather than prompting for
+        // access the app cannot use safely.
+        result(false)
       default:
         result(FlutterMethodNotImplemented)
       }

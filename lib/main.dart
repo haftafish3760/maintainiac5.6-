@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,8 +37,8 @@ import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
 import 'shared/trip_tracking/trip_tracking_bluetooth.dart';
-import 'shared/trip_tracking/trip_tracking_bluetooth_binding.dart';
 import 'shared/trip_tracking/trip_tracking_bluetooth_coordinator.dart';
+import 'shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
 import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_route_point_store.dart';
@@ -242,9 +243,13 @@ Future<void> main() async {
       return true;
     },
   );
-  final bluetoothTripBinding = TripTrackingBluetoothBinding(
+  final bluetoothTripRuntime = TripTrackingBluetoothRuntimeController(
     probe: DeviceCapabilityService.instance,
     coordinator: bluetoothTripCoordinator,
+    linkStore: bluetoothVehicleLinks,
+    requestObservationAccess: Platform.isAndroid
+        ? DeviceCapabilityService.instance.requestBluetoothConnectionAccess
+        : null,
   );
   final activeDashboardMirror = dashboardMirror;
   if (activeDashboardMirror != null) {
@@ -328,8 +333,8 @@ Future<void> main() async {
                                           child: InvoiceLedgerScope(
                                             controller: invoiceLedger,
                                             child: MaintaniacApp(
-                                              bluetoothTripBinding:
-                                                  bluetoothTripBinding,
+                                              bluetoothTripRuntime:
+                                                  bluetoothTripRuntime,
                                             ),
                                           ),
                                         ),

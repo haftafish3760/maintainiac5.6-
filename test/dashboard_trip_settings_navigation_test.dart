@@ -39,6 +39,7 @@ void main() {
     final source = [
       'lib/screens/settings/trip_tracking_settings_screen.dart',
       'lib/screens/settings/trip_tracking_settings_labels.dart',
+      'lib/screens/settings/trip_tracking_settings_bluetooth_panel.dart',
     ].map((path) => File(path).readAsStringSync()).join('\n');
 
     expect(source, contains("title: 'Enable GPS-assisted tracking'"));
@@ -49,7 +50,10 @@ void main() {
     );
     expect(source, contains("title: 'Accuracy and battery use'"));
     expect(source, contains("'High accuracy (2 sec)'"));
-    expect(source, contains("const _SettingsSectionTitle('Vehicle recognition')"));
+    expect(
+      source,
+      contains("const _SettingsSectionTitle('Vehicle recognition')"),
+    );
     expect(source, contains("'Paid feature'"));
     expect(
       source,

@@ -84,21 +84,34 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 
 ## Current pass
 
-- PASS 6
-- Objective: wire approved Bluetooth observations into the production lifecycle exactly once
+- PASS 7
+- Objective: add explicit, privacy-safe Bluetooth vehicle-link approval and permission flow
 - State: passed
-- Source changes: production construction/injection, root lifecycle start/resume/dispose, authoritative decision delegation
-- Test changes: coordinator resolver regression and production source-contract coverage
-- Regression cases added: authoritative device-resolution delegation and production lifecycle wiring
-- Focused Bluetooth tests: 18 passed, exit 0
+- Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
+- Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
+- Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
+- Focused Bluetooth/settings tests: 34 passed, exit 0 before the final permission UI additions; final affected subset: 11 passed, exit 0
 - Focused analysis: exit 0
-- Complete trip gate: `TRIP_QA_PASS`, exit 0 after repairing its obsolete root-widget constructor assertion
+- Android debug build: `TRIP_QA_PASS`, exit 0
+- Complete trip gate: `TRIP_QA_PASS`, exit 0 after reconciling the intentional Bluetooth panel extraction
 - Retained logs:
-  - `/tmp/maintainiac_pass6_bluetooth.log`
-  - `/tmp/maintainiac_pass6_analyze.log`
-  - `/tmp/maintainiac_pass6_complete_gate_rerun.log`
-- Result: Android-capable approved observations now reach the existing coordinator; retries are idempotent and disposal is owned by the root lifecycle
-- Limitation: no production UI yet creates a user-approved device link; automatic start remains fail-closed because no real paid entitlement owner exists
+  - `/tmp/maintainiac_pass7_permission_focused.log`
+  - `/tmp/maintainiac_pass7_final_analyze.log`
+  - `/tmp/maintainiac_pass7_android_build.log`
+  - `/tmp/maintainiac_pass7_complete_gate_rerun.log`
+- Result: Android users can explicitly grant access, approve a fresh connection for the active vehicle, and forget it without exposing the opaque hardware identity
+- Limitation: automatic start remains fail-closed because no real paid entitlement owner exists
+
+## iOS Bluetooth platform boundary
+
+- Apple Core Bluetooth discovery is peripheral/service based, and background scans require explicit service UUIDs.
+- AccessorySetupKit requires declared accessory names, company identifiers, or services; it is intended for accessories the app supports, not arbitrary vehicle head units.
+- External Accessory visibility for classic Bluetooth is limited to MFi accessories.
+- Therefore the current generic Android ACL connection strategy is not represented as available on iOS. The iOS bridge fails closed until a supported vehicle accessory protocol or other reviewed signal is selected.
+- Primary references:
+  - https://developer.apple.com/documentation/corebluetooth/cbcentralmanager/scanforperipherals(withservices:options:)
+  - https://developer.apple.com/documentation/accessorysetupkit/discovering-and-configuring-accessories
+  - https://developer.apple.com/library/archive/qa/qa1657/_index.html
 
 ## Completed passes
 
@@ -110,6 +123,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 4 | PASSED | Heartbeat freshness after valid initial fix | Heartbeat family and original eight exit 0 |
 | 5 | PASSED | Complete trip-domain gate | `TRIP_QA_PASS`, exit 0 |
 | 6 | PASSED | Production Bluetooth lifecycle wiring | 18 focused tests and analysis exit 0 |
+| 7 | PASSED | Reviewable Bluetooth association and Android permission | Focused tests, analysis, Android build, and complete gate exit 0 |
 
 ## Safest repair order
 
@@ -125,4 +139,4 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 
 ## Next smallest justified action
 
-Add the user-reviewable Bluetooth association path without exposing opaque identifiers or silently changing an active trip.
+Establish the deterministic, memory-bounded regression corpus and scalable 100,000-scenario stress runner.

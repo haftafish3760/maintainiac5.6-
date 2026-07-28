@@ -15,29 +15,29 @@ void main() {
 
     expect(source, contains('TripTrackingBluetoothVehicleLinkStore.create()'));
     expect(source, contains('TripTrackingBluetoothCoordinator('));
-    expect(source, contains('TripTrackingBluetoothBinding('));
+    expect(source, contains('TripTrackingBluetoothRuntimeController('));
     expect(source, contains('probe: DeviceCapabilityService.instance'));
-    expect(source, contains('bluetoothTripBinding:'));
+    expect(source, contains('bluetoothTripRuntime:'));
   });
 
   test('root lifecycle starts retries and disposes the binding', () {
     final source = File('lib/app/maintaniac_app.dart').readAsStringSync();
 
     expect(
-      RegExp(r'bluetoothTripBinding\?\.start\(\)').allMatches(source).length,
+      RegExp(r'bluetoothTripRuntime\.start\(\)').allMatches(source).length,
       2,
     );
-    expect(source, contains('bluetoothTripBinding?.dispose()'));
+    expect(source, contains('bluetoothTripRuntime.dispose()'));
     expect(source, contains('state == AppLifecycleState.resumed'));
     final dependencyStart = source.indexOf('void didChangeDependencies()');
     final disposeStart = source.indexOf('void dispose()');
     expect(
       source.substring(dependencyStart, disposeStart),
-      isNot(contains('bluetoothTripBinding?.dispose()')),
+      isNot(contains('bluetoothTripRuntime.dispose()')),
     );
     expect(
       source.substring(disposeStart),
-      contains('bluetoothTripBinding?.dispose()'),
+      contains('bluetoothTripRuntime.dispose()'),
     );
   });
 }

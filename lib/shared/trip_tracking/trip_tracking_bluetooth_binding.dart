@@ -11,11 +11,17 @@ class TripTrackingBluetoothBinding {
     required this.probe,
     required this.coordinator,
     this.onDecision,
+    this.onObservation,
   });
 
   final DeviceBluetoothConnectionProbe probe;
   final TripTrackingBluetoothCoordinator coordinator;
   final void Function(BluetoothVehicleMatchDecision decision)? onDecision;
+  final void Function(
+    DeviceBluetoothConnectionObservation observation,
+    BluetoothVehicleMatchDecision decision,
+  )?
+  onObservation;
 
   StreamSubscription<DeviceBluetoothConnectionObservation>? _subscription;
   Future<void> _tail = Future<void>.value();
@@ -56,7 +62,10 @@ class TripTrackingBluetoothBinding {
   ) async {
     if (_disposed) return;
     final decision = await coordinator.handleConnection(observation);
-    if (!_disposed) onDecision?.call(decision);
+    if (!_disposed) {
+      onDecision?.call(decision);
+      onObservation?.call(observation, decision);
+    }
   }
 
   Future<void> stop() async {

@@ -12,6 +12,9 @@ void main() {
       final ios = File(
         'ios/Runner/DeviceCapabilityBridge.swift',
       ).readAsStringSync();
+      final activity = File(
+        'android/app/src/main/kotlin/com/maintainiac/MainActivity.kt',
+      ).readAsStringSync();
 
       for (final source in [android, ios]) {
         expect(source, contains('readBluetoothCapabilities'));
@@ -19,6 +22,12 @@ void main() {
         expect(source, isNot(contains('connectedDeviceIds')));
         expect(source, isNot(contains('bondedDevices')));
       }
+      expect(android, contains('requestBluetoothConnectionAccess'));
+      expect(android, contains('bluetoothPermissionRequestCode'));
+      expect(
+        activity,
+        contains('deviceCapabilityBridge.onRequestPermissionsResult'),
+      );
     },
   );
 
@@ -42,6 +51,7 @@ void main() {
     expect(events, isNot(contains('"deviceAddress"')));
     expect(service, contains('DeviceBluetoothConnectionProbe'));
     expect(service, contains('approvedConnectionChanges'));
+    expect(service, contains('requestBluetoothConnectionAccess'));
     expect(service, contains("event['reason'] != 'bluetoothConnection'"));
   });
 }

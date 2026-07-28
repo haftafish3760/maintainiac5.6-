@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_automatic_start_detector.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
+import '../../shared/state/app_state.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import 'trip_background_location_settings_action.dart';
 import 'trip_tracking_gps_opt_in_flow.dart';
@@ -11,22 +13,25 @@ import 'trip_tracking_gps_opt_in_flow.dart';
 part 'trip_tracking_settings_map_controls.dart';
 part 'trip_tracking_settings_calibration_panel.dart';
 part 'trip_tracking_settings_labels.dart';
+part 'trip_tracking_settings_bluetooth_panel.dart';
 
 /// Shared preference surface opened from both Dashboard Settings and Menu.
 class TripTrackingSettingsScreen extends StatelessWidget {
   const TripTrackingSettingsScreen({
     super.key,
-    this.bluetoothVehicleRecognitionAvailable = false,
+    this.bluetoothVehicleRecognitionAvailable,
     this.automaticStartAccess = TripAutomaticStartAccessLevel.free,
   });
 
-  final bool bluetoothVehicleRecognitionAvailable;
+  final bool? bluetoothVehicleRecognitionAvailable;
   final TripAutomaticStartAccessLevel automaticStartAccess;
 
   @override
   Widget build(BuildContext context) {
     final controller = TripTrackingSettingsScope.of(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
+    final bluetoothRuntime = TripTrackingBluetoothRuntimeScope.maybeOf(context);
+    final activeVehicle = AppStateScope.of(context).activeVehicle;
     final settings = controller.settings;
     return AppScreenShell(
       section: AppSection.dashboard,
@@ -42,8 +47,12 @@ class TripTrackingSettingsScreen extends StatelessWidget {
               onChanged: controller.update,
               tripTracking: tripTracking,
               bluetoothVehicleRecognitionAvailable:
-                  bluetoothVehicleRecognitionAvailable,
+                  bluetoothVehicleRecognitionAvailable ??
+                  bluetoothRuntime?.observationAvailable ??
+                  false,
               automaticStartAccess: automaticStartAccess,
+              bluetoothRuntime: bluetoothRuntime,
+              activeVehicle: activeVehicle,
             ),
           ),
         ],
@@ -59,6 +68,8 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
     required this.tripTracking,
     required this.bluetoothVehicleRecognitionAvailable,
     required this.automaticStartAccess,
+    required this.bluetoothRuntime,
+    required this.activeVehicle,
   });
 
   final TripTrackingSettings settings;
@@ -66,6 +77,8 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
   final TripTrackingController? tripTracking;
   final bool bluetoothVehicleRecognitionAvailable;
   final TripAutomaticStartAccessLevel automaticStartAccess;
+  final TripTrackingBluetoothRuntimeController? bluetoothRuntime;
+  final VehicleProfile? activeVehicle;
 
   @override
   Widget build(BuildContext context) {
@@ -282,13 +295,16 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             _CalibrationAcceptancePanel(tripTracking: tripTracking!),
           ],
           const _SettingsSectionTitle('Vehicle recognition'),
-          _bluetoothStatus(),
+          _bluetoothStatus(context),
+          _bluetoothLinkPanel(context),
+          if (automaticStartAccess != TripAutomaticStartAccessLevel.paid)
+            _automaticStartStatus(),
           _switch(
             title: 'Recognize a linked vehicle by Bluetooth',
             detail:
                 'Uses only a Bluetooth device you explicitly link to a vehicle on this phone. Bluetooth identifies the vehicle; GPS estimates distance.',
             value: settings.bluetoothVehicleRecognitionEnabled,
-            onChanged: _bluetoothControlsEnabled
+            onChanged: _bluetoothRecognitionControlsEnabled
                 ? (value) => onChanged(
                     settings.copyWith(
                       bluetoothVehicleRecognitionEnabled: value,
@@ -308,7 +324,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 'Never switches while a GPS trip is active. Otherwise, a linked device can select its vehicle.',
             value: settings.automaticVehicleSwitchEnabled,
             onChanged:
-                _bluetoothControlsEnabled &&
+                _bluetoothRecognitionControlsEnabled &&
                     settings.bluetoothVehicleRecognitionEnabled
                 ? (value) => onChanged(
                     settings.copyWith(automaticVehicleSwitchEnabled: value),
@@ -322,7 +338,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 : 'Paid feature. Starts advisory GPS distance when the approved vehicle connects. Confirmed odometer mileage is never changed without your review.',
             value: settings.automaticStartAssistanceEnabled,
             onChanged:
-                _bluetoothControlsEnabled &&
+                _automaticStartControlsEnabled &&
                     settings.gpsAssistedTrackingEnabled &&
                     settings.bluetoothVehicleRecognitionEnabled
                 ? (value) => onChanged(
@@ -331,37 +347,6 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 : null,
           ),
         ],
-      ),
-    );
-  }
-
-  bool get _bluetoothControlsEnabled =>
-      automaticStartAccess == TripAutomaticStartAccessLevel.paid &&
-      bluetoothVehicleRecognitionAvailable;
-
-  Widget _bluetoothStatus() {
-    final (title, detail) =
-        automaticStartAccess != TripAutomaticStartAccessLevel.paid
-        ? (
-            'Paid feature',
-            'Bluetooth-triggered automatic tracking requires an active paid plan. GPS and manual odometer entry remain available without it.',
-          )
-        : !bluetoothVehicleRecognitionAvailable
-        ? (
-            'Bluetooth setup required',
-            'Bluetooth connection access is unavailable or not granted. Nothing is linked or tracked silently.',
-          )
-        : (
-            'Ready for an approved vehicle link',
-            'Only a vehicle link you approve on this phone can trigger automatic GPS tracking.',
-          );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Container(
-        key: const Key('bluetoothTrackingStatus'),
-        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
-        decoration: _rowDecoration,
-        child: _SettingText(title: title, detail: detail),
       ),
     );
   }

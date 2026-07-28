@@ -20,6 +20,7 @@ class MainActivity : FlutterActivity() {
     private val receiptCameraRequestCode = 7301
     private var pendingReceiptCameraResult: MethodChannel.Result? = null
     private lateinit var tripTrackingBridge: TripTrackingNativeBridge
+    private lateinit var deviceCapabilityBridge: DeviceCapabilityBridge
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -36,9 +37,9 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
-        DeviceCapabilityBridge(this).register(
-            flutterEngine.dartExecutor.binaryMessenger,
-        )
+        deviceCapabilityBridge = DeviceCapabilityBridge(this).also {
+            it.register(flutterEngine.dartExecutor.binaryMessenger)
+        }
     }
 
     override fun onRequestPermissionsResult(
@@ -49,6 +50,9 @@ class MainActivity : FlutterActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (::tripTrackingBridge.isInitialized) {
             tripTrackingBridge.onRequestPermissionsResult(requestCode, grantResults)
+        }
+        if (::deviceCapabilityBridge.isInitialized) {
+            deviceCapabilityBridge.onRequestPermissionsResult(requestCode, grantResults)
         }
     }
 
