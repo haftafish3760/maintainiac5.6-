@@ -81,14 +81,53 @@ class _DashboardSettingsPanel extends StatelessWidget {
               context,
             ).push(appSlideRoute<void>(const ActiveWorkdayQuickActionEditor())),
           ),
-          const _DashboardSettingRow(
+          const _DashboardSettingsNote(
             title: 'Active Day command center',
             detail:
                 'Your current workday shows time, verified miles, quick actions, and recorded activity. Financial totals are based on saved ledger records, never estimates.',
           ),
-          const _DashboardSettingRow(
-            title: 'Default Start Day Position',
-            detail: 'Right side now. Later this becomes user movable.',
+        ],
+      ),
+    );
+  }
+}
+
+class _DashboardSettingsNote extends StatelessWidget {
+  const _DashboardSettingsNote({required this.title, required this.detail});
+
+  final String title;
+  final String detail;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1C2529),
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: const Color(0xFF445158)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Color(0xFFE2E8EA),
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            detail,
+            style: const TextStyle(
+              color: Color(0xFFCAD2D5),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              height: 1.18,
+            ),
           ),
         ],
       ),
