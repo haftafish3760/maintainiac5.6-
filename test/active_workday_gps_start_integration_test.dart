@@ -233,6 +233,10 @@ void main() {
 
     await tester.tap(find.widgetWithText(FilledButton, 'STOP'));
     await tester.pump();
+    expect(find.text('Stop Location Tracking?'), findsOneWidget);
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Stop Location Tracking'),
+    );
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );
@@ -256,7 +260,8 @@ void main() {
           'status=${trip.platformStatus}; error=${trip.platformError}; '
           'review=${trip.latestUnconfirmedReview?.id}',
     );
-    expect(find.text('Review GPS Trip Odometer'), findsOneWidget);
+    // GPS review remains available as a configurable Active Day quick action;
+    // the compact status line must not recreate the removed GPS panel.
     expect(trip.latestUnconfirmedReview, isNotNull);
     expect(odometer.confirmedReading, 12000);
 

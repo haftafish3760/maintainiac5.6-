@@ -13,11 +13,8 @@ void main() {
       contains("import '../settings/trip_tracking_settings_screen.dart'"),
     );
     expect(source, contains('const TripTrackingSettingsScreen()'));
-    expect(source, contains("child: const Text('PHONE LOCATION SETTINGS')"));
-    expect(
-      source,
-      contains('onOpenSettings: () => Navigator.of(context).push('),
-    );
+    expect(source, contains('case WorkdayQuickActionKind.gpsSettings:'));
+    expect(source, contains('ActiveWorkdayTrackingStatusLine('));
   });
 
   test('dashboard settings exposes the complete GPS settings surface', () {

@@ -18,17 +18,15 @@ void main() {
     expect(source, isNot(contains('deleteActiveTrip')));
   });
 
-  test('cancel is serialized against start and stop operations', () {
+  test('cancel is serialized against the active start operation', () {
     final source = File(
       'lib/screens/dashboard/active_workday_screen.dart',
     ).readAsStringSync();
 
     expect(
       source,
-      contains(
-        'if (_gpsCancelInFlight || _gpsStopInFlight || _gpsStartInFlight) return;',
-      ),
+      contains('if (_gpsCancelInFlight || _gpsStartInFlight) return;'),
     );
-    expect(source, contains('startInFlight || stopInFlight || cancelInFlight'));
+    expect(source, contains('onStop: _cancelGpsTrip'));
   });
 }
