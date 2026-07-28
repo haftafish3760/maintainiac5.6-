@@ -20,6 +20,12 @@ enum WorkdayQuickActionKind {
   reminder,
   estimate,
   note,
+  reviewStops,
+  reviewGpsTrip,
+  stopGpsTracking,
+  tripDetails,
+  retryTripLog,
+  gpsSettings,
 }
 
 class WorkdayQuickActionSpec {
@@ -140,6 +146,42 @@ const availableWorkdayQuickActions = [
     icon: Icons.note_alt_rounded,
     label: 'Note',
     color: Color(0xFFB9C3C7),
+  ),
+  WorkdayQuickActionSpec(
+    kind: WorkdayQuickActionKind.reviewStops,
+    icon: Icons.directions_walk_rounded,
+    label: 'Review Stops',
+    color: Color(0xFFFFB02E),
+  ),
+  WorkdayQuickActionSpec(
+    kind: WorkdayQuickActionKind.reviewGpsTrip,
+    icon: Icons.fact_check_rounded,
+    label: 'Review GPS',
+    color: Color(0xFF1CA7E8),
+  ),
+  WorkdayQuickActionSpec(
+    kind: WorkdayQuickActionKind.stopGpsTracking,
+    icon: Icons.gps_off_rounded,
+    label: 'Stop GPS',
+    color: AppActionColors.danger,
+  ),
+  WorkdayQuickActionSpec(
+    kind: WorkdayQuickActionKind.tripDetails,
+    icon: Icons.route_rounded,
+    label: 'Trip Details',
+    color: Color(0xFF8F6CEB),
+  ),
+  WorkdayQuickActionSpec(
+    kind: WorkdayQuickActionKind.retryTripLog,
+    icon: Icons.sync_rounded,
+    label: 'Retry TripLog',
+    color: Color(0xFF78909C),
+  ),
+  WorkdayQuickActionSpec(
+    kind: WorkdayQuickActionKind.gpsSettings,
+    icon: Icons.gps_fixed_rounded,
+    label: 'GPS Settings',
+    color: Color(0xFF607D8B),
   ),
 ];
 

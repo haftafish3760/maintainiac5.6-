@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/settings/trip_tracking_settings_screen.dart';
+import 'package:maintaniac/screens/settings/dashboard_settings.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/widgets/app_back_button.dart';
@@ -66,6 +67,30 @@ void main() {
       expect(sampling, contains('2-second updates'));
       expect(sampling, contains('60-second updates'));
       expect(sampling, contains('brief-stop accuracy'));
+    },
+  );
+
+  testWidgets(
+    'dashboard settings supplies an explicit accessible back control',
+    (tester) async {
+      final appState = AppStateController();
+      final odometer = GlobalOdometerController();
+      addTearDown(appState.dispose);
+      addTearDown(odometer.dispose);
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: const MaterialApp(home: DashboardSettingsScreen()),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AppScreenHeader), findsOneWidget);
+      expect(find.byType(AppBackButton), findsOneWidget);
+      expect(find.text('Dashboard Settings'), findsWidgets);
     },
   );
 }

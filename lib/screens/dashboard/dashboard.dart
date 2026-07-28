@@ -27,7 +27,43 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const AppScreenShell(body: _PreDayDashboardBody());
+    final activeSession = ActiveWorkdayScope.maybeOf(context)?.activeSession;
+    if (activeSession == null) {
+      return const AppScreenShell(body: _PreDayDashboardBody());
+    }
+
+    // Dashboard is the root destination for the active workday. Returning to
+    // it from any section must not expose the pre-day Start Day surface again.
+    final odometer = GlobalOdometerScope.of(context);
+    final selectedVehicle = AppStateScope.of(context).activeVehicle;
+    final activeWorkProfile = ExpenseWorkProfileScope.of(
+      context,
+    ).activeWorkProfile;
+    final vehicle = selectedVehicle == null
+        ? VehicleProfilePreview(
+            id: activeSession.vehicleId,
+            nickname: activeSession.vehicleLabel,
+            year: defaultVehicleProfile.year,
+            make: defaultVehicleProfile.make,
+            model: defaultVehicleProfile.model,
+            odometer: odometer.displayValue,
+            status: 'ACTIVE',
+            usage: defaultVehicleProfile.usage,
+          )
+        : VehicleProfilePreview(
+            id: selectedVehicle.id,
+            nickname: selectedVehicle.nickname,
+            year: selectedVehicle.year,
+            make: selectedVehicle.make,
+            model: selectedVehicle.model,
+            odometer: odometer.displayValue,
+            status: 'ACTIVE',
+            usage: selectedVehicle.usage,
+          );
+    return ActiveWorkdayScreen(
+      activeVehicle: vehicle,
+      workProfileName: activeWorkProfile.name,
+    );
   }
 }
 
@@ -71,7 +107,8 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
               final gpsStatus =
                   TripTrackingDashboardLiveStatusPolicy.vehicleStatus(
                     activeTrip:
-                        activeSession != null || tripTracking?.isTracking == true,
+                        activeSession != null ||
+                        tripTracking?.isTracking == true,
                     nativeTracking:
                         tripTracking?.nativeProviderRegistered == true,
                     hasLiveProjection: odometer.hasLiveTripProjection,
@@ -213,8 +250,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
         activeWorkProfileName: activeWorkProfile.name,
         promptForTripTrackingSetup:
             tripSettings?.tripTrackingSetupCompleted == false,
-        startGpsWhenOpened:
-            tripSettings?.gpsAssistedTrackingEnabled == true,
+        startGpsWhenOpened: tripSettings?.gpsAssistedTrackingEnabled == true,
       );
       return;
     }

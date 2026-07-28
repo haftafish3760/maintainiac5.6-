@@ -8,7 +8,8 @@ void main() {
       'lib/screens/dashboard/active_workday_screen.dart',
     ).readAsStringSync();
 
-    expect(source, contains('onReviewWalkingStop: _reviewWalkingStop'));
+    expect(source, contains('case WorkdayQuickActionKind.reviewStops:'));
+    expect(source, contains('await _reviewWalkingStop();'));
     expect(source, contains("'REVIEW POSSIBLE STOP'"));
     expect(source, contains('controller?.pendingStopReviewCount'));
     expect(source, contains('latestPendingStopBoundaryCandidate'));

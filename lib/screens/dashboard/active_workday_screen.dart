@@ -65,7 +65,6 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       ActiveWorkdayElapsedClock.runtime();
   Timer? _timer;
   var _gpsStartInFlight = false;
-  var _gpsStopInFlight = false;
   var _gpsCancelInFlight = false;
 
   @override
@@ -136,25 +135,6 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 8),
-                _GpsTripPanel(
-                  onStart: _startGpsTrip,
-                  onStop: _stopGpsTrip,
-                  onCancel: _cancelGpsTrip,
-                  onReviewLatest: _reviewLatestGpsTrip,
-                  onRetryTripLogProposal: _retryLatestTripLogProposal,
-                  onReviewWalkingStop: _reviewWalkingStop,
-                  onViewFieldSummary: _showLatestGpsFieldSummary,
-                  onOpenSettings: () => Navigator.of(context).push(
-                    appNativeRoute<void>(
-                      context,
-                      const TripTrackingSettingsScreen(),
-                    ),
-                  ),
-                  startInFlight: _gpsStartInFlight,
-                  stopInFlight: _gpsStopInFlight,
-                  cancelInFlight: _gpsCancelInFlight,
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -337,6 +317,20 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         final note = await openWorkdayNoteSheet(context);
         if (!mounted || note == null) return;
         await _recordStoredEvent(ActiveWorkdayEventType.note, note: note);
+      case WorkdayQuickActionKind.reviewStops:
+        await _reviewWalkingStop();
+      case WorkdayQuickActionKind.reviewGpsTrip:
+        await _reviewLatestGpsTrip();
+      case WorkdayQuickActionKind.stopGpsTracking:
+        await _cancelGpsTrip();
+      case WorkdayQuickActionKind.tripDetails:
+        await _showLatestGpsFieldSummary();
+      case WorkdayQuickActionKind.retryTripLog:
+        await _retryLatestTripLogProposal();
+      case WorkdayQuickActionKind.gpsSettings:
+        await Navigator.of(context).push(
+          appNativeRoute<void>(context, const TripTrackingSettingsScreen()),
+        );
     }
   }
 
@@ -858,22 +852,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
   }
 
-  Future<void> _stopGpsTrip() async {
-    if (_gpsStopInFlight) return;
-    setState(() => _gpsStopInFlight = true);
-    try {
-      await _stopGpsTripImpl();
-    } finally {
-      if (mounted) {
-        setState(() => _gpsStopInFlight = false);
-      } else {
-        _gpsStopInFlight = false;
-      }
-    }
-  }
-
   Future<void> _cancelGpsTrip() async {
-    if (_gpsCancelInFlight || _gpsStopInFlight || _gpsStartInFlight) return;
+    if (_gpsCancelInFlight || _gpsStartInFlight) return;
     final tripTracking = TripTrackingScope.maybeOf(context);
     if (tripTracking == null || !tripTracking.isTracking) return;
     final confirmed = await showDialog<bool>(
@@ -929,15 +909,6 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         _gpsCancelInFlight = false;
       }
     }
-  }
-
-  Future<void> _stopGpsTripImpl() async {
-    final tripTracking = TripTrackingScope.maybeOf(context);
-    if (tripTracking == null || !tripTracking.isTracking) return;
-    await _finishAndReviewGpsTrip(
-      tripTracking,
-      missingTripMessage: 'No active GPS trip to stop.',
-    );
   }
 
   Future<int?> _finishAndReviewGpsTrip(
@@ -1218,8 +1189,12 @@ class _LiveOdometerPanelLine extends StatelessWidget {
   }
 }
 
-class _GpsTripPanel extends StatelessWidget {
-  const _GpsTripPanel({
+/// Retired dashboard panel retained temporarily while its detailed status
+/// elements are migrated into configurable Quick Actions. It is never rendered.
+@Deprecated('Use configurable workday Quick Actions instead.')
+class GpsTripPanelRetired extends StatelessWidget {
+  const GpsTripPanelRetired({
+    super.key,
     required this.onStart,
     required this.onStop,
     required this.onCancel,

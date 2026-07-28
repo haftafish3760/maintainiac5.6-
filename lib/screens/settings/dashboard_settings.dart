@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/navigation/app_page_routes.dart';
+import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import 'trip_tracking_settings_screen.dart';
 
@@ -11,6 +12,7 @@ class DashboardSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppScreenShell(
       section: AppSection.dashboard,
+      pinnedHeader: const AppScreenHeader(title: 'Dashboard Settings'),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 10, 0, 18),
         children: const [
