@@ -101,6 +101,9 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 - PASS 17
 - Objective: fail closed for untrusted Bluetooth states in deterministic stress evaluation
 - State: passed; 100,000 scenario seed A, same-seed repeat, and seed B all had zero failures and invalid cases
+- PASS 18
+- Objective: protect the production automatic-start entitlement boundary
+- State: passed; production wiring lacks both a paid-access owner and automatic-start callback until that product capability is deliberately completed
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -145,6 +148,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 12 | VERIFIED SUBSET | S24 dashboard selector contrast and responsive layout | Dashboard tests/analyze and iPhone SE/S24-width regression passed; iPhone Release installed/launched |
 | 16 | PASSED | iOS credible provider readiness | Focused native/provider tests, analysis, commercial gate, and iPhone Release build/install/launch passed |
 | 17 | PASSED | Bluetooth stress state integrity | 100,000 seed A, same-seed repeat, and different seed all passed with zero failures |
+| 18 | PASSED | Production automatic-start boundary | Bluetooth wiring test confirms no implicit trip start; focused automatic-start and Bluetooth tests passed |
 
 ## Safest repair order
 

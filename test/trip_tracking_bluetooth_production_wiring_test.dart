@@ -20,6 +20,20 @@ void main() {
     expect(source, contains('bluetoothTripRuntime:'));
   });
 
+  test(
+    'production Bluetooth wiring cannot create a trip without entitlement',
+    () {
+      final source = File('lib/main.dart').readAsStringSync();
+      final coordinator = source.substring(
+        source.indexOf('final bluetoothTripCoordinator'),
+        source.indexOf('final bluetoothTripRuntime'),
+      );
+
+      expect(coordinator, isNot(contains('automaticStartAccess:')));
+      expect(coordinator, isNot(contains('startAutomaticTracking:')));
+    },
+  );
+
   test('root lifecycle starts retries and disposes the binding', () {
     final source = File('lib/app/maintaniac_app.dart').readAsStringSync();
 
