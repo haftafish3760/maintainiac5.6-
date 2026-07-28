@@ -8,12 +8,16 @@ Future<bool> openOdometerEntry(
   BuildContext context, {
   String title = 'Update Odometer',
   String saveLabel = 'Save Reading',
+  bool autofocus = true,
+  String? helperText,
   TripTrackingReviewRecord? tripReview,
 }) async {
   final result = await openOdometerEntryResult(
     context,
     title: title,
     saveLabel: saveLabel,
+    autofocus: autofocus,
+    helperText: helperText,
     tripReview: tripReview,
   );
   return result != null;
@@ -23,6 +27,8 @@ Future<int?> openOdometerEntryResult(
   BuildContext context, {
   String title = 'Update Odometer',
   String saveLabel = 'Save Reading',
+  bool autofocus = true,
+  String? helperText,
   TripTrackingReviewRecord? tripReview,
 }) async {
   final odometer = GlobalOdometerScope.of(context);
@@ -35,6 +41,8 @@ Future<int?> openOdometerEntryResult(
       child: OdometerEntrySheet(
         title: title,
         saveLabel: saveLabel,
+        autofocus: autofocus,
+        helperText: helperText,
         tripReview: tripReview,
       ),
     ),

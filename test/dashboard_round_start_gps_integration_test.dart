@@ -61,7 +61,10 @@ class _RoundStartGpsGateway implements TripTrackingNativeGateway {
     startCalls += 1;
     running = true;
     _events.add(
-      TripTrackingPlatformEvent.fromMap({'type': 'status', 'status': 'tracking'}),
+      TripTrackingPlatformEvent.fromMap({
+        'type': 'status',
+        'status': 'tracking',
+      }),
     );
     return true;
   }
@@ -93,6 +96,17 @@ Future<void> _pumpUntil(
     isTrue,
     reason: diagnostic == null ? reason : '${reason ?? ''} ${diagnostic()}',
   );
+}
+
+Future<void> _completeGuidedStartDay(WidgetTester tester) async {
+  await tester.tap(find.text('START'));
+  await tester.pumpAndSettle();
+  expect(find.text('Start Your Delivery Day'), findsOneWidget);
+  await tester.tap(find.text('Enter Odometer'));
+  await tester.pumpAndSettle();
+  expect(find.text('Enter Current Odometer'), findsOneWidget);
+  await tester.tap(find.text('Start Day'));
+  await tester.pumpAndSettle();
 }
 
 void main() {
@@ -152,11 +166,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('START'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Review Start Day'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Workday'));
+    await _completeGuidedStartDay(tester);
     await _pumpUntil(
       tester,
       () => workday.activeSession != null,
@@ -227,13 +237,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('START'));
-    await tester.pumpAndSettle();
-    expect(find.text('Starting Odometer'), findsOneWidget);
-    await tester.tap(find.text('Review Start Day'));
-    await tester.pumpAndSettle();
-    expect(find.text('Ready to Start Day'), findsOneWidget);
-    await tester.tap(find.text('Start Workday'));
+    await _completeGuidedStartDay(tester);
     await _pumpUntil(
       tester,
       () =>
@@ -305,11 +309,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('START'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Review Start Day'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Start Workday'));
+    await _completeGuidedStartDay(tester);
     await _pumpUntil(
       tester,
       () =>

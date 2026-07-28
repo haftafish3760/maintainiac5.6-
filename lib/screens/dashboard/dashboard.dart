@@ -5,8 +5,8 @@ import '../../shared/calendar/calendar.dart';
 import 'contractor/contractor_dashboard_screen.dart';
 import 'dashboard_panels.dart';
 import 'dashboard_active_day_panel.dart';
+import 'gig_start_day_setup_sheet.dart';
 import 'start_day_panel.dart';
-import 'start_day_confirmation_sheet.dart';
 import 'vehicle_profile_flow.dart';
 import 'vehicle_profile_widgets.dart';
 import '../../shared/navigation/app_page_routes.dart';
@@ -229,10 +229,10 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
 
   Future<void> _startDay() async {
     final odometer = GlobalOdometerScope.of(context);
-    final activeVehicle = AppStateScope.of(context).activeVehicle;
-    final activeWorkProfile = ExpenseWorkProfileScope.of(
-      context,
-    ).activeWorkProfile;
+    final appState = AppStateScope.of(context);
+    final activeVehicle = appState.activeVehicle;
+    final workProfiles = ExpenseWorkProfileScope.of(context);
+    final activeWorkProfile = workProfiles.activeWorkProfile;
     if (activeVehicle == null) return;
     final activeWorkday = ActiveWorkdayScope.maybeOf(context);
     if (activeWorkday == null) {
@@ -254,38 +254,77 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       );
       return;
     }
-    var confirmedStartOdometer = odometer.reading;
-    while (mounted) {
-      final savedReading = await openOdometerEntryResult(
-        context,
-        title: 'Starting Odometer',
-        saveLabel: 'Review Start Day',
+    final choice = await openGigStartDaySetupSheet(
+      context,
+      vehicles: appState.vehicles,
+      workProfiles: workProfiles.profiles,
+      initialVehicleId: activeVehicle.id,
+      initialWorkProfileId: activeWorkProfile.id,
+    );
+    if (!mounted || choice == null) return;
+    final selectedVehicle = appState.vehicleById(choice.vehicleId);
+    final selectedWorkProfile = workProfiles.profileById(choice.workProfileId);
+    if (selectedVehicle == null ||
+        selectedVehicle.isArchived ||
+        selectedWorkProfile == null ||
+        selectedWorkProfile.isArchived) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Reload the selected vehicle and work profile.'),
+        ),
       );
-      if (savedReading == null || !mounted) return;
-      confirmedStartOdometer = savedReading;
-      final action = await openStartDayConfirmationSheet(
-        context,
-        vehicleLabel: activeVehicle.nickname,
-        workProfileName: activeWorkProfile.name,
-        startingOdometer: confirmedStartOdometer,
-      );
-      if (!mounted || action == null) return;
-      if (action == StartDayReviewAction.editOdometer) continue;
-      break;
+      return;
     }
+    if (selectedVehicle.id != activeVehicle.id) {
+      final switched = await odometer.switchVehicleById(
+        odometerVehicleIdForVehicleId(
+          selectedVehicle.id,
+          fallbackLabel: selectedVehicle.nickname,
+        ),
+      );
+      if (!mounted || !switched) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Review the active GPS trip before switching vehicles.',
+              ),
+            ),
+          );
+        }
+        return;
+      }
+    }
+    await appState.selectVehicle(selectedVehicle);
+    await workProfiles.select(selectedWorkProfile.id);
+    if (!mounted) return;
+    final operationalContext = OperationalContextScope.maybeOf(context);
+    if (operationalContext != null) {
+      await operationalContext.setActiveVehicle(
+        vehicleId: odometer.vehicleId,
+        vehicleLabel: selectedVehicle.nickname,
+        usage: selectedVehicle.usage,
+      );
+    }
+    if (!mounted) return;
+    final confirmedStartOdometer = await openOdometerEntryResult(
+      context,
+      title: 'Enter Current Odometer',
+      saveLabel: 'Start Day',
+      autofocus: false,
+    );
+    if (!mounted || confirmedStartOdometer == null) return;
     if (!mounted) return;
     await activeWorkday.startDay(
       vehicleId: odometer.vehicleId,
-      vehicleLabel: activeVehicle.nickname,
-      workProfileId:
-          OperationalContextScope.maybeOf(context)?.context.workProfileId ??
-          activeWorkProfile.id,
+      vehicleLabel: selectedVehicle.nickname,
+      workProfileId: selectedWorkProfile.id,
       startOdometer: confirmedStartOdometer,
     );
     if (!mounted) return;
     _openActiveWorkday(
-      activeVehicle: activeVehicle,
-      activeWorkProfileName: activeWorkProfile.name,
+      activeVehicle: selectedVehicle,
+      activeWorkProfileName: selectedWorkProfile.name,
       promptForTripTrackingSetup:
           TripTrackingSettingsScope.maybeOf(
             context,

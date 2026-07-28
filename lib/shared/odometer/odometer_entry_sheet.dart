@@ -15,12 +15,16 @@ class OdometerEntrySheet extends StatefulWidget {
     super.key,
     required this.title,
     required this.saveLabel,
+    this.autofocus = true,
+    this.helperText,
     this.onSaved,
     this.tripReview,
   });
 
   final String title;
   final String saveLabel;
+  final bool autofocus;
+  final String? helperText;
   final VoidCallback? onSaved;
   final TripTrackingReviewRecord? tripReview;
 
@@ -111,7 +115,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
             const SizedBox(height: 12),
             TextField(
               controller: _controller,
-              autofocus: true,
+              autofocus: widget.autofocus,
               style: const TextStyle(
                 color: Color(0xFF101416),
                 fontSize: 24,
@@ -164,18 +168,18 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Use the physical odometer. If this adds miles since the last '
-              'reading, choose how those miles should be counted before the '
-              'reading is saved.',
-              style: TextStyle(
-                color: Color(0xFF101416),
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                height: 1.25,
+            if (widget.helperText != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                widget.helperText!,
+                style: const TextStyle(
+                  color: Color(0xFF101416),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  height: 1.25,
+                ),
               ),
-            ),
+            ],
             if (tripReconciliation != null) ...[
               const SizedBox(height: 12),
               _TripGpsReconciliationPanel(reconciliation: tripReconciliation),
