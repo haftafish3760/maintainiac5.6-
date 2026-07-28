@@ -1,5 +1,14 @@
 part of '../../receipts/receipt_ocr_contract.dart';
 
+final _receiptCoordinateTextCache = Expando<String>();
+final _receiptOrderedRawLinesCache = Expando<List<String>>();
+final _receiptOrderedParserLinesCache = Expando<List<String>>();
+final _receiptStructuredWarningsCache = Expando<List<ReceiptOcrWarning>>();
+final _receiptDiagnosticsCache = Expando<ReceiptOcrDiagnostics>();
+final _receiptParserLineSignalsCache =
+    Expando<List<ReceiptOcrParserLineSignal>>();
+final _receiptParserHandoffCache = Expando<ReceiptOcrParserHandoff>();
+
 class ReceiptOcrResult {
   const ReceiptOcrResult({
     required this.rawText,
@@ -29,24 +38,28 @@ class ReceiptOcrResult {
   bool get hasText =>
       rawText.trim().isNotEmpty ||
       coordinateReconstructedText.trim().isNotEmpty;
-  String get coordinateReconstructedText => layout.reconstructedRows
-      .map((row) => row.displayText)
-      .where((line) => line.trim().isNotEmpty)
-      .join('\n');
+  String get coordinateReconstructedText =>
+      _receiptCoordinateTextCache[this] ??= layout.reconstructedRows
+          .map((row) => row.displayText)
+          .where((line) => line.trim().isNotEmpty)
+          .join('\n');
   String get appFillText {
     final reconstructed = coordinateReconstructedText;
     if (reconstructed.isNotEmpty) return reconstructed;
     return parserText.trim().isEmpty ? rawText : parserText;
   }
 
-  List<String> get orderedRawLines => _receiptOcrLines(rawText);
-  List<String> get orderedParserLines => _receiptOcrLines(appFillText);
+  List<String> get orderedRawLines =>
+      _receiptOrderedRawLinesCache[this] ??= _receiptOcrLines(rawText);
+  List<String> get orderedParserLines =>
+      _receiptOrderedParserLinesCache[this] ??= _receiptOcrLines(appFillText);
 
   ReceiptOcrDiagnostics get diagnostics =>
-      ReceiptOcrDiagnostics.fromResult(this);
-  List<ReceiptOcrWarning> get structuredWarnings {
-    return warnings.map(ReceiptOcrWarning.fromMessage).toList(growable: false);
-  }
+      _receiptDiagnosticsCache[this] ??= ReceiptOcrDiagnostics.fromResult(this);
+  List<ReceiptOcrWarning> get structuredWarnings =>
+      _receiptStructuredWarningsCache[this] ??= List.unmodifiable(
+        warnings.map(ReceiptOcrWarning.fromMessage),
+      );
 
   List<ReceiptOcrWarning> get prioritizedWarnings {
     final structured = structuredWarnings.toList(growable: false);

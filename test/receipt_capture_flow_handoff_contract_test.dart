@@ -302,10 +302,7 @@ void main() {
     expect(uiConfig, contains('this.previewControlsMultiPhotoHeight = 178'));
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
-    expect(
-      previewControls,
-      contains('_ReceiptPhotoSectionLabels.addNextSectionLabel'),
-    );
+    expect(previewControls, contains('Add Another is only for long receipts.'));
     expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(controls, contains('open receipt details'));
     expect(

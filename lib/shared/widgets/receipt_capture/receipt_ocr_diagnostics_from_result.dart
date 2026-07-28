@@ -19,12 +19,17 @@ ReceiptOcrDiagnostics _receiptOcrDiagnosticsFromResult(
     duplicateOrOverlap: duplicateOrOverlap,
   );
   final primaryWarning = result.primaryWarning;
+  // Parser-line analysis is the expensive part of diagnostics. Build it once
+  // per result and reuse it instead of reconstructing every OCR line dozens
+  // of times through repeated computed getters.
+  final parserHandoff = result.parserHandoff;
   final parserTaskCounts = _parserTaskCountsWithReceiptCoverage(
     _parserTaskCountsWithWarnings(
-      result.parserHandoff.parserTaskCounts,
+      parserHandoff.parserTaskCounts,
       structuredWarnings,
     ),
     result,
+    parserHandoff,
   );
   return ReceiptOcrDiagnostics(
     severity: severity,
@@ -53,27 +58,25 @@ ReceiptOcrDiagnostics _receiptOcrDiagnosticsFromResult(
     primaryWarningTargetLabel: primaryWarning?.reviewTargetLabel ?? '',
     primaryWarningTargetInstruction:
         primaryWarning?.reviewTargetInstruction ?? '',
-    vendorCandidateLineCount: result.vendorCandidateLines.length,
-    dateCandidateLineCount: result.dateCandidateLines.length,
-    itemCandidateLineCount: result.itemCandidateLines.length,
-    pricedLineCount: result.parserHandoff.pricedLineCount,
-    parserReadyLineCount: result.parserHandoff.parserReadyLineCount,
-    parserReviewSignalCount: result.parserHandoff.parserReviewSignalCount,
-    parserReadinessStatus: result.parserHandoff.parserReadinessStatus,
+    vendorCandidateLineCount: parserHandoff.vendorLines.length,
+    dateCandidateLineCount: parserHandoff.dateLines.length,
+    itemCandidateLineCount: parserHandoff.itemLines.length,
+    pricedLineCount: parserHandoff.pricedLineCount,
+    parserReadyLineCount: parserHandoff.parserReadyLineCount,
+    parserReviewSignalCount: parserHandoff.parserReviewSignalCount,
+    parserReadinessStatus: parserHandoff.parserReadinessStatus,
     highConfidenceItemCandidateLineCount:
-        result.parserHandoff.highConfidenceItemLineCount,
-    reviewItemCandidateLineCount: result.parserHandoff.reviewItemLineCount,
+        parserHandoff.highConfidenceItemLineCount,
+    reviewItemCandidateLineCount: parserHandoff.reviewItemLineCount,
     quantitySignalItemCandidateLineCount:
-        result.parserHandoff.quantitySignalItemLineCount,
-    skuSignalItemCandidateLineCount:
-        result.parserHandoff.skuSignalItemLineCount,
-    genericItemCandidateLineCount: result.parserHandoff.genericItemLineCount,
-    inventoryPrepLineCount: result.parserHandoff.inventoryPrepLineCount,
-    parserReadyFieldCount: result.parserHandoff.parserReadyFieldCount,
-    parserReviewFieldCount: result.parserHandoff.parserReviewFieldCount,
+        parserHandoff.quantitySignalItemLineCount,
+    skuSignalItemCandidateLineCount: parserHandoff.skuSignalItemLineCount,
+    genericItemCandidateLineCount: parserHandoff.genericItemLineCount,
+    inventoryPrepLineCount: parserHandoff.inventoryPrepLineCount,
+    parserReadyFieldCount: parserHandoff.parserReadyFieldCount,
+    parserReviewFieldCount: parserHandoff.parserReviewFieldCount,
     parserTaskCounts: parserTaskCounts,
-    parserHandoffContract:
-        result.parserHandoff.privacySafeParserHandoffContract,
+    parserHandoffContract: parserHandoff.privacySafeParserHandoffContract,
     ocrSourceHandoffContract: result.sourceHandoffSummary.privacySafeContract,
     ocrSourceHandoffStatus: result.sourceHandoffSummary.status,
     ocrSourceHandoffSignalCounts:
@@ -100,48 +103,55 @@ ReceiptOcrDiagnostics _receiptOcrDiagnosticsFromResult(
         result.sourceHandoffSummary.photoQualityRiskCounts,
     ocrSourceBottomCoverageRiskDetected:
         result.sourceHandoffSummary.hasMissingBottomEdgeAndTotalsEvidence,
-    clientProofRedactionStatus: result.parserHandoff.clientProofRedactionStatus,
-    clientProofVisibilityCounts:
-        result.parserHandoff.clientProofVisibilityCounts,
-    fieldReadinessCounts: result.parserHandoff.fieldReadinessCounts,
+    clientProofRedactionStatus: parserHandoff.clientProofRedactionStatus,
+    clientProofVisibilityCounts: parserHandoff.clientProofVisibilityCounts,
+    fieldReadinessCounts: parserHandoff.fieldReadinessCounts,
     requiredParserFieldStatusCounts:
-        result.parserHandoff.requiredParserFieldStatusCounts,
+        parserHandoff.requiredParserFieldStatusCounts,
     requiredParserFieldStatusLabel:
-        result.parserHandoff.requiredParserFieldStatusLabel,
-    headerRecoveryStatus: result.parserHandoff.headerRecoveryStatus,
-    headerRecoveryLabel: result.parserHandoff.headerRecoveryLabel,
-    headerRecoveryDiagnostics: result.parserHandoff.headerRecoveryDiagnostics,
-    vendorReviewStatus: result.parserHandoff.vendorReviewStatus,
-    vendorReviewLabel: result.parserHandoff.vendorReviewLabel,
-    vendorReviewDiagnostics: result.parserHandoff.vendorReviewDiagnostics,
+        parserHandoff.requiredParserFieldStatusLabel,
+    headerRecoveryStatus: parserHandoff.headerRecoveryStatus,
+    headerRecoveryLabel: parserHandoff.headerRecoveryLabel,
+    headerRecoveryDiagnostics: parserHandoff.headerRecoveryDiagnostics,
+    vendorReviewStatus: parserHandoff.vendorReviewStatus,
+    vendorReviewLabel: parserHandoff.vendorReviewLabel,
+    vendorReviewDiagnostics: parserHandoff.vendorReviewDiagnostics,
     merchantIndependentStructureStatus:
-        result.parserHandoff.merchantIndependentStructureStatus,
+        parserHandoff.merchantIndependentStructureStatus,
     merchantIndependentStructureLabel:
-        result.parserHandoff.merchantIndependentStructureLabel,
+        parserHandoff.merchantIndependentStructureLabel,
     merchantIndependentStructureDiagnostics:
-        result.parserHandoff.merchantIndependentStructureDiagnostics,
+        parserHandoff.merchantIndependentStructureDiagnostics,
     mixedClassificationReadinessStatus:
-        result.parserHandoff.mixedClassificationReadinessStatus,
+        parserHandoff.mixedClassificationReadinessStatus,
     mixedClassificationEvidenceLabel:
-        result.parserHandoff.mixedClassificationEvidenceLabel,
+        parserHandoff.mixedClassificationEvidenceLabel,
     mixedClassificationEvidenceDiagnostics:
-        result.parserHandoff.mixedClassificationEvidenceDiagnostics,
-    parserLineRoleCounts: result.parserHandoff.lineRoleCounts,
-    dominantParserLineRole: result.parserHandoff.dominantLineRole,
-    ocrSummaryMathStatus: result.parserHandoff.summaryMathStatus,
-    ocrSummaryMathReconciled: result.parserHandoff.summaryMathReconciled,
-    ocrLineSequenceStatus: result.parserHandoff.lineSequenceStatus,
+        parserHandoff.mixedClassificationEvidenceDiagnostics,
+    parserLineRoleCounts: parserHandoff.lineRoleCounts,
+    dominantParserLineRole: parserHandoff.dominantLineRole,
+    ocrSummaryMathStatus: parserHandoff.summaryMathStatus,
+    ocrSummaryMathReconciled: parserHandoff.summaryMathReconciled,
+    ocrLineSequenceStatus: parserHandoff.lineSequenceStatus,
     ocrSourceSectionContinuityStatus:
-        result.parserHandoff.sourceSectionContinuityStatus,
-    ocrSourceSectionCount: result.parserHandoff.sourceSectionCount,
+        parserHandoff.sourceSectionContinuityStatus,
+    ocrSourceSectionCount: parserHandoff.sourceSectionCount,
     ocrSourceSectionContinuityReviewNeeded:
-        result.parserHandoff.needsSourceSectionContinuityReview,
-    ocrReceiptStructureStatus: result.parserHandoff.receiptStructureStatus,
-    priceCandidateLineCount: result.priceCandidateLines.length,
-    subtotalCandidateLineCount: result.subtotalCandidateLines.length,
-    totalCandidateLineCount: result.totalCandidateLines.length,
-    taxCandidateLineCount: result.taxCandidateLines.length,
-    tenderCandidateLineCount: result.tenderCandidateLines.length,
-    metadataCandidateLineCount: result.metadataCandidateLines.length,
+        parserHandoff.needsSourceSectionContinuityReview,
+    ocrReceiptStructureStatus: parserHandoff.receiptStructureStatus,
+    priceCandidateLineCount: parserHandoff.pricedLineCount,
+    subtotalCandidateLineCount: parserHandoff.lines
+        .where(
+          (line) => line.kind == ReceiptOcrParserLineKind.subtotalCandidate,
+        )
+        .length,
+    totalCandidateLineCount: parserHandoff.lines
+        .where((line) => line.kind == ReceiptOcrParserLineKind.totalCandidate)
+        .length,
+    taxCandidateLineCount: parserHandoff.lines
+        .where((line) => line.kind == ReceiptOcrParserLineKind.taxCandidate)
+        .length,
+    tenderCandidateLineCount: parserHandoff.tenderLines.length,
+    metadataCandidateLineCount: parserHandoff.metadataLines.length,
   );
 }

@@ -166,6 +166,8 @@ internal fun ReceiptCameraActivity.nativeCapturedPhotoDiagnostics(
         "latestCapturedSharpnessBucket" to latestCapturedSharpnessBucket,
         "latestCapturedQualitySignal" to latestCapturedQualitySignal,
         "latestCaptureLiveBrightnessAtShutter" to latestCaptureLiveBrightnessAtShutter,
+        "latestCaptureShutterZoomRatio" to latestCaptureShutterZoomRatio,
+        "latestCaptureShutterExposureIndex" to latestCaptureShutterExposureIndex,
         "latestCapturedLiveToSavedLumaDelta" to latestCapturedLiveToSavedLumaDelta,
         "latestCapturedLiveToSavedLumaDeltaBucket" to latestCapturedLiveToSavedLumaDeltaBucket,
         "latestCapturedPreviewParitySignal" to latestCapturedPreviewParitySignal,

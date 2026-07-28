@@ -6,8 +6,8 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       // A current flagship should either produce text or offer recovery within
       // twenty seconds. Older devices receive a proportionate ceiling.
       ReceiptCapabilityTier.heavyweight => const Duration(seconds: 20),
-      ReceiptCapabilityTier.medium => const Duration(seconds: 35),
-      ReceiptCapabilityTier.light => const Duration(seconds: 50),
+      ReceiptCapabilityTier.medium => const Duration(seconds: 25),
+      ReceiptCapabilityTier.light => const Duration(seconds: 30),
     };
   }
 
@@ -182,7 +182,11 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
       selectedCategory: widget.initialCategory,
       inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
     );
-    final handoffRouter = _receiptOcrHandoffRouter(capability);
+    PreparedExpenseReceiptOcrReview? preparedExpenseReview;
+    final handoffRouter = _receiptOcrHandoffRouter(
+      capability,
+      onExpensePrepared: (prepared) => preparedExpenseReview = prepared,
+    );
     ExpenseScreenTelemetryRecorder.record(
       context,
       ocr.hasText
@@ -326,9 +330,15 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
     unawaited(_recordPrivacySafeParseEvent(parsed));
     _recordParserTelemetry(parsed);
     if (!mounted) return;
+    final preparedDiagnostics = preparedExpenseReview?.ocrDiagnostics;
+    final preparedWarnings = preparedExpenseReview?.ocrWarnings;
     _updateReceiptState(() {
-      _lastOcrDiagnostics = ocr.diagnostics;
-      _lastOcrWarnings = ocr.structuredWarnings;
+      // The generic receipt handoff does not always create a separate
+      // prepared-review diagnostic. Keep ML Kit's completed read evidence in
+      // that case so the review screen never calls a successful read
+      // "not measured."
+      _lastOcrDiagnostics = preparedDiagnostics ?? ocr.diagnostics;
+      _lastOcrWarnings = preparedWarnings ?? ocr.structuredWarnings;
     });
     try {
       _applyParsedReceipt(parsed);
@@ -355,14 +365,21 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
   }
 
   ReceiptOcrHandoffRouter<ExpenseReceiptParseResult> _receiptOcrHandoffRouter(
-    ReceiptDeviceCapability capability,
-  ) {
+    ReceiptDeviceCapability capability, {
+    String? traceId,
+    required ValueChanged<PreparedExpenseReceiptOcrReview> onExpensePrepared,
+  }) {
     return ReceiptOcrHandoffRouter(
-      expenseReview: (handoff) => parseExpenseReceiptOcrResultWithLocalMemory(
-        handoff.ocr,
-        fallbackDate: _selectedDate,
-        capability: capability,
-      ),
+      expenseReview: (handoff) async {
+        final prepared = await prepareGenericExpenseReceiptOcrReviewInWorker(
+          handoff.ocr,
+          fallbackDate: _selectedDate,
+          capability: capability,
+          traceId: traceId,
+        );
+        onExpensePrepared(prepared);
+        return prepared.parsed;
+      },
       fuel: widget.fuelOcrHandoff,
       inventory: widget.inventoryOcrHandoff,
     );

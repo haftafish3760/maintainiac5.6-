@@ -277,15 +277,15 @@ TOTAL 10.48
 
     expect(light.maxPhotoOcrAttachments, 4);
     expect(light.maxPdfOcrAttachments, 1);
-    expect(light.pdfPageReadTimeout, const Duration(seconds: 8));
-    expect(light.photoReadTimeout, const Duration(seconds: 8));
+    expect(light.pdfPageReadTimeout, const Duration(seconds: 18));
+    expect(light.photoReadTimeout, const Duration(seconds: 18));
     expect(medium.maxPhotoOcrAttachments, 8);
     expect(medium.maxPdfOcrAttachments, 2);
-    expect(medium.photoReadTimeout, const Duration(seconds: 12));
+    expect(medium.photoReadTimeout, const Duration(seconds: 14));
     expect(heavy.maxPhotoOcrAttachments, 12);
     expect(heavy.maxPdfOcrAttachments, 3);
-    expect(heavy.pdfPageReadTimeout, const Duration(seconds: 16));
-    expect(heavy.photoReadTimeout, const Duration(seconds: 16));
+    expect(heavy.pdfPageReadTimeout, const Duration(seconds: 10));
+    expect(heavy.photoReadTimeout, const Duration(seconds: 10));
   });
 
   test('ocr service times out an unresponsive photo read with recovery', () {
@@ -297,6 +297,15 @@ TOTAL 10.48
     expect(source, contains('} on TimeoutException {'));
     expect(source, contains('Reading this receipt photo took too long.'));
     expect(source, contains('timedOutPhotosSkipped ='));
+    expect(source, contains('readablePhotoAttachments.length - photoIndex;'));
+    expect(
+      source,
+      contains('if (recognizerTimedOut && readableUnblockedPdfs.isNotEmpty)'),
+    );
+    expect(
+      source,
+      contains('recognizer.close().timeout(const Duration(seconds: 2))'),
+    );
     expect(source, contains('A Dart timeout cannot cancel the native read'));
     expect(source, contains('photosSkipped:\n            skippedPhotoCount +'));
   });

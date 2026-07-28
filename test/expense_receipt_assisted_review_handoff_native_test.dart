@@ -255,7 +255,7 @@ void main() {
     expect(photoPreviewControls, contains('BoxConstraints(maxWidth: 132)'));
     expect(photoPreviewControls, contains('message: label'));
     expect(photoPreviewControls, contains('strings.addAnotherReceiptPhoto'));
-    expect(photoControls, contains('Check Photo Match'));
+    expect(photoControls, isNot(contains('Check Photo Match')));
     expect(photoControls, contains('Use this receipt'));
     expect(photoControls, contains("'Use Receipt'"));
     expect(entryScreen, contains("'legacyTapFocusSuppressedAfterZoomTotal'"));

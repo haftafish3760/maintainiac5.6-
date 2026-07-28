@@ -82,57 +82,6 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
     _scrollToReceiptReview();
   }
 
-  void _markReceiptOcrCompleted(ReceiptOcrResult result) {
-    if (!mounted) return;
-    final diagnostics = result.diagnostics;
-    ExpenseScreenTelemetryRecorder.record(
-      context,
-      result.hasText
-          ? ExpenseTelemetryEventType.ocrCompleted
-          : ExpenseTelemetryEventType.ocrFailed,
-      metadata: {
-        'source': _receiptPrivacyFeatureArea,
-        'captureFlow': 'receipt_attachment_panel',
-        ..._ocrCompletionReviewMetadata(diagnostics),
-      },
-    );
-    _updateReceiptState(() {
-      _lastOcrDiagnostics = diagnostics;
-      _lastOcrWarnings = result.structuredWarnings;
-      if (result.hasText) {
-        _receiptReviewFlowStarted = true;
-        _receiptReadAttemptedWithoutText = false;
-        _receiptReadHandoffStage = _receiptPostCaptureRouteStageLabel(
-          diagnostics,
-        );
-        _receiptReadHandoffAction =
-            diagnostics.receiptPostCaptureRouteStatus != 'parsed_receipt_review'
-            ? diagnostics.receiptPostCaptureRouteLabel
-            : _receiptReadHandoffAction;
-        _receiptReadHandoffRouteResult = _receiptPostCaptureRouteResultLabel(
-          diagnostics,
-        );
-        if (diagnostics.receiptMissingBottomEdgeAndTotals) {
-          _receiptReadHandoffCoverageWarning =
-              _receiptMissingBottomEdgeAndTotalsRouteResultLabel;
-        } else if (diagnostics.receiptMayNeedBottomSection) {
-          _receiptReadHandoffCoverageWarning =
-              _receiptMissingTotalsCoverageWarningLabel;
-        }
-      } else {
-        _receiptReviewFlowStarted = true;
-        _receiptReadAttemptedWithoutText = true;
-        final primaryWarning = result.primaryWarning;
-        _receiptReadHandoffStage = primaryWarning == null
-            ? 'Needs manual review'
-            : 'Needs manual review: ${primaryWarning.label}';
-        _receiptReadHandoffRouteResult =
-            _receiptUnreadableDetailsRouteResultLabel;
-      }
-    });
-    _scrollToReceiptReview();
-  }
-
   String _receiptPostCaptureRouteStageLabel(ReceiptOcrDiagnostics diagnostics) {
     return switch (diagnostics.receiptPostCaptureRouteStatus) {
       'add_next_receipt_section' => 'Receipt details need next section',

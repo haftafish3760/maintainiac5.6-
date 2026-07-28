@@ -74,6 +74,11 @@ final class ReceiptCaptureDiagnosticKeys {
       'latestCapturedQualityActionFamily';
   static const latestCaptureLiveBrightnessAtShutter =
       'latestCaptureLiveBrightnessAtShutter';
+  static const latestCaptureShutterZoomRatio = 'latestCaptureShutterZoomRatio';
+  static const latestCaptureShutterExposureIndex =
+      'latestCaptureShutterExposureIndex';
+  static const latestCaptureShutterExposureTargetBias =
+      'latestCaptureShutterExposureTargetBias';
   static const latestCapturedLiveToSavedLumaDelta =
       'latestCapturedLiveToSavedLumaDelta';
   static const latestCapturedLiveToSavedLumaDeltaBucket =
@@ -215,6 +220,26 @@ class ReceiptPhotoReviewResult {
     );
   }
 
+  /// An explicit user decision to leave the review without retaining the
+  /// staged capture as a resumable draft. This is intentionally distinct from
+  /// a route closing unexpectedly, which remains recovery-safe.
+  factory ReceiptPhotoReviewResult.discardedByUser({
+    required ReceiptDataSaverLevel dataSaverLevel,
+  }) {
+    return ReceiptPhotoReviewResult(
+      photoPaths: const [],
+      ocrSourcePhotoPaths: const [],
+      dataSaverLevel: dataSaverLevel,
+      stitchResult: ReceiptStitchResult(
+        status: ReceiptStitchStatus.notNeeded,
+        inputPaths: [],
+        ocrSourcePaths: [],
+      ),
+      reviewExitAction: 'discarded_by_user',
+      allowSavedProofOcrFallback: false,
+    );
+  }
+
   final List<String> photoPaths;
   final List<String> ocrSourcePhotoPaths;
   final ReceiptDataSaverLevel dataSaverLevel;
@@ -226,4 +251,6 @@ class ReceiptPhotoReviewResult {
   final bool ocrSourcePathInputWasSanitized;
   final bool usedSavedProofAsOcrSourceFallback;
   final String reviewExitAction;
+
+  bool get discardedByUser => reviewExitAction == 'discarded_by_user';
 }

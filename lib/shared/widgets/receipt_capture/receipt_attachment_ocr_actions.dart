@@ -21,19 +21,15 @@ Duration _receiptOcrTimeout(
   ReceiptDeviceCapability capability,
   int sourceCount,
 ) {
-  final baseSeconds = switch (capability.tier) {
-    ReceiptCapabilityTier.heavyweight => 25,
-    ReceiptCapabilityTier.medium => 35,
-    ReceiptCapabilityTier.light => 50,
+  // This is an end-to-end receipt-assist budget, not a per-stage allowance.
+  // A user must get editable fields or a manual-recovery choice promptly;
+  // adding more photos must never turn one receipt into a minute-long wait.
+  final seconds = switch (capability.tier) {
+    ReceiptCapabilityTier.heavyweight => 20,
+    ReceiptCapabilityTier.medium => 25,
+    ReceiptCapabilityTier.light => 30,
   };
-  final perAdditionalSource = switch (capability.tier) {
-    ReceiptCapabilityTier.heavyweight => 8,
-    ReceiptCapabilityTier.medium => 10,
-    ReceiptCapabilityTier.light => 12,
-  };
-  final seconds =
-      baseSeconds + (sourceCount - 1).clamp(0, 4) * perAdditionalSource;
-  return Duration(seconds: seconds.clamp(baseSeconds, 90).toInt());
+  return Duration(seconds: seconds);
 }
 
 extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
@@ -43,6 +39,8 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     bool showDisabledMessage = false,
     bool showNoTextMessage = false,
   }) async {
+    final traceId = newReceiptPipelineTraceId();
+    final traceStopwatch = Stopwatch()..start();
     final readable = attachments
         .where(
           (attachment) =>
@@ -68,6 +66,13 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     }
     final capability =
         settings?.deviceCapability ?? const ReceiptDeviceCapability.standard();
+    final pipelineTimeout = _receiptOcrTimeout(capability, readable.length);
+    traceReceiptPipelineStage(
+      'ocr_requested',
+      traceId: traceId,
+      sourceCount: readable.length,
+      deviceTier: capability.tier.name,
+    );
     final cloudAssistPlan = capability.cloudAssistPlanFor(
       dataSaverLevel: settings?.defaultDataSaverLevel ?? _dataSaverLevel,
     );
@@ -109,9 +114,18 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     _notifyReceiptReadStarted();
     late final ReceiptOcrResult result;
     try {
-      result = await ReceiptOcrService.forDevice(capability)
-          .recognizeTextFromAttachments(readable)
-          .timeout(_receiptOcrTimeout(capability, readable.length));
+      result = await ReceiptOcrService.forDevice(
+        capability,
+      ).recognizeTextFromAttachments(readable).timeout(pipelineTimeout);
+      traceReceiptPipelineStage(
+        'ocr_text_ready',
+        traceId: traceId,
+        elapsedMs: traceStopwatch.elapsedMilliseconds,
+        sourceCount: readable.length,
+        deviceTier: capability.tier.name,
+        textCharacterCount: result.appFillText.length,
+        layoutLineCount: result.layout.lineCount,
+      );
     } on TimeoutException {
       if (mounted) {
         updateAttachmentState(() {
@@ -159,7 +173,17 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         _ReceiptAttachmentReadOutcome.skipped,
       );
     }
+    traceReceiptPipelineStage(
+      'ocr_completion_observers_starting',
+      traceId: traceId,
+      elapsedMs: traceStopwatch.elapsedMilliseconds,
+    );
     _notifyReceiptOcrCompleted(result);
+    traceReceiptPipelineStage(
+      'ocr_completion_observers_finished',
+      traceId: traceId,
+      elapsedMs: traceStopwatch.elapsedMilliseconds,
+    );
     if (!result.hasText) {
       final warning = result.strongestActionMessage;
       final resultRecoveryAdvice = _receiptReadRecoveryAdvice(
@@ -186,6 +210,11 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         ocrDiagnostics: result.diagnostics,
       );
     }
+    traceReceiptPipelineStage(
+      'ocr_text_verified_for_handoff',
+      traceId: traceId,
+      elapsedMs: traceStopwatch.elapsedMilliseconds,
+    );
     final message = result.reviewMessage(successMessage: successMessage);
     final onOcrResultForReview = widget.onReceiptOcrResultForReview;
     final onImportedText = widget.onImportedText;
@@ -196,11 +225,27 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
     }
     if (onOcrResultForReview != null || onImportedText != null) {
       try {
+        traceReceiptPipelineStage(
+          'editable_review_handoff_started',
+          traceId: traceId,
+          elapsedMs: traceStopwatch.elapsedMilliseconds,
+        );
+        final remaining = pipelineTimeout - traceStopwatch.elapsed;
+        if (remaining <= Duration.zero) {
+          throw TimeoutException(
+            'Receipt detail preparation exceeded the shared deadline.',
+          );
+        }
         await Future<void>.sync(
           () => onOcrResultForReview != null
-              ? onOcrResultForReview(result)
+              ? onOcrResultForReview(result, traceId)
               : onImportedText!(result.appFillText),
-        ).timeout(_receiptOcrTimeout(capability, readable.length));
+        ).timeout(remaining);
+        traceReceiptPipelineStage(
+          'editable_review_handoff_ready',
+          traceId: traceId,
+          elapsedMs: traceStopwatch.elapsedMilliseconds,
+        );
       } catch (_) {
         if (mounted) {
           updateAttachmentState(() {

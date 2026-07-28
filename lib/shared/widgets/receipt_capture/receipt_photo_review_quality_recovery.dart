@@ -65,10 +65,6 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
     required this.nativeWarning,
     required this.compact,
     required this.hasCriticalQualityIssue,
-    required this.openingCamera,
-    required this.onAddPhoto,
-    required this.onRetake,
-    required this.onCrop,
     required this.coverageDecision,
   });
 
@@ -76,10 +72,6 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
   final _NativeCaptureReviewWarning? nativeWarning;
   final bool compact;
   final bool hasCriticalQualityIssue;
-  final bool openingCamera;
-  final VoidCallback onAddPhoto;
-  final VoidCallback onRetake;
-  final VoidCallback? onCrop;
   final ReceiptPhotoCoverageDecision coverageDecision;
 
   @override
@@ -87,9 +79,6 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
     final strings = MaintaniacLocalizations.of(context);
     final photoQuality = quality;
     final nativeCaptureWarning = nativeWarning;
-    final shouldEmphasizeAddSection =
-        coverageDecision.shouldEmphasizeAddPhoto ||
-        nativeCaptureWarning?.prefersAddSection == true;
     final title = nativeCaptureWarning != null
         ? nativeCaptureWarning.title
         : hasCriticalQualityIssue
@@ -119,28 +108,16 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
         (hasCriticalQualityIssue
             ? Icons.warning_amber_rounded
             : Icons.info_outline_rounded);
-    final retakeButton = _ReceiptMiniRecoveryButton(
-      icon: Icons.camera_alt_rounded,
-      label: strings.retakeReceiptPhoto,
-      onPressed: openingCamera ? null : onRetake,
-      emphasized: hasCriticalQualityIssue && !shouldEmphasizeAddSection,
-    );
-    final cropButton = _ReceiptMiniRecoveryButton(
-      icon: Icons.crop_rounded,
-      label: strings.cropReceiptPhoto,
-      onPressed: onCrop,
-    );
-    final addButton = _ReceiptMiniRecoveryButton(
-      icon: Icons.add_a_photo_rounded,
-      label: coverageDecision.isMissingBottomEdgeAndTotals
-          ? strings.addBottomReceiptSection
-          : strings.addAnotherReceiptPhoto,
-      onPressed: openingCamera ? null : onAddPhoto,
-      emphasized: shouldEmphasizeAddSection,
-    );
-    final actionButtons = shouldEmphasizeAddSection
-        ? [addButton, cropButton, retakeButton]
-        : [retakeButton, cropButton, addButton];
+    final shouldEmphasizeAddSection =
+        coverageDecision.shouldEmphasizeAddPhoto ||
+        nativeCaptureWarning?.prefersAddSection == true;
+    // Preview already has one persistent action row. Repeating Crop, Retake,
+    // and Add Photo inside a warning card steals receipt pixels and gives the
+    // user two competing sets of actions. Keep the warning concise and let
+    // the primary row own every action.
+    final recoveryHint = shouldEmphasizeAddSection
+        ? 'Use Add photo below if a receipt section is missing.'
+        : 'Use Crop, Retake, or Add photo below if needed.';
     return DecoratedBox(
       decoration: BoxDecoration(
         color: panelColor,
@@ -169,7 +146,7 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
                   ),
                   if (!compact)
                     Text(
-                      detail,
+                      '$detail $recoveryHint',
                       style: const TextStyle(
                         color: Color(0xFFC7D0D4),
                         fontSize: 10.5,
@@ -181,56 +158,7 @@ class _ReceiptPhotoQualityRecoveryStrip extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            for (var index = 0; index < actionButtons.length; index++) ...[
-              if (index > 0) const SizedBox(width: 6),
-              Flexible(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 132),
-                  child: actionButtons[index],
-                ),
-              ),
-            ],
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ReceiptMiniRecoveryButton extends StatelessWidget {
-  const _ReceiptMiniRecoveryButton({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-    this.emphasized = false,
-  });
-
-  final IconData icon;
-  final String label;
-  final VoidCallback? onPressed;
-  final bool emphasized;
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: label,
-      child: FilledButton.icon(
-        onPressed: onPressed,
-        icon: Icon(icon, size: 15),
-        label: Text(label, textAlign: TextAlign.center, softWrap: true),
-        style: FilledButton.styleFrom(
-          minimumSize: const Size(0, 38),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          backgroundColor: emphasized
-              ? const Color(0xFFFFB020)
-              : const Color(0xFF2D3A40),
-          foregroundColor: emphasized ? const Color(0xFF101416) : Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-          textStyle: const TextStyle(
-            fontSize: 10.5,
-            fontWeight: FontWeight.w900,
-          ),
         ),
       ),
     );

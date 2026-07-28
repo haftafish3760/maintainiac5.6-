@@ -71,6 +71,7 @@ Map<String, Object?> _sessionArguments(
     'whiteBalanceLockEnabled': false,
     'minZoom': config.minZoom,
     'maxZoom': config.maxZoom,
+    'initialZoomRatio': config.initialZoomRatio,
     'minExposureOffset': config.minExposureOffset,
     'maxExposureOffset': config.maxExposureOffset,
     'focusMode': settings.focusMode.name,

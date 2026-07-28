@@ -68,6 +68,7 @@ Map<String, int> _parserTaskCountsWithWarnings(
 Map<String, int> _parserTaskCountsWithReceiptCoverage(
   Map<String, int> base,
   ReceiptOcrResult result,
+  ReceiptOcrParserHandoff parserHandoff,
 ) {
   final counts = <String, int>{...base};
   void add(String key) {
@@ -182,18 +183,27 @@ Map<String, int> _parserTaskCountsWithReceiptCoverage(
 
   final totalsTextMissing =
       result.hasText &&
-      result.subtotalCandidateLines.isEmpty &&
-      result.totalCandidateLines.isEmpty &&
-      result.taxCandidateLines.isEmpty;
+      !parserHandoff.lines.any(
+        (line) =>
+            line.kind == ReceiptOcrParserLineKind.subtotalCandidate ||
+            line.kind == ReceiptOcrParserLineKind.totalCandidate ||
+            line.kind == ReceiptOcrParserLineKind.taxCandidate,
+      );
+  final hasSubtotal = parserHandoff.lines.any(
+    (line) => line.kind == ReceiptOcrParserLineKind.subtotalCandidate,
+  );
+  final hasTotal = parserHandoff.lines.any(
+    (line) => line.kind == ReceiptOcrParserLineKind.totalCandidate,
+  );
+  final hasTax = parserHandoff.lines.any(
+    (line) => line.kind == ReceiptOcrParserLineKind.taxCandidate,
+  );
   final finalTotalMissing =
-      result.hasText &&
-      result.totalCandidateLines.isEmpty &&
-      (result.subtotalCandidateLines.isNotEmpty ||
-          result.taxCandidateLines.isNotEmpty);
+      result.hasText && !hasTotal && (hasSubtotal || hasTax);
   if (totalsTextMissing) {
     add('receipt_totals_text_missing_review');
-    if (result.itemCandidateLines.isNotEmpty ||
-        result.parserHandoff.pricedLineCount > 0) {
+    if (parserHandoff.itemLines.isNotEmpty ||
+        parserHandoff.pricedLineCount > 0) {
       add('receipt_possible_lower_section_missing');
     }
     final userConfirmedComplete =
@@ -216,8 +226,8 @@ Map<String, int> _parserTaskCountsWithReceiptCoverage(
   } else if (finalTotalMissing) {
     add('receipt_partial_totals_review');
     add('receipt_final_total_missing_review');
-    if (result.itemCandidateLines.isNotEmpty ||
-        result.parserHandoff.pricedLineCount > 0) {
+    if (parserHandoff.itemLines.isNotEmpty ||
+        parserHandoff.pricedLineCount > 0) {
       add('receipt_possible_lower_section_missing');
     }
   }

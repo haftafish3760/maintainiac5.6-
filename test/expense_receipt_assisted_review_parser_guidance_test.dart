@@ -143,28 +143,25 @@ void main() {
     expect(parseReview, contains('required this.routeResultLabel'));
     expect(parseReview, contains('final VoidCallback onReviewDetails;'));
     expect(parseReview, contains('final String routeResultLabel;'));
-    expect(
-      parseReview,
-      contains('onPressed: processingInFlight ? null : onReviewDetails'),
-    );
-    expect(parseReview, contains("'Review Details'"));
-    expect(parseReview, contains("'Show Filled Review'"));
-    expect(parseReview, contains("'Open Manual Review'"));
+    expect(parseReview, contains('if (!processingInFlight)'));
+    expect(parseReview, contains('onPressed: onReviewDetails'));
+    expect(parseReview, contains("'Review Receipt'"));
+    expect(parseReview, contains("'Open Receipt Form'"));
     expect(parseReview, isNot(contains("'Go To Review'")));
-    expect(parseReview, contains('Receipt text extracted'));
+    expect(parseReview, contains('Extracting Receipt Information'));
     expect(
       parseReview,
       contains(
         'Receipt capture, receipt reading, and manual line review still work',
       ),
     );
-    expect(parseReview, contains('used the clearest original photo'));
+    expect(parseReview, contains('clear photos were read'));
     expect(parseReview, contains('defaultDataSaverFootprintSummary'));
     expect(parseReview, contains('ReceiptReviewStepMetric'));
     expect(parseReview, contains("'Retake / Add Photo'"));
     expect(parseReview, contains("'Add Bottom Section'"));
-    expect(parseReview, contains('Saved Proof'));
-    expect(parseReview, contains('Clear Original Photo'));
+    expect(parseReview, contains('receipt photos saved'));
+    expect(parseReview, contains('clear photos were read'));
     expect(parseReview, contains('warning.reviewTargetLabel'));
     expect(parseReview, contains('warning.reviewTargetInstruction'));
     expect(parseReview, contains('diagnostics.parserSignalSummaryLabel'));

@@ -272,7 +272,8 @@ extension _ExpenseReceiptEntryParseApplyActions
   }
 
   String _selectedCategoryForParsedReceiptLine() {
-    final selected = widget.initialCategory?.trim() ?? '';
+    if (!_receiptCategoryAppliesToAll) return 'Uncategorized';
+    final selected = _receiptCategory.trim();
     return selected.isEmpty ? 'Uncategorized' : selected;
   }
 }

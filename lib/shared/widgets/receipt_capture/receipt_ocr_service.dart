@@ -41,9 +41,9 @@ class ReceiptOcrService {
       ReceiptCapabilityTier.heavyweight => 3,
     };
     final timeout = switch (capability.tier) {
-      ReceiptCapabilityTier.light => const Duration(seconds: 8),
-      ReceiptCapabilityTier.medium => const Duration(seconds: 12),
-      ReceiptCapabilityTier.heavyweight => const Duration(seconds: 16),
+      ReceiptCapabilityTier.light => const Duration(seconds: 18),
+      ReceiptCapabilityTier.medium => const Duration(seconds: 14),
+      ReceiptCapabilityTier.heavyweight => const Duration(seconds: 10),
     };
     return ReceiptOcrService(
       maxPdfOcrPages: capability.maxLocalPdfPages,
@@ -203,6 +203,7 @@ class ReceiptOcrService {
     ];
     var photosRead = 0;
     var timedOutPhotosSkipped = 0;
+    var recognizerTimedOut = false;
     var pdfsRead = 0;
     var pdfsSkipped =
         skippedPdfCount + pdfPreflight.blockedAttachmentIds.length;
@@ -245,14 +246,15 @@ class ReceiptOcrService {
           );
           break;
         } on TimeoutException {
-          timedOutPhotosSkipped =
-              readablePhotoAttachments.length - photoIndex - 1;
+          recognizerTimedOut = true;
+          timedOutPhotosSkipped = readablePhotoAttachments.length - photoIndex;
           warnings.add(
             'Reading this receipt photo took too long. Try again, use a clearer photo, or continue with the details yourself.',
           );
-          if (timedOutPhotosSkipped > 0) {
+          final remainingPhotos = timedOutPhotosSkipped - 1;
+          if (remainingPhotos > 0) {
             warnings.add(
-              '$timedOutPhotosSkipped remaining ${timedOutPhotosSkipped == 1 ? 'receipt photo was' : 'receipt photos were'} saved as proof only so the app does not keep waiting on a stalled read.',
+              '$remainingPhotos remaining ${remainingPhotos == 1 ? 'receipt photo was' : 'receipt photos were'} saved as proof only so the app does not keep waiting on a stalled read.',
             );
           }
           // A Dart timeout cannot cancel the native read already in progress.
@@ -272,7 +274,22 @@ class ReceiptOcrService {
           );
         }
       }
-      for (final attachment in readablePdfAttachments) {
+      final readableUnblockedPdfs = readablePdfAttachments
+          .where(
+            (attachment) =>
+                !pdfPreflight.blockedAttachmentIds.contains(attachment.id),
+          )
+          .toList(growable: false);
+      if (recognizerTimedOut && readableUnblockedPdfs.isNotEmpty) {
+        pdfsSkipped += readableUnblockedPdfs.length;
+        warnings.add(
+          'PDF receipt reading was postponed because the on-device reader stalled on a photo. Retry the preserved receipt sources instead of waiting on the same reader.',
+        );
+      }
+      for (final attachment
+          in recognizerTimedOut
+              ? const <ReceiptAttachmentRecord>[]
+              : readableUnblockedPdfs) {
         if (pdfPreflight.blockedAttachmentIds.contains(attachment.id)) {
           continue;
         }
@@ -317,7 +334,7 @@ class ReceiptOcrService {
       }
     } finally {
       try {
-        await recognizer.close();
+        await recognizer.close().timeout(const Duration(seconds: 2));
       } catch (_) {}
     }
 

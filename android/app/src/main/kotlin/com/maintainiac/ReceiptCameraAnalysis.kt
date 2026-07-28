@@ -11,12 +11,25 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
+import androidx.camera.core.UseCaseGroup
 import androidx.camera.lifecycle.ProcessCameraProvider
 import kotlin.math.min
 
 
 internal fun ReceiptCameraActivity.startCamera() {
     if (cameraStartInProgress || closingCamera || closeResultDelivered) return
+    // CameraX must share PreviewView's viewport with ImageCapture. Without
+    // that contract, FILL_CENTER can show a tightly framed receipt while the
+    // saved 4:3 JPEG contains a much wider scene, which makes pinch zoom look
+    // as though it was lost when review opens.
+    val captureViewPort = previewView.viewPort
+    if (previewView.width <= 0 || previewView.height <= 0 || captureViewPort == null) {
+        lastCameraStartStatus = "waiting_for_preview_viewport"
+        previewView.post {
+            if (isCameraSurfaceActive() && !closingCamera && camera == null) startCamera()
+        }
+        return
+    }
     cameraStartInProgress = true
     cameraStartAttemptCount += 1
     lastCameraStartStatus = "provider_requested"
@@ -49,13 +62,14 @@ internal fun ReceiptCameraActivity.startCamera() {
             }
             val captureMode = receiptStillCaptureMode()
             stillCaptureJpegQuality = receiptStillJpegQuality()
-            imageCapture = ImageCapture.Builder()
+            val stillCapture = ImageCapture.Builder()
                 .setTargetRotation(targetRotation)
                 .setTargetAspectRatio(AspectRatio.RATIO_4_3)
                 .setCaptureMode(captureMode)
                 .setJpegQuality(stillCaptureJpegQuality)
                 .applyReceiptContinuousFocusIfEnabled(this)
                 .build()
+            imageCapture = stillCapture
             val imageAnalysis = buildImageAnalysis(targetRotation)
             try {
                 provider.unbindAll()
@@ -64,22 +78,17 @@ internal fun ReceiptCameraActivity.startCamera() {
                     lastCameraStartStatus = "surface_inactive"
                     return@addListener
                 }
-                camera = if (imageAnalysis == null) {
-                    provider.bindToLifecycle(
-                        this,
-                        CameraSelector.DEFAULT_BACK_CAMERA,
-                        preview,
-                        imageCapture,
-                    )
-                } else {
-                    provider.bindToLifecycle(
-                        this,
-                        CameraSelector.DEFAULT_BACK_CAMERA,
-                        preview,
-                        imageCapture,
-                        imageAnalysis,
-                    )
-                }
+                val useCaseGroupBuilder = UseCaseGroup.Builder()
+                    .setViewPort(captureViewPort)
+                    .addUseCase(preview)
+                    .addUseCase(stillCapture)
+                if (imageAnalysis != null) useCaseGroupBuilder.addUseCase(imageAnalysis)
+                camera = provider.bindToLifecycle(
+                    this,
+                    CameraSelector.DEFAULT_BACK_CAMERA,
+                    useCaseGroupBuilder.build(),
+                )
+                applySessionInitialZoom()
                 torchButton.isEnabled = camera?.cameraInfo?.hasFlashUnit() == true
                 lastFocusStatus = receiptContinuousFocusStatus()
                 configureTouchControls()
@@ -94,6 +103,64 @@ internal fun ReceiptCameraActivity.startCamera() {
         },
         mainExecutor(),
     )
+}
+
+internal fun ReceiptCameraActivity.applySessionInitialZoom() {
+    val activeCamera = camera ?: return
+    val zoomState = activeCamera.cameraInfo.zoomState.value
+    val minZoom = effectiveMinZoom(zoomState?.minZoomRatio)
+    val maxZoom = effectiveMaxZoom(zoomState?.maxZoomRatio)
+    // The bound CameraX lens is authoritative. A stale capability preflight
+    // must never make a receipt camera open digitally zoomed. Starting at the
+    // live lens minimum preserves the wide framing the user sees at 1x.
+    val initialZoom = minZoom.coerceIn(1.0, maxZoom)
+    if (!initialZoom.isFinite() || minZoom.isInfinite() || maxZoom.isInfinite()) {
+        lastZoomRatio = 1.0
+        return
+    }
+    if (initialZoom == 1.0 && minZoom == maxZoom) {
+        lastZoomRatio = roundedDiagnostic(initialZoom)
+        return
+    }
+    if ((activeCamera.cameraInfo.zoomState.value?.zoomRatio ?: -1.0f) == initialZoom.toFloat()) {
+        lastZoomRatio = roundedDiagnostic(initialZoom)
+        return
+    }
+    val zoomFuture = activeCamera.cameraControl.setZoomRatio(initialZoom.toFloat())
+    val zoomRequestId = ++zoomApplyRequestSequence
+    zoomApplyInFlight = true
+    zoomFuture.addListener(
+        {
+            val applied = runCatching {
+                zoomFuture.get()
+                true
+            }.getOrDefault(false)
+            completeZoomApplication(zoomRequestId, applied)
+        },
+        mainExecutor(),
+    )
+    lastZoomRatio = roundedDiagnostic(initialZoom)
+}
+
+private fun effectiveMinZoom(
+    deviceMin: Float?,
+): Double {
+    val safeDeviceMin = deviceMin?.takeIf { it.isFinite() }?.toDouble()
+    // CameraX reports the live lower bound for the lens we actually bound.
+    // Never inherit a higher preflight minimum: that makes a capable device
+    // appear to start zoomed and prevents pinching back to the native wide
+    // framing. CameraX zoom ratios use 1x as the neutral minimum.
+    return (safeDeviceMin ?: 1.0).coerceAtLeast(1.0)
+}
+
+private fun effectiveMaxZoom(
+    deviceMax: Float?,
+): Double {
+    val safeDeviceMax = deviceMax?.takeIf { it.isFinite() && it >= 1f }?.toDouble()
+    // Use the bound CameraX lens range, not a pre-bind capability snapshot.
+    // Some Android devices report a limited or stale range before the camera
+    // is bound; using that value makes a real pinch look disabled.
+    return (safeDeviceMax ?: 1.0).coerceAtLeast(1.0)
 }
 
 internal fun ReceiptCameraActivity.handleCameraStartFailure(error: Throwable) {

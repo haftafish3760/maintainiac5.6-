@@ -31,6 +31,21 @@ Future<ReceiptCaptureFlowResult> _resultFromNativePhotoReview({
     );
   }
 
+  if (reviewResult.discardedByUser) {
+    await staged.discardStagedPhotos();
+    return ReceiptCaptureFlowResult.canceled(
+      message: 'Receipt photo was discarded.',
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: _diagnostics(
+        stage: 'receipt_photo_review',
+        reason: 'user_discarded_receipt_photo_review',
+        action: 'discard_staged_receipt_photos',
+        nativeCapabilities: nativeCapabilities,
+        options: options,
+      ),
+    );
+  }
+
   if (reviewResult.keptForLater) {
     await flow._staging.markRecoveryStage(
       staged.recoveryManifestPath,

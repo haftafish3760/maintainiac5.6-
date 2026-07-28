@@ -103,16 +103,24 @@ void main() {
       entryScreen,
       contains('Future<void> _parseReceiptOcrResultFromCapture('),
     );
+    expect(entryScreen, contains('ocr.appFillText.trim().isEmpty'));
+    expect(entryScreen, contains("receipt_ocr_no_usable_text"));
+    expect(entryScreen, contains('ocr_result_app_fill_text_empty'));
     expect(
       entryScreen,
       contains('final handoff = ReceiptOcrHandoff.forUserSelection('),
     );
     expect(
       entryScreen,
-      contains(
-        '_receiptOcrHandoffRouter(\n        capability,\n      ).dispatch(handoff)',
-      ),
+      contains('onExpensePrepared: (prepared) => preparedExpenseReview'),
     );
+    expect(entryScreen, contains(').dispatch(handoff)'));
+    expect(
+      entryScreen,
+      contains('prepareGenericExpenseReceiptOcrReviewInWorker'),
+    );
+    expect(entryScreen, contains('parserDepth: ReceiptParserDepth.lineItems'));
+    expect(entryScreen, contains('maxCatalogCandidates: 0'));
     expect(
       attachmentOcr,
       contains(
@@ -122,7 +130,7 @@ void main() {
     expect(
       attachmentOcr,
       contains(
-        '? onOcrResultForReview(result)\n              : onImportedText!(result.appFillText)',
+        '? onOcrResultForReview(result, traceId)\n              : onImportedText!(result.appFillText)',
       ),
     );
     final acceptedPhotoStatus = attachmentPanel.substring(
@@ -141,39 +149,29 @@ void main() {
         ),
       ),
     );
-    expect(parseReview, contains("stageLabel.trim().isEmpty"));
-    expect(parseReview, contains('Getting Receipt Ready'));
-    expect(
-      parseReview,
-      contains(
-        r'Step $progressStep of ${progressLabels.length}: ${progressLabels[progressStep - 1]}',
-      ),
-    );
-    expect(
-      parseReview,
-      contains("decision.toLowerCase().contains('add bottom receipt section')"),
-    );
-    expect(
-      parseReview,
-      contains(
-        "decision.toLowerCase().contains('open manual receipt details')",
-      ),
-    );
-    expect(
-      parseReview,
-      contains("final photoRecoveryLabel = needsBottomSection"),
-    );
+    expect(parseReview, contains('final stage = stageLabel.trim();'));
+    expect(parseReview, contains('Extracting Receipt Information'));
+    expect(parseReview, contains('LinearProgressIndicator'));
+    expect(parseReview, contains(r'Step $currentStep of'));
+    expect(parseReview, contains("'Reading receipt'"));
+    expect(parseReview, contains("'Preparing details'"));
+    expect(parseReview, contains("'Opening review'"));
+    expect(parseReview, contains('final opacity = isCurrent'));
+    expect(parseReview, contains('opacity: opacity'));
+    expect(parseReview, contains('0.68'));
+    expect(parseReview, contains('0.42'));
+    expect(parseReview, contains(".contains('bottom')"));
+    expect(parseReview, contains(".contains('manual')"));
+    expect(parseReview, contains('photoActionLabel: needsBottom'));
     expect(parseReview, contains("'Add Bottom Section'"));
     expect(parseReview, contains("'Retake / Add Photo'"));
-    expect(parseReview, contains("'Open Manual Review'"));
+    expect(parseReview, contains("'Open Receipt Form'"));
     expect(parseReview, isNot(contains("const Text('Add / Retake')")));
+    expect(parseReview, contains('if (!processingInFlight)'));
+    expect(parseReview, contains('onPressed: onReviewDetails'));
     expect(
       parseReview,
-      contains('onPressed: processingInFlight ? null : onReviewDetails'),
-    );
-    expect(
-      parseReview,
-      contains("processingInFlight\n                      ? 'Reading Receipt'"),
+      contains("status: stage.isEmpty ? 'Reading receipt text' : stage"),
     );
     expect(
       entryScreen,

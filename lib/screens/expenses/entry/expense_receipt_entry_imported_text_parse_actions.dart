@@ -5,8 +5,8 @@ extension _ExpenseReceiptEntryImportedTextParseActions
   Duration _receiptParserTimeout(ReceiptDeviceCapability capability) {
     return switch (capability.tier) {
       ReceiptCapabilityTier.heavyweight => const Duration(seconds: 18),
-      ReceiptCapabilityTier.medium => const Duration(seconds: 28),
-      ReceiptCapabilityTier.light => const Duration(seconds: 42),
+      ReceiptCapabilityTier.medium => const Duration(seconds: 24),
+      ReceiptCapabilityTier.light => const Duration(seconds: 30),
     };
   }
 
@@ -49,8 +49,10 @@ extension _ExpenseReceiptEntryImportedTextParseActions
       final parsed = await parseExpenseReceiptTextWithLocalMemory(
         text,
         fallbackDate: _selectedDate,
-        parserDepth: capability.parserDepth,
-        maxCatalogCandidates: capability.maxLocalCatalogMatches,
+        // Generic Expenses reconstructs printed receipt lines only. Product
+        // matching belongs to the separately routed Inventory handoff.
+        parserDepth: ReceiptParserDepth.lineItems,
+        maxCatalogCandidates: 0,
       ).timeout(_receiptParserTimeout(capability));
       unawaited(_recordPrivacySafeParseEvent(parsed));
       _recordParserTelemetry(parsed);
@@ -78,13 +80,29 @@ extension _ExpenseReceiptEntryImportedTextParseActions
   /// Builds the editable expense review directly from the OCR document so the
   /// parser retains line locations and source evidence instead of receiving a
   /// flattened text-only copy.
-  Future<void> _parseReceiptOcrResultFromCapture(ReceiptOcrResult ocr) async {
+  Future<void> _parseReceiptOcrResultFromCapture(
+    ReceiptOcrResult ocr,
+    String traceId,
+  ) async {
     if (!_appAssistedReceiptFillEnabled) {
       _handleReceiptParseFailure(
         failureKind: 'assistance_policy_blocked',
         evidence: 'receipt_assist_disabled_before_ocr_result_handoff',
         userMessage:
             'Receipt text is ready, but Receipt Assist is turned off for Expenses. Turn it on in Receipt Settings or continue manually.',
+      );
+      return;
+    }
+    // The capture reader can report a completed OCR operation even when the
+    // provider supplied no usable printable receipt evidence. Do not enter the
+    // parser worker for that result: it cannot fill editable fields and used
+    // to leave the review surface misleadingly stuck on preparation.
+    if (ocr.appFillText.trim().isEmpty) {
+      _handleReceiptParseFailure(
+        failureKind: 'receipt_ocr_no_usable_text',
+        evidence: 'ocr_result_app_fill_text_empty',
+        userMessage:
+            'No readable receipt text was found. Keep the saved photo and enter the receipt manually, or retake a clearer photo.',
       );
       return;
     }
@@ -101,6 +119,12 @@ extension _ExpenseReceiptEntryImportedTextParseActions
     final capability =
         ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
         const ReceiptDeviceCapability.standard();
+    final traceStopwatch = Stopwatch()..start();
+    traceReceiptPipelineStage(
+      'expense_review_prepare_started',
+      traceId: traceId,
+      deviceTier: capability.tier.name,
+    );
     ExpenseScreenTelemetryRecorder.record(
       context,
       ExpenseTelemetryEventType.parserStarted,
@@ -115,19 +139,41 @@ extension _ExpenseReceiptEntryImportedTextParseActions
       selectedCategory: widget.initialCategory,
       inventoryRequested: _isMaterialsFlow || _trackMaterialsInInventory,
     );
+    PreparedExpenseReceiptOcrReview? preparedExpenseReview;
     try {
       final routed = await _receiptOcrHandoffRouter(
         capability,
+        traceId: traceId,
+        onExpensePrepared: (prepared) => preparedExpenseReview = prepared,
       ).dispatch(handoff).timeout(_receiptParserTimeout(capability));
+      traceReceiptPipelineStage(
+        'expense_review_worker_returned',
+        traceId: traceId,
+        elapsedMs: traceStopwatch.elapsedMilliseconds,
+        destination: handoff.destination.name,
+      );
       final parsed = fillMissingExpenseReceiptFieldsFromOcrCandidates(
         routed,
         ocr.layout,
       );
       unawaited(_recordPrivacySafeParseEvent(parsed));
       _recordParserTelemetry(parsed);
+      final ocrDiagnostics = preparedExpenseReview?.ocrDiagnostics;
+      final ocrWarnings =
+          preparedExpenseReview?.ocrWarnings ?? ocr.structuredWarnings;
       if (!mounted) return;
-      _updateReceiptState(() => _scanningReceiptPhotos = false);
+      _updateReceiptState(() {
+        _scanningReceiptPhotos = false;
+        _lastOcrDiagnostics = ocrDiagnostics;
+        _lastOcrWarnings = ocrWarnings;
+      });
       _applyParsedReceipt(parsed);
+      traceReceiptPipelineStage(
+        'expense_review_fields_applied',
+        traceId: traceId,
+        elapsedMs: traceStopwatch.elapsedMilliseconds,
+        destination: handoff.destination.name,
+      );
     } on TimeoutException {
       _handleReceiptParseFailure(
         failureKind: 'receipt_parser_timeout',
