@@ -14,6 +14,9 @@ void main() {
     ).readAsStringSync();
 
     expect(script, contains(r'batch_count="${3:-1}"'));
+    expect(script, contains(r'stress_scenarios="${4:-0}"'));
+    expect(script, contains('./tool/trip_tracking_stress_gate.sh'));
+    expect(script, contains(r'PASS_${stress_scenarios}_SCENARIOS'));
     expect(script, contains('batch count must be between 1 and 10'));
     expect(script, contains(r'PROCESS_SURVIVED_HOME_${batch_count}_BATCHES'));
     expect(script, contains('LAUNCHED_MANUAL_BACKGROUND_REQUIRED'));
@@ -21,6 +24,7 @@ void main() {
     expect(script, isNot(contains('adb install')));
     expect(script, isNot(contains('adb uninstall')));
     expect(script, isNot(contains('pm clear')));
+    expect(script, isNot(contains('location set')));
     expect(
       script,
       isNot(contains(r'adb -s "${android_serial}" shell am force-stop')),
