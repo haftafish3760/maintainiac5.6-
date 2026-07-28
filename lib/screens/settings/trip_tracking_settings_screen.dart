@@ -6,6 +6,7 @@ import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../../shared/state/app_state.dart';
+import '../../shared/state/global_odometer.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../../shared/widgets/app_back_button.dart';
 import 'trip_background_location_settings_action.dart';
@@ -32,6 +33,7 @@ class TripTrackingSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = TripTrackingSettingsScope.of(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
+    final odometer = GlobalOdometerScope.of(context);
     final bluetoothRuntime = TripTrackingBluetoothRuntimeScope.maybeOf(context);
     final activeVehicle = AppStateScope.of(context).activeVehicle;
     final settings = controller.settings;
@@ -49,6 +51,7 @@ class TripTrackingSettingsScreen extends StatelessWidget {
               settings: settings,
               onChanged: controller.update,
               tripTracking: tripTracking,
+              odometer: odometer,
               bluetoothVehicleRecognitionAvailable:
                   bluetoothVehicleRecognitionAvailable ??
                   bluetoothRuntime?.observationAvailable ??
@@ -69,6 +72,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
     required this.settings,
     required this.onChanged,
     required this.tripTracking,
+    required this.odometer,
     required this.bluetoothVehicleRecognitionAvailable,
     required this.automaticStartAccess,
     required this.bluetoothRuntime,
@@ -78,6 +82,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
   final TripTrackingSettings settings;
   final ValueChanged<TripTrackingSettings> onChanged;
   final TripTrackingController? tripTracking;
+  final GlobalOdometerController odometer;
   final bool bluetoothVehicleRecognitionAvailable;
   final TripAutomaticStartAccessLevel automaticStartAccess;
   final TripTrackingBluetoothRuntimeController? bluetoothRuntime;
@@ -248,6 +253,13 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             ),
           ),
           const _SettingsSectionTitle('Odometer review and calibration'),
+          _switch(
+            title: 'Use confirmed mileage history for review',
+            detail:
+                'Optional and local to this vehicle. Maintains a typical-mileage baseline from confirmed odometer readings only, then asks you to review unusual manual entries. It never changes mileage or submits driving data anywhere.',
+            value: odometer.drivingPatternReviewEnabled,
+            onChanged: odometer.setDrivingPatternReviewEnabled,
+          ),
           _switch(
             title: 'Odometer anomaly alerts',
             detail: settings.gpsAssistedTrackingEnabled

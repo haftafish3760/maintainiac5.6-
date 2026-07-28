@@ -29,6 +29,7 @@ import '../invoices/home/invoice_form_screen.dart';
 import '../invoices/home/invoice_info_screens.dart';
 import '../settings/trip_tracking_settings_screen.dart';
 import 'active_workday_actions.dart';
+import 'active_workday_financial_summary_panel.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_elapsed_clock.dart';
 import 'data/active_workday_store.dart';
@@ -137,6 +138,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
+                ActiveWorkdayFinancialSummaryPanel(
+                  session: session,
+                  day: DateTime.now(),
+                ),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     const Expanded(child: _SectionLabel('QUICK ACTIONS')),

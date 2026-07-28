@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/widgets/app_back_button.dart';
 import '../../shared/widgets/app_screen_shell.dart';
+import '../dashboard/active_workday_quick_action_editor.dart';
 import 'trip_tracking_settings_screen.dart';
 
 class DashboardSettingsScreen extends StatelessWidget {
@@ -71,17 +72,19 @@ class _DashboardSettingsPanel extends StatelessWidget {
               context,
             ).push(appSlideRoute(const TripTrackingSettingsScreen())),
           ),
-          const _DashboardSettingRow(
-            title: 'Dashboard Layout',
-            detail: 'Move, resize, add, remove, and reset dashboard elements.',
+          _DashboardSettingRow(
+            title: 'Customize Quick Actions',
+            detail:
+                'Choose the actions shown on Active Day, including fuel, expenses, payments, GPS review, stops, trip details, and reminders.',
+            icon: Icons.tune_rounded,
+            onTap: () => Navigator.of(
+              context,
+            ).push(appSlideRoute<void>(const ActiveWorkdayQuickActionEditor())),
           ),
           const _DashboardSettingRow(
-            title: 'Quick Action Tiles',
-            detail: 'Fuel, pay, expense, trip, receipt, and note shortcuts.',
-          ),
-          const _DashboardSettingRow(
-            title: 'Telemetry Readouts',
-            detail: 'MPG, fuel per mile, pay per mile, profit, hours, stops.',
+            title: 'Active Day command center',
+            detail:
+                'Your current workday shows time, verified miles, quick actions, and recorded activity. Financial totals are based on saved ledger records, never estimates.',
           ),
           const _DashboardSettingRow(
             title: 'Default Start Day Position',

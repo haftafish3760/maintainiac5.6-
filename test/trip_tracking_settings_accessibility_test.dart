@@ -42,6 +42,10 @@ void main() {
     expect(find.byType(AppScreenHeader), findsOneWidget);
     expect(find.byType(AppBackButton), findsOneWidget);
     expect(find.text('GPS-Assisted Trip Tracking'), findsOneWidget);
+    expect(
+      find.text('Use confirmed mileage history for review'),
+      findsOneWidget,
+    );
   });
 
   test(
