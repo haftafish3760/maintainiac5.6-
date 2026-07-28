@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'active_workday_screen.dart';
 import '../../shared/calendar/calendar.dart';
-import 'contractor/contractor_dashboard_screen.dart';
 import 'dashboard_panels.dart';
 import 'dashboard_active_day_panel.dart';
 import 'gig_start_day_setup_sheet.dart';
@@ -200,7 +199,6 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        const SliverToBoxAdapter(child: ContractorDashboardLauncher()),
         if (activeContext != null)
           SliverToBoxAdapter(
             child: OperationalContextStrip(contextLabel: contextLabel),
@@ -254,13 +252,24 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       );
       return;
     }
-    final choice = await openGigStartDaySetupSheet(
-      context,
-      vehicles: appState.vehicles,
-      workProfiles: workProfiles.profiles,
-      initialVehicleId: activeVehicle.id,
-      initialWorkProfileId: activeWorkProfile.id,
-    );
+    final availableVehicles = appState.vehicles;
+    final availableWorkProfiles = workProfiles.profiles;
+    final choice =
+        shouldSkipGigStartDayContextSelection(
+          vehicleCount: availableVehicles.length,
+          workProfileCount: availableWorkProfiles.length,
+        )
+        ? GigStartDayContextChoice(
+            vehicleId: activeVehicle.id,
+            workProfileId: activeWorkProfile.id,
+          )
+        : await openGigStartDaySetupSheet(
+            context,
+            vehicles: availableVehicles,
+            workProfiles: availableWorkProfiles,
+            initialVehicleId: activeVehicle.id,
+            initialWorkProfileId: activeWorkProfile.id,
+          );
     if (!mounted || choice == null) return;
     final selectedVehicle = appState.vehicleById(choice.vehicleId);
     final selectedWorkProfile = workProfiles.profileById(choice.workProfileId);

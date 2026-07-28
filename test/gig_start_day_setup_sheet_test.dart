@@ -26,6 +26,30 @@ void main() {
     updatedAt: createdAt,
   );
 
+  test('skips the context prompt only when both choices are singular', () {
+    expect(
+      shouldSkipGigStartDayContextSelection(
+        vehicleCount: 1,
+        workProfileCount: 1,
+      ),
+      isTrue,
+    );
+    expect(
+      shouldSkipGigStartDayContextSelection(
+        vehicleCount: 2,
+        workProfileCount: 1,
+      ),
+      isFalse,
+    );
+    expect(
+      shouldSkipGigStartDayContextSelection(
+        vehicleCount: 1,
+        workProfileCount: 2,
+      ),
+      isFalse,
+    );
+  });
+
   testWidgets('guides vehicle and work-profile choices before odometer entry', (
     tester,
   ) async {
@@ -73,34 +97,5 @@ void main() {
 
     expect(result?.vehicleId, van.id);
     expect(result?.workProfileId, rideshare.id);
-  });
-
-  testWidgets('does not invent choices when only one context exists', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Builder(
-            builder: (context) => FilledButton(
-              onPressed: () => openGigStartDaySetupSheet(
-                context,
-                vehicles: [truck],
-                workProfiles: [delivery],
-                initialVehicleId: truck.id,
-                initialWorkProfileId: delivery.id,
-              ),
-              child: const Text('Open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('Open'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Only work profile'), findsOneWidget);
-    expect(find.text('Only available vehicle'), findsOneWidget);
   });
 }

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../../shared/navigation/app_page_routes.dart';
+import '../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../expenses/data/expense_ledger_store.dart';
+import '../expenses/data/expense_ledger_models.dart';
 import '../invoices/data/invoice_ledger_models.dart';
 import '../invoices/data/invoice_ledger_store.dart';
+import '../settings/trip_tracking_settings_screen.dart';
 import 'dashboard_shortcuts.dart';
+import 'gig_dashboard_record_review_screens.dart';
 
 class PreDayStartContent extends StatelessWidget {
   const PreDayStartContent({
@@ -17,6 +23,12 @@ class PreDayStartContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final today = DateTime.now();
+    final weekStart = DateTime(
+      today.year,
+      today.month,
+      today.day - (today.weekday - DateTime.monday),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
@@ -24,30 +36,14 @@ class PreDayStartContent extends StatelessWidget {
         children: [
           const _DashboardTitleBand(),
           const SizedBox(height: 10),
-          const _TopReadouts(),
-          const SizedBox(height: 12),
-          Text(
-            hasActiveDay ? 'DAY IN PROGRESS' : 'READY TO TRACK',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFFE2E8EA),
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              height: 1,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Center(
-            child: _RoundStartDayButton(
-              onPressed: onStartDay,
-              topLabel: hasActiveDay ? 'RESUME' : 'START',
-              bottomLabel: 'DAY',
-            ),
+          _PreDayCommandCenter(
+            onStartDay: onStartDay,
+            hasActiveDay: hasActiveDay,
           ),
           const SizedBox(height: 14),
           FastRecordGrid(onStartTrip: onStartDay),
           const SizedBox(height: 12),
-          const WeeklyDetailLinks(),
+          WeeklyDetailLinks(weekStart: weekStart),
         ],
       ),
     );
@@ -72,7 +68,7 @@ class _DashboardTitleBand extends StatelessWidget {
           SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Independent Dashboard',
+              'Delivery Command Center',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -83,7 +79,7 @@ class _DashboardTitleBand extends StatelessWidget {
             ),
           ),
           Text(
-            'Solo workday',
+            'Pre-workday',
             style: TextStyle(
               color: Color(0xFFCAD2D5),
               fontSize: 11,
@@ -96,8 +92,14 @@ class _DashboardTitleBand extends StatelessWidget {
   }
 }
 
-class _TopReadouts extends StatelessWidget {
-  const _TopReadouts();
+class _PreDayCommandCenter extends StatelessWidget {
+  const _PreDayCommandCenter({
+    required this.onStartDay,
+    required this.hasActiveDay,
+  });
+
+  final VoidCallback onStartDay;
+  final bool hasActiveDay;
 
   @override
   Widget build(BuildContext context) {
@@ -131,27 +133,238 @@ class _TopReadouts extends StatelessWidget {
               (total, payment) => total + (payment.amount * 100).round(),
             ) ??
         0;
-    final netCents = paymentCents - businessExpenseCents;
-    return Row(
-      children: [
-        Expanded(
-          child: _MetricReadout(
-            label: 'Net recorded',
-            value: _formatDashboardMoney(netCents),
-            color: netCents < 0 ? _red : _green,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _MetricReadout(
-            label: 'Payments',
-            value: _formatDashboardMoney(paymentCents),
-            color: _green,
-          ),
-        ),
-      ],
+    final fuelCents =
+        expenseLedger?.receipts
+            .where((receipt) => receipt.isActive)
+            .where(
+              (receipt) =>
+                  !receipt.receiptDate.isBefore(weekStart) &&
+                  receipt.receiptDate.isBefore(weekEnd),
+            )
+            .where(
+              (receipt) => receipt.lines.any(
+                (line) => line.category.trim().toLowerCase() == 'fuel',
+              ),
+            )
+            .fold<int>(0, (sum, receipt) => sum + receipt.totalCents) ??
+        0;
+    final tracking = TripTrackingScope.maybeOf(context);
+    final gpsEnabled =
+        TripTrackingSettingsScope.maybeOf(
+          context,
+        )?.settings.gpsAssistedTrackingEnabled ??
+        true;
+    final readiness = !gpsEnabled
+        ? _Readiness('GPS assistance off', _yellow, Icons.location_off_rounded)
+        : tracking?.awaitingInitialFix == true
+        ? _Readiness(
+            'Waiting for GPS',
+            _yellow,
+            Icons.location_searching_rounded,
+          )
+        : tracking?.nativeProviderRegistered == true
+        ? _Readiness('GPS ready', _green, Icons.location_on_rounded)
+        : _Readiness('GPS checks at start', _blue, Icons.gps_fixed_rounded);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 480;
+        final metrics = _MetricGrid(
+          paymentCents: paymentCents,
+          expenseCents: businessExpenseCents,
+          fuelCents: fuelCents,
+          readiness: readiness,
+          weekStart: weekStart,
+          weekEnd: weekEnd,
+        );
+        final startCard = _StartDayCommandCard(
+          onPressed: onStartDay,
+          hasActiveDay: hasActiveDay,
+        );
+        if (wide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: metrics),
+              const SizedBox(width: 10),
+              Expanded(flex: 2, child: startCard),
+            ],
+          );
+        }
+        return Column(
+          children: [metrics, const SizedBox(height: 10), startCard],
+        );
+      },
     );
   }
+}
+
+class _MetricGrid extends StatelessWidget {
+  const _MetricGrid({
+    required this.paymentCents,
+    required this.expenseCents,
+    required this.fuelCents,
+    required this.readiness,
+    required this.weekStart,
+    required this.weekEnd,
+  });
+  final int paymentCents;
+  final int expenseCents;
+  final int fuelCents;
+  final _Readiness readiness;
+  final DateTime weekStart;
+  final DateTime weekEnd;
+
+  @override
+  Widget build(BuildContext context) => GridView.count(
+    crossAxisCount: 2,
+    childAspectRatio: 1.9,
+    crossAxisSpacing: 8,
+    mainAxisSpacing: 8,
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    children: [
+      _MetricReadout(
+        label: 'Payments this week',
+        value: _formatDashboardMoney(paymentCents),
+        color: _green,
+        icon: Icons.payments_rounded,
+        onTap: () => Navigator.of(context).push(
+          appNativeRoute<void>(
+            context,
+            GigPaymentsReviewScreen(
+              startInclusive: weekStart,
+              endExclusive: weekEnd,
+            ),
+          ),
+        ),
+      ),
+      _MetricReadout(
+        label: 'Expenses this week',
+        value: _formatDashboardMoney(expenseCents),
+        color: _yellow,
+        icon: Icons.receipt_long_rounded,
+        onTap: () => Navigator.of(context).push(
+          appNativeRoute<void>(
+            context,
+            GigExpenseCategoryBreakdownScreen(
+              startInclusive: weekStart,
+              endExclusive: weekEnd,
+            ),
+          ),
+        ),
+      ),
+      _MetricReadout(
+        label: 'Fuel recorded',
+        value: _formatDashboardMoney(fuelCents),
+        color: _red,
+        icon: Icons.local_gas_station_rounded,
+        onTap: () => Navigator.of(context).push(
+          appNativeRoute<void>(
+            context,
+            GigExpenseCategoryBreakdownScreen(
+              category: 'Fuel',
+              startInclusive: weekStart,
+              endExclusive: weekEnd,
+            ),
+          ),
+        ),
+      ),
+      _MetricReadout(
+        label: readiness.label,
+        value: 'Tracking',
+        color: readiness.color,
+        icon: readiness.icon,
+        onTap: () => Navigator.of(context).push(
+          appNativeRoute<void>(context, const TripTrackingSettingsScreen()),
+        ),
+      ),
+    ],
+  );
+}
+
+class _Readiness {
+  const _Readiness(this.label, this.color, this.icon);
+  final String label;
+  final Color color;
+  final IconData icon;
+}
+
+class _StartDayCommandCard extends StatelessWidget {
+  const _StartDayCommandCard({
+    required this.onPressed,
+    required this.hasActiveDay,
+  });
+  final VoidCallback onPressed;
+  final bool hasActiveDay;
+
+  @override
+  Widget build(BuildContext context) => Material(
+    color: Colors.transparent,
+    child: InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(10),
+      child: Ink(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFF10231B),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _green, width: 1.4),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x55000000),
+              blurRadius: 8,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              hasActiveDay ? 'DAY IN PROGRESS' : 'READY WHEN YOU ARE',
+              style: const TextStyle(
+                color: Color(0xFFC6D4D0),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.play_circle_fill_rounded,
+                  color: _green,
+                  size: 30,
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Text(
+                    hasActiveDay ? 'Resume day' : 'Start day',
+                    style: const TextStyle(
+                      color: Color(0xFFF2F6F7),
+                      fontSize: 21,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.arrow_forward_rounded, color: _green),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Choose the vehicle and work profile only when a choice is needed.',
+              style: TextStyle(
+                color: Color(0xFFD5E1DC),
+                fontSize: 12,
+                height: 1.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 }
 
 String _formatDashboardMoney(int cents) {
@@ -171,200 +384,86 @@ class _MetricReadout extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    required this.icon,
+    required this.onTap,
   });
 
   final String label;
   final String value;
   final Color color;
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 78,
-      padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF141A1D),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF627077), width: 1.2),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x55000000),
-            blurRadius: 7,
-            offset: Offset(0, 3),
+        child: Ink(
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF141A1D),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFF627077), width: 1.2),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x55000000),
+                blurRadius: 7,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: MediaQuery.withClampedTextScaling(
-        maxScaleFactor: 1.4,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFFCAD2D5),
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                height: 1,
-              ),
-            ),
-            const SizedBox(height: 7),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(
-                value,
-                maxLines: 1,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                  shadows: [
-                    Shadow(color: color.withValues(alpha: 0.45), blurRadius: 8),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _RoundStartDayButton extends StatefulWidget {
-  const _RoundStartDayButton({
-    required this.onPressed,
-    required this.topLabel,
-    required this.bottomLabel,
-  });
-
-  final VoidCallback onPressed;
-  final String topLabel;
-  final String bottomLabel;
-
-  @override
-  State<_RoundStartDayButton> createState() => _RoundStartDayButtonState();
-}
-
-class _RoundStartDayButtonState extends State<_RoundStartDayButton> {
-  var _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final buttonSize = (MediaQuery.sizeOf(context).width * 0.3).clamp(
-      116.0,
-      138.0,
-    );
-    final innerSize = buttonSize - 16;
-
-    return Semantics(
-      button: true,
-      label: widget.topLabel == 'RESUME' ? 'Resume day' : 'Start day',
-      child: Material(
-        color: Colors.transparent,
-        shape: const CircleBorder(),
-        child: InkWell(
-          customBorder: const CircleBorder(),
-          onTapDown: (_) => setState(() => _pressed = true),
-          onTapCancel: () => setState(() => _pressed = false),
-          onTapUp: (_) async {
-            setState(() => _pressed = true);
-            await Future<void>.delayed(const Duration(milliseconds: 120));
-            if (!mounted) return;
-            setState(() => _pressed = false);
-            widget.onPressed();
-          },
-          child: AnimatedScale(
-            scale: _pressed ? 0.94 : 1,
-            duration: const Duration(milliseconds: 90),
-            curve: Curves.easeOut,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 90),
-              width: buttonSize,
-              height: buttonSize,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF121719),
-                border: Border.all(color: const Color(0xFFE3E8EA), width: 3),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0xCC000000),
-                    blurRadius: 14,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Container(
-                width: innerSize,
-                height: innerSize,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF171D20),
-                  border: Border.all(color: _green, width: 5),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0xAA20F060),
-                      blurRadius: 12,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: MediaQuery.withClampedTextScaling(
+            maxScaleFactor: 1.4,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    _StartButtonText(
-                      widget.topLabel,
-                      color: const Color(0xFFF2F6F7),
-                      fontSize: 20,
-                    ),
-                    const SizedBox(height: 4),
-                    _StartButtonText(
-                      widget.bottomLabel,
-                      color: _green,
-                      fontSize: 23,
+                    Icon(icon, color: color, size: 16),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFFCAD2D5),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          height: 1,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 7),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    maxLines: 1,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      height: 1,
+                      shadows: [
+                        Shadow(
+                          color: color.withValues(alpha: 0.45),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StartButtonText extends StatelessWidget {
-  const _StartButtonText(
-    this.text, {
-    required this.color,
-    required this.fontSize,
-  });
-
-  final String text;
-  final Color color;
-  final double fontSize;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      text,
-      maxLines: 1,
-      style: TextStyle(
-        color: color,
-        fontSize: fontSize,
-        fontWeight: FontWeight.w900,
-        height: 1,
-        letterSpacing: 0,
-        shadows: [
-          Shadow(color: color, offset: const Offset(0.38, 0)),
-          Shadow(color: color, offset: const Offset(-0.38, 0)),
-          Shadow(color: color, offset: const Offset(0, 0.28)),
-        ],
       ),
     );
   }
@@ -373,3 +472,4 @@ class _StartButtonText extends StatelessWidget {
 const _green = Color(0xFF20F060);
 const _blue = Color(0xFF34A9E8);
 const _red = Color(0xFFFF5750);
+const _yellow = Color(0xFFFFD166);

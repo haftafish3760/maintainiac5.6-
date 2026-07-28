@@ -19,6 +19,13 @@ class GigStartDayContextChoice {
   final String workProfileId;
 }
 
+/// The normal one-vehicle, one-profile path should never add a needless
+/// confirmation screen before the physical odometer entry.
+bool shouldSkipGigStartDayContextSelection({
+  required int vehicleCount,
+  required int workProfileCount,
+}) => vehicleCount == 1 && workProfileCount == 1;
+
 Future<GigStartDayContextChoice?> openGigStartDaySetupSheet(
   BuildContext context, {
   required List<VehicleProfile> vehicles,
@@ -100,24 +107,47 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            _ContextSelector(
-              label: 'Work profile',
-              value: _workProfile.name,
-              enabled: widget.workProfiles.length > 1,
-              enabledHint: 'Tap to choose',
-              disabledHint: 'Only work profile',
-              icon: Icons.work_rounded,
-              onTap: _chooseWorkProfile,
-            ),
-            const SizedBox(height: 10),
-            _ContextSelector(
-              label: 'Vehicle',
-              value: _vehicle.displayName,
-              enabled: widget.vehicles.length > 1,
-              enabledHint: 'Tap to choose',
-              disabledHint: 'Only available vehicle',
-              icon: Icons.directions_car_filled_rounded,
-              onTap: _chooseVehicle,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final showWorkProfile = widget.workProfiles.length > 1;
+                final showVehicle = widget.vehicles.length > 1;
+                final canSitSideBySide =
+                    showWorkProfile &&
+                    showVehicle &&
+                    constraints.maxWidth >= 390 &&
+                    _workProfile.name.length <= 20 &&
+                    _vehicle.displayName.length <= 24;
+                final cardWidth = canSitSideBySide
+                    ? (constraints.maxWidth - 10) / 2
+                    : constraints.maxWidth.clamp(178.0, 266.0).toDouble();
+                return Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    if (showWorkProfile)
+                      SizedBox(
+                        width: cardWidth,
+                        child: _ContextSelector(
+                          label: 'Work profile',
+                          value: _workProfile.name,
+                          icon: Icons.work_rounded,
+                          onTap: _chooseWorkProfile,
+                        ),
+                      ),
+                    if (showVehicle)
+                      SizedBox(
+                        width: cardWidth,
+                        child: _ContextSelector(
+                          label: 'Vehicle',
+                          value: _vehicle.displayName,
+                          icon: Icons.directions_car_filled_rounded,
+                          onTap: _chooseVehicle,
+                        ),
+                      ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 14),
             const _NextOdometerPanel(),
@@ -182,31 +212,25 @@ class _ContextSelector extends StatelessWidget {
   const _ContextSelector({
     required this.label,
     required this.value,
-    required this.enabled,
-    required this.enabledHint,
-    required this.disabledHint,
     required this.icon,
     required this.onTap,
   });
 
   final String label;
   final String value;
-  final bool enabled;
-  final String enabledHint;
-  final String disabledHint;
   final IconData icon;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      button: enabled,
+      button: true,
       label: '$label: $value',
       child: Material(
         color: const Color(0xFFAAB4B9),
         borderRadius: BorderRadius.circular(7),
         child: InkWell(
-          onTap: enabled ? onTap : null,
+          onTap: onTap,
           borderRadius: BorderRadius.circular(7),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -216,10 +240,11 @@ class _ContextSelector extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
                         label,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xFF273237),
                           fontSize: 12,
@@ -229,8 +254,9 @@ class _ContextSelector extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         value,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xFF101416),
                           fontSize: 16,
@@ -241,17 +267,15 @@ class _ContextSelector extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  enabled ? enabledHint : disabledHint,
+                  'Choose',
                   style: const TextStyle(
                     color: Color(0xFF455157),
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                if (enabled) ...[
-                  const SizedBox(width: 4),
-                  const Icon(Icons.chevron_right_rounded),
-                ],
+                const SizedBox(width: 4),
+                const Icon(Icons.chevron_right_rounded),
               ],
             ),
           ),

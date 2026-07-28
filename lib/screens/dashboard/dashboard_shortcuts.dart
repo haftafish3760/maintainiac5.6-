@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/navigation/app_page_routes.dart';
-import '../../shared/odometer/open_odometer_entry.dart';
-import '../expenses/data/expense_ledger_models.dart';
-import '../expenses/entry/expense_receipt_entry_screen.dart';
 import '../invoices/home/invoice_info_screens.dart';
-import 'data/active_workday_store.dart';
+import 'gig_dashboard_record_review_screens.dart';
 
 class FastRecordGrid extends StatelessWidget {
   const FastRecordGrid({super.key, required this.onStartTrip});
@@ -19,19 +16,17 @@ class FastRecordGrid extends StatelessWidget {
       shortcuts: [
         DashboardShortcut(
           title: 'Fuel',
-          subtitle: 'Odometer + receipt',
+          subtitle: 'Review fuel spending',
           icon: Icons.local_gas_station_rounded,
           color: _red,
-          onTap: () => _openExpense(context, category: 'Fuel'),
-          startsInAddMode: true,
+          onTap: () => _openExpenseReview(context, category: 'Fuel'),
         ),
         DashboardShortcut(
           title: 'Expense',
-          subtitle: 'Odometer + details',
+          subtitle: 'Review all spending',
           icon: Icons.receipt_long_rounded,
           color: _yellow,
-          onTap: () => _openExpense(context),
-          startsInAddMode: true,
+          onTap: () => _openExpenseReview(context),
         ),
         DashboardShortcut(
           title: 'Pay',
@@ -55,72 +50,71 @@ class FastRecordGrid extends StatelessWidget {
     );
   }
 
-  Future<void> _openExpense(BuildContext context, {String? category}) async {
-    final reading = await openOdometerEntryResult(
-      context,
-      title: category == 'Fuel' ? 'Fuel Stop Odometer' : 'Expense Odometer',
-      saveLabel: category == 'Fuel'
-          ? 'Continue to Fuel'
-          : 'Continue to Expense',
-    );
-    if (reading == null || !context.mounted) return;
-    final saved = await Navigator.of(context).push<ExpenseReceiptRecord>(
-      appNativeRoute<ExpenseReceiptRecord>(
+  void _openExpenseReview(BuildContext context, {String? category}) {
+    Navigator.of(context).push(
+      appNativeRoute<void>(
         context,
-        ExpenseReceiptEntryScreen(
-          initialCategory: category,
-          initialOdometerReading: reading,
-        ),
+        GigExpenseCategoryBreakdownScreen(category: category),
       ),
     );
-    if (saved == null || !context.mounted) return;
-    final activeWorkday = ActiveWorkdayScope.maybeOf(context);
-    if (activeWorkday?.activeSession != null) {
-      final updated = await activeWorkday!.addEvent(
-        type: category == 'Fuel'
-            ? ActiveWorkdayEventType.fuel
-            : ActiveWorkdayEventType.expense,
-        odometerReading: saved.odometerReading ?? reading,
-        note: category == 'Fuel' ? 'Fuel expense saved' : 'Expense saved',
-      );
-      if (updated == null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'The expense saved, but it could not be added to today. Open the expense to try again.',
-            ),
-          ),
-        );
-      }
-    }
   }
 }
 
 class WeeklyDetailLinks extends StatelessWidget {
-  const WeeklyDetailLinks({super.key});
+  const WeeklyDetailLinks({super.key, required this.weekStart});
+
+  final DateTime weekStart;
 
   @override
   Widget build(BuildContext context) {
-    return const DashboardShortcutGrid(
+    return DashboardShortcutGrid(
       title: 'Weekly totals',
       shortcuts: [
         DashboardShortcut(
           title: 'Profit',
-          subtitle: 'Weekly net',
+          subtitle: 'Payments review',
           icon: Icons.trending_up_rounded,
           color: _green,
+          onTap: () => Navigator.of(context).push(
+            appNativeRoute<void>(
+              context,
+              GigPaymentsReviewScreen(
+                startInclusive: weekStart,
+                endExclusive: weekStart.add(const Duration(days: 7)),
+              ),
+            ),
+          ),
         ),
         DashboardShortcut(
           title: 'Fuel',
           subtitle: 'Weekly fuel',
           icon: Icons.local_gas_station_rounded,
           color: _red,
+          onTap: () => Navigator.of(context).push(
+            appNativeRoute<void>(
+              context,
+              GigExpenseCategoryBreakdownScreen(
+                category: 'Fuel',
+                startInclusive: weekStart,
+                endExclusive: weekStart.add(const Duration(days: 7)),
+              ),
+            ),
+          ),
         ),
         DashboardShortcut(
           title: 'Expenses',
           subtitle: 'Weekly total',
           icon: Icons.receipt_long_rounded,
           color: _yellow,
+          onTap: () => Navigator.of(context).push(
+            appNativeRoute<void>(
+              context,
+              GigExpenseCategoryBreakdownScreen(
+                startInclusive: weekStart,
+                endExclusive: weekStart.add(const Duration(days: 7)),
+              ),
+            ),
+          ),
         ),
         DashboardShortcut(
           title: 'Trips',

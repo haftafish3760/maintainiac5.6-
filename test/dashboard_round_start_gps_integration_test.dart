@@ -99,7 +99,7 @@ Future<void> _pumpUntil(
 }
 
 Future<void> _completeGuidedStartDay(WidgetTester tester) async {
-  await tester.tap(find.text('START'));
+  await tester.tap(find.text('Start day'));
   await tester.pumpAndSettle();
   expect(find.text('Start Your Delivery Day'), findsOneWidget);
   await tester.tap(find.text('Enter Odometer'));
@@ -110,148 +110,150 @@ Future<void> _completeGuidedStartDay(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('round Start Day remains manual when GPS assistance is off', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(900, 1800);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
-    final appState = AppStateController();
-    final workProfiles = ExpenseWorkProfileController.memory();
-    final workday = ActiveWorkdayController.memory();
-    final odometer = GlobalOdometerController(initialReading: 12000);
-    final gateway = _RoundStartGpsGateway();
-    final trip = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: odometer,
-      platform: gateway,
-    );
-    final settings = TripTrackingSettingsController.memory(
-      const TripTrackingSettings(
-        tripTrackingSetupCompleted: true,
-        gpsAssistedTrackingEnabled: false,
-      ),
-    );
-    addTearDown(appState.dispose);
-    addTearDown(workProfiles.dispose);
-    addTearDown(workday.dispose);
-    addTearDown(odometer.dispose);
-    addTearDown(settings.dispose);
-    addTearDown(() async {
-      trip.dispose();
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      await gateway.close();
-    });
+  testWidgets(
+    'command-center Start Day remains manual when GPS assistance is off',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 1800);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final appState = AppStateController();
+      final workProfiles = ExpenseWorkProfileController.memory();
+      final workday = ActiveWorkdayController.memory();
+      final odometer = GlobalOdometerController(initialReading: 12000);
+      final gateway = _RoundStartGpsGateway();
+      final trip = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: gateway,
+      );
+      final settings = TripTrackingSettingsController.memory(
+        const TripTrackingSettings(
+          tripTrackingSetupCompleted: true,
+          gpsAssistedTrackingEnabled: false,
+        ),
+      );
+      addTearDown(appState.dispose);
+      addTearDown(workProfiles.dispose);
+      addTearDown(workday.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(settings.dispose);
+      addTearDown(() async {
+        trip.dispose();
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await gateway.close();
+      });
 
-    await tester.pumpWidget(
-      AppStateScope(
-        controller: appState,
-        child: ExpenseWorkProfileScope(
-          controller: workProfiles,
-          child: ActiveWorkdayScope(
-            controller: workday,
-            child: GlobalOdometerScope(
-              controller: odometer,
-              child: TripTrackingSettingsScope(
-                controller: settings,
-                child: TripTrackingScope(
-                  controller: trip,
-                  child: const MaterialApp(home: DashboardScreen()),
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: ExpenseWorkProfileScope(
+            controller: workProfiles,
+            child: ActiveWorkdayScope(
+              controller: workday,
+              child: GlobalOdometerScope(
+                controller: odometer,
+                child: TripTrackingSettingsScope(
+                  controller: settings,
+                  child: TripTrackingScope(
+                    controller: trip,
+                    child: const MaterialApp(home: DashboardScreen()),
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await _completeGuidedStartDay(tester);
-    await _pumpUntil(
-      tester,
-      () => workday.activeSession != null,
-      reason: 'The manual workday did not become active.',
-    );
+      await _completeGuidedStartDay(tester);
+      await _pumpUntil(
+        tester,
+        () => workday.activeSession != null,
+        reason: 'The manual workday did not become active.',
+      );
 
-    expect(workday.activeSession, isNotNull);
-    expect(gateway.startCalls, 0);
-    expect(trip.activeSession, isNull);
-    expect(trip.nativeTracking, isFalse);
-    expect(odometer.confirmedReading, 12000);
-  });
+      expect(workday.activeSession, isNotNull);
+      expect(gateway.startCalls, 0);
+      expect(trip.activeSession, isNull);
+      expect(trip.nativeTracking, isFalse);
+      expect(odometer.confirmedReading, 12000);
+    },
+  );
 
-  testWidgets('round Start Day launches opted-in native GPS assistance', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(900, 1800);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
-    final appState = AppStateController();
-    final workProfiles = ExpenseWorkProfileController.memory();
-    final workday = ActiveWorkdayController.memory();
-    final odometer = GlobalOdometerController(initialReading: 12000);
-    final gateway = _RoundStartGpsGateway();
-    final trip = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: odometer,
-      platform: gateway,
-    );
-    final settings = TripTrackingSettingsController.memory(
-      const TripTrackingSettings(
-        tripTrackingSetupCompleted: true,
-        gpsAssistedTrackingEnabled: true,
-        activityRecognitionEnabled: true,
-      ),
-    );
-    addTearDown(appState.dispose);
-    addTearDown(workProfiles.dispose);
-    addTearDown(workday.dispose);
-    addTearDown(odometer.dispose);
-    addTearDown(settings.dispose);
-    addTearDown(() async {
-      trip.dispose();
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-      await gateway.close();
-    });
+  testWidgets(
+    'command-center Start Day launches opted-in native GPS assistance',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 1800);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final appState = AppStateController();
+      final workProfiles = ExpenseWorkProfileController.memory();
+      final workday = ActiveWorkdayController.memory();
+      final odometer = GlobalOdometerController(initialReading: 12000);
+      final gateway = _RoundStartGpsGateway();
+      final trip = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: gateway,
+      );
+      final settings = TripTrackingSettingsController.memory(
+        const TripTrackingSettings(
+          tripTrackingSetupCompleted: true,
+          gpsAssistedTrackingEnabled: true,
+          activityRecognitionEnabled: true,
+        ),
+      );
+      addTearDown(appState.dispose);
+      addTearDown(workProfiles.dispose);
+      addTearDown(workday.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(settings.dispose);
+      addTearDown(() async {
+        trip.dispose();
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await gateway.close();
+      });
 
-    await tester.pumpWidget(
-      AppStateScope(
-        controller: appState,
-        child: ExpenseWorkProfileScope(
-          controller: workProfiles,
-          child: ActiveWorkdayScope(
-            controller: workday,
-            child: GlobalOdometerScope(
-              controller: odometer,
-              child: TripTrackingSettingsScope(
-                controller: settings,
-                child: TripTrackingScope(
-                  controller: trip,
-                  child: const MaterialApp(home: DashboardScreen()),
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: ExpenseWorkProfileScope(
+            controller: workProfiles,
+            child: ActiveWorkdayScope(
+              controller: workday,
+              child: GlobalOdometerScope(
+                controller: odometer,
+                child: TripTrackingSettingsScope(
+                  controller: settings,
+                  child: TripTrackingScope(
+                    controller: trip,
+                    child: const MaterialApp(home: DashboardScreen()),
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    await _completeGuidedStartDay(tester);
-    await _pumpUntil(
-      tester,
-      () =>
-          gateway.startCalls == 1 &&
-          trip.nativeTracking &&
-          trip.lifecycleState == TripTrackingSessionLifecycleState.active,
-      reason: 'The opted-in native GPS start did not finish.',
-    );
+      await _completeGuidedStartDay(tester);
+      await _pumpUntil(
+        tester,
+        () =>
+            gateway.startCalls == 1 &&
+            trip.nativeTracking &&
+            trip.lifecycleState == TripTrackingSessionLifecycleState.active,
+        reason: 'The opted-in native GPS start did not finish.',
+      );
 
-    expect(workday.activeSession, isNotNull);
-    expect(gateway.startCalls, 1);
-    expect(trip.nativeTracking, isTrue);
-    expect(odometer.confirmedReading, 12000);
-  });
+      expect(workday.activeSession, isNotNull);
+      expect(gateway.startCalls, 1);
+      expect(trip.nativeTracking, isTrue);
+      expect(odometer.confirmedReading, 12000);
+    },
+  );
 
   testWidgets('unavailable GPS never blocks the manual workday', (
     tester,
