@@ -204,7 +204,11 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
       );
       return decision;
     }
-    if (providerRunning) {
+    // A native collector can acknowledge its requested state before it has
+    // delivered provider evidence (notably Core Location on iOS). Only a
+    // confirmed provider may refresh liveness; otherwise a stalled request
+    // must degrade for review instead of remaining indefinitely healthy.
+    if (providerRunning && _nativeProviderRegistered) {
       _lastNativeHeartbeatUtc = _nonRegressingNativeHeartbeatTime(now);
     }
     final decision = TripTrackingHeartbeatWatchdogPolicy.evaluate(
@@ -215,7 +219,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     );
     switch (decision.action) {
       case TripTrackingHeartbeatWatchdogAction.continueTracking:
-        if (providerRunning && _nativeTracking) {
+        if (providerRunning && _nativeTracking && _nativeProviderRegistered) {
           _platformStatus =
               _awaitingInitialFix &&
                   _engine?.snapshot.initialFixAssessment?.quality ==
@@ -259,6 +263,7 @@ extension TripTrackingControllerNativeLifecycle on TripTrackingController {
     final engine = _engine;
     final session = _session;
     if (!_awaitingInitialFix ||
+        !_nativeProviderRegistered ||
         startedAt == null ||
         engine == null ||
         session == null ||

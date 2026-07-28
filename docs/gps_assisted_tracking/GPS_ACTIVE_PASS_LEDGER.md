@@ -110,6 +110,9 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 - PASS 21
 - Objective: complete broad trip-tracking regression after current hardening checkpoints
 - State: passed; `TRIP_QA_PASS`
+- PASS 22
+- Objective: prevent native provider waits from refreshing GPS liveness before registration
+- State: passed; provider-wait regression, controller/native capability families, analysis, commercial gate, and iPhone Release install/launch passed
 - Source changes: bounded Bluetooth runtime, settings approval/removal UI, Android permission request, iOS fail-closed boundary
 - Test changes: runtime lifecycle/expiry tests, permission tests, link/forget widget tests, native and production contracts
 - Regression cases added: concurrent start coalescing, fresh-only approval, hidden opaque identity, confirmed unlink, explicit Android permission
@@ -157,6 +160,7 @@ Retained reproduction log: `/tmp/maintainiac_pass1_eight_failures.log`
 | 18 | PASSED | Production automatic-start boundary | Bluetooth wiring test confirms no implicit trip start; focused automatic-start and Bluetooth tests passed |
 | 19 | PASSED | Two-phone field route protocol | 111-line owner protocol defines permissions, drive-stop-walk-drive, background, and review evidence |
 | 21 | PASSED | Complete trip-tracking regression | `TRIP_QA_PASS` after iOS readiness, Bluetooth stress, automatic-start, and field protocol checkpoints |
+| 22 | PASSED | Provider-wait watchdog integrity | Unregistered native collector degrades without mileage; iPhone Release installed/launched |
 
 ## Safest repair order
 

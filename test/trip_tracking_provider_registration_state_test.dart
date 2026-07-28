@@ -122,6 +122,59 @@ void main() {
       _expectOdometerUntouched(controller, odometer);
     },
   );
+
+  test(
+    'unregistered native collector cannot refresh heartbeat liveness',
+    () async {
+      final now = DateTime.utc(2026, 7, 28, 12);
+      final gateway = _RegistrationGateway();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: gateway,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(gateway.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'provider_wait_watchdog',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: now,
+        ),
+        isTrue,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: false,
+        ),
+        isTrue,
+      );
+      await _drainEvents();
+
+      final decision = await controller.checkNativeHeartbeat(
+        nowUtc: now.add(const Duration(minutes: 4)),
+      );
+
+      expect(controller.nativeProviderRegistered, isFalse);
+      expect(decision?.reasonCode, 'heartbeat_stale_retry_native');
+      expect(controller.platformStatus, 'native_heartbeat_stale');
+      expect(
+        controller.lifecycleState,
+        TripTrackingSessionLifecycleState.degraded,
+      );
+      expect(controller.acceptedMeters, 0);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
 }
 
 void _expectOdometerUntouched(

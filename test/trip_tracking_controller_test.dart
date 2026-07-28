@@ -1670,6 +1670,10 @@ void main() {
         await controller.startNativeTracking(allowBackground: true),
         isTrue,
       );
+      native.addStatus('tracking');
+      await drainNativeTripEventsUntil(
+        () => controller.nativeProviderRegistered,
+      );
       store.failNextSessionSave = true;
       now = now.add(const Duration(minutes: 6));
 
@@ -1936,6 +1940,10 @@ void main() {
         await controller.startNativeTracking(allowBackground: true),
         isTrue,
       );
+      native.addStatus('tracking');
+      await drainNativeTripEventsUntil(
+        () => controller.nativeProviderRegistered,
+      );
       store.failNextSessionSave = true;
       now = now.add(const Duration(minutes: 3));
 
@@ -1980,6 +1988,10 @@ void main() {
       expect(
         await controller.startNativeTracking(allowBackground: true),
         isTrue,
+      );
+      native.addStatus('tracking');
+      await drainNativeTripEventsUntil(
+        () => controller.nativeProviderRegistered,
       );
       store.failNextSessionSave = true;
 

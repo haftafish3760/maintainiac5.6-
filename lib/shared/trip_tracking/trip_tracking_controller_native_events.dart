@@ -340,6 +340,12 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
               notifyListeners();
               return;
             }
+            // A live status is the native provider-registration boundary. Set
+            // it before evaluating an elapsed initial-fix window so a delayed
+            // but valid registration is not mistaken for a provider wait.
+            if (status == 'tracking' && _nativeTracking) {
+              _nativeProviderRegistered = true;
+            }
             if (status == 'tracking' && _awaitingInitialFix) {
               await _markExpiredInitialFixPreparation(
                 _clockNow().toUtc(),

@@ -403,6 +403,9 @@ void main() {
         await controller.startNativeTracking(allowBackground: true),
         isTrue,
       );
+      native.addStatus('tracking');
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
 
       await controller.handleAppLifecycleState(
         AppLifecycleState.resumed,
