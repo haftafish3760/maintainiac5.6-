@@ -201,7 +201,9 @@ class VehicleUsageSelector extends StatelessWidget {
     required this.onChanged,
   });
 
-  final VehicleUsage value;
+  /// Null only while a new vehicle profile is awaiting the driver's choice.
+  /// Persisted vehicle profiles always carry an explicit usage classification.
+  final VehicleUsage? value;
   final ValueChanged<VehicleUsage> onChanged;
 
   @override
@@ -211,7 +213,27 @@ class VehicleUsageSelector extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              'What do you use this vehicle for?',
+              style: TextStyle(
+                color: Color(0xFFEAF2F5),
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 5),
+            const Text(
+              'Choose one. This controls only suggested tracking and review behavior; you always confirm mileage.',
+              style: TextStyle(
+                color: Color(0xFFC9D9E0),
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 12),
             for (final usage in VehicleUsage.values) ...[
               _VehicleUsageOption(
                 usage: usage,

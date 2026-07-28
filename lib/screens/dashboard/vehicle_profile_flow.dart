@@ -362,7 +362,7 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
   final _yearFocus = FocusNode();
   final _makeFocus = FocusNode();
   final _modelFocus = FocusNode();
-  var _usage = VehicleUsage.businessPersonal;
+  VehicleUsage? _usage;
   var _tireSizeStatus = VehicleTireSizeStatus.unknown;
   var _speedometerCalibrationStatus =
       VehicleSpeedometerCalibrationStatus.unknown;
@@ -431,7 +431,6 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
               hintText: 'Transit',
               focusNode: _modelFocus,
               textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _savePreviewVehicle(),
             ),
             const SizedBox(height: 18),
             VehicleUsageSelector(
@@ -451,7 +450,7 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
             Align(
               alignment: Alignment.center,
               child: FilledButton.icon(
-                onPressed: _savePreviewVehicle,
+                onPressed: _usage == null ? null : _savePreviewVehicle,
                 icon: const Icon(Icons.check_rounded),
                 label: const Text('Save Profile'),
                 style: FilledButton.styleFrom(
@@ -468,6 +467,8 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
   }
 
   Future<void> _savePreviewVehicle() async {
+    final usage = _usage;
+    if (usage == null) return;
     final nickname = _nicknameController.text.trim();
     final vehicle = VehicleProfile(
       id: 'vehicle_${DateTime.now().microsecondsSinceEpoch}',
@@ -475,7 +476,7 @@ class _AddVehicleProfileScreenState extends State<AddVehicleProfileScreen> {
       year: _yearController.text.trim(),
       make: _makeController.text.trim(),
       model: _modelController.text.trim(),
-      usage: _usage,
+      usage: usage,
       tireSizeStatus: _tireSizeStatus,
       speedometerCalibrationStatus: _speedometerCalibrationStatus,
       tireConfigurationRevision: 1,
