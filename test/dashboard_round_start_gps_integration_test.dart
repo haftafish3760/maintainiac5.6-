@@ -273,6 +273,102 @@ void main() {
     },
   );
 
+  testWidgets(
+    'ending a GPS-assisted root workday returns to the ready Dashboard',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 1800);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final appState = AppStateController();
+      final workProfiles = ExpenseWorkProfileController.memory();
+      final workday = ActiveWorkdayController.memory();
+      final odometer = GlobalOdometerController(initialReading: 12000);
+      final gateway = _RoundStartGpsGateway();
+      final trip = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: gateway,
+      );
+      final settings = TripTrackingSettingsController.memory(
+        const TripTrackingSettings(
+          tripTrackingSetupCompleted: true,
+          gpsAssistedTrackingEnabled: true,
+          activityRecognitionEnabled: true,
+        ),
+      );
+      addTearDown(appState.dispose);
+      addTearDown(workProfiles.dispose);
+      addTearDown(workday.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(settings.dispose);
+      addTearDown(() async {
+        trip.dispose();
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await gateway.close();
+      });
+
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: ExpenseWorkProfileScope(
+            controller: workProfiles,
+            child: ActiveWorkdayScope(
+              controller: workday,
+              child: GlobalOdometerScope(
+                controller: odometer,
+                child: TripTrackingSettingsScope(
+                  controller: settings,
+                  child: TripTrackingScope(
+                    controller: trip,
+                    child: const MaterialApp(home: DashboardScreen()),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await _completeGuidedStartDay(tester);
+      await _pumpUntil(
+        tester,
+        () => trip.nativeTracking,
+        reason: 'GPS assistance did not start before End Day.',
+      );
+      await tester.tap(find.text('End Day'));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      await tester.pump();
+      await _pumpUntil(
+        tester,
+        () => find.text('Review GPS Trip Odometer').evaluate().isNotEmpty,
+        reason: 'GPS End Day did not open the odometer review.',
+        diagnostic: () =>
+            'tracking=${trip.isTracking}; '
+            'lifecycle=${trip.lifecycleState}; '
+            'status=${trip.platformStatus}; '
+            'error=${trip.platformError}; '
+            'review=${trip.latestUnconfirmedReview?.id}',
+      );
+      expect(find.text('Review GPS Trip Odometer'), findsWidgets);
+      await tester.enterText(find.byType(TextField).first, '12001');
+      await tester.pump();
+      // A real keypad Done/Next action must open the mileage-classification
+      // step, never an empty route, after the driver changes the reading.
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(find.text('You added 1 miles.'), findsOneWidget);
+      expect(find.text('Business'), findsOneWidget);
+      expect(workday.activeSession, isNotNull);
+      expect(trip.activeSession, isNull);
+      expect(odometer.confirmedReading, 12000);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets('unavailable GPS never blocks the manual workday', (
     tester,
   ) async {
