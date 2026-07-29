@@ -418,7 +418,7 @@ void main() {
     expect(find.text(odometer.displayValue), findsOneWidget);
   });
 
-  testWidgets('active day shows profile-aware GPS guidance before tracking', (
+  testWidgets('active day exposes GPS start guidance with profile context', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -488,17 +488,9 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.text('TRIP TRACKING'));
-    expect(
-      find.text('Phone location is ready for delivery work.'),
-      findsOneWidget,
-    );
-    expect(find.textContaining('begin walking'), findsOneWidget);
+    expect(find.textContaining('GPS ready'), findsOneWidget);
+    expect(find.widgetWithText(FilledButton, 'START GPS'), findsOneWidget);
     expect(find.text('Delivery'), findsWidgets);
-    expect(find.textContaining('Sync: Wi-Fi only'), findsNothing);
-    expect(find.text('Battery protection on'), findsOneWidget);
-    expect(find.textContaining('Turn on stop suggestions'), findsOneWidget);
-    expect(find.textContaining('Odometer remains'), findsNothing);
   });
 
   testWidgets('active day asks before starting GPS below 20 percent battery', (
@@ -568,8 +560,8 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START GPS'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START GPS'));
     await tester.pumpAndSettle();
 
     expect(find.text('Battery below 20%'), findsOneWidget);
@@ -656,8 +648,8 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START GPS'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START GPS'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Do not show again'));
     await tester.pumpAndSettle();
@@ -731,8 +723,8 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START GPS'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START GPS'));
     await tester.pumpAndSettle();
 
     expect(
@@ -814,8 +806,8 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START GPS'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START GPS'));
     await tester.pumpAndSettle();
 
     expect(
@@ -896,8 +888,8 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START GPS'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START GPS'));
     await tester.pumpAndSettle();
 
     expect(find.text('Battery saver is active'), findsOneWidget);
@@ -981,8 +973,8 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START GPS'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START GPS'));
     await tester.pump();
 
     expect(find.widgetWithText(FilledButton, 'STARTING'), findsOneWidget);
@@ -1067,8 +1059,8 @@ void main() {
       ),
     );
 
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START'));
-    await tester.tap(find.widgetWithText(FilledButton, 'START'));
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'START GPS'));
+    await tester.tap(find.widgetWithText(FilledButton, 'START GPS'));
     await tester.pumpAndSettle();
     expect(find.widgetWithText(FilledButton, 'STOP'), findsOneWidget);
     expect(native.stopCalls, 0);
@@ -1091,6 +1083,11 @@ void main() {
     await tester.pump();
 
     await tester.tap(find.widgetWithText(FilledButton, 'STOP'));
+    await tester.pump();
+    expect(find.text('Stop Location Tracking?'), findsOneWidget);
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Stop Location Tracking'),
+    );
     await tester.pump();
     expect(find.widgetWithText(FilledButton, 'STOPPING'), findsOneWidget);
     expect(native.stopInvocations, 1);
@@ -1208,6 +1205,13 @@ void main() {
         odometer: odometer,
         cloudMirror: cloudMirror,
       );
+      final settingsController = TripTrackingSettingsController.memory(
+        const TripTrackingSettings(
+          tripTrackingSetupCompleted: true,
+          gpsAssistedTrackingEnabled: true,
+        ),
+      );
+      addTearDown(settingsController.dispose);
       await tripStore.saveReview(
         TripTrackingReviewRecord(
           id: 'dashboard_review_exact_saved_reading',
@@ -1231,20 +1235,23 @@ void main() {
             controller: activeWorkday,
             child: GlobalOdometerScope(
               controller: odometer,
-              child: TripTrackingScope(
-                controller: tripController,
-                child: const MaterialApp(
-                  home: ActiveWorkdayScreen(
-                    activeVehicle: VehicleProfilePreview(
-                      id: 'vehicle_1',
-                      nickname: 'Work Truck',
-                      year: '2026',
-                      make: 'Ford',
-                      model: 'Transit',
-                      odometer: '0001000',
-                      status: 'ACTIVE',
+              child: TripTrackingSettingsScope(
+                controller: settingsController,
+                child: TripTrackingScope(
+                  controller: tripController,
+                  child: const MaterialApp(
+                    home: ActiveWorkdayScreen(
+                      activeVehicle: VehicleProfilePreview(
+                        id: 'vehicle_1',
+                        nickname: 'Work Truck',
+                        year: '2026',
+                        make: 'Ford',
+                        model: 'Transit',
+                        odometer: '0001000',
+                        status: 'ACTIVE',
+                      ),
+                      workProfileName: 'Business',
                     ),
-                    workProfileName: 'Business',
                   ),
                 ),
               ),
@@ -1253,16 +1260,7 @@ void main() {
         ),
       );
 
-      await tester.ensureVisible(find.text('REVIEW LATEST GPS TRIP'));
-      await tester.pump();
-      await tester.tap(
-        find
-            .ancestor(
-              of: find.text('REVIEW LATEST GPS TRIP'),
-              matching: find.byType(InkWell),
-            )
-            .first,
-      );
+      await tester.tap(find.text('Review GPS Trip Odometer'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).first, '1001');
       await tester.tap(find.widgetWithText(FilledButton, 'Confirm Odometer'));
@@ -1319,6 +1317,13 @@ void main() {
         odometer: odometer,
         cloudMirror: cloudMirror,
       );
+      final settingsController = TripTrackingSettingsController.memory(
+        const TripTrackingSettings(
+          tripTrackingSetupCompleted: true,
+          gpsAssistedTrackingEnabled: true,
+        ),
+      );
+      addTearDown(settingsController.dispose);
       await tripStore.saveReview(
         TripTrackingReviewRecord(
           id: 'dashboard_review_cloud_retry',
@@ -1342,20 +1347,23 @@ void main() {
             controller: activeWorkday,
             child: GlobalOdometerScope(
               controller: odometer,
-              child: TripTrackingScope(
-                controller: tripController,
-                child: const MaterialApp(
-                  home: ActiveWorkdayScreen(
-                    activeVehicle: VehicleProfilePreview(
-                      id: 'vehicle_1',
-                      nickname: 'Work Truck',
-                      year: '2026',
-                      make: 'Ford',
-                      model: 'Transit',
-                      odometer: '0001000',
-                      status: 'ACTIVE',
+              child: TripTrackingSettingsScope(
+                controller: settingsController,
+                child: TripTrackingScope(
+                  controller: tripController,
+                  child: const MaterialApp(
+                    home: ActiveWorkdayScreen(
+                      activeVehicle: VehicleProfilePreview(
+                        id: 'vehicle_1',
+                        nickname: 'Work Truck',
+                        year: '2026',
+                        make: 'Ford',
+                        model: 'Transit',
+                        odometer: '0001000',
+                        status: 'ACTIVE',
+                      ),
+                      workProfileName: 'Business',
                     ),
-                    workProfileName: 'Business',
                   ),
                 ),
               ),
@@ -1364,16 +1372,7 @@ void main() {
         ),
       );
 
-      await tester.ensureVisible(find.text('REVIEW LATEST GPS TRIP'));
-      await tester.pump();
-      await tester.tap(
-        find
-            .ancestor(
-              of: find.text('REVIEW LATEST GPS TRIP'),
-              matching: find.byType(InkWell),
-            )
-            .first,
-      );
+      await tester.tap(find.text('Review GPS Trip Odometer'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextField).first, '1001');
       await tester.tap(find.widgetWithText(FilledButton, 'Confirm Odometer'));

@@ -141,10 +141,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                 ),
                 const SizedBox(height: 8),
                 ActiveWorkdayTrackingStatusLine(
+                  onStart: _startGpsTrip,
                   onResume: _startGpsTrip,
                   onStop: _cancelGpsTrip,
                   onReview: _reviewLatestGpsTrip,
                   resumeInFlight: _gpsStartInFlight,
+                  stopInFlight: _gpsCancelInFlight,
                 ),
                 const SizedBox(height: 8),
                 ActiveWorkdayFinancialSummaryPanel(

@@ -14,16 +14,20 @@ import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
   const ActiveWorkdayTrackingStatusLine({
     super.key,
+    required this.onStart,
     required this.onResume,
     required this.onStop,
     required this.onReview,
     this.resumeInFlight = false,
+    this.stopInFlight = false,
   });
 
+  final VoidCallback onStart;
   final VoidCallback onResume;
   final VoidCallback onStop;
   final VoidCallback onReview;
   final bool resumeInFlight;
+  final bool stopInFlight;
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +47,10 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
           signalReviewRequired:
               controller.signalQualitySummary.requiresUserReview,
         );
+        final canStart =
+            settings.gpsAssistedTrackingEnabled && !controller.isTracking;
         final canResume = controller.isTracking && !controller.nativeTracking;
-        final canStop = controller.nativeTracking;
+        final canStop = controller.nativeTracking || stopInFlight;
         final hasReview = controller.latestUnconfirmedReview != null;
         final evidenceSummary = ActiveWorkdayTrackingStatus.evidenceSummaryFor(
           tracking: controller.isTracking,
@@ -70,7 +76,20 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                       ),
                     ),
                   ),
-                  if (canResume) ...[
+                  if (canStart) ...[
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      onPressed: resumeInFlight ? null : onStart,
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(98, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        backgroundColor: const Color(0xFF1976B9),
+                        foregroundColor: Colors.white,
+                        textStyle: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                      child: const Text('START GPS'),
+                    ),
+                  ] else if (canResume) ...[
                     const SizedBox(width: 8),
                     FilledButton(
                       onPressed: resumeInFlight ? null : onResume,
@@ -87,7 +106,7 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                   if (canStop) ...[
                     const SizedBox(width: 8),
                     FilledButton(
-                      onPressed: onStop,
+                      onPressed: stopInFlight ? null : onStop,
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(72, 36),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -95,7 +114,7 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                         foregroundColor: Colors.white,
                         textStyle: const TextStyle(fontWeight: FontWeight.w900),
                       ),
-                      child: const Text('STOP'),
+                      child: Text(stopInFlight ? 'STOPPING' : 'STOP'),
                     ),
                   ],
                 ],
