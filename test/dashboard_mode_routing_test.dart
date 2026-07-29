@@ -18,8 +18,8 @@ void main() {
       );
       addTearDown(harness.dispose);
 
-      expect(find.text('Independent Dashboard'), findsOneWidget);
-      expect(find.text('Contractor Dashboard'), findsOneWidget);
+      expect(find.text('Delivery dashboard'), findsOneWidget);
+      expect(find.text('Contractor'), findsOneWidget);
     },
   );
 
@@ -32,8 +32,8 @@ void main() {
     );
     addTearDown(harness.dispose);
 
-    expect(find.text('Independent Dashboard'), findsOneWidget);
-    expect(find.text('Contractor Dashboard'), findsOneWidget);
+    expect(find.text('Delivery dashboard'), findsOneWidget);
+    expect(find.text('Contractor'), findsOneWidget);
   });
 
   testWidgets(
@@ -46,8 +46,8 @@ void main() {
       );
       addTearDown(harness.dispose);
 
-      expect(find.text('Independent Dashboard'), findsOneWidget);
-      expect(find.text('Contractor Dashboard'), findsOneWidget);
+      expect(find.text('Delivery dashboard'), findsOneWidget);
+      expect(find.text('Contractor'), findsOneWidget);
       expect(find.text('Mock banner placement'), findsNothing);
       expect(tester.takeException(), isNull);
     },

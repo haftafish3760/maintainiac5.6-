@@ -53,40 +53,45 @@ class _QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(25),
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: action.color,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: action.color.withValues(alpha: 0.42),
-                  blurRadius: 8,
-                  spreadRadius: 1,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Ink(
+          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF151B1E),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: action.color.withValues(alpha: .8)),
+            boxShadow: [
+              BoxShadow(
+                color: action.color.withValues(alpha: .16),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(action.icon, color: action.color, size: 28),
+              const SizedBox(height: 5),
+              Text(
+                action.label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFFE2E8EA),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  height: 1.1,
                 ),
-              ],
-            ),
-            child: Icon(action.icon, color: Colors.white, size: 29),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            action.label,
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Color(0xFFE2E8EA),
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -168,7 +173,6 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       label,
-      textAlign: TextAlign.center,
       style: const TextStyle(
         color: Color(0xFFE2E8EA),
         fontSize: 13,

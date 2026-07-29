@@ -33,7 +33,16 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
     return AnimatedBuilder(
       animation: controller,
       builder: (context, _) {
-        final status = _statusFor(controller, settings);
+        final status = ActiveWorkdayTrackingStatus.forSnapshot(
+          gpsAssistanceEnabled: settings.gpsAssistedTrackingEnabled,
+          nativeTracking: controller.nativeTracking,
+          tracking: controller.isTracking,
+          lifecycleState: controller.lifecycleState,
+          platformStatus: controller.platformStatus,
+          awaitingInitialFix: controller.awaitingInitialFix,
+          signalReviewRequired:
+              controller.signalQualitySummary.requiresUserReview,
+        );
         final canResume = controller.isTracking && !controller.nativeTracking;
         final canStop = controller.nativeTracking;
         final hasReview = controller.latestUnconfirmedReview != null;
@@ -99,47 +108,67 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
   }
 }
 
-_TrackingStatus _statusFor(
-  TripTrackingController controller,
-  TripTrackingSettings settings,
-) {
-  if (!settings.gpsAssistedTrackingEnabled) {
-    return const _TrackingStatus(
-      '• GPS assistance off — manual tracking is available',
-      Icons.gps_off_rounded,
+@immutable
+class ActiveWorkdayTrackingStatus {
+  const ActiveWorkdayTrackingStatus(this.label, this.icon, this.color);
+
+  /// Derives a visible status from controller evidence only.
+  ///
+  /// It deliberately does not equate provider registration with a current
+  /// location fix, and it never presents degraded evidence as live GPS.
+  static ActiveWorkdayTrackingStatus forSnapshot({
+    required bool gpsAssistanceEnabled,
+    required bool nativeTracking,
+    required bool tracking,
+    required TripTrackingSessionLifecycleState? lifecycleState,
+    required String? platformStatus,
+    required bool awaitingInitialFix,
+    required bool signalReviewRequired,
+  }) {
+    if (!gpsAssistanceEnabled) {
+      return const ActiveWorkdayTrackingStatus(
+        '• GPS assistance off — manual tracking is available',
+        Icons.gps_off_rounded,
+        Color(0xFFCAD2D5),
+      );
+    }
+    if (lifecycleState == TripTrackingSessionLifecycleState.starting ||
+        awaitingInitialFix) {
+      return const ActiveWorkdayTrackingStatus(
+        '• GPS acquiring — waiting for a current location',
+        Icons.gps_not_fixed_rounded,
+        Color(0xFFFFD166),
+      );
+    }
+    if (lifecycleState == TripTrackingSessionLifecycleState.degraded ||
+        platformStatus == 'gps_signal_stale' ||
+        signalReviewRequired) {
+      return const ActiveWorkdayTrackingStatus(
+        '• GPS degraded — review signal before ending',
+        Icons.gps_off_rounded,
+        Color(0xFFFFD166),
+      );
+    }
+    if (nativeTracking) {
+      return const ActiveWorkdayTrackingStatus(
+        '• GPS live — odometer remains official',
+        Icons.gps_fixed_rounded,
+        Color(0xFF50F77A),
+      );
+    }
+    if (tracking) {
+      return const ActiveWorkdayTrackingStatus(
+        '• Location paused — workday and odometer are saved',
+        Icons.pause_circle_outline_rounded,
+        Color(0xFFFFD166),
+      );
+    }
+    return const ActiveWorkdayTrackingStatus(
+      '• GPS ready — start location assistance when needed',
+      Icons.gps_not_fixed_rounded,
       Color(0xFFCAD2D5),
     );
   }
-  if (controller.nativeTracking) {
-    return const _TrackingStatus(
-      '• GPS live — odometer remains official',
-      Icons.gps_fixed_rounded,
-      Color(0xFF50F77A),
-    );
-  }
-  if (controller.lifecycleState == TripTrackingSessionLifecycleState.starting) {
-    return const _TrackingStatus(
-      '• GPS connecting — waiting for provider confirmation',
-      Icons.gps_not_fixed_rounded,
-      Color(0xFFFFD166),
-    );
-  }
-  if (controller.isTracking) {
-    return const _TrackingStatus(
-      '• Location paused — workday and odometer are saved',
-      Icons.pause_circle_outline_rounded,
-      Color(0xFFFFD166),
-    );
-  }
-  return const _TrackingStatus(
-    '• GPS ready — start location assistance when needed',
-    Icons.gps_not_fixed_rounded,
-    Color(0xFFCAD2D5),
-  );
-}
-
-class _TrackingStatus {
-  const _TrackingStatus(this.label, this.icon, this.color);
 
   final String label;
   final IconData icon;

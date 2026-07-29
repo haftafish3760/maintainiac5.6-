@@ -30,6 +30,16 @@ class _WorkdayContextBar extends StatelessWidget {
                 ),
               ),
             ),
+            IconButton(
+              tooltip: 'Open contractor dashboard',
+              onPressed: () => Navigator.of(context).push(
+                appNativeRoute<void>(context, const ContractorDashboardScreen()),
+              ),
+              icon: const Icon(
+                Icons.dashboard_customize_rounded,
+                color: Color(0xFF7CC7FF),
+              ),
+            ),
             const Icon(
               Icons.lock_outline_rounded,
               size: 18,

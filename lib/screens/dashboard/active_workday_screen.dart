@@ -29,6 +29,7 @@ import '../invoices/home/invoice_form_screen.dart';
 import '../invoices/home/invoice_info_screens.dart';
 import '../settings/trip_tracking_settings_screen.dart';
 import 'active_workday_actions.dart';
+import 'contractor/contractor_dashboard_screen.dart';
 import 'active_workday_financial_summary_panel.dart';
 import 'active_workday_tracking_status_line.dart';
 import 'active_workday_quick_action_editor.dart';
@@ -270,7 +271,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             type: ActiveWorkdayEventType.ended,
             odometerReading: confirmedTripEndingOdometer,
           );
-          if (ended != null && mounted) Navigator.of(context).pop();
+          if (ended != null && mounted && Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
           return;
         }
         final saved = await _recordOdometerEvent(
@@ -278,7 +281,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           saveLabel: 'End Day',
           type: ActiveWorkdayEventType.ended,
         );
-        if (saved && mounted) Navigator.of(context).pop();
+        if (saved && mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       case WorkdayQuickActionKind.addFuel:
         await _openExpenseAndRecord(
           title: 'Fuel Stop Odometer',

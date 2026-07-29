@@ -36,7 +36,7 @@ Future<GigStartDayContextChoice?> openGigStartDaySetupSheet(
   return showModalBottomSheet<GigStartDayContextChoice>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF2E3A40),
+    backgroundColor: const Color(0xFFF3F6F7),
     builder: (context) => _GigStartDaySetupSheet(
       vehicles: vehicles,
       workProfiles: workProfiles,
@@ -86,25 +86,50 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Start Your Delivery Day',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF101416),
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
+            const Center(
+              child: SizedBox(
+                width: 34,
+                height: 4,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Color(0xFF9AA8AD),
+                    borderRadius: BorderRadius.all(Radius.circular(999)),
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 6),
-            const Text(
-              'Confirm the work profile and vehicle for this day. You will enter the physical odometer next.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF273237),
-                fontSize: 12.5,
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-              ),
+            const SizedBox(height: 18),
+            const Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _StartSheetIcon(),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Start workday',
+                        style: TextStyle(
+                          color: Color(0xFF101416),
+                          fontSize: 21,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(height: 3),
+                      Text(
+                        'Step 1 of 2: confirm who and what vehicle this workday uses.',
+                        style: TextStyle(
+                          color: Color(0xFF435258),
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w700,
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             LayoutBuilder(
@@ -150,28 +175,42 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
               },
             ),
             const SizedBox(height: 14),
-            const _NextOdometerPanel(),
+            const Text(
+              'The next step asks for the physical odometer reading.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Color(0xFF435258),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const SizedBox(height: 16),
-            Wrap(
-              alignment: WrapAlignment.end,
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton.icon(
-                  onPressed: () => Navigator.of(context).pop(
-                    GigStartDayContextChoice(
-                      vehicleId: _vehicle.id,
-                      workProfileId: _workProfile.id,
-                    ),
+            SizedBox(
+              height: 52,
+              child: FilledButton.icon(
+                onPressed: () => Navigator.of(context).pop(
+                  GigStartDayContextChoice(
+                    vehicleId: _vehicle.id,
+                    workProfileId: _workProfile.id,
                   ),
-                  icon: const Icon(Icons.speed_rounded),
-                  label: const Text('Enter Odometer'),
                 ),
-              ],
+                icon: const Icon(Icons.arrow_forward_rounded),
+                label: const Text('Continue to odometer'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF166D4A),
+                  foregroundColor: Colors.white,
+                  textStyle: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ),
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
             ),
           ],
         ),
@@ -227,24 +266,23 @@ class _ContextSelector extends StatelessWidget {
       button: true,
       label: '$label: $value',
       child: Material(
-        color: const Color(0xFFAAB4B9),
-        borderRadius: BorderRadius.circular(7),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(7),
+          borderRadius: BorderRadius.circular(8),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                Icon(icon, color: const Color(0xFF173444)),
+                Icon(icon, color: const Color(0xFF176B8A)),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         label,
-                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xFF273237),
                           fontSize: 12,
@@ -256,7 +294,6 @@ class _ContextSelector extends StatelessWidget {
                         value,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Color(0xFF101416),
                           fontSize: 16,
@@ -267,15 +304,18 @@ class _ContextSelector extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'Choose',
+                  'Change',
                   style: const TextStyle(
-                    color: Color(0xFF455157),
+                    color: Color(0xFF176B8A),
                     fontSize: 11,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.chevron_right_rounded),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF176B8A),
+                ),
               ],
             ),
           ),
@@ -285,38 +325,17 @@ class _ContextSelector extends StatelessWidget {
   }
 }
 
-class _NextOdometerPanel extends StatelessWidget {
-  const _NextOdometerPanel();
+class _StartSheetIcon extends StatelessWidget {
+  const _StartSheetIcon();
 
   @override
-  Widget build(BuildContext context) {
-    return const DecoratedBox(
-      decoration: BoxDecoration(
-        color: Color(0xFF101719),
-        borderRadius: BorderRadius.all(Radius.circular(6)),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Row(
-          children: [
-            Icon(Icons.speed_rounded, color: Color(0xFF9EC7D8)),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'Next, enter the number currently shown on the physical odometer.',
-                style: TextStyle(
-                  color: Color(0xFFE2E8EA),
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w800,
-                  height: 1.2,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const DecoratedBox(
+    decoration: BoxDecoration(color: Color(0xFFDCECE4), shape: BoxShape.circle),
+    child: Padding(
+      padding: EdgeInsets.all(10),
+      child: Icon(Icons.play_arrow_rounded, color: Color(0xFF166D4A), size: 24),
+    ),
+  );
 }
 
 class _ChoiceOption {

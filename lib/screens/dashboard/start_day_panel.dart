@@ -9,6 +9,7 @@ import '../invoices/data/invoice_ledger_models.dart';
 import '../invoices/data/invoice_ledger_store.dart';
 import '../settings/trip_tracking_settings_screen.dart';
 import 'dashboard_shortcuts.dart';
+import 'contractor/contractor_dashboard_screen.dart';
 import 'gig_dashboard_record_review_screens.dart';
 
 class PreDayStartContent extends StatelessWidget {
@@ -55,39 +56,30 @@ class _DashboardTitleBand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF101719),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFF5B6A70), width: 1.2),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.person_pin_circle_rounded, color: _blue, size: 24),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Delivery Command Center',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Color(0xFFE2E8EA),
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          Text(
-            'Pre-workday',
+    return Row(
+      children: [
+        const Icon(Icons.delivery_dining_rounded, color: _blue, size: 24),
+        const SizedBox(width: 8),
+        const Expanded(
+          child: Text(
+            'Delivery dashboard',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: Color(0xFFCAD2D5),
-              fontSize: 11,
-              fontWeight: FontWeight.w800,
+              color: Color(0xFFE2E8EA),
+              fontSize: 17,
+              fontWeight: FontWeight.w900,
             ),
           ),
-        ],
-      ),
+        ),
+        TextButton.icon(
+          onPressed: () => Navigator.of(context).push(
+            appNativeRoute<void>(context, const ContractorDashboardScreen()),
+          ),
+          icon: const Icon(Icons.dashboard_customize_rounded, size: 18),
+          label: const Text('Contractor'),
+        ),
+      ],
     );
   }
 }
@@ -167,7 +159,6 @@ class _PreDayCommandCenter extends StatelessWidget {
         : _Readiness('GPS checks at start', _blue, Icons.gps_fixed_rounded);
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 480;
         final metrics = _MetricGrid(
           paymentCents: paymentCents,
           expenseCents: businessExpenseCents,
@@ -176,22 +167,13 @@ class _PreDayCommandCenter extends StatelessWidget {
           weekStart: weekStart,
           weekEnd: weekEnd,
         );
-        final startCard = _StartDayCommandCard(
+        final startButton = _StartDayCommandButton(
           onPressed: onStartDay,
           hasActiveDay: hasActiveDay,
         );
-        if (wide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(flex: 3, child: metrics),
-              const SizedBox(width: 10),
-              Expanded(flex: 2, child: startCard),
-            ],
-          );
-        }
         return Column(
-          children: [metrics, const SizedBox(height: 10), startCard],
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [metrics, const SizedBox(height: 10), startButton],
         );
       },
     );
@@ -289,8 +271,8 @@ class _Readiness {
   final IconData icon;
 }
 
-class _StartDayCommandCard extends StatelessWidget {
-  const _StartDayCommandCard({
+class _StartDayCommandButton extends StatelessWidget {
+  const _StartDayCommandButton({
     required this.onPressed,
     required this.hasActiveDay,
   });
@@ -298,70 +280,19 @@ class _StartDayCommandCard extends StatelessWidget {
   final bool hasActiveDay;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: onPressed,
-      borderRadius: BorderRadius.circular(10),
-      child: Ink(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: const Color(0xFF10231B),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _green, width: 1.4),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x55000000),
-              blurRadius: 8,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              hasActiveDay ? 'DAY IN PROGRESS' : 'READY WHEN YOU ARE',
-              style: const TextStyle(
-                color: Color(0xFFC6D4D0),
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.play_circle_fill_rounded,
-                  color: _green,
-                  size: 30,
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    hasActiveDay ? 'Resume day' : 'Start day',
-                    style: const TextStyle(
-                      color: Color(0xFFF2F6F7),
-                      fontSize: 21,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-                const Icon(Icons.arrow_forward_rounded, color: _green),
-              ],
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'Choose the vehicle and work profile only when a choice is needed.',
-              style: TextStyle(
-                color: Color(0xFFD5E1DC),
-                fontSize: 12,
-                height: 1.2,
-              ),
-            ),
-          ],
-        ),
+  Widget build(BuildContext context) => SizedBox(
+    height: 54,
+    child: FilledButton.icon(
+      onPressed: onPressed,
+      icon: Icon(
+        hasActiveDay ? Icons.play_arrow_rounded : Icons.play_circle_rounded,
+      ),
+      label: Text(hasActiveDay ? 'Resume day' : 'Start day'),
+      style: FilledButton.styleFrom(
+        backgroundColor: _green,
+        foregroundColor: const Color(0xFF08110D),
+        textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w900),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     ),
   );

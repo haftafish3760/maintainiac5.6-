@@ -101,8 +101,8 @@ Future<void> _pumpUntil(
 Future<void> _completeGuidedStartDay(WidgetTester tester) async {
   await tester.tap(find.text('Start day'));
   await tester.pumpAndSettle();
-  expect(find.text('Start Your Delivery Day'), findsOneWidget);
-  await tester.tap(find.text('Enter Odometer'));
+  expect(find.text('Start workday'), findsOneWidget);
+  await tester.tap(find.text('Continue to odometer'));
   await tester.pumpAndSettle();
   expect(find.text('Enter Current Odometer'), findsOneWidget);
   await tester.tap(find.text('Start Day'));
@@ -178,6 +178,24 @@ void main() {
       expect(trip.activeSession, isNull);
       expect(trip.nativeTracking, isFalse);
       expect(odometer.confirmedReading, 12000);
+      expect(find.byTooltip('Open contractor dashboard'), findsOneWidget);
+
+      // Ending a manual day must return to the Dashboard's ready state. This
+      // protects the root Dashboard path used after an app relaunch. In that
+      // state ActiveWorkdayScreen is not a pushed route, so ending the day
+      // must never pop the only app route to an empty surface.
+      tester.state<NavigatorState>(find.byType(Navigator)).pop();
+      await tester.pumpAndSettle();
+      expect(find.text('Shift Timer'), findsOneWidget);
+      await tester.tap(find.text('End Day'));
+      await tester.pumpAndSettle();
+      expect(find.text('Ending Odometer'), findsOneWidget);
+      await tester.tap(find.text('End Day').last);
+      await tester.pumpAndSettle();
+
+      expect(workday.activeSession, isNull);
+      expect(find.text('Delivery dashboard'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     },
   );
 

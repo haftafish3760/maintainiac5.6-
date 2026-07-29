@@ -95,6 +95,9 @@ void main() {
       expect(find.byType(AppScreenHeader), findsOneWidget);
       expect(find.byType(AppBackButton), findsOneWidget);
       expect(find.text('Dashboard Settings'), findsWidgets);
+      expect(find.text('TRIP TRACKING'), findsOneWidget);
+      expect(find.text('ACTIVE DAY'), findsOneWidget);
+      expect(find.text('GPS, Bluetooth, and trip tracking'), findsOneWidget);
     },
   );
 }

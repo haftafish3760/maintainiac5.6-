@@ -45,7 +45,7 @@ class _DashboardSettingsPanel extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'Dashboard Settings',
+            'Control center preferences',
             style: TextStyle(
               color: Color(0xFFE2E8EA),
               fontSize: 22,
@@ -54,7 +54,7 @@ class _DashboardSettingsPanel extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Trip tracking layout, quick actions, dashboard elements, and telemetry readouts.',
+            'Choose how this dashboard starts a workday, reports tracking status, and presents your fastest actions.',
             style: TextStyle(
               color: Color(0xFFCAD2D5),
               fontSize: 13,
@@ -63,15 +63,20 @@ class _DashboardSettingsPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
+          const _DashboardSettingsSectionLabel('TRIP TRACKING'),
+          const SizedBox(height: 6),
           _DashboardSettingRow(
-            title: 'GPS-Assisted Trip Tracking',
+            title: 'GPS, Bluetooth, and trip tracking',
             detail:
-                'Location permission, battery profile, low-speed equipment mode, and walking-review preferences.',
+                'Location permissions, vehicle recognition, battery protection, accuracy, and walking review.',
             icon: Icons.gps_fixed_rounded,
             onTap: () => Navigator.of(
               context,
             ).push(appSlideRoute(const TripTrackingSettingsScreen())),
           ),
+          const SizedBox(height: 6),
+          const _DashboardSettingsSectionLabel('ACTIVE DAY'),
+          const SizedBox(height: 6),
           _DashboardSettingRow(
             title: 'Customize Quick Actions',
             detail:
@@ -81,15 +86,33 @@ class _DashboardSettingsPanel extends StatelessWidget {
               context,
             ).push(appSlideRoute<void>(const ActiveWorkdayQuickActionEditor())),
           ),
+          const SizedBox(height: 4),
           const _DashboardSettingsNote(
-            title: 'Active Day command center',
+            title: 'How mileage is handled',
             detail:
-                'Your current workday shows time, verified miles, quick actions, and recorded activity. Financial totals are based on saved ledger records, never estimates.',
+                'Your physical odometer remains official. GPS, Bluetooth, and motion can assist with evidence, but never silently change a confirmed record.',
           ),
         ],
       ),
     );
   }
+}
+
+class _DashboardSettingsSectionLabel extends StatelessWidget {
+  const _DashboardSettingsSectionLabel(this.label);
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    label,
+    style: const TextStyle(
+      color: Color(0xFF9EC7D8),
+      fontSize: 11,
+      fontWeight: FontWeight.w900,
+      letterSpacing: 0.7,
+    ),
+  );
 }
 
 class _DashboardSettingsNote extends StatelessWidget {

@@ -86,12 +86,6 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
     ).activeWorkProfile;
     final operationalContext = OperationalContextScope.maybeOf(context);
     final tripTracking = TripTrackingScope.maybeOf(context);
-    final activeContext = operationalContext?.context;
-    final contextLabel = activeContext == null
-        ? 'Local dashboard'
-        : '${activeContext.dashboardMode.label} / '
-              '${activeContext.mileageMode.label} / '
-              '${activeContext.syncMode.label}';
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 10)),
@@ -199,12 +193,6 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
-        if (activeContext != null)
-          SliverToBoxAdapter(
-            child: OperationalContextStrip(contextLabel: contextLabel),
-          ),
-        if (activeContext != null)
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(
           child: PreDayStartContent(
