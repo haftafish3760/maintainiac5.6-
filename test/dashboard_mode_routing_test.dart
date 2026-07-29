@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/dashboard.dart';
+import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
 import 'package:maintaniac/screens/expenses/data/expense_work_profile_store.dart';
 import 'package:maintaniac/shared/context/operational_context_models.dart';
 import 'package:maintaniac/shared/context/operational_context_store.dart';
@@ -52,12 +53,41 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'returning from a secondary screen preserves the active workday Dashboard',
+    (tester) async {
+      final harness = await _pumpDashboard(
+        tester,
+        OperationalDashboardMode.gigDriver,
+        activeWorkday: true,
+      );
+      addTearDown(harness.dispose);
+
+      expect(find.text('Shift Timer'), findsOneWidget);
+      Navigator.of(tester.element(find.byType(DashboardScreen))).push(
+        MaterialPageRoute<void>(
+          builder: (_) => const Scaffold(body: Text('Secondary screen')),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Secondary screen'), findsOneWidget);
+
+      Navigator.of(tester.element(find.text('Secondary screen'))).pop();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Shift Timer'), findsOneWidget);
+      expect(find.text('Delivery dashboard'), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }
 
 Future<_DashboardHarness> _pumpDashboard(
   WidgetTester tester,
   OperationalDashboardMode mode, {
   TextScaler textScaler = TextScaler.noScaling,
+  bool activeWorkday = false,
 }) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(900, 1800);
@@ -67,26 +97,38 @@ Future<_DashboardHarness> _pumpDashboard(
   final appState = AppStateController();
   final odometer = GlobalOdometerController(initialReading: 12000);
   final workProfiles = ExpenseWorkProfileController.memory();
+  final workday = ActiveWorkdayController.memory();
   final operational = OperationalContextController.memory(
     profile: UserProfileRecord.starterContractor(),
   );
   await operational.setDashboardMode(mode);
+  if (activeWorkday) {
+    await workday.startDay(
+      vehicleId: odometer.vehicleId,
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'default',
+      startOdometer: odometer.confirmedReading,
+    );
+  }
 
   await tester.pumpWidget(
     AppStateScope(
       controller: appState,
       child: ExpenseWorkProfileScope(
         controller: workProfiles,
-        child: GlobalOdometerScope(
-          controller: odometer,
-          child: OperationalContextScope(
-            controller: operational,
-            child: MaterialApp(
-              builder: (context, child) => MediaQuery(
-                data: MediaQuery.of(context).copyWith(textScaler: textScaler),
-                child: child!,
+        child: ActiveWorkdayScope(
+          controller: workday,
+          child: GlobalOdometerScope(
+            controller: odometer,
+            child: OperationalContextScope(
+              controller: operational,
+              child: MaterialApp(
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(context).copyWith(textScaler: textScaler),
+                  child: child!,
+                ),
+                home: const DashboardScreen(),
               ),
-              home: const DashboardScreen(),
             ),
           ),
         ),
@@ -100,6 +142,7 @@ Future<_DashboardHarness> _pumpDashboard(
     odometer: odometer,
     workProfiles: workProfiles,
     operational: operational,
+    workday: workday,
   );
 }
 
@@ -109,17 +152,20 @@ class _DashboardHarness {
     required this.odometer,
     required this.workProfiles,
     required this.operational,
+    required this.workday,
   });
 
   final AppStateController appState;
   final GlobalOdometerController odometer;
   final ExpenseWorkProfileController workProfiles;
   final OperationalContextController operational;
+  final ActiveWorkdayController workday;
 
   void dispose() {
     appState.dispose();
     odometer.dispose();
     workProfiles.dispose();
     operational.dispose();
+    workday.dispose();
   }
 }
