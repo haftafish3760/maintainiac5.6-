@@ -9,7 +9,7 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dar
 
 void main() {
   test(
-    'binding forwards approved connections without duplicate switches',
+    'binding forwards approved connections without changing vehicle context',
     () async {
       final now = DateTime.now().toUtc();
       final links = TripTrackingBluetoothVehicleLinkStore.memory();
@@ -66,11 +66,11 @@ void main() {
       );
       await _drainUntil(() => decisions.length == 2);
 
-      expect(switchCalls, 1);
-      expect(activeVehicleId, 'vehicle_2');
+      expect(switchCalls, 0);
+      expect(activeVehicleId, 'vehicle_1');
       expect(decisions.map((item) => item.disposition), [
-        BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
-        BluetoothVehicleMatchDisposition.alreadyActiveVehicle,
+        BluetoothVehicleMatchDisposition.requiresUserConfirmation,
+        BluetoothVehicleMatchDisposition.requiresUserConfirmation,
       ]);
     },
   );

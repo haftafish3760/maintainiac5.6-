@@ -46,13 +46,17 @@ void main() {
       );
 
       expect(resolvedDeviceId, 'approved-head-unit');
-      expect(switchedVehicleId, 'vehicle_2');
-      expect(decision.safeReason, 'authoritative_test_decision');
+      expect(switchedVehicleId, isEmpty);
+      expect(
+        decision.disposition,
+        BluetoothVehicleMatchDisposition.requiresUserConfirmation,
+      );
+      expect(decision.safeReason, 'bluetooth_vehicle_requires_confirmation');
     },
   );
 
   test(
-    'connection coordinator switches once and absorbs duplicate callbacks',
+    'connection coordinator preserves vehicle across duplicate callbacks',
     () async {
       final now = DateTime.utc(2026, 7, 23, 9);
       final links = TripTrackingBluetoothVehicleLinkStore.memory();
@@ -93,14 +97,14 @@ void main() {
 
       expect(
         results.first.disposition,
-        BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+        BluetoothVehicleMatchDisposition.requiresUserConfirmation,
       );
       expect(
         results.last.disposition,
-        BluetoothVehicleMatchDisposition.alreadyActiveVehicle,
+        BluetoothVehicleMatchDisposition.requiresUserConfirmation,
       );
-      expect(activeVehicleId, 'vehicle_2');
-      expect(switchCalls, 1);
+      expect(activeVehicleId, 'vehicle_1');
+      expect(switchCalls, 0);
     },
   );
 
@@ -151,9 +155,9 @@ void main() {
     expect(failed.vehicleId, isNull);
     expect(
       recovered.disposition,
-      BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+      BluetoothVehicleMatchDisposition.requiresUserConfirmation,
     );
-    expect(activeVehicleId, 'vehicle_2');
+    expect(activeVehicleId, 'vehicle_1');
   });
 
   test(
@@ -196,7 +200,7 @@ void main() {
               linkStore: links,
             )
             .disposition,
-        BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+        BluetoothVehicleMatchDisposition.requiresUserConfirmation,
       );
 
       expect(

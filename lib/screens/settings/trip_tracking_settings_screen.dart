@@ -315,18 +315,10 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                   )
                 : null,
           ),
-          _switch(
-            title: 'Automatically switch the active vehicle',
+          _settingsNotice(
+            title: 'Linked vehicle suggestions need your approval',
             detail:
-                'Never switches while a GPS trip is active. Otherwise, a linked device can select its vehicle.',
-            value: settings.automaticVehicleSwitchEnabled,
-            onChanged:
-                _bluetoothRecognitionControlsEnabled &&
-                    settings.bluetoothVehicleRecognitionEnabled
-                ? (value) => onChanged(
-                    settings.copyWith(automaticVehicleSwitchEnabled: value),
-                  )
-                : null,
+                'Bluetooth can recognize a linked vehicle, but it never changes your active workday vehicle or odometer vehicle on its own.',
           ),
           _switch(
             title: 'Automatically start GPS for the linked vehicle',
@@ -385,6 +377,16 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
       ),
     ),
   );
+
+  Widget _settingsNotice({required String title, required String detail}) =>
+      Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+          decoration: _rowDecoration,
+          child: _SettingText(title: title, detail: detail),
+        ),
+      );
 
   Widget _choice<T>({
     required String title,

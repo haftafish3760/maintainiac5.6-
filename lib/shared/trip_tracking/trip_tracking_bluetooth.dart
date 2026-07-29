@@ -250,9 +250,11 @@ BluetoothVehicleMatchDisposition resolveBluetoothVehicleMatch({
   if (hasUnfinishedStoredSession) {
     return BluetoothVehicleMatchDisposition.blockedByUnfinishedSession;
   }
-  return settings.automaticVehicleSwitchEnabled
-      ? BluetoothVehicleMatchDisposition.automaticSwitchAllowed
-      : BluetoothVehicleMatchDisposition.requiresUserConfirmation;
+  // A historical opt-in value may still be present in local settings, but a
+  // Bluetooth connection is evidence, not authorization to mutate the active
+  // vehicle. Keep the legacy value readable for migration compatibility while
+  // requiring an explicit decision for every different-vehicle match.
+  return BluetoothVehicleMatchDisposition.requiresUserConfirmation;
 }
 
 String _safeMatchReason(BluetoothVehicleMatchDisposition disposition) {
@@ -263,7 +265,7 @@ String _safeMatchReason(BluetoothVehicleMatchDisposition disposition) {
     BluetoothVehicleMatchDisposition.requiresUserConfirmation =>
       'bluetooth_vehicle_requires_confirmation',
     BluetoothVehicleMatchDisposition.automaticSwitchAllowed =>
-      'bluetooth_vehicle_auto_switch_allowed',
+      'bluetooth_vehicle_requires_confirmation',
     BluetoothVehicleMatchDisposition.alreadyActiveVehicle =>
       'bluetooth_vehicle_already_active',
     BluetoothVehicleMatchDisposition.blockedByActiveTrip =>

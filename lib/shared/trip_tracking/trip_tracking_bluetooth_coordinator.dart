@@ -6,8 +6,9 @@ import 'trip_tracking_settings_store.dart';
 typedef BluetoothVehicleDecisionResolver =
     BluetoothVehicleMatchDecision Function(String opaqueDeviceId);
 
-/// Serializes user-approved Bluetooth vehicle hints outside an active trip.
-/// It never discovers devices, changes mileage, or bypasses review settings.
+/// Serializes Bluetooth vehicle suggestions outside an active trip.
+/// It never discovers devices, changes the active vehicle, changes mileage,
+/// or bypasses user review. A connection is evidence, not authorization.
 class TripTrackingBluetoothCoordinator {
   TripTrackingBluetoothCoordinator({
     required this.linkStore,
@@ -89,18 +90,13 @@ class TripTrackingBluetoothCoordinator {
     }
     if (!decision.canSwitchVehicle) return decision;
 
-    try {
-      if (await switchVehicle(vehicleId)) {
-        await _maybeStartAutomaticTracking(vehicleId, observedAt);
-        return decision;
-      }
-    } catch (_) {
-      // A failed global-vehicle switch remains an explicit review request.
-    }
+    // Defend against an outdated/custom resolver that still reports the
+    // retired automatic-switch disposition. Never call switchVehicle here:
+    // a Bluetooth observation must not rewrite global vehicle context.
     return BluetoothVehicleMatchDecision(
       disposition: BluetoothVehicleMatchDisposition.requiresUserConfirmation,
       vehicleId: vehicleId,
-      safeReason: 'bluetooth_vehicle_switch_failed_safely',
+      safeReason: 'bluetooth_vehicle_requires_confirmation',
     );
   }
 

@@ -274,8 +274,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             type: ActiveWorkdayEventType.ended,
             odometerReading: confirmedTripEndingOdometer,
           );
-          if (ended != null && mounted && Navigator.of(context).canPop()) {
-            Navigator.of(context).pop();
+          if (ended != null && mounted) {
+            _returnToDashboardAfterEndDay();
           }
           return;
         }
@@ -291,8 +291,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
               'Keep this day open and record the lower reading as a '
               'backdated trip instead.',
         );
-        if (saved && mounted && Navigator.of(context).canPop()) {
-          Navigator.of(context).pop();
+        if (saved && mounted) {
+          _returnToDashboardAfterEndDay();
         }
       case WorkdayQuickActionKind.addFuel:
         await _openExpenseReview(category: 'Fuel');
@@ -352,6 +352,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           appNativeRoute<void>(context, const TripTrackingSettingsScreen()),
         );
     }
+  }
+
+  void _returnToDashboardAfterEndDay() {
+    // The active day may be a pushed route or Dashboard's rebuilt root body.
+    // Returning to the root is safe in both cases and avoids exposing an
+    // empty intermediate navigator surface after a confirmed workday end.
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Future<bool> _recordOdometerEvent({

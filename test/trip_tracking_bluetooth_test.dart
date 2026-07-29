@@ -36,29 +36,32 @@ void main() {
     },
   );
 
-  test('recognized device can auto-switch only after explicit consent', () {
-    expect(
-      resolveBluetoothVehicleMatch(
-        settings: const TripTrackingSettings(
-          bluetoothVehicleRecognitionEnabled: true,
-          automaticVehicleSwitchEnabled: true,
+  test(
+    'recognized device always requires approval before vehicle selection',
+    () {
+      expect(
+        resolveBluetoothVehicleMatch(
+          settings: const TripTrackingSettings(
+            bluetoothVehicleRecognitionEnabled: true,
+            automaticVehicleSwitchEnabled: true,
+          ),
+          link: link,
+          hasActiveGpsTrip: false,
         ),
-        link: link,
-        hasActiveGpsTrip: false,
-      ),
-      BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
-    );
-    expect(
-      resolveBluetoothVehicleMatch(
-        settings: const TripTrackingSettings(
-          automaticVehicleSwitchEnabled: true,
+        BluetoothVehicleMatchDisposition.requiresUserConfirmation,
+      );
+      expect(
+        resolveBluetoothVehicleMatch(
+          settings: const TripTrackingSettings(
+            automaticVehicleSwitchEnabled: true,
+          ),
+          link: link,
+          hasActiveGpsTrip: false,
         ),
-        link: link,
-        hasActiveGpsTrip: false,
-      ),
-      BluetoothVehicleMatchDisposition.recognitionDisabled,
-    );
-  });
+        BluetoothVehicleMatchDisposition.recognitionDisabled,
+      );
+    },
+  );
 
   test('an active GPS trip always blocks Bluetooth vehicle reassignment', () {
     expect(
@@ -86,18 +89,18 @@ void main() {
 
     expect(
       decision.disposition,
-      BluetoothVehicleMatchDisposition.automaticSwitchAllowed,
+      BluetoothVehicleMatchDisposition.requiresUserConfirmation,
     );
     expect(decision.vehicleId, 'vehicle_1');
-    expect(decision.canSwitchVehicle, isTrue);
-    expect(decision.requiresUserConfirmation, isFalse);
-    expect(decision.safeReason, 'bluetooth_vehicle_auto_switch_allowed');
+    expect(decision.canSwitchVehicle, isFalse);
+    expect(decision.requiresUserConfirmation, isTrue);
+    expect(decision.safeReason, 'bluetooth_vehicle_requires_confirmation');
     final safe = decision.toSafeSummary();
-    expect(safe['disposition'], 'automaticSwitchAllowed');
+    expect(safe['disposition'], 'requiresUserConfirmation');
     expect(safe['vehicleId'], 'vehicle_1');
-    expect(safe['safeReason'], 'bluetooth_vehicle_auto_switch_allowed');
-    expect(safe['canSwitchVehicle'], isTrue);
-    expect(safe['requiresUserConfirmation'], isFalse);
+    expect(safe['safeReason'], 'bluetooth_vehicle_requires_confirmation');
+    expect(safe['canSwitchVehicle'], isFalse);
+    expect(safe['requiresUserConfirmation'], isTrue);
     expect(safe['bluetoothDecisionCanSetGlobalTruth'], isFalse);
     expect(safe['bluetoothDecisionCanConfirmOfficialMileage'], isFalse);
     expect(safe['bluetoothDecisionCanChangeOfficialMileage'], isFalse);
