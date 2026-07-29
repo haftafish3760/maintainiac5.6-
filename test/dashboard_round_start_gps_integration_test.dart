@@ -190,12 +190,25 @@ void main() {
       await tester.tap(find.text('End Day'));
       await tester.pumpAndSettle();
       expect(find.text('Ending Odometer'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).last, '11999');
       await tester.tap(find.text('End Day').last);
       await tester.pumpAndSettle();
+      expect(
+        find.textContaining('cannot end below its starting odometer'),
+        findsOneWidget,
+      );
+      expect(workday.activeSession, isNotNull);
+      expect(find.text('Ending Odometer'), findsOneWidget);
+      expect(tester.takeException(), isNull);
 
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('End Day'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('End Day').last);
+      await tester.pumpAndSettle();
       expect(workday.activeSession, isNull);
       expect(find.text('Delivery dashboard'), findsOneWidget);
-      expect(tester.takeException(), isNull);
     },
   );
 

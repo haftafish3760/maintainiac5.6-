@@ -10,6 +10,8 @@ Future<bool> openOdometerEntry(
   String saveLabel = 'Save Reading',
   bool autofocus = true,
   String? helperText,
+  int? minimumReading,
+  String? minimumReadingMessage,
   TripTrackingReviewRecord? tripReview,
 }) async {
   final result = await openOdometerEntryResult(
@@ -18,6 +20,8 @@ Future<bool> openOdometerEntry(
     saveLabel: saveLabel,
     autofocus: autofocus,
     helperText: helperText,
+    minimumReading: minimumReading,
+    minimumReadingMessage: minimumReadingMessage,
     tripReview: tripReview,
   );
   return result != null;
@@ -29,6 +33,8 @@ Future<int?> openOdometerEntryResult(
   String saveLabel = 'Save Reading',
   bool autofocus = true,
   String? helperText,
+  int? minimumReading,
+  String? minimumReadingMessage,
   TripTrackingReviewRecord? tripReview,
 }) async {
   final odometer = GlobalOdometerScope.of(context);
@@ -43,6 +49,8 @@ Future<int?> openOdometerEntryResult(
         saveLabel: saveLabel,
         autofocus: autofocus,
         helperText: helperText,
+        minimumReading: minimumReading,
+        minimumReadingMessage: minimumReadingMessage,
         tripReview: tripReview,
       ),
     ),

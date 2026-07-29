@@ -17,6 +17,8 @@ class OdometerEntrySheet extends StatefulWidget {
     required this.saveLabel,
     this.autofocus = true,
     this.helperText,
+    this.minimumReading,
+    this.minimumReadingMessage,
     this.onSaved,
     this.tripReview,
   });
@@ -25,6 +27,8 @@ class OdometerEntrySheet extends StatefulWidget {
   final String saveLabel;
   final bool autofocus;
   final String? helperText;
+  final int? minimumReading;
+  final String? minimumReadingMessage;
   final VoidCallback? onSaved;
   final TripTrackingReviewRecord? tripReview;
 
@@ -263,6 +267,18 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     final review = _buildMileageReview();
     final correctionReview = _buildCorrectionReview();
     final savedReading = int.tryParse(_controller?.text ?? '');
+    final minimumReading = widget.minimumReading;
+    if (savedReading != null &&
+        minimumReading != null &&
+        savedReading < minimumReading) {
+      setState(() {
+        _errorText =
+            widget.minimumReadingMessage ??
+            'This reading cannot be lower than the required minimum of '
+                '$minimumReading.';
+      });
+      return;
+    }
     final result = GlobalOdometerScope.of(context).updateFromText(
       _controller?.text ?? '',
       confirmSuspicious: _pendingConfirmation,

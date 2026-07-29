@@ -282,6 +282,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           title: 'Ending Odometer',
           saveLabel: 'End Day',
           type: ActiveWorkdayEventType.ended,
+          minimumReading: ActiveWorkdayScope.of(
+            context,
+          ).activeSession?.startOdometer,
+          minimumReadingMessage:
+              'An active workday cannot end below its starting odometer. '
+              'Keep this day open and record the lower reading as a '
+              'backdated trip instead.',
         );
         if (saved && mounted && Navigator.of(context).canPop()) {
           Navigator.of(context).pop();
@@ -359,10 +366,14 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     required String title,
     required String saveLabel,
     required ActiveWorkdayEventType type,
+    int? minimumReading,
+    String? minimumReadingMessage,
   }) async {
     final reading = await _recordOdometerReading(
       title: title,
       saveLabel: saveLabel,
+      minimumReading: minimumReading,
+      minimumReadingMessage: minimumReadingMessage,
     );
     if (!mounted) return false;
     if (reading != null) {
@@ -376,8 +387,16 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
   Future<int?> _recordOdometerReading({
     required String title,
     required String saveLabel,
+    int? minimumReading,
+    String? minimumReadingMessage,
   }) {
-    return openOdometerEntryResult(context, title: title, saveLabel: saveLabel);
+    return openOdometerEntryResult(
+      context,
+      title: title,
+      saveLabel: saveLabel,
+      minimumReading: minimumReading,
+      minimumReadingMessage: minimumReadingMessage,
+    );
   }
 
   Future<void> _recordStoredEvent(
