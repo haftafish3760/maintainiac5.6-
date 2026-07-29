@@ -35,6 +35,7 @@ import 'active_workday_tracking_status_line.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_elapsed_clock.dart';
 import 'data/active_workday_store.dart';
+import 'gig_dashboard_record_review_screens.dart';
 import 'trip_background_location_settings_prompt.dart';
 import 'trip_tracking_setup_sheet.dart';
 import 'vehicle_profile_widgets.dart';
@@ -294,18 +295,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           Navigator.of(context).pop();
         }
       case WorkdayQuickActionKind.addFuel:
-        await _openExpenseAndRecord(
-          title: 'Fuel Stop Odometer',
-          saveLabel: 'Continue to Fuel',
-          category: 'Fuel',
-          eventType: ActiveWorkdayEventType.fuel,
-        );
+        await _openExpenseReview(category: 'Fuel');
       case WorkdayQuickActionKind.expense:
-        await _openExpenseAndRecord(
-          title: 'Expense Odometer',
-          saveLabel: 'Continue to Expense',
-          eventType: ActiveWorkdayEventType.expense,
-        );
+        await _openExpenseReview();
       case WorkdayQuickActionKind.receipt:
         await _openExpenseAndRecord(
           title: 'Receipt Odometer',

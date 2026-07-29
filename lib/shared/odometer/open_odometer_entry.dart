@@ -41,7 +41,10 @@ Future<int?> openOdometerEntryResult(
   return showModalBottomSheet<int>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF2E3A40),
+    // The sheet uses dark body text and a light input surface. Keep its base
+    // surface light as well so its title and instructions never disappear
+    // against a dark modal background.
+    backgroundColor: const Color(0xFFF4F7F8),
     builder: (_) => GlobalOdometerScope(
       controller: odometer,
       child: OdometerEntrySheet(

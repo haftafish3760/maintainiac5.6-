@@ -170,7 +170,7 @@ void main() {
     expect(find.text('Miles Today'), findsOneWidget);
     expect(find.text('14.2'), findsNothing);
     expect(find.text('Add Stop'), findsOneWidget);
-    expect(find.text('Add Fuel'), findsOneWidget);
+    expect(find.text('Fuel'), findsOneWidget);
     expect(find.text('Expense'), findsOneWidget);
     expect(find.text('Invoice'), findsOneWidget);
     expect(find.text('Payment'), findsOneWidget);
@@ -233,6 +233,35 @@ void main() {
 
     expect(find.text('Payments'), findsWidgets);
     expect(find.text('Payment Amount'), findsOneWidget);
+  });
+
+  testWidgets('active day fuel opens its review before expense entry', (
+    tester,
+  ) async {
+    final activeWorkday = ActiveWorkdayController.memory();
+    await _pumpDashboard(
+      tester,
+      appState,
+      odometer,
+      workProfiles,
+      activeWorkday: activeWorkday,
+    );
+
+    await tester.tap(find.text('Contractor'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Start Day'),
+      220,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await _completeContractorStartDay(tester);
+
+    await tester.tap(find.text('Fuel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fuel Review'), findsOneWidget);
+    expect(find.text('Add expense'), findsOneWidget);
+    expect(find.text('Fuel Stop Odometer'), findsNothing);
   });
 
   testWidgets('contractor cannot create a UI-only day without storage', (

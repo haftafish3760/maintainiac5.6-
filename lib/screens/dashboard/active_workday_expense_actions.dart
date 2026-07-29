@@ -1,6 +1,15 @@
 part of 'active_workday_screen.dart';
 
 extension _ActiveWorkdayExpenseActions on _ActiveWorkdayScreenState {
+  Future<void> _openExpenseReview({String? category}) {
+    return Navigator.of(context).push<void>(
+      appNativeRoute<void>(
+        context,
+        GigExpenseCategoryBreakdownScreen(category: category),
+      ),
+    );
+  }
+
   Future<void> _openExpenseAndRecord({
     required String title,
     required String saveLabel,

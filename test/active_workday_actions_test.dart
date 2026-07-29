@@ -15,7 +15,7 @@ void main() {
     expect(layout.activeActions.map((action) => action.label), [
       'Pause Day',
       'End Day',
-      'Add Fuel',
+      'Fuel',
       'Add Stop',
       'Add Pickup',
       'Add Drop-Off',

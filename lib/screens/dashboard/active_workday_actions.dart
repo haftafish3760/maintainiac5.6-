@@ -62,7 +62,7 @@ const workdayQuickActions = [
   WorkdayQuickActionSpec(
     kind: WorkdayQuickActionKind.addFuel,
     icon: Icons.local_gas_station_rounded,
-    label: 'Add Fuel',
+    label: 'Fuel',
     color: Color(0xFF1CA7E8),
     requiresOdometer: true,
   ),
