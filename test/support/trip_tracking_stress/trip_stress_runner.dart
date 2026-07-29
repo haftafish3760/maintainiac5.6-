@@ -7,10 +7,11 @@
 import 'dart:io';
 
 import 'trip_stress_evaluator.dart';
+import 'trip_stress_controller_replay.dart';
 import 'trip_stress_regression_corpus.dart';
 import 'trip_stress_scenario.dart';
 
-const tripStressHarnessVersion = 'gps-stress-v1';
+const tripStressHarnessVersion = 'gps-stress-v2';
 
 final class TripStressRunConfiguration {
   const TripStressRunConfiguration({
@@ -19,6 +20,7 @@ final class TripStressRunConfiguration {
     this.batchSize = 256,
     this.maximumRetainedFailures = 20,
     this.injectFailureAt,
+    this.controllerReplayStride = 250,
     this.gitRevision = 'unknown',
   });
 
@@ -27,6 +29,7 @@ final class TripStressRunConfiguration {
   final int batchSize;
   final int maximumRetainedFailures;
   final int? injectFailureAt;
+  final int controllerReplayStride;
   final String gitRevision;
 
   void validate() {
@@ -42,6 +45,14 @@ final class TripStressRunConfiguration {
         1,
         100,
         'maximumRetainedFailures',
+      );
+    }
+    if (controllerReplayStride < 1 || controllerReplayStride > 1000000) {
+      throw RangeError.range(
+        controllerReplayStride,
+        1,
+        1000000,
+        'controllerReplayStride',
       );
     }
   }
@@ -61,6 +72,7 @@ final class TripStressRunReport {
     required this.peakRssBytes,
     required this.endRssBytes,
     required this.savedRegressionCount,
+    required this.controllerReplayCount,
   });
 
   final TripStressRunConfiguration configuration;
@@ -75,6 +87,7 @@ final class TripStressRunReport {
   final int peakRssBytes;
   final int endRssBytes;
   final int savedRegressionCount;
+  final int controllerReplayCount;
 
   bool get passed => failureCount == 0 && invalidScenarioCount == 0;
   double get scenariosPerSecond => elapsed.inMicroseconds == 0
@@ -97,6 +110,8 @@ final class TripStressRunReport {
     'failureCount': failureCount,
     'retainedFailureCount': retainedFailures.length,
     'savedRegressionCount': savedRegressionCount,
+    'controllerReplayStride': configuration.controllerReplayStride,
+    'controllerReplayCount': controllerReplayCount,
     'deterministicDigest': deterministicDigest,
     'memory': {
       'startRssBytes': startRssBytes,
@@ -109,11 +124,17 @@ final class TripStressRunReport {
 }
 
 final class TripStressRunner {
-  const TripStressRunner({this.evaluator = const TripStressEvaluator()});
+  const TripStressRunner({
+    this.evaluator = const TripStressEvaluator(),
+    this.controllerReplay = const TripStressControllerReplay(),
+  });
 
   final TripStressEvaluator evaluator;
+  final TripStressControllerReplay controllerReplay;
 
-  TripStressRunReport run(TripStressRunConfiguration configuration) {
+  Future<TripStressRunReport> run(
+    TripStressRunConfiguration configuration,
+  ) async {
     configuration.validate();
     final stopwatch = Stopwatch()..start();
     final generator = TripStressScenarioGenerator(configuration.masterSeed);
@@ -121,6 +142,7 @@ final class TripStressRunner {
     final distributions = <String, Map<String, int>>{};
     var failureCount = 0;
     var invalidCount = 0;
+    var controllerReplayCount = 0;
     var digest = 0xcbf29ce484222325;
     final startRss = ProcessInfo.currentRss;
     var peakRss = startRss;
@@ -166,13 +188,19 @@ final class TripStressRunner {
             '${scenario.initialLifecycleIndex}->${scenario.targetLifecycleIndex}',
           );
           final evaluation = evaluator.evaluate(scenario);
+          final replay = index % configuration.controllerReplayStride == 0
+              ? await controllerReplay.replay(scenario)
+              : null;
+          if (replay != null) controllerReplayCount += 1;
           final injected = configuration.injectFailureAt == index;
-          final passed = evaluation.passed && !injected;
+          final passed =
+              evaluation.passed && replay?['passed'] != false && !injected;
           digest = _digest(digest, scenario.scenarioSeed, passed);
           if (!passed) {
             failureCount += 1;
             _retain(failures, configuration, scenario, {
               ...evaluation.evidence,
+              ...?(replay == null ? null : {'controllerReplay': replay}),
               if (injected) 'injectedFailure': true,
             }, false);
           }
@@ -208,6 +236,7 @@ final class TripStressRunner {
       peakRssBytes: peakRss,
       endRssBytes: ProcessInfo.currentRss,
       savedRegressionCount: corpus.length,
+      controllerReplayCount: controllerReplayCount,
     );
   }
 }

@@ -12,7 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'support/trip_tracking_stress/trip_stress_runner.dart';
 
 void main() {
-  test('configured deterministic GPS stress gate', () {
+  test('configured deterministic GPS stress gate', () async {
     const countText = String.fromEnvironment(
       'TRIP_STRESS_SCENARIOS',
       defaultValue: '1000',
@@ -34,7 +34,7 @@ void main() {
       defaultValue: '/tmp/trip_tracking_stress_report.json',
     );
     const injectText = String.fromEnvironment('TRIP_STRESS_INJECT_FAILURE');
-    final report = const TripStressRunner().run(
+    final report = await const TripStressRunner().run(
       TripStressRunConfiguration(
         scenarioCount: int.parse(countText),
         masterSeed: int.parse(seedText),

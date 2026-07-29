@@ -15,8 +15,8 @@ void main() {
 
   test(
     'one thousand meaningful scenarios pass with all families represented',
-    () {
-      final report = runner.run(
+    () async {
+      final report = await runner.run(
         const TripStressRunConfiguration(
           scenarioCount: 1000,
           masterSeed: 7272026,
@@ -30,28 +30,29 @@ void main() {
       expect(report.invalidScenarioCount, 0);
       expect(report.distributions['family']?.length, 8);
       expect(report.savedRegressionCount, 8);
+      expect(report.controllerReplayCount, 4);
       expect(report.retainedFailures, isEmpty);
     },
   );
 
-  test('same seed and configuration reproduce the same digest', () {
+  test('same seed and configuration reproduce the same digest', () async {
     const configuration = TripStressRunConfiguration(
       scenarioCount: 1000,
       masterSeed: 99271,
       batchSize: 113,
     );
-    final first = runner.run(configuration);
-    final second = runner.run(configuration);
+    final first = await runner.run(configuration);
+    final second = await runner.run(configuration);
 
     expect(first.deterministicDigest, second.deterministicDigest);
     expect(first.distributions, second.distributions);
   });
 
-  test('different seeds produce different deterministic digests', () {
-    final first = runner.run(
+  test('different seeds produce different deterministic digests', () async {
+    final first = await runner.run(
       const TripStressRunConfiguration(scenarioCount: 1000, masterSeed: 10),
     );
-    final second = runner.run(
+    final second = await runner.run(
       const TripStressRunConfiguration(scenarioCount: 1000, masterSeed: 11),
     );
 
@@ -76,15 +77,15 @@ void main() {
     expect(result.evidence['canSwitchVehicle'], isFalse);
   });
 
-  test('deliberate failure injection is bounded and reproducible', () {
+  test('deliberate failure injection is bounded and reproducible', () async {
     const configuration = TripStressRunConfiguration(
       scenarioCount: 1000,
       masterSeed: 12345,
       injectFailureAt: 417,
       maximumRetainedFailures: 3,
     );
-    final first = runner.run(configuration);
-    final second = runner.run(configuration);
+    final first = await runner.run(configuration);
+    final second = await runner.run(configuration);
 
     expect(first.failureCount, 1, reason: '${first.retainedFailures}');
     expect(first.retainedFailures, hasLength(1));
