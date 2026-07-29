@@ -139,9 +139,8 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
                 final canSitSideBySide =
                     showWorkProfile &&
                     showVehicle &&
-                    constraints.maxWidth >= 390 &&
-                    _workProfile.name.length <= 20 &&
-                    _vehicle.displayName.length <= 24;
+                    _workProfile.name.length <= 14 &&
+                    _vehicle.displayName.length <= 16;
                 final cardWidth = canSitSideBySide
                     ? (constraints.maxWidth - 10) / 2
                     : constraints.maxWidth.clamp(178.0, 266.0).toDouble();
@@ -157,6 +156,7 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
                           label: 'Work profile',
                           value: _workProfile.name,
                           icon: Icons.work_rounded,
+                          compact: canSitSideBySide,
                           onTap: _chooseWorkProfile,
                         ),
                       ),
@@ -167,6 +167,7 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
                           label: 'Vehicle',
                           value: _vehicle.displayName,
                           icon: Icons.directions_car_filled_rounded,
+                          compact: canSitSideBySide,
                           onTap: _chooseVehicle,
                         ),
                       ),
@@ -252,12 +253,14 @@ class _ContextSelector extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
+    required this.compact,
     required this.onTap,
   });
 
   final String label;
   final String value;
   final IconData icon;
+  final bool compact;
   final VoidCallback onTap;
 
   @override
@@ -272,20 +275,24 @@ class _ContextSelector extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: EdgeInsets.all(compact ? 8 : 12),
             child: Row(
               children: [
-                Icon(icon, color: const Color(0xFF176B8A)),
-                const SizedBox(width: 10),
+                Icon(
+                  icon,
+                  color: const Color(0xFF176B8A),
+                  size: compact ? 20 : 24,
+                ),
+                SizedBox(width: compact ? 6 : 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        label,
-                        style: const TextStyle(
+                        compact && label == 'Work profile' ? 'Profile' : label,
+                        style: TextStyle(
                           color: Color(0xFF273237),
-                          fontSize: 12,
+                          fontSize: compact ? 11 : 12,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -294,24 +301,26 @@ class _ContextSelector extends StatelessWidget {
                         value,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFF101416),
-                          fontSize: 16,
+                          fontSize: compact ? 14 : 16,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Text(
-                  'Change',
-                  style: const TextStyle(
-                    color: Color(0xFF176B8A),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
+                if (!compact) ...[
+                  const Text(
+                    'Change',
+                    style: TextStyle(
+                      color: Color(0xFF176B8A),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
+                  const SizedBox(width: 4),
+                ],
                 const Icon(
                   Icons.chevron_right_rounded,
                   color: Color(0xFF176B8A),

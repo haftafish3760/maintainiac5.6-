@@ -107,4 +107,45 @@ void main() {
     expect(result?.vehicleId, van.id);
     expect(result?.workProfileId, rideshare.id);
   });
+
+  testWidgets('keeps short context choices side by side on iPhone SE width', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(375, 667);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => FilledButton(
+              onPressed: () => openGigStartDaySetupSheet(
+                context,
+                vehicles: [truck, van],
+                workProfiles: [delivery, rideshare],
+                initialVehicleId: truck.id,
+                initialWorkProfileId: delivery.id,
+              ),
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open'));
+    await tester.pumpAndSettle();
+
+    final profileValue = find.text('Delivery');
+    final vehicleValue = find.text('Work Truck');
+    expect(profileValue, findsOneWidget);
+    expect(vehicleValue, findsOneWidget);
+    final profileRect = tester.getRect(profileValue);
+    final vehicleRect = tester.getRect(vehicleValue);
+    expect(profileRect.left, lessThan(vehicleRect.left));
+    expect(profileRect.top, vehicleRect.top);
+    expect(tester.takeException(), isNull);
+  });
 }
