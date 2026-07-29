@@ -239,6 +239,38 @@ class GlobalOdometerController extends ChangeNotifier {
     return switchVehicle(snapshot);
   }
 
+  /// Reads another vehicle's durable odometer snapshot without changing this
+  /// controller's active vehicle, history, or live GPS projection.
+  ///
+  /// Context-handoff review flows consume this before explicit confirmation.
+  /// It never persists a fallback snapshot: a missing local record is only an
+  /// in-memory zero-mile preview until the user confirms a real reading.
+  Future<OdometerVehicleSnapshot> previewVehicleSnapshot(
+    String vehicleId,
+  ) async {
+    final safeVehicleId = safeOdometerVehicleId(vehicleId);
+    if (safeVehicleId == _vehicleId) return snapshot;
+    final reader = _snapshotReader;
+    final loaded = reader == null
+        ? null
+        : await reader(safeVehicleId, fallbackReading: 0);
+    if (loaded == null) {
+      return OdometerVehicleSnapshot(
+        vehicleId: safeVehicleId,
+        currentReading: 0,
+        updatedAt: DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+        history: const [],
+      );
+    }
+    return OdometerVehicleSnapshot(
+      vehicleId: safeVehicleId,
+      currentReading: _safeOdometerReading(loaded.currentReading),
+      updatedAt: loaded.updatedAt,
+      history: List.unmodifiable(loaded.history),
+      drivingPatternReviewEnabled: loaded.drivingPatternReviewEnabled,
+    );
+  }
+
   OdometerUpdateResult updateFromText(
     String rawValue, {
     DateTime? enteredAt,

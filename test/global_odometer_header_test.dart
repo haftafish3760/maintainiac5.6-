@@ -93,10 +93,7 @@ void main() {
 
     expect(find.text('1000'), findsNothing);
     expect(find.text(odometer.displayValue), findsOneWidget);
-    expect(
-      find.text('+${odometer.liveTripDeltaMiles} mi live'),
-      findsOneWidget,
-    );
+    expect(find.text(odometer.liveDisplaySnapshot.deltaLabel!), findsOneWidget);
     expect(odometer.reading, greaterThan(1000));
     expect(odometer.confirmedReading, 1000);
   });

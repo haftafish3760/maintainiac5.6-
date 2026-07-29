@@ -13,6 +13,7 @@ Future<bool> openOdometerEntry(
   int? minimumReading,
   String? minimumReadingMessage,
   TripTrackingReviewRecord? tripReview,
+  bool commitToOdometer = true,
 }) async {
   final result = await openOdometerEntryResult(
     context,
@@ -23,6 +24,7 @@ Future<bool> openOdometerEntry(
     minimumReading: minimumReading,
     minimumReadingMessage: minimumReadingMessage,
     tripReview: tripReview,
+    commitToOdometer: commitToOdometer,
   );
   return result != null;
 }
@@ -36,6 +38,7 @@ Future<int?> openOdometerEntryResult(
   int? minimumReading,
   String? minimumReadingMessage,
   TripTrackingReviewRecord? tripReview,
+  bool commitToOdometer = true,
 }) async {
   final odometer = GlobalOdometerScope.of(context);
   return showModalBottomSheet<int>(
@@ -55,6 +58,7 @@ Future<int?> openOdometerEntryResult(
         minimumReading: minimumReading,
         minimumReadingMessage: minimumReadingMessage,
         tripReview: tripReview,
+        commitToOdometer: commitToOdometer,
       ),
     ),
   );

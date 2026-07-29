@@ -1283,7 +1283,7 @@ class GpsTripPanelRetired extends StatelessWidget {
     final driverPattern =
         settings != null && controller != null && activeWorkday != null
         ? controller.driverPatternDecision(
-            profileId: activeWorkday.workProfileId,
+            profileId: activeWorkday.currentContextSegment.workProfileId,
           )
         : null;
     final tracking = controller?.isTracking == true;

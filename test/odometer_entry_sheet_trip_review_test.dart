@@ -51,6 +51,51 @@ void main() {
     expect(odometer.confirmedReading, 1000);
   });
 
+  testWidgets('validation-only odometer entry returns without mutation', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final result = Completer<int?>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () async {
+                  result.complete(
+                    await openOdometerEntryResult(
+                      context,
+                      title: 'Review ending odometer',
+                      saveLabel: 'Continue',
+                      commitToOdometer: false,
+                    ),
+                  );
+                },
+                child: const Text('Open review'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Open review'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).last, '1000');
+    await tester.tap(find.widgetWithText(FilledButton, 'Continue'));
+    await tester.pumpAndSettle();
+
+    expect(await result.future.timeout(const Duration(seconds: 1)), 1000);
+    expect(odometer.confirmedReading, 1000);
+    expect(odometer.history, hasLength(1));
+  });
+
   testWidgets('odometer entry sheet follows live GPS until manually edited', (
     tester,
   ) async {

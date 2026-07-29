@@ -81,6 +81,38 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('pre-workday command center fits an iPhone SE viewport', (
+    tester,
+  ) async {
+    final harness = await _pumpDashboard(
+      tester,
+      OperationalDashboardMode.gigDriver,
+      logicalSize: const Size(375, 667),
+    );
+    addTearDown(harness.dispose);
+
+    expect(find.text('Delivery dashboard'), findsOneWidget);
+    expect(find.text('Start day'), findsOneWidget);
+    expect(find.text('Payments this week'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('active workday command center fits an iPhone SE viewport', (
+    tester,
+  ) async {
+    final harness = await _pumpDashboard(
+      tester,
+      OperationalDashboardMode.gigDriver,
+      activeWorkday: true,
+      logicalSize: const Size(375, 667),
+    );
+    addTearDown(harness.dispose);
+
+    expect(find.text('Shift Timer'), findsOneWidget);
+    expect(find.text('Miles Today'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Future<_DashboardHarness> _pumpDashboard(
@@ -88,9 +120,10 @@ Future<_DashboardHarness> _pumpDashboard(
   OperationalDashboardMode mode, {
   TextScaler textScaler = TextScaler.noScaling,
   bool activeWorkday = false,
+  Size logicalSize = const Size(900, 1800),
 }) async {
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = const Size(900, 1800);
+  tester.view.physicalSize = logicalSize;
   addTearDown(tester.view.resetDevicePixelRatio);
   addTearDown(tester.view.resetPhysicalSize);
 

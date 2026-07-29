@@ -1137,4 +1137,38 @@ void main() {
       expect(controller.hasLiveTripProjection, isTrue);
     },
   );
+
+  test(
+    'previewing another vehicle never changes the active odometer state',
+    () async {
+      var writes = 0;
+      final controller = GlobalOdometerController(
+        vehicleId: 'truck-1',
+        initialReading: 1000,
+        snapshotReader: (vehicleId, {fallbackReading = 298150}) async {
+          expect(vehicleId, 'van-2');
+          expect(fallbackReading, 0);
+          return OdometerVehicleSnapshot(
+            vehicleId: vehicleId,
+            currentReading: 500,
+            updatedAt: DateTime.utc(2026, 7, 28, 12),
+            history: const [],
+          );
+        },
+        snapshotWriter: (_) async => writes += 1,
+      );
+      var notifications = 0;
+      controller.addListener(() => notifications += 1);
+
+      final preview = await controller.previewVehicleSnapshot('van-2');
+
+      expect(preview.vehicleId, 'van-2');
+      expect(preview.currentReading, 500);
+      expect(controller.vehicleId, 'truck-1');
+      expect(controller.confirmedReading, 1000);
+      expect(controller.history, hasLength(1));
+      expect(notifications, 0);
+      expect(writes, 0);
+    },
+  );
 }

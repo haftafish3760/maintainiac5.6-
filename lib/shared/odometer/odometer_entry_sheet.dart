@@ -21,6 +21,7 @@ class OdometerEntrySheet extends StatefulWidget {
     this.minimumReadingMessage,
     this.onSaved,
     this.tripReview,
+    this.commitToOdometer = true,
   });
 
   final String title;
@@ -31,6 +32,7 @@ class OdometerEntrySheet extends StatefulWidget {
   final String? minimumReadingMessage;
   final VoidCallback? onSaved;
   final TripTrackingReviewRecord? tripReview;
+  final bool commitToOdometer;
 
   @override
   State<OdometerEntrySheet> createState() => _OdometerEntrySheetState();
@@ -282,6 +284,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     final result = GlobalOdometerScope.of(context).updateFromText(
       _controller?.text ?? '',
       confirmSuspicious: _pendingConfirmation,
+      commit: widget.commitToOdometer,
       mileageReview: review,
       correctionReview: correctionReview,
       sourceType: tripReview == null ? null : 'gps_trip_review',
