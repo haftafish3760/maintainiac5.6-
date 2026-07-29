@@ -8,8 +8,10 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
+import '../../shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
+import 'active_workday_bluetooth_status_line.dart';
 
 class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
   const ActiveWorkdayTrackingStatusLine({
@@ -33,9 +35,10 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = TripTrackingScope.maybeOf(context);
     final settings = TripTrackingSettingsScope.maybeOf(context)?.settings;
+    final bluetoothRuntime = TripTrackingBluetoothRuntimeScope.maybeOf(context);
     if (controller == null || settings == null) return const SizedBox.shrink();
     return AnimatedBuilder(
-      animation: controller,
+      animation: Listenable.merge([controller, ?bluetoothRuntime]),
       builder: (context, _) {
         final status = ActiveWorkdayTrackingStatus.forSnapshot(
           gpsAssistanceEnabled: settings.gpsAssistedTrackingEnabled,
@@ -56,6 +59,12 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
           tracking: controller.isTracking,
           nativeTracking: controller.nativeTracking,
           acceptedMiles: controller.acceptedMiles,
+        );
+        final bluetoothStatus = ActiveWorkdayBluetoothStatus.forSnapshot(
+          recognitionEnabled: settings.bluetoothVehicleRecognitionEnabled,
+          observationAvailable: bluetoothRuntime?.observationAvailable ?? false,
+          isListening: bluetoothRuntime?.isListening ?? false,
+          lastDecision: bluetoothRuntime?.lastDecision,
         );
         return Semantics(
           label: status.label,
@@ -119,6 +128,8 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                   ],
                 ],
               ),
+              const SizedBox(height: 4),
+              ActiveWorkdayBluetoothStatusLine(status: bluetoothStatus),
               if (hasReview)
                 TextButton(
                   onPressed: onReview,

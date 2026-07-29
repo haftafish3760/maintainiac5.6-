@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/active_workday_actions.dart';
@@ -116,5 +118,19 @@ void main() {
     await tester.tap(find.text('Expense'));
     await tester.pump();
     expect(controller.layout.activeKinds, [WorkdayQuickActionKind.expense]);
+  });
+
+  test('every available quick action has an Active Day handler', () {
+    final source = File(
+      'lib/screens/dashboard/active_workday_screen.dart',
+    ).readAsStringSync();
+
+    for (final action in availableWorkdayQuickActions) {
+      expect(
+        source,
+        contains('case WorkdayQuickActionKind.${action.kind.name}:'),
+        reason: '${action.label} is selectable but has no Active Day handler.',
+      );
+    }
   });
 }
