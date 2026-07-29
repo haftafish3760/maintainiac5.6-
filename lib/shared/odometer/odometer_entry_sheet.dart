@@ -9,6 +9,7 @@ import '../trip_tracking/trip_tracking_odometer_reconciliation.dart';
 import '../trip_tracking/trip_tracking_session_store.dart';
 
 part 'odometer_correction_review_panel.dart';
+part 'odometer_entry_audit_correction_actions.dart';
 
 class OdometerEntrySheet extends StatefulWidget {
   const OdometerEntrySheet({
@@ -241,6 +242,10 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                   child: Text(
                     _pendingDeltaMiles != null
                         ? 'Save Miles'
+                        : _selectedCorrectionReason
+                                  ?.requiresDedicatedCorrectionFlow ==
+                              true
+                        ? 'Review correction'
                         : _pendingCurrentReading != null
                         ? 'Save Review'
                         : _pendingConfirmation
@@ -256,7 +261,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     );
   }
 
-  void _saveReading() {
+  Future<void> _saveReading() async {
     final tripReview = widget.tripReview;
     if (tripReview != null &&
         tripReview.vehicleId != GlobalOdometerScope.of(context).vehicleId) {
@@ -279,6 +284,14 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
             'This reading cannot be lower than the required minimum of '
                 '$minimumReading.';
       });
+      return;
+    }
+    if (savedReading != null &&
+        correctionReview?.requiresDedicatedCorrectionFlow == true) {
+      await _confirmAndApplyAuditCorrection(
+        reading: savedReading,
+        review: correctionReview!,
+      );
       return;
     }
     final result = GlobalOdometerScope.of(context).updateFromText(
@@ -308,6 +321,10 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
 
     widget.onSaved?.call();
     Navigator.of(context).pop(savedReading);
+  }
+
+  void _showAuditCorrectionError(String? message) {
+    if (mounted) setState(() => _errorText = message);
   }
 
   TripOdometerReconciliation? get _tripReconciliation {

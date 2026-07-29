@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/odometer/odometer_correction_review.dart';
 import 'package:maintaniac/shared/odometer/odometer_entry_sheet.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 
@@ -77,4 +78,57 @@ void main() {
       },
     );
   }
+
+  testWidgets('previous-entry review applies an explicit audited correction', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle-1',
+      initialReading: 1000,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: const Scaffold(
+            body: OdometerEntrySheet(
+              title: 'Ending Odometer',
+              saveLabel: 'End Day',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), '900');
+    await tester.tap(find.text('End Day'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Review the previous odometer entry'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Review the previous odometer entry'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Review correction'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Review correction'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Review odometer correction'), findsOneWidget);
+    expect(find.textContaining('original entry stays'), findsOneWidget);
+    await tester.tap(find.text('Apply correction'));
+    await tester.pumpAndSettle();
+
+    expect(odometer.confirmedReading, 900);
+    expect(odometer.history, hasLength(2));
+    expect(
+      odometer.history.last.correctionReview?.reason,
+      OdometerCorrectionReason.previousEntryWrong,
+    );
+  });
 }
