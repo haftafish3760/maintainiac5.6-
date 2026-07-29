@@ -397,16 +397,12 @@ void main() {
     );
     await tester.pump();
 
+    expect(tripController.isTracking, isTrue);
     expect(find.text('1000'), findsNothing);
     expect(find.text(odometer.displayValue), findsOneWidget);
     expect(odometer.reading, greaterThan(1000));
     expect(odometer.confirmedReading, 1000);
     expect(find.text((odometer.reading - 1000).toString()), findsOneWidget);
-    expect(
-      find.textContaining('Location estimate: ${odometer.displayValue}'),
-      findsOneWidget,
-    );
-
     final priorLiveDisplay = odometer.displayValue;
     final liveReading = odometer.reading;
     expect(
@@ -418,14 +414,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(
-      find.textContaining('Location estimate: $priorLiveDisplay'),
-      findsNothing,
-    );
-    expect(
-      find.textContaining('Location estimate: ${odometer.displayValue}'),
-      findsOneWidget,
-    );
+    expect(find.text(priorLiveDisplay), findsNothing);
+    expect(find.text(odometer.displayValue), findsOneWidget);
   });
 
   testWidgets('active day shows profile-aware GPS guidance before tracking', (

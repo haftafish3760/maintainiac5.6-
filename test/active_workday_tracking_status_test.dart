@@ -71,4 +71,34 @@ void main() {
       expect(status.label, contains('Location paused'));
     },
   );
+
+  test(
+    'Active Day labels accepted GPS distance as evidence, not mileage truth',
+    () {
+      expect(
+        ActiveWorkdayTrackingStatus.evidenceSummaryFor(
+          tracking: true,
+          nativeTracking: true,
+          acceptedMiles: 2.34,
+        ),
+        'GPS evidence: 2.3 mi accepted. Odometer stays official.',
+      );
+      expect(
+        ActiveWorkdayTrackingStatus.evidenceSummaryFor(
+          tracking: true,
+          nativeTracking: false,
+          acceptedMiles: 2.34,
+        ),
+        'GPS evidence paused. No new GPS distance is being added.',
+      );
+      expect(
+        ActiveWorkdayTrackingStatus.evidenceSummaryFor(
+          tracking: false,
+          nativeTracking: false,
+          acceptedMiles: 0,
+        ),
+        isNull,
+      );
+    },
+  );
 }

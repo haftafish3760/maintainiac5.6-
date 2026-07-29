@@ -46,6 +46,11 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
         final canResume = controller.isTracking && !controller.nativeTracking;
         final canStop = controller.nativeTracking;
         final hasReview = controller.latestUnconfirmedReview != null;
+        final evidenceSummary = ActiveWorkdayTrackingStatus.evidenceSummaryFor(
+          tracking: controller.isTracking,
+          nativeTracking: controller.nativeTracking,
+          acceptedMiles: controller.acceptedMiles,
+        );
         return Semantics(
           label: status.label,
           child: Column(
@@ -100,6 +105,17 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                   onPressed: onReview,
                   child: const Text('Review GPS Trip Odometer'),
                 ),
+              if (evidenceSummary != null) ...[
+                const SizedBox(height: 3),
+                Text(
+                  evidenceSummary,
+                  style: const TextStyle(
+                    color: Color(0xFF9CC7E8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ],
           ),
         );
@@ -183,6 +199,22 @@ class ActiveWorkdayTrackingStatus {
       platformStatus == 'battery_critical_gps_blocked' ||
       platformStatus == 'low_battery_requires_user_choice' ||
       platformStatus == 'gps_signal_review_required';
+
+  /// Describes accepted GPS evidence without presenting it as mileage truth.
+  static String? evidenceSummaryFor({
+    required bool tracking,
+    required bool nativeTracking,
+    required double acceptedMiles,
+  }) {
+    if (!tracking) return null;
+    if (!nativeTracking) {
+      return 'GPS evidence paused. No new GPS distance is being added.';
+    }
+    if (acceptedMiles < 0.05) {
+      return 'GPS evidence: waiting for accepted movement. Odometer stays official.';
+    }
+    return 'GPS evidence: ${acceptedMiles.toStringAsFixed(1)} mi accepted. Odometer stays official.';
+  }
 
   final String label;
   final IconData icon;
