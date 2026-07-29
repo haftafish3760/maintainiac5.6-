@@ -118,9 +118,9 @@ void main() {
   testWidgets('dashboard opens contractor command center', (tester) async {
     await _pumpDashboard(tester, appState, odometer, workProfiles);
 
-    expect(find.text('Contractor Dashboard'), findsOneWidget);
+    expect(find.text('Contractor'), findsOneWidget);
 
-    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.tap(find.text('Contractor'));
     await tester.pumpAndSettle();
 
     expect(find.text('Back'), findsOneWidget);
@@ -155,7 +155,7 @@ void main() {
       activeWorkday: activeWorkday,
     );
 
-    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.tap(find.text('Contractor'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Start Day'),
@@ -193,7 +193,7 @@ void main() {
       activeWorkday: activeWorkday,
     );
 
-    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.tap(find.text('Contractor'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Start Day'),
@@ -219,7 +219,7 @@ void main() {
       activeWorkday: activeWorkday,
     );
 
-    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.tap(find.text('Contractor'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Start Day'),
@@ -240,7 +240,7 @@ void main() {
   ) async {
     await _pumpDashboard(tester, appState, odometer, workProfiles);
 
-    await tester.tap(find.text('Contractor Dashboard'));
+    await tester.tap(find.text('Contractor'));
     await tester.pumpAndSettle();
     await tester.scrollUntilVisible(
       find.text('Start Day'),
