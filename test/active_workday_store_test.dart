@@ -42,6 +42,10 @@ void main() {
       'truck-1',
     );
     expect(
+      store.activeSession?.events.single.contextSegmentId,
+      store.activeSession?.resolvedContextSegments.single.id,
+    );
+    expect(
       store.activeSession?.events.single.type,
       ActiveWorkdayEventType.started,
     );
@@ -52,6 +56,10 @@ void main() {
     expect(
       restored.activeSession?.resolvedContextSegments.single.workProfileId,
       'Business',
+    );
+    expect(
+      restored.activeSession?.events.single.contextSegmentId,
+      restored.activeSession?.resolvedContextSegments.single.id,
     );
   });
 
@@ -75,6 +83,156 @@ void main() {
     expect(second.id, first.id);
     expect(store.sessions, hasLength(1));
     expect(store.activeSession?.vehicleId, 'truck-1');
+  });
+
+  test(
+    'context handoff preserves separate vehicle odometer evidence',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      await store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck',
+        workProfileId: 'delivery',
+        startOdometer: 1000,
+        startedAt: DateTime(2026, 7, 28, 8),
+      );
+
+      final handedOff = await store.handoffContext(
+        vehicleId: 'van-2',
+        vehicleLabel: 'Delivery Van',
+        workProfileId: 'rideshare',
+        endingOdometer: 1012,
+        startingOdometer: 500,
+        occurredAt: DateTime(2026, 7, 28, 9),
+      );
+      await store.addEvent(
+        type: ActiveWorkdayEventType.stop,
+        odometerReading: 504,
+        occurredAt: DateTime(2026, 7, 28, 10),
+      );
+      final ended = await store.addEvent(
+        type: ActiveWorkdayEventType.ended,
+        odometerReading: 510,
+        occurredAt: DateTime(2026, 7, 28, 11),
+      );
+
+      expect(handedOff?.resolvedContextSegments, hasLength(2));
+      expect(handedOff?.resolvedContextSegments.first.endOdometer, 1012);
+      expect(handedOff?.currentContextSegment.vehicleId, 'van-2');
+      expect(ended?.status, ActiveWorkdayStatus.ended);
+      expect(ended?.resolvedContextSegments.last.endOdometer, 510);
+
+      final restored = ActiveWorkdaySessionRecord.fromMap(ended!.toMap());
+      expect(restored.hasValidIdentity, isTrue);
+      expect(restored.status, ActiveWorkdayStatus.ended);
+      expect(restored.resolvedContextSegments, hasLength(2));
+      expect(restored.events.last.odometerReading, 510);
+      expect(
+        restored.events.last.contextSegmentId,
+        restored.currentContextSegment.id,
+      );
+    },
+  );
+
+  test('duplicate context handoff does not create a second boundary', () async {
+    final store = ActiveWorkdayController.memory();
+    await store.startDay(
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'delivery',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 28, 8),
+    );
+
+    final first = await store.handoffContext(
+      vehicleId: 'van-2',
+      vehicleLabel: 'Delivery Van',
+      workProfileId: 'rideshare',
+      endingOdometer: 1012,
+      startingOdometer: 500,
+      occurredAt: DateTime(2026, 7, 28, 9),
+    );
+    final duplicate = await store.handoffContext(
+      vehicleId: 'van-2',
+      vehicleLabel: 'Renamed Van',
+      workProfileId: 'rideshare',
+      endingOdometer: 500,
+      startingOdometer: 500,
+      occurredAt: DateTime(2026, 7, 28, 9, 1),
+    );
+
+    expect(duplicate?.id, first?.id);
+    expect(duplicate?.resolvedContextSegments, hasLength(2));
+    expect(
+      duplicate?.events.where(
+        (event) => event.type == ActiveWorkdayEventType.contextChanged,
+      ),
+      hasLength(1),
+    );
+  });
+
+  test('rejects persisted context segments that overlap in time', () async {
+    final store = ActiveWorkdayController.memory();
+    await store.startDay(
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'delivery',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 28, 8),
+    );
+    final session = await store.handoffContext(
+      vehicleId: 'van-2',
+      vehicleLabel: 'Delivery Van',
+      workProfileId: 'rideshare',
+      endingOdometer: 1012,
+      startingOdometer: 500,
+      occurredAt: DateTime(2026, 7, 28, 9),
+    );
+    final persisted = session!.toMap();
+    final contexts = List<Map<String, Object?>>.from(
+      (persisted['contextSegments']! as List).cast<Map<String, Object?>>(),
+    );
+    contexts[1] = {...contexts[1], 'startedAt': '2026-07-28T08:30:00.000'};
+    persisted['contextSegments'] = contexts;
+
+    expect(
+      ActiveWorkdaySessionRecord.fromMap(persisted).hasValidIdentity,
+      isFalse,
+    );
+  });
+
+  test('rejects an active workday with no open context segment', () async {
+    final store = ActiveWorkdayController.memory();
+    await store.startDay(
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck',
+      workProfileId: 'delivery',
+      startOdometer: 1000,
+      startedAt: DateTime(2026, 7, 28, 8),
+    );
+    final session = await store.handoffContext(
+      vehicleId: 'van-2',
+      vehicleLabel: 'Delivery Van',
+      workProfileId: 'rideshare',
+      endingOdometer: 1012,
+      startingOdometer: 500,
+      occurredAt: DateTime(2026, 7, 28, 9),
+    );
+    final persisted = session!.toMap();
+    final contexts = List<Map<String, Object?>>.from(
+      (persisted['contextSegments']! as List).cast<Map<String, Object?>>(),
+    );
+    contexts[1] = {
+      ...contexts[1],
+      'endedAt': '2026-07-28T10:00:00.000',
+      'endOdometer': 510,
+    };
+    persisted['contextSegments'] = contexts;
+
+    expect(
+      ActiveWorkdaySessionRecord.fromMap(persisted).hasValidIdentity,
+      isFalse,
+    );
   });
 
   test('does not claim a workday started when storage is full', () async {

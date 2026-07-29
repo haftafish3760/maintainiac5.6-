@@ -76,6 +76,30 @@ void main() {
     );
   });
 
+  test('GPS start uses the current confirmed workday context', () {
+    final source = File(
+      'lib/screens/dashboard/active_workday_screen.dart',
+    ).readAsStringSync();
+
+    final start = source.indexOf('Future<void> _startGpsTripImpl() async');
+    final currentContext = source.indexOf(
+      'final activeContext = activeSession.currentContextSegment;',
+      start,
+    );
+    final vehicleCheck = source.indexOf(
+      'if (activeContext.vehicleId != odometer.vehicleId)',
+      start,
+    );
+    final profile = source.indexOf(
+      'profileId: activeContext.workProfileId',
+      start,
+    );
+
+    expect(currentContext, greaterThan(start));
+    expect(vehicleCheck, greaterThan(currentContext));
+    expect(profile, greaterThan(vehicleCheck));
+  });
+
   test('live dashboard labels GPS as assistance, not odometer truth', () {
     final source = File(
       'lib/screens/dashboard/active_workday_screen.dart',

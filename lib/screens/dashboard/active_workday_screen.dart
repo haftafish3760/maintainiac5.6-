@@ -612,8 +612,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       _showGpsMessage('Resume Day before restarting GPS-assisted tracking.');
       return;
     }
+    final activeContext = activeSession.currentContextSegment;
     final odometer = GlobalOdometerScope.of(context);
-    if (activeSession.vehicleId != odometer.vehicleId) {
+    if (activeContext.vehicleId != odometer.vehicleId) {
       _showGpsMessage(
         'Switch to the active workday vehicle before starting GPS-assisted tracking.',
       );
@@ -659,7 +660,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             'gps-trip-${DateTime.now().microsecondsSinceEpoch}-${_tripIdRandom.nextInt(0x100000000).toRadixString(16)}',
         vehicleId: odometer.vehicleId,
         profile: settings.defaultProfile,
-        profileId: activeSession.workProfileId,
+        profileId: activeContext.workProfileId,
       );
       if (!startedNewTrip) {
         _showGpsMessage(

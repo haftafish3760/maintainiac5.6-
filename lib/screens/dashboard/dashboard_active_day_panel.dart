@@ -34,7 +34,7 @@ class DashboardActiveDayPanel extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Today: ${session.vehicleLabel}',
+                    'Today: ${session.currentContextSegment.vehicleLabel}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -142,5 +142,6 @@ IconData _iconForEvent(ActiveWorkdayEventType type) {
     ActiveWorkdayEventType.ended => Icons.stop_rounded,
     ActiveWorkdayEventType.note => Icons.note_alt_rounded,
     ActiveWorkdayEventType.started => Icons.flag_rounded,
+    ActiveWorkdayEventType.contextChanged => Icons.swap_horiz_rounded,
   };
 }

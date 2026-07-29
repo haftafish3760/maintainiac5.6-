@@ -12,6 +12,7 @@ enum ActiveWorkdayEventType {
   started,
   paused,
   resumed,
+  contextChanged,
   ended,
   stop,
   pickup,
@@ -31,6 +32,7 @@ class ActiveWorkdayEvent {
     this.note,
     this.sourceType,
     this.sourceId,
+    this.contextSegmentId,
     this.hasValidIdentity = true,
   });
 
@@ -42,6 +44,7 @@ class ActiveWorkdayEvent {
   final String? note;
   final String? sourceType;
   final String? sourceId;
+  final String? contextSegmentId;
   final bool hasValidIdentity;
 
   String get timeLabel {
@@ -71,6 +74,7 @@ class ActiveWorkdayEvent {
       'note': _optionalSafeText(note, maxLength: 240),
       'sourceType': _optionalSafeText(sourceType, maxLength: 80),
       'sourceId': _optionalSafeText(sourceId, maxLength: 160),
+      'contextSegmentId': _optionalSafeText(contextSegmentId, maxLength: 160),
     };
   }
 
@@ -88,11 +92,16 @@ class ActiveWorkdayEvent {
       note: _optionalSafeText(map['note'], maxLength: 240),
       sourceType: _optionalSafeText(map['sourceType'], maxLength: 80),
       sourceId: _optionalSafeText(map['sourceId'], maxLength: 160),
+      contextSegmentId: _optionalSafeText(
+        map['contextSegmentId'],
+        maxLength: 160,
+      ),
       hasValidIdentity:
           _isSafeActiveWorkdayIdValue(rawId) &&
           _hasKnownEventTypeName(rawType) &&
           _isSafeOptionalActiveWorkdayReference(map['sourceType']) &&
-          _isSafeOptionalActiveWorkdayReference(map['sourceId']),
+          _isSafeOptionalActiveWorkdayReference(map['sourceId']) &&
+          _isSafeOptionalActiveWorkdayReference(map['contextSegmentId']),
     );
   }
 }
@@ -145,6 +154,34 @@ class ActiveWorkdaySessionRecord {
         endOdometer: status == ActiveWorkdayStatus.ended ? endOdometer : null,
       ),
     ]);
+  }
+
+  ActiveWorkdayContextSegment get currentContextSegment {
+    final segments = resolvedContextSegments;
+    for (final segment in segments.reversed) {
+      if (segment.isOpen) return segment;
+    }
+    return segments.last;
+  }
+
+  int latestOdometerForContext(String contextSegmentId) {
+    final initialSegmentId = resolvedContextSegments.first.id;
+    final segment = resolvedContextSegments.firstWhere(
+      (candidate) => candidate.id == contextSegmentId,
+      orElse: () => currentContextSegment,
+    );
+    return events
+        .where(
+          (event) =>
+              event.contextSegmentId == contextSegmentId ||
+              (event.contextSegmentId == null &&
+                  contextSegmentId == initialSegmentId),
+        )
+        .fold<int>(
+          segment.startOdometer,
+          (latest, event) =>
+              event.odometerReading > latest ? event.odometerReading : latest,
+        );
   }
 
   /// Elapsed work time excludes each durable paused interval. Event timestamps
@@ -301,6 +338,7 @@ class ActiveWorkdaySessionRecord {
       parsedEvents,
       startedAt: startedAt,
       startOdometer: startOdometer,
+      contextSegments: parsedContextSegments,
     );
     final endOdometer = _safeOdometer(map['endOdometer']);
     final endedAt = DateTime.tryParse(_stringValue(map['endedAt']) ?? '');
@@ -309,7 +347,7 @@ class ActiveWorkdaySessionRecord {
     final hasEndedEvent = events.any(
       (event) => event.type == ActiveWorkdayEventType.ended,
     );
-    final hasCoherentEndedState =
+    final hasLegacyCoherentEndedState =
         status == ActiveWorkdayStatus.ended &&
         endedAt != null &&
         !endedAt.isBefore(startedAt) &&
@@ -321,6 +359,24 @@ class ActiveWorkdaySessionRecord {
               !event.occurredAt.isAfter(endedAt) &&
               event.odometerReading <= endOdometer,
         );
+    final finalContext = parsedContextSegments.isEmpty
+        ? null
+        : parsedContextSegments.last;
+    final hasSegmentAwareCoherentEndedState =
+        status == ActiveWorkdayStatus.ended &&
+        endedAt != null &&
+        !endedAt.isBefore(startedAt) &&
+        endOdometer != null &&
+        _hasCoherentContextSegmentOrder(parsedContextSegments) &&
+        parsedContextSegments.every((segment) => segment.isClosed) &&
+        finalContext != null &&
+        finalContext.endedAt!.isAtSameMomentAs(endedAt) &&
+        finalContext.endOdometer == endOdometer &&
+        hasEndedEvent &&
+        events.every((event) => !event.occurredAt.isAfter(endedAt));
+    final hasCoherentEndedState = parsedContextSegments.isEmpty
+        ? hasLegacyCoherentEndedState
+        : hasSegmentAwareCoherentEndedState;
     final recoveredStatus = status == ActiveWorkdayStatus.ended
         ? hasCoherentEndedState
               ? ActiveWorkdayStatus.ended
@@ -357,16 +413,80 @@ class ActiveWorkdaySessionRecord {
           _isSafeActiveWorkdayIdValue(rawWorkProfileId) &&
           _hasKnownStatusName(rawStatus) &&
           !hasInvalidContextSegment &&
+          _hasCoherentContextSegmentLifecycle(
+            parsedContextSegments,
+            status: recoveredStatus,
+          ) &&
           events.every((event) => event.hasValidIdentity),
     );
   }
+}
+
+bool _hasCoherentContextSegmentOrder(
+  List<ActiveWorkdayContextSegment> segments,
+) {
+  final seenIds = <String>{};
+  for (var index = 0; index < segments.length; index++) {
+    final current = segments[index];
+    if (!seenIds.add(current.id)) return false;
+    if (index == 0) continue;
+    final previous = segments[index - 1];
+    if (!previous.isClosed || current.startedAt.isBefore(previous.endedAt!)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool _hasCoherentContextSegmentLifecycle(
+  List<ActiveWorkdayContextSegment> segments, {
+  required ActiveWorkdayStatus status,
+}) {
+  if (!_hasCoherentContextSegmentOrder(segments) || segments.isEmpty) {
+    return segments.isEmpty;
+  }
+  if (status == ActiveWorkdayStatus.ended) {
+    return segments.every((segment) => segment.isClosed);
+  }
+  return segments.last.isOpen &&
+      segments.take(segments.length - 1).every((segment) => segment.isClosed);
 }
 
 List<ActiveWorkdayEvent> _coherentWorkdayEvents(
   Iterable<ActiveWorkdayEvent> source, {
   required DateTime startedAt,
   required int startOdometer,
+  required List<ActiveWorkdayContextSegment> contextSegments,
 }) {
+  if (contextSegments.isNotEmpty) {
+    final contextsById = {
+      for (final segment in contextSegments) segment.id: segment,
+    };
+    final latestByContext = {
+      for (final segment in contextSegments) segment.id: segment.startOdometer,
+    };
+    final events = <ActiveWorkdayEvent>[];
+    final ordered = source.toList(growable: false)
+      ..sort((left, right) => left.occurredAt.compareTo(right.occurredAt));
+    for (final event in ordered) {
+      final contextId = event.contextSegmentId ?? contextSegments.first.id;
+      final context = contextsById[contextId];
+      final latestOdometer = latestByContext[contextId];
+      if (context == null ||
+          latestOdometer == null ||
+          event.occurredAt.isBefore(context.startedAt) ||
+          (context.endedAt != null &&
+              event.occurredAt.isAfter(context.endedAt!)) ||
+          event.odometerReading < latestOdometer ||
+          (context.endOdometer != null &&
+              event.odometerReading > context.endOdometer!)) {
+        continue;
+      }
+      events.add(event);
+      latestByContext[contextId] = event.odometerReading;
+    }
+    return List.unmodifiable(events);
+  }
   final events = <ActiveWorkdayEvent>[];
   var latestOdometer = startOdometer;
   final ordered = source.toList(growable: false)
@@ -471,12 +591,21 @@ class ActiveWorkdayController extends ChangeNotifier {
       );
     }
     final sessionId = _newId('workday');
+    final initialContext = ActiveWorkdayContextSegment(
+      id: _newId('context'),
+      vehicleId: vehicleId,
+      vehicleLabel: vehicleLabel,
+      workProfileId: workProfileId,
+      startedAt: now,
+      startOdometer: startOdometer,
+    );
     final startedEvent = ActiveWorkdayEvent(
       id: _newId('event'),
       type: ActiveWorkdayEventType.started,
       occurredAt: now,
       odometerReading: startOdometer,
       label: 'Workday started',
+      contextSegmentId: initialContext.id,
     );
     final session = ActiveWorkdaySessionRecord(
       id: sessionId,
@@ -487,16 +616,7 @@ class ActiveWorkdayController extends ChangeNotifier {
       startOdometer: startOdometer,
       status: ActiveWorkdayStatus.active,
       events: [startedEvent],
-      contextSegments: [
-        ActiveWorkdayContextSegment(
-          id: _newId('context'),
-          vehicleId: vehicleId,
-          vehicleLabel: vehicleLabel,
-          workProfileId: workProfileId,
-          startedAt: now,
-          startOdometer: startOdometer,
-        ),
-      ],
+      contextSegments: [initialContext],
     );
     await _saveSession(session);
     await _setActiveSessionId(sessionId);
@@ -514,23 +634,20 @@ class ActiveWorkdayController extends ChangeNotifier {
   }) => _enqueue(() async {
     final session = activeSession;
     if (session == null) return null;
-    if (odometerReading < session.startOdometer) {
+    final contextSegment = session.currentContextSegment;
+    if (odometerReading < contextSegment.startOdometer) {
       throw ArgumentError.value(
         odometerReading,
         'odometerReading',
-        'Event odometer cannot be below the active day starting odometer.',
+        'Event odometer cannot be below the active context starting odometer.',
       );
     }
-    final latestOdometer = session.events.fold<int>(
-      session.startOdometer,
-      (latest, event) =>
-          event.odometerReading > latest ? event.odometerReading : latest,
-    );
+    final latestOdometer = session.latestOdometerForContext(contextSegment.id);
     if (odometerReading < latestOdometer) {
       throw ArgumentError.value(
         odometerReading,
         'odometerReading',
-        'Event odometer cannot be below an earlier active day event.',
+        'Event odometer cannot be below an earlier event in this context.',
       );
     }
     await _ensureStorageForWrite();
@@ -572,6 +689,7 @@ class ActiveWorkdayController extends ChangeNotifier {
       note: note,
       sourceType: sourceType,
       sourceId: sourceId,
+      contextSegmentId: contextSegment.id,
     );
     final status = switch (type) {
       ActiveWorkdayEventType.paused => ActiveWorkdayStatus.paused,
@@ -582,6 +700,14 @@ class ActiveWorkdayController extends ChangeNotifier {
     final updated = session.copyWith(
       status: status,
       events: [...session.events, event],
+      contextSegments: type == ActiveWorkdayEventType.ended
+          ? [
+              ...session.resolvedContextSegments.take(
+                session.resolvedContextSegments.length - 1,
+              ),
+              contextSegment.close(endedAt: now, endOdometer: odometerReading),
+            ]
+          : session.contextSegments,
       endedAt: type == ActiveWorkdayEventType.ended ? now : null,
       endOdometer: type == ActiveWorkdayEventType.ended
           ? odometerReading
@@ -591,6 +717,90 @@ class ActiveWorkdayController extends ChangeNotifier {
     if (type == ActiveWorkdayEventType.ended) {
       await _setActiveSessionId(null);
     }
+    notifyListeners();
+    return updated;
+  });
+
+  /// Records a user-confirmed context boundary without rewriting prior events.
+  ///
+  /// The caller must stop/review any GPS trip before changing vehicles. This
+  /// store owns only durable workday attribution and per-vehicle odometers.
+  Future<ActiveWorkdaySessionRecord?> handoffContext({
+    required String vehicleId,
+    required String vehicleLabel,
+    required String workProfileId,
+    required int endingOdometer,
+    required int startingOdometer,
+    DateTime? occurredAt,
+  }) => _enqueue(() async {
+    final session = activeSession;
+    if (session == null || session.status == ActiveWorkdayStatus.ended) {
+      return null;
+    }
+    if (!_isSafeActiveWorkdayId(vehicleId) ||
+        !_isSafeActiveWorkdayId(workProfileId) ||
+        vehicleLabel.trim().isEmpty ||
+        vehicleLabel.length > 120 ||
+        endingOdometer < 0 ||
+        startingOdometer < 0) {
+      throw ArgumentError('Workday context handoff has invalid input.');
+    }
+    final now = occurredAt ?? DateTime.now();
+    if (now.isBefore(session.startedAt) ||
+        _isUnreasonablyFutureWorkdayTime(now)) {
+      throw ArgumentError.value(
+        now,
+        'occurredAt',
+        'Invalid context handoff time.',
+      );
+    }
+    final current = session.currentContextSegment;
+    if (current.matchesContext(
+      vehicleId: vehicleId,
+      workProfileId: workProfileId,
+    )) {
+      return session;
+    }
+    if (current.vehicleId == vehicleId && endingOdometer != startingOdometer) {
+      throw ArgumentError.value(
+        startingOdometer,
+        'startingOdometer',
+        'A work-profile handoff in the same vehicle must keep one odometer boundary.',
+      );
+    }
+    await _ensureStorageForWrite();
+    final closed = current.close(endedAt: now, endOdometer: endingOdometer);
+    final next = ActiveWorkdayContextSegment(
+      id: _newId('context'),
+      vehicleId: vehicleId,
+      vehicleLabel: vehicleLabel,
+      workProfileId: workProfileId,
+      startedAt: now,
+      startOdometer: startingOdometer,
+    );
+    final boundary = ActiveWorkdayEvent(
+      id: _newId('event'),
+      type: ActiveWorkdayEventType.contextChanged,
+      occurredAt: now,
+      odometerReading: startingOdometer,
+      label: _labelForEvent(ActiveWorkdayEventType.contextChanged),
+      note:
+          '${current.vehicleLabel} / ${current.workProfileId} → '
+          '$vehicleLabel / $workProfileId',
+      contextSegmentId: next.id,
+    );
+    final segments = [
+      ...session.resolvedContextSegments.take(
+        session.resolvedContextSegments.length - 1,
+      ),
+      closed,
+      next,
+    ];
+    final updated = session.copyWith(
+      events: [...session.events, boundary],
+      contextSegments: segments,
+    );
+    await _saveSession(updated);
     notifyListeners();
     return updated;
   });
@@ -734,6 +944,7 @@ String _labelForEvent(ActiveWorkdayEventType type) {
     ActiveWorkdayEventType.started => 'Workday started',
     ActiveWorkdayEventType.paused => 'Day paused',
     ActiveWorkdayEventType.resumed => 'Day resumed',
+    ActiveWorkdayEventType.contextChanged => 'Workday context changed',
     ActiveWorkdayEventType.ended => 'Day ended',
     ActiveWorkdayEventType.stop => 'Stop logged',
     ActiveWorkdayEventType.pickup => 'Pickup logged',
