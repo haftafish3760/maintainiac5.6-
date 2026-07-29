@@ -128,9 +128,10 @@ void main() {
       findsOneWidget,
     );
     expect(
-      find.text('Automatically switch the active vehicle'),
+      find.text('Linked vehicle suggestions need your approval'),
       findsOneWidget,
     );
+    expect(find.text('Automatically switch the active vehicle'), findsNothing);
     expect(find.text('Paid feature'), findsOneWidget);
     expect(settings.settings.activityRecognitionEnabled, isFalse);
     expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
