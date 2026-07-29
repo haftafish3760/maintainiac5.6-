@@ -54,4 +54,21 @@ void main() {
       expect(status.label, contains('GPS live'));
     },
   );
+
+  test(
+    'Active Day keeps an explicit paused state after native collection ends',
+    () {
+      final status = ActiveWorkdayTrackingStatus.forSnapshot(
+        gpsAssistanceEnabled: true,
+        nativeTracking: false,
+        tracking: false,
+        lifecycleState: null,
+        platformStatus: 'paused',
+        awaitingInitialFix: true,
+        signalReviewRequired: false,
+      );
+
+      expect(status.label, contains('Location paused'));
+    },
+  );
 }

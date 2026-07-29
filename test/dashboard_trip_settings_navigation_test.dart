@@ -22,12 +22,12 @@ void main() {
       'lib/screens/settings/dashboard_settings.dart',
     ).readAsStringSync();
 
-    expect(source, contains("title: 'GPS-Assisted Trip Tracking'"));
+    expect(source, contains("title: 'GPS, Bluetooth, and trip tracking'"));
     expect(source, contains('const TripTrackingSettingsScreen()'));
     expect(
       source,
       contains(
-        'Location permission, battery profile, low-speed equipment mode, and walking-review preferences.',
+        'Location permissions, vehicle recognition, battery protection, accuracy, and walking review.',
       ),
     );
   });

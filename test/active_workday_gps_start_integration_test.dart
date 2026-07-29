@@ -175,7 +175,7 @@ void main() {
     expect(gateway.request?.sampling.interval, const Duration(seconds: 2));
     expect(gateway.request?.sampling.minimumDisplacementMeters, 1);
     expect(odometer.confirmedReading, 12000);
-    expect(find.textContaining('• GPS live'), findsOneWidget);
+    expect(find.textContaining('• GPS acquiring'), findsOneWidget);
 
     final sessionId = trip.activeSession?.id;
     gateway.running = false;
@@ -191,7 +191,14 @@ void main() {
       trip.signalGaps.single.reason,
       TripTrackingSignalGapReason.userPause,
     );
-    expect(find.textContaining('• Location paused'), findsOneWidget);
+    expect(
+      find.textContaining('• Location paused'),
+      findsOneWidget,
+      reason:
+          'lifecycle=${trip.lifecycleState}; status=${trip.platformStatus}; '
+          'awaiting=${trip.awaitingInitialFix}; '
+          'review=${trip.signalQualitySummary.requiresUserReview}',
+    );
     expect(find.widgetWithText(FilledButton, 'RESUME'), findsOneWidget);
 
     await tester.tap(find.widgetWithText(FilledButton, 'RESUME'));
@@ -228,6 +235,7 @@ void main() {
     await tester.pump();
     await tester.pump();
     expect(trip.acceptedMeters, greaterThan(100));
+    expect(find.textContaining('• GPS live'), findsOneWidget);
     expect(trip.signalGaps, hasLength(1));
     expect(trip.signalGaps.single.isOpen, isFalse);
 

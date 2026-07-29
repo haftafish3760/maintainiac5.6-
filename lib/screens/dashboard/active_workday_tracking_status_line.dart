@@ -132,6 +132,13 @@ class ActiveWorkdayTrackingStatus {
         Color(0xFFCAD2D5),
       );
     }
+    if (_isExplicitPause(platformStatus)) {
+      return const ActiveWorkdayTrackingStatus(
+        '• Location paused — workday and odometer are saved',
+        Icons.pause_circle_outline_rounded,
+        Color(0xFFFFD166),
+      );
+    }
     if (lifecycleState == TripTrackingSessionLifecycleState.starting ||
         awaitingInitialFix) {
       return const ActiveWorkdayTrackingStatus(
@@ -169,6 +176,13 @@ class ActiveWorkdayTrackingStatus {
       Color(0xFFCAD2D5),
     );
   }
+
+  static bool _isExplicitPause(String? platformStatus) =>
+      platformStatus == 'paused' ||
+      platformStatus == 'recovery_paused_by_user' ||
+      platformStatus == 'battery_critical_gps_blocked' ||
+      platformStatus == 'low_battery_requires_user_choice' ||
+      platformStatus == 'gps_signal_review_required';
 
   final String label;
   final IconData icon;
