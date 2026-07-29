@@ -35,6 +35,15 @@ extension _WorkSupplyJobFormSections on _WorkSupplyJobFormScreenState {
             value: _endTime.format(context),
             onTap: () => _pickTime(isStart: false),
           ),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            value: _endsNextDay,
+            title: const Text('Ends the next day'),
+            subtitle: const Text(
+              'Use for overnight work, routes, and after-hours service.',
+            ),
+            onChanged: (value) => _change(() => _endsNextDay = value),
+          ),
           DropdownButtonFormField<JobRepeatRule>(
             initialValue: _repeatRule,
             decoration: const InputDecoration(labelText: 'Repeat'),
@@ -46,6 +55,48 @@ extension _WorkSupplyJobFormSections on _WorkSupplyJobFormScreenState {
               if (value != null) _change(() => _repeatRule = value);
             },
           ),
+          if (_repeatRule == JobRepeatRule.selectedWeekdays) ...[
+            const SizedBox(height: 8),
+            const Text('Repeats on'),
+            Wrap(
+              spacing: 6,
+              children: [
+                for (final weekday in _jobScheduleWeekdays)
+                  FilterChip(
+                    label: Text(weekday.label),
+                    selected: _repeatWeekdays.contains(weekday.value),
+                    onSelected: (selected) => _change(() {
+                      if (selected) {
+                        _repeatWeekdays.add(weekday.value);
+                      } else {
+                        _repeatWeekdays.remove(weekday.value);
+                      }
+                    }),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Choose one or more days. The first scheduled date is always included.',
+              style: TextStyle(color: Color(0xFFC7D0D4), height: 1.3),
+            ),
+          ],
+          if (_repeatRule != JobRepeatRule.none)
+            _choiceRow(
+              label: 'Repeat until',
+              value: _repeatUntil == null
+                  ? 'No end date'
+                  : appShortDateLabel(_repeatUntil!),
+              onTap: _pickRepeatUntil,
+            ),
+          if (_repeatUntil != null && _repeatRule != JobRepeatRule.none)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => _change(() => _repeatUntil = null),
+                child: const Text('Clear repeat end date'),
+              ),
+            ),
         ],
       ],
     );
@@ -69,21 +120,16 @@ extension _WorkSupplyJobFormSections on _WorkSupplyJobFormScreenState {
           contentPadding: EdgeInsets.zero,
           value: _pushReminder,
           title: const Text('Phone push notification'),
-          onChanged: (value) => _change(() {
-            _pushReminder = value ?? false;
-            if (!_pushReminder) _soundReminder = false;
-          }),
+          onChanged: (value) => _change(() => _pushReminder = value ?? false),
         ),
         CheckboxListTile(
           contentPadding: EdgeInsets.zero,
           value: _soundReminder,
-          title: const Text('Play notification sound'),
-          subtitle: const Text('Requires phone push notifications.'),
-          onChanged: _pushReminder
-              ? (value) => _change(() => _soundReminder = value ?? false)
-              : null,
+          title: const Text('Audible reminder'),
+          subtitle: const Text('Independent of in-app and push delivery.'),
+          onChanged: (value) => _change(() => _soundReminder = value ?? false),
         ),
-        if (_inAppReminder || _pushReminder)
+        if (_inAppReminder || _pushReminder || _soundReminder)
           DropdownButtonFormField<int>(
             initialValue: _reminderLeadMinutes,
             decoration: const InputDecoration(labelText: 'Remind me'),
@@ -167,3 +213,20 @@ extension _WorkSupplyJobFormSections on _WorkSupplyJobFormScreenState {
     );
   }
 }
+
+class _JobScheduleWeekday {
+  const _JobScheduleWeekday(this.value, this.label);
+
+  final int value;
+  final String label;
+}
+
+const _jobScheduleWeekdays = <_JobScheduleWeekday>[
+  _JobScheduleWeekday(DateTime.monday, 'Mon'),
+  _JobScheduleWeekday(DateTime.tuesday, 'Tue'),
+  _JobScheduleWeekday(DateTime.wednesday, 'Wed'),
+  _JobScheduleWeekday(DateTime.thursday, 'Thu'),
+  _JobScheduleWeekday(DateTime.friday, 'Fri'),
+  _JobScheduleWeekday(DateTime.saturday, 'Sat'),
+  _JobScheduleWeekday(DateTime.sunday, 'Sun'),
+];

@@ -13,19 +13,8 @@ void main() {
         'ios/Runner/ReceiptCameraFullScreenSettingsViewController.swift',
       ).readAsString();
 
-      final reviewStyleStart = labels.indexOf(
-        'func setReceiptReviewStyle(_ value: String)',
-      );
-      final reviewStyleEnd = labels.indexOf('\n  func setDataSaverLevel', reviewStyleStart);
-      expect(reviewStyleStart, greaterThanOrEqualTo(0));
-      expect(reviewStyleEnd, greaterThan(reviewStyleStart));
-      final reviewStyleBlock = labels.substring(reviewStyleStart, reviewStyleEnd);
-
-      expect(reviewStyleBlock, contains('reviewDepth = value'));
-      expect(reviewStyleBlock, contains('updateSettingsStatusStrip()'));
-      expect(reviewStyleBlock, isNot(contains('guidanceLabel.text')));
-      expect(reviewStyleBlock, isNot(contains('Detailed receipt details are on.')));
-      expect(reviewStyleBlock, isNot(contains('Price-only receipt details are on.')));
+      expect(labels, isNot(contains('setReceiptReviewStyle')));
+      expect(labels, contains('let reviewMode = "Editable lines"'));
 
       final dataSaverStart = labels.indexOf('func setDataSaverLevel(_ value: String)');
       final dataSaverEnd = labels.indexOf('\n  func storageSafetyDetail()', dataSaverStart);
@@ -62,10 +51,7 @@ void main() {
         contains('camera.guidanceLabel.text = camera.autoCaptureBlockedMessage()'),
       );
       expect(fullScreenSettings, contains('camera.latestAutoCaptureStatus = "off"'));
-      expect(
-        fullScreenSettings,
-        contains('Long receipt mode is unavailable for this device or storage setting.'),
-      );
+      expect(fullScreenSettings, contains('Receipt framing checks'));
       expect(
         fullScreenSettings,
         contains('Automatic capture needs receipt edge guidance.'),

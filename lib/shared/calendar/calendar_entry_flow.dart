@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../navigation/app_page_routes.dart';
-import '../theme/app_action_colors.dart';
 import '../widgets/app_back_button.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
+import 'calendar_owner_entry_router.dart';
 
 class CalendarEntryTypeSelectorScreen extends StatelessWidget {
   const CalendarEntryTypeSelectorScreen({
@@ -45,158 +45,16 @@ class CalendarEntryTypeSelectorScreen extends StatelessWidget {
               mode: mode,
               source: source,
               types: types,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class CalendarEntryDraftScreen extends StatelessWidget {
-  const CalendarEntryDraftScreen({
-    super.key,
-    required this.day,
-    required this.mode,
-    required this.type,
-    this.source = CalendarFlowSource.dashboard,
-  });
-
-  final DateTime day;
-  final CalendarDayMode mode;
-  final CalendarEntryType type;
-  final CalendarFlowSource source;
-
-  @override
-  Widget build(BuildContext context) {
-    final meta = calendarEntryMeta(type);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFF1F2528),
-
-      body: SafeArea(
-        top: false,
-        child: ListView(
-          padding: const EdgeInsets.all(12),
-          children: [
-            AppScreenHeader(title: meta.label),
-            const SizedBox(height: 12),
-            CalendarStatusPanel(
-              icon: meta.icon,
-              title: '${meta.label} for ${calendarDateTitle(day)}',
-              subtitle: source == CalendarFlowSource.expenses
-                  ? 'Expense calendar entry: keep this date, category, receipt, and reminder history together.'
-                  : calendarDraftSubtitle(mode),
-            ),
-            const SizedBox(height: 14),
-            CalendarSectionTitle(_draftSectionTitle(mode)),
-            const SizedBox(height: 8),
-            for (final field in _draftFieldsFor(mode, type)) ...[
-              CalendarDraftField(label: field),
-              const SizedBox(height: 8),
-            ],
-            const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.check_rounded),
-              label: const Text('Save'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppActionColors.positive,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(50),
+              onSelected: (type) => CalendarOwnerEntryRouter.open(
+                context: context,
+                day: day,
+                type: type,
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  static String _draftSectionTitle(CalendarDayMode mode) {
-    return switch (mode) {
-      CalendarDayMode.past => 'ADD OR CORRECT PAST RECORD',
-      CalendarDayMode.today => 'ADD TO TODAY',
-      CalendarDayMode.future => 'PLAN FUTURE WORK',
-    };
-  }
-
-  static List<String> _draftFieldsFor(
-    CalendarDayMode mode,
-    CalendarEntryType type,
-  ) {
-    if (mode == CalendarDayMode.future) {
-      return const [
-        'What is planned?',
-        'Customer name',
-        'Address',
-        'Phone number',
-        'Vehicle or helper assignment',
-        'Linked invoice / estimate / materials',
-        'Notes',
-      ];
-    }
-
-    return switch (type) {
-      CalendarEntryType.tripEntry => const [
-        'Trip description',
-        'Start / end odometer',
-        'Miles',
-        'Linked customer, invoice, or note',
-      ],
-      CalendarEntryType.stop ||
-      CalendarEntryType.pickup ||
-      CalendarEntryType.delivery => const [
-        'Location name',
-        'Address',
-        'Arrival / completion time',
-        'Linked trip, invoice, or customer',
-      ],
-      CalendarEntryType.expense => const [
-        'Expense category',
-        'Amount',
-        'Vendor',
-        'Receipt photos, PDF, or no attachment',
-        'Preview and compression choice',
-      ],
-      CalendarEntryType.payment => const [
-        'Payment amount',
-        'Payment source',
-        'Linked invoice / estimate',
-        'Notes',
-      ],
-      CalendarEntryType.invoiceEstimate => const [
-        'Customer name',
-        'Invoice or estimate number',
-        'Amount',
-        'Linked work or materials',
-      ],
-      CalendarEntryType.maintenance => const [
-        'Maintenance item',
-        'Odometer',
-        'Cost',
-        'Receipt photos, PDF, or no attachment',
-        'Notes',
-      ],
-      CalendarEntryType.materials => const [
-        'Material name',
-        'Quantity',
-        'Cost',
-        'Linked invoice / job',
-      ],
-      CalendarEntryType.receiptPhoto => const [
-        'Receipt source',
-        'Amount',
-        'Take photo / choose image / upload PDF',
-        'Attach multiple images if needed',
-        'Preview and compression choice',
-        'Link to expense or maintenance',
-      ],
-      CalendarEntryType.note || CalendarEntryType.reminderSchedule => const [
-        'Title',
-        'Details',
-        'Linked item',
-      ],
-    };
   }
 }
 
@@ -230,19 +88,11 @@ class CalendarEntryDetailScreen extends StatelessWidget {
             const SizedBox(height: 12),
             CalendarEntryDetailPanel(
               entry: entry,
-              onEdit: () {
-                Navigator.of(context).push(
-                  appNativeRoute<void>(
-                    context,
-                    CalendarEntryDraftScreen(
-                      day: day,
-                      mode: mode,
-                      type: entry.type,
-                      source: source,
-                    ),
-                  ),
-                );
-              },
+              onEdit: () => CalendarOwnerEntryRouter.open(
+                context: context,
+                day: day,
+                type: entry.type,
+              ),
             ),
             const SizedBox(height: 14),
             const CalendarSectionTitle('ACTIONS FOR THIS ENTRY'),
@@ -250,19 +100,11 @@ class CalendarEntryDetailScreen extends StatelessWidget {
             _DetailActionButton(
               icon: Icons.edit_rounded,
               label: 'Edit / Correct',
-              onPressed: () {
-                Navigator.of(context).push(
-                  appNativeRoute<void>(
-                    context,
-                    CalendarEntryDraftScreen(
-                      day: day,
-                      mode: mode,
-                      type: entry.type,
-                      source: source,
-                    ),
-                  ),
-                );
-              },
+              onPressed: () => CalendarOwnerEntryRouter.open(
+                context: context,
+                day: day,
+                type: entry.type,
+              ),
             ),
             _DetailActionButton(
               icon: Icons.add_link_rounded,
@@ -324,12 +166,14 @@ class CalendarEntryTypeGrid extends StatelessWidget {
     required this.mode,
     required this.source,
     required this.types,
+    required this.onSelected,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
   final CalendarFlowSource source;
   final List<CalendarEntryType> types;
+  final ValueChanged<CalendarEntryType> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -353,6 +197,7 @@ class CalendarEntryTypeGrid extends StatelessWidget {
                   mode: mode,
                   source: source,
                   type: type,
+                  onSelected: onSelected,
                 ),
               ),
           ],
@@ -368,57 +213,54 @@ class _CalendarEntryTypeButton extends StatelessWidget {
     required this.mode,
     required this.source,
     required this.type,
+    required this.onSelected,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
   final CalendarFlowSource source;
   final CalendarEntryType type;
+  final ValueChanged<CalendarEntryType> onSelected;
 
   @override
   Widget build(BuildContext context) {
     final meta = calendarEntryMeta(type);
 
-    return Material(
-      color: const Color(0xFF2A3135),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(5),
-        side: const BorderSide(color: Color(0xFF59636A)),
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            appNativeRoute<void>(
-              context,
-              CalendarEntryDraftScreen(
-                day: day,
-                mode: mode,
-                source: source,
-                type: type,
-              ),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(5),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(meta.icon, color: meta.color, size: 24),
-              const SizedBox(height: 6),
-              Text(
-                meta.label,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Color(0xFFE2E8EA),
-                  fontWeight: FontWeight.w900,
-                  height: 1.05,
+    return Semantics(
+      button: true,
+      label: 'Add ${meta.label} for ${calendarDateTitle(day)}',
+      hint: 'Opens the ${meta.label} owner flow',
+      onTap: () => onSelected(type),
+      excludeSemantics: true,
+      child: Material(
+        color: const Color(0xFF2A3135),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(5),
+          side: const BorderSide(color: Color(0xFF59636A)),
+        ),
+        child: InkWell(
+          onTap: () => onSelected(type),
+          borderRadius: BorderRadius.circular(5),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(meta.icon, color: meta.color, size: 24),
+                const SizedBox(height: 6),
+                Text(
+                  meta.label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFE2E8EA),
+                    fontWeight: FontWeight.w900,
+                    height: 1.05,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

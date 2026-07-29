@@ -125,3 +125,8 @@ Source: visible user messages, 2026-07-26 Receipt Assist and Expenses workflow
 - PDF receipt import remains part of the receipt system, but camera capture,
   local OCR extraction, editable review, and manual receipt entry must be
   completed and proven before PDF-specific polish.
+Source: visible user message, 2026-07-28
+
+- Receipt types are removed. Every receipt uses one optional, comprehensive form: store/contact details, date/time, receipt subtotal, sales tax, final total, and editable printed item lines are available without selecting a type.
+- A user may leave any non-required detail blank and may choose to record only the total, but the app must not hide fields or reduce the review experience to a price-only mode.
+- Every item stays user-editable and supports Business, Personal, or Split classification. Split must support a percentage or dollar allocation. OCR and future AI only suggest values; the user reviews and controls every result before saving.

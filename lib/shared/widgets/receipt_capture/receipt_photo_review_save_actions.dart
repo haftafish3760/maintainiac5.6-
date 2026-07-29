@@ -45,11 +45,11 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         return;
       }
     }
-    // A regular, unedited receipt has a single source image. Let the receipt
-    // form open immediately; its reader owns preparation and shows progress
-    // there. This keeps the user from waiting behind backup or stitch work.
-    if (_canOpenSinglePhotoReceiptDetailsImmediately) {
-      await _openSinglePhotoReceiptDetailsImmediately();
+    // After photo approval, always show the saved-proof choice. OCR still
+    // reads the original, but the user sees the actual compressed proof and
+    // chooses the storage trade-off before it is retained.
+    if (_reviewMode != _ReceiptReviewMode.dataSaver) {
+      _updateReviewState(() => _reviewMode = _ReceiptReviewMode.dataSaver);
       return;
     }
     _updateReviewState(() => _savingPhotos = true);
@@ -184,39 +184,4 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     _updateReviewState(() => _savingPhotos = false);
   }
 
-  bool get _canOpenSinglePhotoReceiptDetailsImmediately =>
-      !widget.bestShotCandidateMode &&
-      _photoPaths.length == 1 &&
-      _generatedEditPaths.isEmpty;
-
-  Future<void> _openSinglePhotoReceiptDetailsImmediately() async {
-    final photoPath = _photoPaths.single;
-    final navigator = Navigator.of(context);
-    if (!await File(photoPath).exists()) {
-      if (_reviewWorkActive) {
-        _showCameraError(
-          'This receipt photo is no longer available. Retake it or add the image again.',
-        );
-      }
-      return;
-    }
-    if (!_reviewWorkActive) return;
-    if (!beginReceiptReviewClose()) return;
-    navigator.pop(
-      ReceiptPhotoReviewResult(
-        photoPaths: [photoPath],
-        ocrSourcePhotoPaths: [photoPath],
-        dataSaverLevel: _dataSaverLevel,
-        stitchResult: ReceiptStitchResult.notNeeded([photoPath]),
-        photoQualityChecksByPath: {photoPath: ?_qualityChecksByPath[photoPath]},
-        captureDiagnosticsByPhotoPath: {
-          photoPath: {
-            ...?_captureDiagnosticsByPath[photoPath],
-            'receiptReviewOpeningRoute': 'single_photo_details_immediate',
-            'receiptPreparationOwner': 'receipt_reader_after_form_open',
-          },
-        },
-      ),
-    );
-  }
 }

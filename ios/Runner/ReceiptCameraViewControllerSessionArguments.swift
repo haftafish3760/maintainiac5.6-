@@ -13,7 +13,10 @@ extension ReceiptCameraViewController {
     uiLocale = arguments["uiLocale"] as? String ?? "en-US"
     settingsContractVersion = arguments["settingsContractVersion"] as? String ?? "receipt_native_camera_settings_v1"
     devicePolicyLabel = arguments["devicePolicyLabel"] as? String ?? "balanced_receipt_camera"
-    reviewDepth = safeReceiptReviewDepth(arguments["reviewDepth"] as? String)
+    // Capture always hands off to the same complete, editable receipt form.
+    // The incoming value is intentionally ignored for compatibility with
+    // older callers that still send a reviewDepth argument.
+    reviewDepth = "detailedLines"
     focusMode = arguments["focusMode"] as? String ?? "continuous"
     exposureMode = arguments["exposureMode"] as? String ?? "auto"
     whiteBalanceMode = arguments["whiteBalanceMode"] as? String ?? "auto"
@@ -200,20 +203,5 @@ extension ReceiptCameraViewController {
   private func boundedFraction(_ value: Double?, fallback: CGFloat) -> CGFloat {
     guard let value, value.isFinite else { return fallback }
     return CGFloat(min(max(value, 0), 1))
-  }
-}
-
-private func safeReceiptReviewDepth(_ value: String?) -> String {
-  let normalized = value?
-    .trimmingCharacters(in: .whitespacesAndNewlines)
-    .replacingOccurrences(of: "[\\s_-]+", with: "", options: .regularExpression)
-    .lowercased()
-  switch normalized {
-  case "detailedlines":
-    return "detailedLines"
-  case "pricesonly":
-    return "pricesOnly"
-  default:
-    return "pricesOnly"
   }
 }

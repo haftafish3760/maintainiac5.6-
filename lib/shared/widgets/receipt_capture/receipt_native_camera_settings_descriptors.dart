@@ -11,15 +11,6 @@ const _receiptNativeCameraSettingDescriptors = <ReceiptNativeCameraSettingDescri
     defaultEnabled: false,
   ),
   ReceiptNativeCameraSettingDescriptor(
-    id: 'review_depth',
-    label: 'Receipt review detail',
-    description:
-        'Choose prices-only for fast review or detailed lines for more fields.',
-    group: ReceiptNativeSettingGroup.review,
-    type: ReceiptNativeSettingType.segmented,
-    defaultValueLabel: 'Prices only',
-  ),
-  ReceiptNativeCameraSettingDescriptor(
     id: 'auto_capture',
     label: 'Automatic photo capture',
     description:

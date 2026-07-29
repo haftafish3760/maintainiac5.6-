@@ -147,27 +147,8 @@ extension _ReceiptAttachmentCameraActions
   }
 
   ReceiptNativeReviewDepth _receiptNativeReviewDepthForCurrentCapture() {
-    if (widget.area == ReceiptCaptureArea.expenses) {
-      return _receiptNativeReviewDepthForExpenseStyle(
-        ExpenseSettingsScope.maybeOf(context)?.receiptReviewStyle,
-      );
-    }
+    // Every receipt opens the same comprehensive, editable review form.
     return ReceiptNativeReviewDepth.detailedLines;
-  }
-
-  ReceiptNativeReviewDepth _receiptNativeReviewDepthForExpenseStyle(
-    ExpenseReceiptReviewStyle? style,
-  ) {
-    return switch (style) {
-      ExpenseReceiptReviewStyle.basicReceipt ||
-      ExpenseReceiptReviewStyle.fullItemDetails =>
-        style == ExpenseReceiptReviewStyle.basicReceipt
-            ? ReceiptNativeReviewDepth.pricesOnly
-            : ReceiptNativeReviewDepth.detailedLines,
-      ExpenseReceiptReviewStyle.simpleAmounts ||
-      ExpenseReceiptReviewStyle.askEachTime ||
-      null => ReceiptNativeReviewDepth.pricesOnly,
-    };
   }
 
   String? _nextReceiptContinuationReasonCode() {
@@ -255,16 +236,15 @@ extension _ReceiptAttachmentCameraActions
   Future<bool> _showFirstUseReceiptAssistIntro(
     ReceiptCaptureSettingsController settings,
   ) async {
-    final action = await Navigator.of(context)
-        .push<_ReceiptFirstUseCameraAction>(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (context) => _ReceiptFirstUseCameraIntroSheet(
-              area: widget.area,
-              uiConfig: widget.uiConfig,
-            ),
-          ),
-        );
+    final action = await showModalBottomSheet<_ReceiptFirstUseCameraAction>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => _ReceiptFirstUseCameraIntroSheet(
+        area: widget.area,
+        uiConfig: widget.uiConfig,
+      ),
+    );
     if (!mounted || action == null) return false;
     await _applyFirstUseReceiptAssistChoice(settings, action);
     if (!mounted) return false;

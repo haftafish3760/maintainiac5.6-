@@ -169,30 +169,11 @@ void main() {
     _expectNoCloudRequiredCopy(settingsSheet);
     _expectNoCloudRequiredCopy(helpSheet);
     _expectNoCloudRequiredCopy(importActions);
-    expect(settingsSheet, contains('Receipt Detail Level'));
+    expect(settingsSheet, isNot(contains('Receipt Detail Level')));
+    expect(settingsSheet, isNot(contains('ExpenseReceiptReviewStyle')));
     expect(
       settingsSheet,
-      contains('ExpenseReceiptReviewStyle.simpleAmounts.label'),
-    );
-    expect(
-      settingsSheet,
-      contains('ExpenseReceiptReviewStyle.fullItemDetails.label'),
-    );
-    expect(
-      settingsSheet,
-      contains(
-        'Choose the default amount of editable information Receipt Assist prepares.',
-      ),
-    );
-    expect(
-      settingsSheet,
-      contains('ExpenseReceiptReviewStyle.simpleAmounts.description'),
-    );
-    expect(settingsSheet, contains('ExpenseSettingsScope.maybeOf(context)'));
-    expect(settingsSheet, contains('ExpenseReceiptReviewStyle.simpleAmounts'));
-    expect(
-      settingsSheet,
-      contains('ExpenseReceiptReviewStyle.fullItemDetails'),
+      isNot(contains('ExpenseSettingsScope.maybeOf(context)')),
     );
     expect(
       settingsSheet,
@@ -216,7 +197,7 @@ void main() {
     expect(modeControls, contains('Proof Size'));
     expect(
       reviewCropAndProofControls,
-      contains('Receipt Details And Saved Proof'),
+      contains('Save device space without losing the original reading source'),
     );
     expect(reviewControls, contains("return 'Use Receipt';"));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));

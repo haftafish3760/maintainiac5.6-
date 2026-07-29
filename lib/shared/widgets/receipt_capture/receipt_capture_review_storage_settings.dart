@@ -75,7 +75,6 @@ class _ReceiptDataSaverDefaultPicker extends StatelessWidget {
   }
 
   static const _receiptBackupLevels = [
-    ReceiptDataSaverLevel.original,
     ReceiptDataSaverLevel.light,
     ReceiptDataSaverLevel.balanced,
     ReceiptDataSaverLevel.strong,
@@ -154,11 +153,11 @@ class _ReceiptDataSaverChoice extends StatelessWidget {
 
   static String _choiceLabel(ReceiptDataSaverLevel level) {
     return switch (level) {
-      ReceiptDataSaverLevel.original => 'Original: Local only',
-      ReceiptDataSaverLevel.light => 'High Quality: 1.2-1.5 MB',
-      ReceiptDataSaverLevel.balanced => 'Normal: 800 KB-1 MB',
-      ReceiptDataSaverLevel.strong => 'Low Storage: 450-650 KB',
-      ReceiptDataSaverLevel.maximum => 'Tiny Proof: 200-350 KB',
+      ReceiptDataSaverLevel.original => 'Original source: temporary only',
+      ReceiptDataSaverLevel.light => 'Best readability: 750 KB-1 MB',
+      ReceiptDataSaverLevel.balanced => 'Everyday: 450-650 KB',
+      ReceiptDataSaverLevel.strong => 'Compact: 200-350 KB',
+      ReceiptDataSaverLevel.maximum => 'Tiny proof: 75-150 KB',
     };
   }
 

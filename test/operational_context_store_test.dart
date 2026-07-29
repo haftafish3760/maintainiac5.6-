@@ -84,6 +84,32 @@ void main() {
     },
   );
 
+  test('persists the active source-owned work profile context', () async {
+    final controller = await OperationalContextController.create(
+      profile: UserProfileRecord.starterContractor(),
+      activeVehicleId: 'truck-1',
+      activeVehicleLabel: 'Work Truck 1',
+      activeVehicleUsage: VehicleUsage.businessPersonal,
+    );
+
+    await controller.setActiveWorkProfile(
+      workProfileId: 'evening-delivery',
+      workProfileName: 'Evening delivery',
+    );
+
+    await Hive.close();
+    Hive.init(hiveDirectory.path);
+    final reloaded = await OperationalContextController.create(
+      profile: UserProfileRecord.starterContractor(),
+      activeVehicleId: 'truck-1',
+      activeVehicleLabel: 'Work Truck 1',
+      activeVehicleUsage: VehicleUsage.businessPersonal,
+    );
+
+    expect(reloaded.context.workProfileId, 'evening-delivery');
+    expect(reloaded.context.workProfileName, 'Evening delivery');
+  });
+
   test('helper context can track mileage but cannot see financials', () {
     final helper = UserProfileRecord(
       id: 'helper-1',
@@ -150,57 +176,68 @@ void main() {
     },
   );
 
-  test('rejects unsafe dashboard context reference ids before persistence', () async {
-    final controller = await OperationalContextController.create(
-      profile: UserProfileRecord.starterContractor(),
-      activeVehicleId: 'truck-1',
-      activeVehicleLabel: 'Work Truck 1',
-      activeVehicleUsage: VehicleUsage.businessPersonal,
-      storageCheck: _availableStorageCheck,
-    );
+  test(
+    'rejects unsafe dashboard context reference ids before persistence',
+    () async {
+      final controller = await OperationalContextController.create(
+        profile: UserProfileRecord.starterContractor(),
+        activeVehicleId: 'truck-1',
+        activeVehicleLabel: 'Work Truck 1',
+        activeVehicleUsage: VehicleUsage.businessPersonal,
+        storageCheck: _availableStorageCheck,
+      );
 
-    await expectLater(
-      controller.setActiveVehicle(
-        vehicleId: 'truck/../other',
-        vehicleLabel: 'Bad Truck',
-        usage: VehicleUsage.businessOnly,
-      ),
-      throwsArgumentError,
-    );
+      await expectLater(
+        controller.setActiveVehicle(
+          vehicleId: 'truck/../other',
+          vehicleLabel: 'Bad Truck',
+          usage: VehicleUsage.businessOnly,
+        ),
+        throwsArgumentError,
+      );
 
-    expect(controller.context.activeVehicleId, 'truck-1');
-  });
+      expect(controller.context.activeVehicleId, 'truck-1');
+    },
+  );
 
-  test('unsafe restored dashboard context ids fall back to profile context', () async {
-    final box = await Hive.openBox<dynamic>(OperationalContextController.boxName);
-    await box.put('activeContext', {
-      'userProfileId': 'user_1',
-      'userName': 'User',
-      'profileType': 'contractor',
-      'role': 'owner',
-      'permissions': ['recordMileage'],
-      'companyMode': 'solo',
-      'dashboardMode': 'fleetOwner',
-      'mileageMode': 'fleetReview',
-      'syncMode': 'companySync',
-      'workProfileId': 'business',
-      'workProfileName': 'Business',
-      'activeVehicleId': 'truck/../other',
-      'activeVehicleLabel': 'Bad Truck',
-      'activeVehicleUsage': 'businessOnly',
-      'updatedAt': DateTime.utc(2026, 7, 17, 12).toIso8601String(),
-    });
+  test(
+    'unsafe restored dashboard context ids fall back to profile context',
+    () async {
+      final box = await Hive.openBox<dynamic>(
+        OperationalContextController.boxName,
+      );
+      await box.put('activeContext', {
+        'userProfileId': 'user_1',
+        'userName': 'User',
+        'profileType': 'contractor',
+        'role': 'owner',
+        'permissions': ['recordMileage'],
+        'companyMode': 'solo',
+        'dashboardMode': 'fleetOwner',
+        'mileageMode': 'fleetReview',
+        'syncMode': 'companySync',
+        'workProfileId': 'business',
+        'workProfileName': 'Business',
+        'activeVehicleId': 'truck/../other',
+        'activeVehicleLabel': 'Bad Truck',
+        'activeVehicleUsage': 'businessOnly',
+        'updatedAt': DateTime.utc(2026, 7, 17, 12).toIso8601String(),
+      });
 
-    final controller = await OperationalContextController.create(
-      profile: UserProfileRecord.starterContractor(),
-      activeVehicleId: 'truck-1',
-      activeVehicleLabel: 'Work Truck 1',
-      activeVehicleUsage: VehicleUsage.businessPersonal,
-    );
+      final controller = await OperationalContextController.create(
+        profile: UserProfileRecord.starterContractor(),
+        activeVehicleId: 'truck-1',
+        activeVehicleLabel: 'Work Truck 1',
+        activeVehicleUsage: VehicleUsage.businessPersonal,
+      );
 
-    expect(controller.context.activeVehicleId, 'truck-1');
-    expect(controller.context.dashboardMode, OperationalDashboardMode.soloContractor);
-  });
+      expect(controller.context.activeVehicleId, 'truck-1');
+      expect(
+        controller.context.dashboardMode,
+        OperationalDashboardMode.soloContractor,
+      );
+    },
+  );
 }
 
 Future<AppStorageCheck> _fullStorageCheck() async => const AppStorageCheck(

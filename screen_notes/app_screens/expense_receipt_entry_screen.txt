@@ -65,3 +65,6 @@ Source: visible user message, 2026-07-26 Manual receipt layout polish
 - Details, Items, and Review keep the pinned vehicle header and each header gear
   opens settings titled for the exact current step. Step indicators use compact
   squared tabs, not social-media-style pill containers.
+Source: visible user message, 2026-07-28
+
+- The receipt entry screen is a single, unified optional form. Do not reintroduce Basic, Summary, Detailed, or receipt-type selection. Users decide how much information to complete, while every available field remains visible and editable.

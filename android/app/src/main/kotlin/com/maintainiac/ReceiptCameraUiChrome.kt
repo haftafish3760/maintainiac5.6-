@@ -212,7 +212,7 @@ internal fun ReceiptCameraActivity.updateSettingsStatusStrip() {
 
 internal fun ReceiptCameraActivity.settingsStatusText(): String {
     val assist = if (assistedReceiptFill) "Assist on" else "Manual fill"
-    val depth = if (reviewDepth == "detailedLines") "Detailed lines" else "Price-only lines"
+    val depth = "Editable lines"
     val length = if (longReceiptMode) "Long receipt" else "Single photo"
     val light = if (autoExposureAssistEnabled) "Auto light" else "Manual light"
     return "$assist • $depth • $length • $light"

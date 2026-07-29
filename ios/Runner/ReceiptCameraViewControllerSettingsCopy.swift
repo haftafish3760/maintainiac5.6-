@@ -5,9 +5,10 @@ import UIKit
 
 extension ReceiptCameraViewController {
   func settingsSummary() -> String {
-    let review = reviewDepth == "detailedLines"
-      ? receiptCameraText("Detailed receipt lines", "Líneas detalladas del recibo")
-      : receiptCameraText("Price-only receipt lines", "Líneas del recibo solo con precios")
+    let review = receiptCameraText(
+      "Editable receipt lines",
+      "Líneas de recibo editables"
+    )
     return """
     Maintainiac receipt camera: this uses the phone's native camera baseline with Maintainiac receipt workflow controls layered on top.
     Assisted receipt fill: \(assistedReceiptFill ? "On" : "Off")
@@ -19,7 +20,7 @@ extension ReceiptCameraViewController {
     Receipt framing checks: \(receiptGuidanceWarningsEnabled() ? "On" : "Off")
     Capture quality: take the clearest receipt photo first. Save-space proof size is applied only after Maintainiac reads the clearest source.
     Image cleanup: crop, straighten, grayscale, contrast, and shadow cleanup after capture.
-    Review style: \(review)
+    Receipt review: \(review)
     \(capturedPhotoPaths.isEmpty
       ? receiptCameraText(
           "Saved proof size appears after your first receipt photo is captured. Capture first, then review the saved proof size with real receipt proof.",

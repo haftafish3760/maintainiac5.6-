@@ -165,28 +165,6 @@ class _JobStat extends StatelessWidget {
   }
 }
 
-Map<DateTime, List<WorkSupplyCalendarMarker>> _jobMarkers(
-  List<WorkSupplyJob> jobs,
-) {
-  final counts = <DateTime, int>{};
-  for (final job in jobs) {
-    final date = job.scheduledDate;
-    if (date == null) continue;
-    final key = _dayKey(date);
-    counts[key] = (counts[key] ?? 0) + 1;
-  }
-  return {
-    for (final entry in counts.entries)
-      entry.key: [
-        WorkSupplyCalendarMarker(
-          label: 'J',
-          color: const Color(0xFF8FD3FF),
-          count: entry.value,
-        ),
-      ],
-  };
-}
-
 DateTime _dayKey(DateTime day) => DateTime.utc(day.year, day.month, day.day);
 
 String _dateLabel(DateTime day) {

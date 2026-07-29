@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../shared/context/operational_context_store.dart';
+import '../../../shared/calendar/calendar_job_projection_adapter.dart';
 import '../../../shared/jobs/maintainiac_job_store.dart';
 import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -14,28 +15,34 @@ import '../data/work_supply_models.dart';
 import 'work_supply_estimate_picker_screen.dart';
 import 'work_supply_job_form_models.dart';
 import 'work_supply_job_form_screen.dart';
+import 'work_supply_job_draft_mapping.dart';
 
 part 'work_supply_jobs_sections.dart';
 part 'work_supply_jobs_day_sections.dart';
 part 'work_supply_jobs_actions.dart';
 
 class WorkSupplyJobsScreen extends StatefulWidget {
-  const WorkSupplyJobsScreen({super.key});
+  const WorkSupplyJobsScreen({super.key, this.initialDay});
+
+  /// Optional Calendar handoff. Jobs owns creation and persistence; Calendar
+  /// supplies only the selected business date.
+  final DateTime? initialDay;
 
   @override
   State<WorkSupplyJobsScreen> createState() => _WorkSupplyJobsScreenState();
 }
 
 class _WorkSupplyJobsScreenState extends State<WorkSupplyJobsScreen> {
-  late DateTime _selectedDay = _dayKey(DateTime.now());
+  late DateTime _selectedDay = _dayKey(widget.initialDay ?? DateTime.now());
   var _openingCreateJob = false;
 
   @override
   Widget build(BuildContext context) {
-    final jobs = MaintainiacJobScope.of(
-      context,
-    ).activeJobs.map(_workSupplyJobFromRecord).toList(growable: false);
-    final selectedJobs = _jobsForDay(jobs, _selectedDay);
+    final jobStore = MaintainiacJobScope.of(context);
+    final jobs = jobStore.activeJobs
+        .map(_workSupplyJobFromRecord)
+        .toList(growable: false);
+    final selectedJobs = _jobsForDay(jobStore, _selectedDay);
     return AppScreenShell(
       section: AppSection.materials,
       body: ListView(
@@ -68,7 +75,7 @@ class _WorkSupplyJobsScreenState extends State<WorkSupplyJobsScreen> {
                 _JobScheduleSection(
                   selectedDay: _selectedDay,
                   selectedJobs: selectedJobs,
-                  allJobs: jobs,
+                  markersForDay: (day) => _jobMarkersForDay(jobStore, day),
                   onDaySelected: (day) {
                     setState(() => _selectedDay = _dayKey(day));
                   },
@@ -81,11 +88,31 @@ class _WorkSupplyJobsScreenState extends State<WorkSupplyJobsScreen> {
     );
   }
 
-  List<WorkSupplyJob> _jobsForDay(List<WorkSupplyJob> jobs, DateTime day) {
-    return jobs.where((job) {
-      final scheduledDate = job.scheduledDate;
-      if (scheduledDate == null) return false;
-      return _dayKey(scheduledDate) == day;
-    }).toList();
+  List<WorkSupplyJob> _jobsForDay(
+    MaintainiacJobController store,
+    DateTime day,
+  ) {
+    final byId = {for (final record in store.activeJobs) record.id: record};
+    return [
+      for (final event in CalendarJobProjectionAdapter.eventsForDay(store, day))
+        if (byId[event.sourceRecordId] case final record?)
+          _workSupplyJobFromRecord(record),
+    ];
+  }
+
+  List<WorkSupplyCalendarMarker> _jobMarkersForDay(
+    MaintainiacJobController store,
+    DateTime day,
+  ) {
+    final count = CalendarJobProjectionAdapter.eventsForDay(store, day).length;
+    return count == 0
+        ? const []
+        : [
+            WorkSupplyCalendarMarker(
+              label: 'J',
+              color: const Color(0xFF8FD3FF),
+              count: count,
+            ),
+          ];
   }
 }

@@ -1,6 +1,9 @@
 import 'employee_permission_catalog.dart';
 import 'employee_permission_models.dart';
 
+part 'employee_add_permission_expense_group.dart';
+part 'employee_add_permission_finance_group.dart';
+
 enum AddPermissionAction {
   view('View'),
   create('Create'),
@@ -267,149 +270,7 @@ const addPermissionGroups = [
       AddPermissionRule('vehicles', 'fuelEconomy', [PermissionVerb.view]),
     ],
   ),
-  AddCrewPermissionGroup(
-    title: 'Expenses and Receipts',
-    detail:
-        'Record expenses, attach receipt proof, classify business or personal use, and review receipt OCR.',
-    helper: AddPermissionPreset(own: ownViewCreateEdit),
-    technician: AddPermissionPreset(own: ownViewCreateEdit),
-    driver: AddPermissionPreset(own: ownViewCreateEdit),
-    office: AddPermissionPreset(
-      own: ownViewCreateEdit,
-      other: otherViewCreateEdit,
-    ),
-    rules: [
-      AddPermissionRule('expenses', 'expenseRecords', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'receiptProof', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'receiptReview', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'fuelExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'materialsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'toolsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'maintenanceExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'repairsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'parkingTollsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'mealsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'lodgingExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'officeExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'uniformsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'permitsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'subcontractorExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'insuranceExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'rentalsExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'shippingExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'otherExpense', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'personalExpenses', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'splitExpenses', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'expenseReminders', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('expenses', 'expenseRecaps', [PermissionVerb.view]),
-      AddPermissionRule('expenses', 'expenseExports', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-      ]),
-      AddPermissionRule('expenses', 'expenseSettings', [
-        PermissionVerb.view,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('receipts', 'receiptCapture', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('receipts', 'receiptParsing', [
-        PermissionVerb.view,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('receipts', 'receiptExports', [PermissionVerb.view]),
-    ],
-  ),
+  _expensesAndReceiptsPermissionGroup,
   AddCrewPermissionGroup(
     title: 'Materials and Inventory',
     detail: 'Use materials, adjust counts, and move material between work.',
@@ -472,61 +333,7 @@ const addPermissionGroups = [
       ]),
     ],
   ),
-  AddCrewPermissionGroup(
-    title: 'Invoices, Estimates, and Payments',
-    detail:
-        'Customer money, paperwork, invoice status, estimates, and payments.',
-    office: AddPermissionPreset(
-      own: ownViewCreateEdit,
-      other: otherViewCreateEdit,
-    ),
-    rules: [
-      AddPermissionRule('estimates', 'estimates', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('estimates', 'estimateApprovals', [
-        PermissionVerb.view,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('estimates', 'estimateTemplates', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('estimates', 'estimateConversion', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-      ]),
-      AddPermissionRule('invoices', 'invoices', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('invoices', 'invoicePdfFiles', [PermissionVerb.view]),
-      AddPermissionRule('invoices', 'invoiceTemplates', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('invoices', 'invoiceStatus', [
-        PermissionVerb.view,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('payments', 'customerPayments', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-      AddPermissionRule('payments', 'unpaidBalances', [PermissionVerb.view]),
-      AddPermissionRule('payments', 'paymentProof', [
-        PermissionVerb.view,
-        PermissionVerb.create,
-        PermissionVerb.edit,
-      ]),
-    ],
-  ),
+  _financePermissionGroup,
   AddCrewPermissionGroup(
     title: 'Employees and Crew Management',
     detail:

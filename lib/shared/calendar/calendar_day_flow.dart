@@ -1,23 +1,50 @@
 import 'package:flutter/material.dart';
-
+import '../../screens/expenses/calendar/expense_calendar.dart';
+import '../../screens/expenses/data/expense_ledger_store.dart';
+import '../../screens/expenses/data/expense_reminder_store.dart';
+import '../../screens/expenses/reminders/expense_reminder_screen.dart';
+import '../../screens/maintenance/maintenance_service_event_detail_screen.dart';
+import '../../screens/maintenance/maintenance_item_detail_screen.dart';
+import '../../screens/profiles/employee_work_time_detail_screen.dart';
+import '../../screens/invoices/data/invoice_ledger_store.dart';
+import '../../screens/invoices/home/invoice_form_screen.dart';
+import '../../screens/work_supplies/jobs/maintainiac_job_detail_screen.dart';
+import '../jobs/maintainiac_job_store.dart';
+import '../context/operational_context_store.dart';
+import '../profiles/employee_work_time_store.dart';
 import '../navigation/app_page_routes.dart';
 import '../state/app_state.dart';
 import '../widgets/app_back_button.dart';
-import 'month_year_picker.dart';
-import 'calendar_dummy_data.dart';
+import '../widgets/app_screen_shell.dart';
+import 'app_date_picker.dart';
+import 'calendar_employee_day_projection.dart';
+import 'calendar_filtered_timeline.dart';
+import 'calendar_expense_day_projection.dart';
+import 'calendar_invoice_day_projection.dart';
+import 'calendar_contractor_day_projection.dart';
+import 'calendar_dashboard_day_projection.dart';
+import 'calendar_day_flow_support.dart';
+import 'calendar_active_workday_projection_route.dart';
+import 'calendar_cross_module_recap.dart';
 import 'calendar_entry_flow.dart';
+import 'calendar_owner_entry_router.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
+import 'calendar_maintenance_projection_adapter.dart';
+import 'calendar_month_projection_reader.dart';
+import 'calendar_projection_contract.dart';
 
 class CalendarDayFlowScreen extends StatefulWidget {
   const CalendarDayFlowScreen({
     super.key,
     required this.day,
     this.source = CalendarFlowSource.dashboard,
+    this.employeeId,
   });
 
   final DateTime day;
   final CalendarFlowSource source;
+  final String? employeeId;
 
   @override
   State<CalendarDayFlowScreen> createState() => _CalendarDayFlowScreenState();
@@ -30,13 +57,10 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
   Widget build(BuildContext context) {
     final mode = calendarModeFor(_selectedDay);
     final profile = calendarModeProfileFor(mode);
-    final data = widget.source == CalendarFlowSource.maintenance
-        ? _maintenanceDataFor(context, _selectedDay, mode)
-        : calendarDummyDataFor(_selectedDay, mode, source: widget.source);
+    final data = _calendarDataFor(context, _selectedDay);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
-
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: profile.fabColor,
         foregroundColor: profile.fabForeground,
@@ -49,21 +73,24 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 92),
           children: [
-            AppScreenHeader(title: _screenTitle()),
+            const AppBackButton(),
+            const SizedBox(height: 8),
+            AppScreenHeader(title: calendarScreenTitle(widget.source)),
             const SizedBox(height: 12),
-            _CalendarDayNavigation(
+            GlobalOdometerHeader(
+              section: calendarAppSectionFor(widget.source),
+              headerLabel: 'ACTIVE VEHICLE / WORK PROFILE',
+            ),
+            const SizedBox(height: 12),
+            CalendarDayNavigation(
               day: _selectedDay,
               onPreviousDay: () => _shiftDay(-1),
               onNextDay: () => _shiftDay(1),
+              onPickDate: _pickDay,
             ),
             const SizedBox(height: 12),
             CalendarModeHeader(day: _selectedDay, profile: profile),
             const SizedBox(height: 12),
-            if (widget.source == CalendarFlowSource.employee ||
-                widget.source == CalendarFlowSource.contractor) ...[
-              _CalendarDayVehiclePanel(source: widget.source),
-              const SizedBox(height: 12),
-            ],
             ..._sectionsForMode(context, _selectedDay, mode, data),
           ],
         ),
@@ -84,6 +111,94 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     };
   }
 
+  Future<void> _pickDay() async {
+    final picked = await showAppDatePicker(
+      context: context,
+      initialDate: _selectedDay,
+    );
+    if (!mounted || picked == null) return;
+    setState(() => _selectedDay = DateUtils.dateOnly(picked));
+  }
+
+  CalendarDayData _calendarDataFor(BuildContext context, DateTime day) {
+    if (widget.source == CalendarFlowSource.expenses) {
+      final ledger = ExpenseLedgerScope.maybeOf(context);
+      if (ledger != null) {
+        final active = OperationalContextScope.maybeOf(context)?.context;
+        return calendarFilterToActiveContext(
+          context,
+          CalendarExpenseDayProjection.forDay(
+            ledger,
+            day,
+            vehicleId: active?.activeVehicleId ?? '',
+            workProfileId: active?.workProfileId ?? '',
+            reminders: ExpenseReminderScope.of(context).records,
+          ),
+        );
+      }
+    }
+    if (widget.source == CalendarFlowSource.contractor) {
+      return calendarFilterToActiveContext(
+        context,
+        CalendarContractorDayProjection.forDay(
+          day: day,
+          expenses: ExpenseLedgerScope.maybeOf(context),
+          jobs: MaintainiacJobScope.maybeOf(context),
+          workTime: EmployeeWorkTimeScope.maybeOf(context),
+        ),
+      );
+    }
+    if (widget.source == CalendarFlowSource.dashboard) {
+      final active = OperationalContextScope.maybeOf(context)?.context;
+      final events = CalendarMonthProjectionReader.eventsForDay(
+        context,
+        CalendarFlowSource.dashboard,
+        day,
+      );
+      return CalendarDashboardDayProjection.fromSources(
+        day: day,
+        events: events,
+        expenses: ExpenseLedgerScope.maybeOf(context),
+        invoices: InvoiceLedgerScope.maybeOf(context)?.records ?? const [],
+        workTime: EmployeeWorkTimeScope.maybeOf(context)?.records ?? const [],
+        scope: CalendarRecapScope(
+          vehicleId: active?.activeVehicleId ?? '',
+          workProfileId: active?.workProfileId ?? '',
+        ),
+      );
+    }
+    if (widget.source == CalendarFlowSource.employee) {
+      final employeeId = widget.employeeId?.trim() ?? '';
+      final workTime = EmployeeWorkTimeScope.maybeOf(context);
+      if (employeeId.isNotEmpty && workTime != null) {
+        return calendarFilterToActiveContext(
+          context,
+          CalendarEmployeeDayProjection.forDay(
+            workTime.recordsForEmployee(employeeId),
+            day,
+          ),
+        );
+      }
+      return const CalendarDayData(recapItems: [], entries: []);
+    }
+    if (widget.source == CalendarFlowSource.invoices) {
+      final ledger = InvoiceLedgerScope.maybeOf(context);
+      if (ledger != null) {
+        return calendarFilterToActiveContext(
+          context,
+          CalendarInvoiceDayProjection.forDay(ledger, day),
+        );
+      }
+    }
+    if (widget.source == CalendarFlowSource.maintenance) {
+      return calendarFilterToActiveContext(
+        context,
+        calendarMaintenanceDataFor(context, day),
+      );
+    }
+    return const CalendarDayData(recapItems: [], entries: []);
+  }
+
   List<Widget> _pastDaySections(
     BuildContext context,
     DateTime day,
@@ -91,7 +206,12 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayData data,
   ) {
     return [
-      const CalendarSectionTitle('COMPLETED DAY RECAP'),
+      CalendarSectionTitle.withAction(
+        label: 'COMPLETED DAY RECAP',
+        actionLabel: 'View recap',
+        onPressed: () =>
+            calendarOpenRecap(context, day, widget.source, widget.employeeId),
+      ),
       const SizedBox(height: 8),
       CalendarRecapStrip(items: data.recapItems),
       const SizedBox(height: 14),
@@ -128,7 +248,12 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
           ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
     return [
-      const CalendarSectionTitle('ACTIVE DAY STATE'),
+      CalendarSectionTitle.withAction(
+        label: 'ACTIVE DAY STATE',
+        actionLabel: 'View recap',
+        onPressed: () =>
+            calendarOpenRecap(context, day, widget.source, widget.employeeId),
+      ),
       const SizedBox(height: 8),
       const CalendarStatusPanel(
         icon: Icons.timer_rounded,
@@ -194,25 +319,11 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayMode mode,
     List<CalendarTimelineEntry> entries,
   ) {
-    if (entries.isEmpty) {
-      return const [
-        CalendarStatusPanel(
-          icon: Icons.inbox_rounded,
-          title: 'No entries yet',
-          subtitle: 'Use the action button to add something for this date.',
-        ),
-      ];
-    }
-
-    final sortedEntries = [...entries]
-      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
     return [
-      for (final entry in sortedEntries)
-        CalendarTimelineItem(
-          entry: entry,
-          onTap: () => _openEntryDetail(context, day, mode, entry),
-        ),
+      CalendarFilteredTimeline(
+        entries: entries,
+        onOpen: (entry) => _openEntryDetail(context, day, mode, entry),
+      ),
     ];
   }
 
@@ -238,19 +349,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     DateTime day,
     CalendarDayMode mode,
     CalendarEntryType type,
-  ) {
-    Navigator.of(context).push(
-      appNativeRoute<void>(
-        context,
-        CalendarEntryDraftScreen(
-          day: day,
-          mode: mode,
-          type: type,
-          source: widget.source,
-        ),
-      ),
-    );
-  }
+  ) => CalendarOwnerEntryRouter.open(context: context, day: day, type: type);
 
   void _openEntryDetail(
     BuildContext context,
@@ -258,6 +357,90 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayMode mode,
     CalendarTimelineEntry entry,
   ) {
+    final deepLink = entry.projection?.deepLink;
+    if (deepLink?.target == CalendarDeepLinkTarget.expenseDetail) {
+      Navigator.of(context).push(
+        appNativeRoute<void>(
+          context,
+          ExpenseReceiptDetailScreen(receiptId: deepLink!.sourceRecordId),
+        ),
+      );
+      return;
+    }
+    if (deepLink != null &&
+        calendarOpenActiveWorkdayProjectionRoute(context, deepLink)) {
+      return;
+    }
+    if (deepLink?.target == CalendarDeepLinkTarget.jobDetail) {
+      Navigator.of(context).push(
+        appNativeRoute<void>(
+          context,
+          MaintainiacJobDetailScreen(jobId: deepLink!.sourceRecordId),
+        ),
+      );
+      return;
+    }
+    if (deepLink?.target == CalendarDeepLinkTarget.maintenanceDetail) {
+      final record = AppStateScope.of(context).allMaintenanceRecords.where(
+        (candidate) => candidate.recordId == deepLink!.sourceRecordId,
+      );
+      if (record.isNotEmpty) {
+        Navigator.of(context).push(
+          appNativeRoute<void>(
+            context,
+            MaintenanceItemDetailScreen(record: record.first),
+          ),
+        );
+        return;
+      }
+      final matching = AppStateScope.of(context).maintenanceEvents.where(
+        (candidate) =>
+            CalendarMaintenanceProjectionAdapter.sourceIdFor(candidate) ==
+            deepLink!.sourceRecordId,
+      );
+      if (matching.isNotEmpty) {
+        Navigator.of(context).push(
+          appNativeRoute<void>(
+            context,
+            MaintenanceServiceEventDetailScreen(event: matching.first),
+          ),
+        );
+        return;
+      }
+    }
+    if (deepLink?.target == CalendarDeepLinkTarget.workTimeDetail) {
+      Navigator.of(context).push(
+        appNativeRoute<void>(
+          context,
+          EmployeeWorkTimeDetailScreen(recordId: deepLink!.sourceRecordId),
+        ),
+      );
+      return;
+    }
+    if (deepLink?.target == CalendarDeepLinkTarget.invoiceDetail ||
+        deepLink?.target == CalendarDeepLinkTarget.estimateDetail ||
+        deepLink?.target == CalendarDeepLinkTarget.paymentDetail) {
+      Navigator.of(context).push(
+        appNativeRoute<void>(
+          context,
+          InvoiceFormScreen(recordId: deepLink!.sourceRecordId),
+        ),
+      );
+      return;
+    }
+    if (deepLink?.target == CalendarDeepLinkTarget.reminderDetail) {
+      Navigator.of(context).push(
+        appNativeRoute<void>(
+          context,
+          ExpenseReminderScreen(initialReminderId: deepLink!.sourceRecordId),
+        ),
+      );
+      return;
+    }
+    if (entry.projection != null) {
+      _showUnavailableSourceRecord(context, entry.projection!);
+      return;
+    }
     Navigator.of(context).push(
       appNativeRoute<void>(
         context,
@@ -271,199 +454,34 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     );
   }
 
+  Future<void> _showUnavailableSourceRecord(
+    BuildContext context,
+    CalendarProjectionEvent event,
+  ) => showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Source record unavailable'),
+      content: Text(
+        '${event.source.name} record ${event.sourceRecordId} cannot be opened '
+        'because its owner route is not available in this build. Calendar did '
+        'not open a duplicate editor.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
+
   void _shiftDay(int offset) {
     setState(() {
-      _selectedDay = DateUtils.dateOnly(
-        _selectedDay.add(Duration(days: offset)),
+      _selectedDay = DateTime(
+        _selectedDay.year,
+        _selectedDay.month,
+        _selectedDay.day + offset,
       );
     });
-  }
-
-  String _screenTitle() {
-    return switch (widget.source) {
-      CalendarFlowSource.expenses => 'Expense Calendar',
-      CalendarFlowSource.maintenance => 'Maintenance Calendar',
-      CalendarFlowSource.contractor => 'Contractor Calendar',
-      CalendarFlowSource.employee => 'Employee Calendar',
-      _ => 'Calendar',
-    };
-  }
-}
-
-CalendarDayData _maintenanceDataFor(
-  BuildContext context,
-  DateTime day,
-  CalendarDayMode mode,
-) {
-  if (mode == CalendarDayMode.future) {
-    return const CalendarDayData(recapItems: [], entries: []);
-  }
-  final state = AppStateScope.of(context);
-  final normalized = DateUtils.dateOnly(day);
-  final events =
-      state.maintenanceEvents
-          .where((event) => DateUtils.isSameDay(event.serviceDate, normalized))
-          .toList()
-        ..sort((a, b) => a.serviceDate.compareTo(b.serviceDate));
-  final totalCost = events.fold<double>(
-    0,
-    (sum, event) => sum + event.totalCost,
-  );
-  final receiptProofs = events.fold<int>(
-    0,
-    (sum, event) => sum + event.receiptProofCount,
-  );
-  final vehicles = events.map((event) => event.vehicleName).toSet().length;
-  return CalendarDayData(
-    recapItems: [
-      CalendarRecapItem(label: 'Services', value: events.length.toString()),
-      CalendarRecapItem(label: 'Vehicles', value: vehicles.toString()),
-      CalendarRecapItem(label: 'Receipts', value: receiptProofs.toString()),
-      CalendarRecapItem(label: 'Cost', value: _moneyLabel(totalCost)),
-    ],
-    entries: [
-      for (var index = 0; index < events.length; index++)
-        _maintenanceEntry(events[index], index),
-    ],
-  );
-}
-
-CalendarTimelineEntry _maintenanceEntry(
-  MaintenanceServiceEvent event,
-  int index,
-) {
-  return CalendarTimelineEntry(
-    id: 'maintenance-${event.vehicleName}-${event.itemName}-$index',
-    timestamp: event.serviceDate,
-    type: CalendarEntryType.maintenance,
-    status: CalendarEntryStatus.completed,
-    title: event.itemName,
-    source: 'Maintenance',
-    summary: '${event.vehicleName} - ${event.odometer} miles',
-    details: [
-      'Vehicle: ${event.vehicleName}',
-      'Odometer: ${event.odometer}',
-      if (event.provider.trim().isNotEmpty) 'Provider: ${event.provider}',
-      if (event.totalCost > 0) 'Cost: ${_moneyLabel(event.totalCost)}',
-      if (event.receiptProofCount > 0)
-        'Receipt proof: ${event.receiptProofCount}',
-      if (event.notes.trim().isNotEmpty) 'Notes: ${event.notes}',
-    ],
-  );
-}
-
-String _moneyLabel(double amount) {
-  if (amount <= 0) return r'$0';
-  return '\$${amount.toStringAsFixed(2)}';
-}
-
-class _CalendarDayNavigation extends StatelessWidget {
-  const _CalendarDayNavigation({
-    required this.day,
-    required this.onPreviousDay,
-    required this.onNextDay,
-  });
-
-  final DateTime day;
-  final VoidCallback onPreviousDay;
-  final VoidCallback onNextDay;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 7, 8, 7),
-      decoration: BoxDecoration(
-        color: const Color(0xFF101719),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF445159)),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            tooltip: 'Previous day',
-            onPressed: onPreviousDay,
-            icon: const Icon(
-              Icons.chevron_left_rounded,
-              color: Color(0xFFE2E8EA),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              calendarFullDateLabel(day),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFFE8ECEE),
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          IconButton(
-            tooltip: 'Next day',
-            onPressed: onNextDay,
-            icon: const Icon(
-              Icons.chevron_right_rounded,
-              color: Color(0xFFE2E8EA),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CalendarDayVehiclePanel extends StatelessWidget {
-  const _CalendarDayVehiclePanel({required this.source});
-
-  final CalendarFlowSource source;
-
-  @override
-  Widget build(BuildContext context) {
-    final vehicles = source == CalendarFlowSource.employee
-        ? const ['Work Truck 1', 'Service Van 2']
-        : const ['Active Vehicle', 'Supply Trailer'];
-    return Container(
-      padding: const EdgeInsets.fromLTRB(10, 9, 10, 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF101719),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFF445159)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(
-            Icons.local_shipping_rounded,
-            color: Color(0xFF7CC7FF),
-            size: 21,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Vehicles Used',
-                  style: TextStyle(
-                    color: Color(0xFF9FB0B7),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  vehicles.join(' / '),
-                  style: const TextStyle(
-                    color: Color(0xFFE8ECEE),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

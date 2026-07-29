@@ -471,6 +471,7 @@ ReceiptNativeCameraSessionConfig _copySessionWithGhostFractions(
     whiteBalanceLockEnabled: base.whiteBalanceLockEnabled,
     minZoom: base.minZoom,
     maxZoom: base.maxZoom,
+    initialZoomRatio: base.initialZoomRatio,
     minExposureOffset: base.minExposureOffset,
     maxExposureOffset: base.maxExposureOffset,
     maxLiveAnalysisPixels: base.maxLiveAnalysisPixels,

@@ -19,10 +19,11 @@ void main() {
       ),
     );
     await profiles.delete(saved.id);
+    final archived = profiles.profileById(saved.id)!;
 
     expect(saved.updatedAt, future);
-    expect(profiles.profileById(saved.id)?.updatedAt, future);
-    expect(profiles.profileById(saved.id)?.archivedAt, future);
+    expect(archived.updatedAt, future.add(const Duration(microseconds: 1)));
+    expect(archived.archivedAt, archived.updatedAt);
   });
 
   late Directory hiveDirectory;

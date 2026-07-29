@@ -386,7 +386,6 @@ Future<String> _readReceiptCaptureSettingsDisplaySource() async {
 const _receiptCaptureSettingsDisplayPaths = [
   'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
   'lib/shared/widgets/receipt_capture/receipt_capture_runtime_settings.dart',
-  'lib/shared/widgets/receipt_capture/receipt_expense_review_default_picker.dart',
   'lib/shared/widgets/receipt_capture/receipt_capture_review_storage_settings.dart',
   'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
   'lib/shared/widgets/receipt_capture/receipt_attachment_camera_actions.dart',

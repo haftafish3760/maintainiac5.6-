@@ -16,7 +16,9 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
     settingsContractVersion = intent.getStringExtra("settingsContractVersion")
         ?: "receipt_native_camera_settings_v1"
     devicePolicyLabel = intent.getStringExtra("devicePolicyLabel") ?: "balanced_receipt_camera"
-    reviewDepth = safeReceiptReviewDepth(intent.getStringExtra("reviewDepth"))
+    // Every capture opens the unified editable receipt review. Keep accepting
+    // the old extra at the activity boundary, but never let it hide lines.
+    reviewDepth = "detailedLines"
     focusMode = intent.getStringExtra("focusMode") ?: "continuous"
     exposureMode = intent.getStringExtra("exposureMode") ?: "auto"
     whiteBalanceMode = intent.getStringExtra("whiteBalanceMode") ?: "auto"
@@ -175,18 +177,6 @@ internal fun ReceiptCameraActivity.readSessionArguments() {
         intent.getDoubleExtra("previousSectionGhostOpacity", previousSectionGhostOpacity),
         previousSectionGhostOpacity,
     )
-}
-
-private fun safeReceiptReviewDepth(value: String?): String {
-    val normalized = value
-        ?.trim()
-        ?.replace(Regex("[\\s_-]+"), "")
-        ?.lowercase()
-    return when (normalized) {
-        "detailedlines" -> "detailedLines"
-        "pricesonly" -> "pricesOnly"
-        else -> "pricesOnly"
-    }
 }
 
 internal fun ReceiptCameraActivity.finiteDoubleExtra(key: String, fallback: Double): Double {

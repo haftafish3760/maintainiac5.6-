@@ -36,7 +36,7 @@ Future<GigStartDayContextChoice?> openGigStartDaySetupSheet(
   return showModalBottomSheet<GigStartDayContextChoice>(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFFF3F6F7),
+    backgroundColor: const Color(0xFF2E3A40),
     builder: (context) => _GigStartDaySetupSheet(
       vehicles: vehicles,
       workProfiles: workProfiles,
@@ -92,7 +92,7 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
                 height: 4,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: Color(0xFF9AA8AD),
+                    color: Color(0xFF8FA4AD),
                     borderRadius: BorderRadius.all(Radius.circular(999)),
                   ),
                 ),
@@ -111,7 +111,7 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
                       Text(
                         'Start workday',
                         style: TextStyle(
-                          color: Color(0xFF101416),
+                          color: Color(0xFFF3F6F7),
                           fontSize: 21,
                           fontWeight: FontWeight.w900,
                         ),
@@ -120,7 +120,7 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
                       Text(
                         'Step 1 of 2: confirm who and what vehicle this workday uses.',
                         style: TextStyle(
-                          color: Color(0xFF435258),
+                          color: Color(0xFFC7D5DA),
                           fontSize: 12.5,
                           fontWeight: FontWeight.w700,
                           height: 1.25,
@@ -180,7 +180,7 @@ class _GigStartDaySetupSheetState extends State<_GigStartDaySetupSheet> {
               'The next step asks for the physical odometer reading.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFF435258),
+              color: Color(0xFFC7D5DA),
                 fontSize: 12.5,
                 fontWeight: FontWeight.w700,
               ),
@@ -269,7 +269,7 @@ class _ContextSelector extends StatelessWidget {
       button: true,
       label: '$label: $value',
       child: Material(
-        color: Colors.white,
+        color: const Color(0xFF151F23),
         borderRadius: BorderRadius.circular(8),
         child: InkWell(
           onTap: onTap,
@@ -280,7 +280,7 @@ class _ContextSelector extends StatelessWidget {
               children: [
                 Icon(
                   icon,
-                  color: const Color(0xFF176B8A),
+                  color: const Color(0xFF7CC7FF),
                   size: compact ? 20 : 24,
                 ),
                 SizedBox(width: compact ? 6 : 10),
@@ -291,7 +291,7 @@ class _ContextSelector extends StatelessWidget {
                       Text(
                         compact && label == 'Work profile' ? 'Profile' : label,
                         style: TextStyle(
-                          color: Color(0xFF273237),
+                          color: Color(0xFFC7D5DA),
                           fontSize: compact ? 11 : 12,
                           fontWeight: FontWeight.w800,
                         ),
@@ -302,7 +302,7 @@ class _ContextSelector extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Color(0xFF101416),
+                          color: Color(0xFFF3F6F7),
                           fontSize: compact ? 14 : 16,
                           fontWeight: FontWeight.w900,
                         ),
@@ -314,7 +314,7 @@ class _ContextSelector extends StatelessWidget {
                   const Text(
                     'Change',
                     style: TextStyle(
-                      color: Color(0xFF176B8A),
+                      color: Color(0xFF7CC7FF),
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                     ),
@@ -323,7 +323,7 @@ class _ContextSelector extends StatelessWidget {
                 ],
                 const Icon(
                   Icons.chevron_right_rounded,
-                  color: Color(0xFF176B8A),
+                  color: Color(0xFF7CC7FF),
                 ),
               ],
             ),
@@ -339,10 +339,10 @@ class _StartSheetIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => const DecoratedBox(
-    decoration: BoxDecoration(color: Color(0xFFDCECE4), shape: BoxShape.circle),
+    decoration: BoxDecoration(color: Color(0xFF1C4A3A), shape: BoxShape.circle),
     child: Padding(
       padding: EdgeInsets.all(10),
-      child: Icon(Icons.play_arrow_rounded, color: Color(0xFF166D4A), size: 24),
+      child: Icon(Icons.play_arrow_rounded, color: Color(0xFF77D9AA), size: 24),
     ),
   );
 }
@@ -362,9 +362,7 @@ Future<String?> _pickChoice(
 }) {
   return showModalBottomSheet<String>(
     context: context,
-    // This picker uses dark title and list text; retain a light base surface
-    // so a vehicle or work-profile choice stays readable in every theme.
-    backgroundColor: const Color(0xFFF3F6F7),
+    backgroundColor: const Color(0xFF2E3A40),
     builder: (context) => SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
@@ -376,7 +374,7 @@ Future<String?> _pickChoice(
               title,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFF101416),
+                color: Color(0xFFF3F6F7),
                 fontSize: 18,
                 fontWeight: FontWeight.w900,
               ),
@@ -384,15 +382,25 @@ Future<String?> _pickChoice(
             const SizedBox(height: 10),
             for (final option in options) ...[
               ListTile(
-                title: Text(option.label),
+                title: Text(
+                  option.label,
+                  style: const TextStyle(
+                    color: Color(0xFFF3F6F7),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
                 trailing: Icon(
                   option.id == selectedId
                       ? Icons.check_circle_rounded
                       : Icons.circle_outlined,
+                  color: option.id == selectedId
+                      ? const Color(0xFF77D9AA)
+                      : const Color(0xFFC7D5DA),
                 ),
                 onTap: () => Navigator.of(context).pop(option.id),
               ),
-              if (option != options.last) const Divider(height: 1),
+              if (option != options.last)
+                const Divider(height: 1, color: Color(0xFF526168)),
             ],
           ],
         ),

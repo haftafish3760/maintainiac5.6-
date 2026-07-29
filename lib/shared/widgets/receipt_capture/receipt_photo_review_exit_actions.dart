@@ -90,8 +90,9 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
 
   Future<_ReceiptReviewExitAction> _confirmReceiptReviewExit() async {
     if (!_reviewWorkActive) return _ReceiptReviewExitAction.keepReviewing;
-    if (_photoPaths.isEmpty)
+    if (_photoPaths.isEmpty) {
       return _ReceiptReviewExitAction.discardWithoutSaving;
+    }
     final hasMultipleSections = _photoPaths.length > 1;
     final hasEditedReviewPhotos = _photoPaths.any(_generatedEditPaths.contains);
     final coverageDecision = _selectedExitCoverageDecision();

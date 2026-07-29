@@ -5,6 +5,14 @@ import 'package:maintaniac/shared/profiles/user_profile_models.dart';
 
 void main() {
   group('EmployeeDirectoryRecord', () {
+    test('parses only an explicit non-negative currency rate', () {
+      expect(employeePayRateCents('28.50'), 2850);
+      expect(employeePayRateCents(r'$1,234.5'), 123450);
+      expect(employeePayRateCents('25/hr'), isNull);
+      expect(employeePayRateCents('-25'), isNull);
+      expect(employeePayRateCents(''), isNull);
+    });
+
     test('stores permissions and derives backend modules', () {
       final record = EmployeeDirectoryRecord.create(
         ownerProfileId: 'owner-1',
@@ -33,6 +41,7 @@ void main() {
         payType: 'hourly',
         payFrequency: 'weekly',
         grossRate: '28.50',
+        payPeriodAnchorDate: DateTime.utc(2026, 6, 15),
         now: DateTime.utc(2026, 6, 20, 12),
       );
 
@@ -53,6 +62,7 @@ void main() {
         'expenses.fuel.team.edit': {'employee-helper-1'},
       });
       expect(restored.allowedExpenseCategories, {'fuel', 'materials'});
+      expect(restored.payPeriodAnchorDate, DateTime.utc(2026, 6, 15));
       expect(
         restored.toInvitePayload()['permissions'],
         contains('useMaterials'),

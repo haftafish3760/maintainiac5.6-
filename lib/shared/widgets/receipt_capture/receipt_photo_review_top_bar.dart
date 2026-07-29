@@ -76,7 +76,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
             : 'Review Receipt Photo',
       _ReceiptReviewMode.order => 'Check photo order',
       _ReceiptReviewMode.stitch => 'Match receipt photos',
-      _ReceiptReviewMode.dataSaver => 'Save space preview',
+      _ReceiptReviewMode.dataSaver => 'Choose saved proof size',
       _ReceiptReviewMode.crop => 'Crop receipt',
     };
     return Padding(

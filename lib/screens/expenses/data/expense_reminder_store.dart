@@ -308,8 +308,8 @@ class ExpenseReminderController extends ChangeNotifier {
       cadence: reminder.cadence,
       details: reminder.details.trim(),
       active: reminder.active,
-      createdAt: existing?.createdAt ?? reminder.createdAt,
-      updatedAt: now,
+      createdAt: lifecycle.createdAt,
+      updatedAt: lifecycle.updatedAt,
       lifecycle: lifecycle,
     );
     if (_box == null) {
@@ -396,7 +396,10 @@ class ExpenseReminderController extends ChangeNotifier {
                   updatedAt: existing.updatedAt,
                 ))
             .deleted(now, event: 'deleted reminder');
-    final deleted = existing.copyWith(updatedAt: now, lifecycle: lifecycle);
+    final deleted = existing.copyWith(
+      updatedAt: lifecycle.updatedAt,
+      lifecycle: lifecycle,
+    );
     if (_box == null) {
       _memory[id] = deleted;
     } else {
@@ -421,7 +424,10 @@ class ExpenseReminderController extends ChangeNotifier {
       now,
       event: 'restored reminder',
     );
-    final restored = existing.copyWith(updatedAt: now, lifecycle: lifecycle);
+    final restored = existing.copyWith(
+      updatedAt: lifecycle.updatedAt,
+      lifecycle: lifecycle,
+    );
     if (_box == null) {
       _memory[id] = restored;
     } else {

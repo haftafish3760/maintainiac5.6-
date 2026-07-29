@@ -5,11 +5,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../shared/calendar/calendar.dart';
 import '../../shared/device_capabilities/device_capability_scope.dart';
 import '../../shared/context/operational_context_models.dart';
 import '../../shared/context/operational_context_store.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
+import '../../shared/state/app_state.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
@@ -23,17 +25,20 @@ import '../../shared/trip_tracking/trip_tracking_signal_quality.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import '../expenses/entry/expense_receipt_entry_screen.dart';
 import '../expenses/data/expense_ledger_models.dart';
+import '../expenses/data/expense_work_profile_store.dart';
 import '../expenses/reminders/expense_reminder_screen.dart';
 import '../invoices/data/invoice_ledger_models.dart';
 import '../invoices/home/invoice_form_screen.dart';
 import '../invoices/home/invoice_info_screens.dart';
 import '../settings/trip_tracking_settings_screen.dart';
 import 'active_workday_actions.dart';
+import 'active_workday_context_handoff_sheet.dart';
 import 'contractor/contractor_dashboard_screen.dart';
 import 'active_workday_financial_summary_panel.dart';
 import 'active_workday_tracking_status_line.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_elapsed_clock.dart';
+import 'data/active_workday_context_handoff_coordinator.dart';
 import 'data/active_workday_store.dart';
 import 'gig_dashboard_record_review_screens.dart';
 import 'trip_background_location_settings_prompt.dart';
@@ -114,7 +119,10 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Column(
               children: [
-                _WorkdayContextBar(workProfileName: widget.workProfileName),
+                _WorkdayContextBar(
+                  workProfileName: widget.workProfileName,
+                  onChangeContext: _openContextHandoff,
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -193,6 +201,11 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                 ),
                 const SizedBox(height: 12),
                 _SessionActivityList(events: session?.events ?? const []),
+                const SizedBox(height: 16),
+                // The Dashboard Calendar remains available while a workday is
+                // active. It projects scheduled and recorded source records;
+                // the active-day list above is not a replacement for it.
+                const DashboardCalendar(),
               ],
             ),
           ),
@@ -363,6 +376,64 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     if (navigator.canPop()) {
       navigator.pop();
     }
+  }
+
+  Future<void> _openContextHandoff() async {
+    final tripTracking = TripTrackingScope.maybeOf(context);
+    if (tripTracking?.isTracking == true) {
+      _showGpsMessage(
+        'Finish and review the active GPS trip before changing vehicles or work profiles.',
+      );
+      return;
+    }
+    final session = ActiveWorkdayScope.of(context).activeSession;
+    final coordinator = ActiveWorkdayContextHandoffScope.maybeOf(context);
+    final appState = AppStateScope.of(context);
+    final workProfiles = ExpenseWorkProfileScope.of(context);
+    if (session == null || coordinator == null) {
+      _showGpsMessage('Workday context changes are not available right now.');
+      return;
+    }
+    final activeContext = session.currentContextSegment;
+    final currentVehicle = appState.vehicleById(activeContext.vehicleId);
+    final currentProfile = workProfiles.profileById(
+      activeContext.workProfileId,
+    );
+    if (currentVehicle == null || currentProfile == null) {
+      _showGpsMessage(
+        'Reload the active vehicle and work profile before changing this workday.',
+      );
+      return;
+    }
+    final draft = await openActiveWorkdayContextHandoffSheet(
+      context,
+      currentVehicle: currentVehicle,
+      currentWorkProfile: currentProfile,
+      currentOdometer: session.latestOdometerForContext(activeContext.id),
+      vehicles: appState.vehicles,
+      workProfiles: workProfiles.profiles,
+    );
+    if (!mounted || draft == null) return;
+    final operationId =
+        'workday-handoff-${DateTime.now().toUtc().microsecondsSinceEpoch}-${_tripIdRandom.nextInt(1 << 32)}';
+    final result = await coordinator.apply(
+      ActiveWorkdayContextHandoffRequest(
+        operationId: operationId,
+        workdayId: session.id,
+        vehicleId: draft.vehicle.id,
+        vehicleLabel: draft.vehicle.nickname,
+        workProfileId: draft.workProfile.id,
+        endingOdometer: draft.endingOdometer,
+        startingOdometer: draft.startingOdometer,
+        occurredAt: DateTime.now(),
+      ),
+    );
+    if (!mounted) return;
+    _showGpsMessage(
+      result.completed
+          ? 'Workday context changed. Your earlier segment remains unchanged.'
+          : result.message ?? 'Review the saved workday context change.',
+    );
   }
 
   Future<bool> _recordOdometerEvent({

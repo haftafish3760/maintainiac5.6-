@@ -200,7 +200,10 @@ void main() {
       contains('next_section_top_context_ghost_at_top_repeat_3_to_5_lines'),
     );
     expect(sources.nativeGhostGuide, contains('next_section_top_lines'));
-    expect(sources.nativeGhostShell, contains('Match the next section'));
+    expect(
+      sources.nativeGhostShell,
+      contains('Repeat 3-5 lines in this guide'),
+    );
     expect(sources.reviewActions, contains('Retake Top Receipt Section'));
     expect(sources.reviewActions, contains('Retake Middle Receipt Section'));
     expect(sources.reviewActions, contains('Retake Bottom Receipt Section'));
@@ -349,7 +352,7 @@ void main() {
     expect(sources.reviewTopBar, contains('Check photo order'));
     expect(sources.reviewTopBar, contains('Match receipt photos'));
     expect(sources.reviewTopBar, contains('Review Receipt Photo'));
-    expect(sources.reviewTopBar, contains('Save space preview'));
+    expect(sources.reviewTopBar, contains('Choose saved proof size'));
     expect(sources.reviewTopBar, contains('Leave photo review'));
     expect(sources.reviewTopBar, isNot(contains('Back to receipt form')));
     expect(sources.reviewTopBar, contains('Icons.arrow_back_rounded'));

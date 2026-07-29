@@ -1,5 +1,7 @@
 part of 'receipt_attachment_panel.dart';
 
+/// A short, non-blocking first-use choice shown from the receipt source sheet.
+/// It records a preference; it never changes the receipt fields themselves.
 class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
   const _ReceiptFirstUseCameraIntroSheet({
     required this.area,
@@ -11,146 +13,119 @@ class _ReceiptFirstUseCameraIntroSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: uiConfig.pageBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(8, 8, 12, 4),
-              child: Row(
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Center(
+                child: SizedBox(
+                  width: 36,
+                  child: Divider(color: Color(0xFF69777E), thickness: 3),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
                 children: [
-                  IconButton(
-                    tooltip: 'Back',
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_back_rounded),
-                    color: Colors.white,
-                    style: IconButton.styleFrom(
-                      backgroundColor: uiConfig.surfaceColor,
-                      minimumSize: const Size(46, 46),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(color: uiConfig.borderColor),
-                      ),
-                    ),
+                  const Icon(
+                    Icons.auto_awesome_rounded,
+                    color: Color(0xFFFFD166),
+                    size: 24,
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 9),
                   Expanded(
                     child: Text(
                       uiConfig.firstUseTitle,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Color(0xFFE8ECEE),
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
                       ),
                     ),
                   ),
+                  IconButton(
+                    tooltip: 'Close',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded),
+                    color: const Color(0xFFC7D0D4),
+                  ),
                 ],
               ),
-            ),
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 520),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const Icon(
-                          Icons.receipt_long_rounded,
-                          color: Color(0xFFFFD166),
-                          size: 44,
-                        ),
-                        const SizedBox(height: 18),
-                        Text(
-                          uiConfig.firstUsePrompt,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFFE8ECEE),
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                            height: 1.08,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          uiConfig.firstUseExplanation,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFFC7D0D4),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            height: 1.28,
-                            letterSpacing: 0,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        if (uiConfig.showManualEntryReminder) ...[
-                          Text(
-                            'Manual entry is always available for ${area.label.toLowerCase()} receipts.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              color: Color(0xFF8FA0A8),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              height: 1.25,
-                              letterSpacing: 0,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                        ],
-                        if (uiConfig.showFirstUsePromiseList)
-                          _ReceiptAssistPromiseCard(uiConfig: uiConfig),
-                      ],
-                    ),
-                  ),
+              const SizedBox(height: 6),
+              Text(
+                uiConfig.firstUsePrompt,
+                style: const TextStyle(
+                  color: Color(0xFFE8ECEE),
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                  height: 1.16,
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  FilledButton.icon(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pop(_ReceiptFirstUseCameraAction.useReceiptAssist),
-                    icon: const Icon(Icons.auto_awesome_rounded),
-                    label: Text(uiConfig.enableAssistLabel),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: uiConfig.primaryActionColor,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(52),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pop(_ReceiptFirstUseCameraAction.manualEntry),
-                    icon: const Icon(Icons.edit_note_rounded),
-                    label: Text(uiConfig.manualEntryLabel),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFFFFD166),
-                      side: const BorderSide(color: Color(0xFFFFD166)),
-                      minimumSize: const Size.fromHeight(48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 5),
+              Text(
+                uiConfig.firstUseExplanation,
+                style: const TextStyle(
+                  color: Color(0xFFC7D0D4),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  height: 1.28,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              _ReceiptAssistPromiseCard(uiConfig: uiConfig),
+              const SizedBox(height: 14),
+              FilledButton.icon(
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(_ReceiptFirstUseCameraAction.useReceiptAssist),
+                icon: const Icon(Icons.auto_awesome_rounded),
+                label: Text(uiConfig.enableAssistLabel),
+                style: FilledButton.styleFrom(
+                  backgroundColor: uiConfig.primaryActionColor,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(50),
+                ),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () => Navigator.of(
+                  context,
+                ).pop(_ReceiptFirstUseCameraAction.manualEntry),
+                icon: const Icon(Icons.edit_note_rounded),
+                label: Text(uiConfig.manualEntryLabel),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFFFD166),
+                  side: const BorderSide(color: Color(0xFFFFD166)),
+                  minimumSize: const Size.fromHeight(46),
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Manual entry is always available.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF8FA0A8),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'You can change this later in ${area.label} receipt settings.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Color(0xFF8FA0A8),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -176,29 +151,29 @@ class _ReceiptAssistPromiseCard extends StatelessWidget {
         border: Border.all(color: uiConfig.borderColor),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+        padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            for (final promise in promises) ...[
-              Row(
-                children: [
-                  Icon(promise.$1, color: const Color(0xFFFFD166), size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      promise.$2,
-                      style: const TextStyle(
-                        color: Color(0xFFE8ECEE),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
+            for (final promise in promises)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(
+                  children: [
+                    Icon(promise.$1, color: const Color(0xFFFFD166), size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        promise.$2,
+                        style: const TextStyle(
+                          color: Color(0xFFE8ECEE),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              if (promise != promises.last) const SizedBox(height: 7),
-            ],
           ],
         ),
       ),

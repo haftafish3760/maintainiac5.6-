@@ -4,6 +4,8 @@ import 'package:table_calendar/table_calendar.dart';
 import '../navigation/app_page_routes.dart';
 import 'calendar_day_flow.dart';
 import 'calendar_flow_models.dart';
+import 'calendar_month_event_badge.dart';
+import 'calendar_month_projection_reader.dart';
 import 'month_year_picker.dart';
 
 part 'app_month_calendar_widgets.dart';
@@ -13,10 +15,14 @@ class AppMonthCalendar extends StatefulWidget {
     super.key,
     this.source = CalendarFlowSource.dashboard,
     this.dayEntryCounts = const <DateTime, int>{},
+    this.employeeId,
+    this.onDaySelected,
   });
 
   final CalendarFlowSource source;
   final Map<DateTime, int> dayEntryCounts;
+  final String? employeeId;
+  final ValueChanged<DateTime>? onDaySelected;
 
   @override
   State<AppMonthCalendar> createState() => _AppMonthCalendarState();
@@ -25,18 +31,6 @@ class AppMonthCalendar extends StatefulWidget {
 class _AppMonthCalendarState extends State<AppMonthCalendar> {
   var _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-
-  final _scheduledDays = <DateTime>{
-    DateTime.utc(2026, 5, 18),
-    DateTime.utc(2026, 5, 23),
-    DateTime.utc(2026, 5, 30),
-  };
-
-  final _completedDays = <DateTime>{
-    DateTime.utc(2026, 5, 12),
-    DateTime.utc(2026, 5, 15),
-    DateTime.utc(2026, 5, 16),
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -55,11 +49,14 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
           ],
         ),
         child: TableCalendar<void>(
-          firstDay: DateTime.utc(2020),
-          lastDay: DateTime.utc(2035, 12, 31),
+          firstDay: DateTime.utc(1900),
+          lastDay: DateTime.utc(2100, 12, 31),
           focusedDay: _focusedDay,
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           headerVisible: true,
+          // Preserve the 5.6 large, always-month tile presentation. Day and
+          // month navigation remain available without collapsing this shared
+          // landing Calendar into a week layout.
           calendarFormat: CalendarFormat.month,
           availableGestures: AvailableGestures.horizontalSwipe,
           availableCalendarFormats: const {CalendarFormat.month: 'Month'},
@@ -173,7 +170,9 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
           onDaySelected: (selectedDay, focusedDay) {
             setState(() {
               _selectedDay = selectedDay;
+              _focusedDay = focusedDay;
             });
+            widget.onDaySelected?.call(selectedDay);
             _openCalendarDay(context, selectedDay);
           },
           onPageChanged: (focusedDay) => _focusedDay = focusedDay,
@@ -193,7 +192,11 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
     Navigator.of(context).push(
       appNativeRoute<void>(
         context,
-        CalendarDayFlowScreen(day: day, source: widget.source),
+        CalendarDayFlowScreen(
+          day: day,
+          source: widget.source,
+          employeeId: widget.employeeId,
+        ),
       ),
     );
   }
@@ -221,17 +224,24 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
     DateTime focusedDay,
   ) {
     final normalized = DateTime.utc(day.year, day.month, day.day);
-    final showDemoMarkers = widget.source != CalendarFlowSource.maintenance;
-    final hasScheduled = showDemoMarkers && _scheduledDays.contains(normalized);
-    final hasCompleted = showDemoMarkers && _completedDays.contains(normalized);
+    final badge = CalendarMonthEventBadge.fromEvents(
+      CalendarMonthProjectionReader.eventsForDay(
+        context,
+        widget.source,
+        day,
+        employeeId: widget.employeeId,
+      ),
+    );
     final isSelected = isSameDay(_selectedDay, day);
     final isToday = isSameDay(DateTime.now(), day);
-    final entryCount = widget.dayEntryCounts[normalized] ?? 0;
+    final entryCount = badge.entryCount > 0
+        ? badge.entryCount
+        : widget.dayEntryCounts[normalized] ?? 0;
 
     return _CalendarDayCell(
       day: day,
-      hasScheduled: hasScheduled,
-      hasCompleted: hasCompleted,
+      hasScheduled: badge.hasScheduled,
+      hasCompleted: badge.hasCompleted,
       isSelected: isSelected,
       isToday: isToday,
       entryCount: entryCount,
@@ -256,4 +266,23 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
       isOutsideMonth: true,
     );
   }
+}
+
+String calendarDayAccessibilityLabel({
+  required DateTime day,
+  required int entryCount,
+  required bool hasScheduled,
+  required bool hasCompleted,
+  required bool isOutsideMonth,
+}) {
+  final details = <String>[
+    '${day.month}/${day.day}/${day.year}',
+    if (isOutsideMonth) 'outside the selected month',
+    if (!isOutsideMonth && entryCount == 0) 'no calendar entries',
+    if (!isOutsideMonth && entryCount == 1) '1 calendar entry',
+    if (!isOutsideMonth && entryCount > 1) '$entryCount calendar entries',
+    if (hasScheduled) 'scheduled work',
+    if (hasCompleted) 'confirmed or historical records',
+  ];
+  return details.join('. ');
 }

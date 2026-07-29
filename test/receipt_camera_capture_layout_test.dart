@@ -286,7 +286,7 @@ void main() {
   });
 
   test(
-    'first-use receipt camera setup is full screen, not a slide-up sheet',
+    'first-use receipt camera choice is a compact slide-up sheet',
     () async {
       final actions = await readReceiptAttachmentImportActionsSource();
       final intro = await File(
@@ -308,12 +308,9 @@ void main() {
       );
       final firstUseBlock = actions.substring(firstUseStart, firstUseEnd);
 
-      expect(firstUseBlock, contains('Navigator.of(context)'));
-      expect(firstUseBlock, contains('.push<_ReceiptFirstUseCameraAction>'));
-      expect(firstUseBlock, contains('MaterialPageRoute'));
-      expect(firstUseBlock, contains('fullscreenDialog: true'));
-      expect(firstUseBlock, isNot(contains('showModalBottomSheet')));
-      expect(intro, contains('return Scaffold('));
+      expect(firstUseBlock, contains('showModalBottomSheet<_ReceiptFirstUseCameraAction>'));
+      expect(firstUseBlock, isNot(contains('MaterialPageRoute')));
+      expect(intro, contains('return SafeArea('));
       expect(intro, contains('uiConfig.firstUseTitle'));
       expect(intro, contains('uiConfig.firstUsePrompt'));
       expect(intro, contains('uiConfig.enableAssistLabel'));
@@ -329,8 +326,8 @@ void main() {
       expect(intro, isNot(contains('ListView(')));
       expect(intro, isNot(contains('Continue To Camera')));
       expect(intro, isNot(contains('Open Receipt Settings')));
-      expect(intro, contains('showFirstUsePromiseList'));
-      expect(intro, contains('showManualEntryReminder'));
+      expect(intro, contains('_ReceiptAssistPromiseCard'));
+      expect(intro, contains('Manual entry is always available.'));
       expect(bottomBar, contains('SafeArea('));
       expect(bottomBar, contains('minimum: const EdgeInsets.only(bottom: 8)'));
       expect(bottomBar, contains('_ReceiptNativeCameraShutterButton'));

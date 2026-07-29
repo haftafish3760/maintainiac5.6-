@@ -33,6 +33,7 @@ class EmployeeDirectoryRecord {
     required this.payFrequency,
     required this.grossRate,
     required this.payPeriodStartDay,
+    this.payPeriodAnchorDate,
     required this.overtimePolicy,
     required this.overtimeRate,
     required this.assignedVehicleLabel,
@@ -60,6 +61,10 @@ class EmployeeDirectoryRecord {
   final String payFrequency;
   final String grossRate;
   final String payPeriodStartDay;
+
+  /// The first day of the employee's configured payroll cycle. This is needed
+  /// to distinguish the two possible biweekly schedules with the same weekday.
+  final DateTime? payPeriodAnchorDate;
   final String overtimePolicy;
   final String overtimeRate;
   final String assignedVehicleLabel;
@@ -92,6 +97,7 @@ class EmployeeDirectoryRecord {
     String? payFrequency,
     String? grossRate,
     String? payPeriodStartDay,
+    DateTime? payPeriodAnchorDate,
     String? overtimePolicy,
     String? overtimeRate,
     String? assignedVehicleLabel,
@@ -125,6 +131,7 @@ class EmployeeDirectoryRecord {
       payFrequency: payFrequency ?? this.payFrequency,
       grossRate: grossRate ?? this.grossRate,
       payPeriodStartDay: payPeriodStartDay ?? this.payPeriodStartDay,
+      payPeriodAnchorDate: payPeriodAnchorDate ?? this.payPeriodAnchorDate,
       overtimePolicy: overtimePolicy ?? this.overtimePolicy,
       overtimeRate: overtimeRate ?? this.overtimeRate,
       assignedVehicleLabel: assignedVehicleLabel ?? this.assignedVehicleLabel,
@@ -158,6 +165,7 @@ class EmployeeDirectoryRecord {
     'payFrequency': payFrequency,
     'grossRate': grossRate,
     'payPeriodStartDay': payPeriodStartDay,
+    'payPeriodAnchorDate': payPeriodAnchorDate?.toIso8601String(),
     'overtimePolicy': overtimePolicy,
     'overtimeRate': overtimeRate,
     'assignedVehicleLabel': assignedVehicleLabel,
@@ -218,6 +226,7 @@ class EmployeeDirectoryRecord {
       payFrequency: _string(map['payFrequency'], fallback: 'weekly'),
       grossRate: _string(map['grossRate']),
       payPeriodStartDay: _string(map['payPeriodStartDay'], fallback: 'monday'),
+      payPeriodAnchorDate: _nullableDate(map['payPeriodAnchorDate']),
       overtimePolicy: _string(map['overtimePolicy'], fallback: 'none'),
       overtimeRate: _string(map['overtimeRate']),
       assignedVehicleLabel: _string(map['assignedVehicleLabel']),
@@ -248,6 +257,7 @@ class EmployeeDirectoryRecord {
     required String payFrequency,
     required String grossRate,
     String payPeriodStartDay = 'monday',
+    DateTime? payPeriodAnchorDate,
     String overtimePolicy = 'none',
     String overtimeRate = '',
     String assignedVehicleLabel = '',
@@ -281,6 +291,7 @@ class EmployeeDirectoryRecord {
       payFrequency: payFrequency,
       grossRate: grossRate.trim(),
       payPeriodStartDay: payPeriodStartDay,
+      payPeriodAnchorDate: payPeriodAnchorDate,
       overtimePolicy: overtimePolicy,
       overtimeRate: overtimeRate.trim(),
       assignedVehicleLabel: assignedVehicleLabel.trim(),
@@ -370,6 +381,19 @@ String employeePaySummary(EmployeeDirectoryRecord record) {
   return 'Hourly / $rate per hour / $frequency / period $startDay / $overtime';
 }
 
+/// Parses a user-entered hourly or per-period pay rate into exact cents.
+/// Invalid text is intentionally unavailable rather than silently repaired.
+int? employeePayRateCents(String rawValue) {
+  final value = rawValue.trim().replaceAll(',', '');
+  final match = RegExp(r'^\$?(\d{1,9})(?:\.(\d{1,2}))?$').firstMatch(value);
+  if (match == null) return null;
+  final whole = int.tryParse(match.group(1)!);
+  if (whole == null) return null;
+  final fraction = match.group(2) ?? '';
+  final cents = int.tryParse(fraction.padRight(2, '0')) ?? 0;
+  return whole * 100 + cents;
+}
+
 String employeeOvertimeSummary(EmployeeDirectoryRecord record) {
   return switch (record.overtimePolicy) {
     'timeAndHalf' => 'overtime: 1.5x',
@@ -435,6 +459,11 @@ DateTime _date(Object? value) {
   return value is String
       ? DateTime.tryParse(value) ?? DateTime.now()
       : DateTime.now();
+}
+
+DateTime? _nullableDate(Object? value) {
+  if (value is DateTime) return value;
+  return value is String ? DateTime.tryParse(value) : null;
 }
 
 String _newEmployeeId([DateTime? now]) {

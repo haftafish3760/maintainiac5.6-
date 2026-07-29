@@ -118,16 +118,16 @@ _ReceiptProofJpegEncoding _encodeProofJpgToPolicy(
   var encodedQuality = quality;
   var encoded = img.encodeJpg(output, quality: encodedQuality);
   while (maximumBytes > 0 && encoded.length > maximumBytes) {
-    if (encodedQuality > 48) {
-      encodedQuality -= 6;
+    if (encodedQuality > 30) {
+      encodedQuality -= 5;
     } else {
       final longestSide = output.width > output.height
           ? output.width
           : output.height;
-      final nextLongestSide = (longestSide * .85).round();
-      if (nextLongestSide < 900) break;
+      final nextLongestSide = (longestSide * .82).round();
+      if (nextLongestSide < 360) break;
       output = _resizeToMaxSide(output, nextLongestSide);
-      encodedQuality = quality > 70 ? 70 : quality;
+      encodedQuality = quality > 60 ? 60 : quality;
     }
     encoded = img.encodeJpg(output, quality: encodedQuality);
   }

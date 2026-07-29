@@ -183,8 +183,8 @@ final class _HandoffFixture {
         },
         selectVehicle: (vehicleId) async => calls.add('vehicle:$vehicleId'),
         selectWorkProfile: (profileId) async => calls.add('profile:$profileId'),
-        syncOperationalContext: (vehicleId) async =>
-            calls.add('context:$vehicleId'),
+        syncOperationalContext: (handoff) async =>
+            calls.add('context:${handoff.vehicleId}'),
       ),
     );
     return _HandoffFixture._(

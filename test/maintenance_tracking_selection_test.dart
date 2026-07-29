@@ -335,10 +335,13 @@ void main() {
     await tester.pumpWidget(
       AppStateScope(
         controller: appState,
-        child: MaterialApp(
-          home: CalendarDayFlowScreen(
-            day: serviceDate,
-            source: CalendarFlowSource.maintenance,
+        child: GlobalOdometerScope(
+          controller: odometer,
+          child: MaterialApp(
+            home: CalendarDayFlowScreen(
+              day: serviceDate,
+              source: CalendarFlowSource.maintenance,
+            ),
           ),
         ),
       ),
@@ -348,6 +351,7 @@ void main() {
     expect(find.text('Maintenance Calendar'), findsOneWidget);
     expect(find.text('Services'), findsOneWidget);
     expect(find.text('1'), findsWidgets);
+    expect(find.text(r'$74.25'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Engine Oil'),
       220,
@@ -355,8 +359,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Engine Oil'), findsOneWidget);
-    expect(find.text('Work Truck 1 - 128415 miles'), findsOneWidget);
-    expect(find.text(r'$74.25'), findsOneWidget);
+    expect(find.textContaining('Work Truck 1 · 128415 miles'), findsOneWidget);
+    expect(find.textContaining(r'$74.25'), findsOneWidget);
   });
 
   testWidgets('maintenance home summarizes saved service history', (

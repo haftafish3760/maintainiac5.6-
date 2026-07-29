@@ -286,7 +286,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       assistedReceiptFill: widget.assistedReceiptFill,
       longReceiptMode: true,
       autoCaptureEnabled: settings?.cameraAutoCapture ?? false,
-      reviewDepth: ReceiptNativeReviewDepth.pricesOnly,
+      reviewDepth: ReceiptNativeReviewDepth.detailedLines,
       dataSaverLevel: _dataSaverLevel,
     );
     try {

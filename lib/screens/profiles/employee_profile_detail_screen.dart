@@ -6,6 +6,7 @@ import '../../shared/profiles/employee_directory_models.dart';
 import '../../shared/widgets/app_screen_shell.dart';
 import 'employee_permission_review_screen.dart';
 import 'employee_profile_widgets.dart';
+import 'employee_work_time_entry_screen.dart';
 
 class EmployeeProfileDetailScreen extends StatelessWidget {
   const EmployeeProfileDetailScreen({
@@ -137,7 +138,34 @@ class EmployeeProfileDetailScreen extends StatelessWidget {
                 color: Color(0xFFEAF0F2),
               ),
             ),
-            child: const EmployeeCalendar(),
+            child: EmployeeCalendar(employee: record),
+          ),
+          ProfileSection(
+            title: 'Work time',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Record manual hours or submit time for approval. Calendar and pay-period recaps read these source-owned records.',
+                  style: TextStyle(
+                    color: Color(0xFF9EADB3),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                CompactActionButton(
+                  label: 'Record Work Time',
+                  icon: Icons.timer_rounded,
+                  onPressed: () => Navigator.of(context).push(
+                    appNativeRoute<void>(
+                      context,
+                      EmployeeWorkTimeEntryScreen(employeeId: record.id),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -95,7 +95,7 @@ void main() {
       );
       expect(
         expenses.effectiveReviewDepth,
-        ReceiptNativeReviewDepth.pricesOnly,
+        ReceiptNativeReviewDepth.detailedLines,
       );
       expect(
         inventory.previousSectionReasonCode,
@@ -417,7 +417,7 @@ void main() {
         const ReceiptCaptureFlowOptions(
           module: ReceiptCaptureFlowModule.expenses,
         ).effectiveReviewDepth,
-        ReceiptNativeReviewDepth.pricesOnly,
+        ReceiptNativeReviewDepth.detailedLines,
       );
       expect(
         const ReceiptCaptureFlowOptions(
@@ -443,9 +443,8 @@ void main() {
           'forceReviewDepth: _receiptNativeReviewDepthForCurrentCapture()',
         ),
       );
-      expect(actions, contains('ExpenseReceiptReviewStyle.fullItemDetails'));
       expect(actions, contains('ReceiptNativeReviewDepth.detailedLines'));
-      expect(actions, contains('ReceiptNativeReviewDepth.pricesOnly'));
+      expect(actions, isNot(contains('ExpenseReceiptReviewStyle')));
     },
   );
 

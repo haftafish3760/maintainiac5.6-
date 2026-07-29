@@ -153,9 +153,9 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
         draft.receiptReadHandoffCoverageWarning;
     _receiptReviewModeChangedByUser = draft.receiptReviewModeChangedByUser;
     _receiptCategoryAppliesToAll = draft.receiptCategoryAppliesToAll;
-    _detailEntryMode =
-        _receiptDetailEntryModeFromDraftName(draft.receiptReviewMode) ??
-        _detailEntryMode;
+    // Older drafts retain their stored mode for compatibility, but reopen in
+    // the unified editable form so no field is hidden by a legacy receipt type.
+    _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;
     _receiptClassification = draft.rawOcrText.trim().isEmpty
         ? null
         : ExpenseReceiptClassifier.classifyText(draft.rawOcrText);
@@ -177,15 +177,6 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
     _receiptCategory = _lines.isNotEmpty
         ? _lines.first.category
         : draft.receiptCategory;
-  }
-
-  _ReceiptDetailEntryMode? _receiptDetailEntryModeFromDraftName(String name) {
-    final normalized = name.trim();
-    if (normalized.isEmpty) return null;
-    for (final mode in _ReceiptDetailEntryMode.values) {
-      if (mode.name == normalized) return mode;
-    }
-    return null;
   }
 
   void _applyReceipt(ExpenseReceiptRecord receipt) {

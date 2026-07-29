@@ -22,6 +22,7 @@ extension _EmployeeAddScreenStateHelpers on _EmployeeAddScreenState {
         final selected = next ?? _role;
         _update(() {
           _role = selected;
+          _crewTitle.text = selected.label;
           _customizedPermissions = false;
           _structuredPermissions = structuredPermissionsForRoleName(
             selected.name,
@@ -176,7 +177,9 @@ extension _EmployeeAddScreenStateHelpers on _EmployeeAddScreenState {
       name: _name.text.trim().isEmpty ? 'New Employee' : _name.text.trim(),
       phone: _formatPhone(_phone.text),
       email: _email.text,
-      roleLabel: _role.label,
+      roleLabel: _crewTitle.text.trim().isEmpty
+          ? _role.label
+          : _crewTitle.text.trim(),
       roleName: _role.name,
       customizedRole: _customizedPermissions,
       permissions: permissionsForRole(_role),
@@ -187,6 +190,8 @@ extension _EmployeeAddScreenStateHelpers on _EmployeeAddScreenState {
       payFrequency: _payFrequency,
       grossRate: _rate.text,
       payPeriodStartDay: _payPeriodStartDay,
+      payPeriodAnchorDate:
+          _payPeriodAnchorDate ?? _alignedPayPeriodAnchor(DateTime.now()),
       assignedVehicleLabel: _vehicle,
     );
     Navigator.of(context).push(

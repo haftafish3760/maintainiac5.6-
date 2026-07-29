@@ -110,14 +110,12 @@ part 'expense_receipt_entry_read_handoff_metadata.dart';
 part 'expense_receipt_entry_read_handoff_no_line_labels.dart';
 part 'expense_receipt_entry_capture_diagnostic_helpers.dart';
 part 'expense_receipt_entry_line_mode_helpers.dart';
-part 'expense_receipt_detail_level_panel.dart';
 part 'expense_receipt_category_scope_panel.dart';
 part 'expense_receipt_entry_lifecycle_helpers.dart';
 part 'expense_receipt_entry_attachment_panel.dart';
 part 'expense_receipt_entry_start_guide.dart';
 part 'expense_receipt_entry_scaffold.dart';
 part 'expense_receipt_entry_manual_flow.dart';
-part 'expense_receipt_entry_manual_flow_editors.dart';
 part 'expense_receipt_entry_manual_widgets.dart';
 part 'expense_receipt_entry_manual_details_widgets.dart';
 part 'expense_receipt_entry_manual_summary_widgets.dart';
@@ -131,35 +129,11 @@ part 'expense_receipt_entry_job_context_panel.dart';
 
 enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 
+// Legacy draft values are retained only so old locally saved receipts can be
+// reopened safely. New receipts always use the unified editable form.
 enum _ReceiptDetailEntryMode { basicReceipt, quickClassify, detailedItems }
 
 enum _ManualReceiptStep { details, items, review }
-
-extension _ReceiptDetailEntryModeX on _ReceiptDetailEntryMode {
-  static _ReceiptDetailEntryMode fromSettingsStyle(
-    ExpenseReceiptReviewStyle style,
-  ) {
-    return switch (style) {
-      ExpenseReceiptReviewStyle.basicReceipt =>
-        _ReceiptDetailEntryMode.basicReceipt,
-      ExpenseReceiptReviewStyle.simpleAmounts =>
-        _ReceiptDetailEntryMode.quickClassify,
-      ExpenseReceiptReviewStyle.fullItemDetails =>
-        _ReceiptDetailEntryMode.detailedItems,
-      ExpenseReceiptReviewStyle.askEachTime =>
-        _ReceiptDetailEntryMode.quickClassify,
-    };
-  }
-
-  ExpenseReceiptReviewStyle get settingsStyle => switch (this) {
-    _ReceiptDetailEntryMode.basicReceipt =>
-      ExpenseReceiptReviewStyle.basicReceipt,
-    _ReceiptDetailEntryMode.quickClassify =>
-      ExpenseReceiptReviewStyle.simpleAmounts,
-    _ReceiptDetailEntryMode.detailedItems =>
-      ExpenseReceiptReviewStyle.fullItemDetails,
-  };
-}
 
 class ExpenseReceiptEntryScreen extends StatefulWidget {
   const ExpenseReceiptEntryScreen({
@@ -255,12 +229,11 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   Map<String, int> _receiptInstallOptionalPacksRequireConsentCounts = const {};
   var _trackMaterialsInInventory = false;
   int? _expenseOdometerReading;
-  var _detailEntryMode = _ReceiptDetailEntryMode.quickClassify;
+  var _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;
   var _manualReceiptStep = _ManualReceiptStep.details;
   var _receiptCategory = 'Uncategorized';
   var _receiptCategoryAppliesToAll = false;
   var _receiptReviewModeChangedByUser = false;
-  var _appliedReceiptReviewStyleDefault = false;
   var _receiptEntryGuideInitialized = false;
   var _showReceiptEntryGuide = false;
   var _applyingParsedFieldValues = false;

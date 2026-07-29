@@ -84,7 +84,7 @@ void main() {
       assistedReceiptFill: false,
       longReceiptMode: false,
       autoCaptureEnabled: false,
-      reviewDepth: ReceiptNativeReviewDepth.pricesOnly,
+      reviewDepth: ReceiptNativeReviewDepth.detailedLines,
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
     );
     final continuation = receiptNativeCameraSettingsForCapture(
@@ -92,7 +92,7 @@ void main() {
       assistedReceiptFill: false,
       longReceiptMode: true,
       autoCaptureEnabled: false,
-      reviewDepth: ReceiptNativeReviewDepth.pricesOnly,
+      reviewDepth: ReceiptNativeReviewDepth.detailedLines,
       dataSaverLevel: ReceiptDataSaverLevel.balanced,
     );
 

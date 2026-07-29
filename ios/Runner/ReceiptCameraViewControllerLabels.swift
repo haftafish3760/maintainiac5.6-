@@ -69,7 +69,7 @@ extension ReceiptCameraViewController {
 
   func settingsStatusText() -> String {
     let fillMode = assistedReceiptFill ? "Assist on" : "Manual fill"
-    let reviewMode = reviewDepth == "detailedLines" ? "Detailed lines" : "Price-only lines"
+    let reviewMode = "Editable lines"
     let receiptMode = longReceiptMode ? "Long receipt" : "Single photo"
     let lightMode = autoExposureAssistEnabled ? "Auto light" : "Manual light"
     return "\(fillMode) • \(reviewMode) • \(receiptMode) • \(lightMode)"
@@ -94,11 +94,6 @@ extension ReceiptCameraViewController {
     default:
       return receiptCameraText("Normal proof", "Prueba normal")
     }
-  }
-
-  func setReceiptReviewStyle(_ value: String) {
-    reviewDepth = value
-    updateSettingsStatusStrip()
   }
 
   func setDataSaverLevel(_ value: String) {

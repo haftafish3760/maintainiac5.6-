@@ -20,10 +20,12 @@ class WorkSupplyCalendarPanel extends StatefulWidget {
     super.key,
     required this.markersByDay,
     required this.onDaySelected,
+    this.markersForDay,
   });
 
   final Map<DateTime, List<WorkSupplyCalendarMarker>> markersByDay;
   final ValueChanged<DateTime> onDaySelected;
+  final List<WorkSupplyCalendarMarker> Function(DateTime day)? markersForDay;
 
   @override
   State<WorkSupplyCalendarPanel> createState() =>
@@ -164,11 +166,16 @@ class _WorkSupplyCalendarPanelState extends State<WorkSupplyCalendarPanel> {
   ) {
     return _CalendarDayCell(
       day: day,
-      markers: widget.markersByDay[_dayKey(day)] ?? const [],
+      markers: _markersFor(day),
       isSelected: isSameDay(_selectedDay, day),
       isToday: isSameDay(DateTime.now(), day),
     );
   }
+
+  List<WorkSupplyCalendarMarker> _markersFor(DateTime day) =>
+      widget.markersForDay?.call(day) ??
+      widget.markersByDay[_dayKey(day)] ??
+      const [];
 
   Widget? _calendarOutsideDayBuilder(
     BuildContext context,

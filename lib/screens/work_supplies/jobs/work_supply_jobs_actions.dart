@@ -33,26 +33,11 @@ extension _WorkSupplyJobsActions on _WorkSupplyJobsScreenState {
     final now = DateTime.now().toUtc();
     try {
       await jobController.save(
-        MaintainiacJobRecord(
-          id: '',
-          name: draft.name,
-          customerReference: draft.clientName,
-          customerPhone: draft.clientPhone,
-          customerEmail: draft.clientEmail,
-          address: draft.serviceAddress,
-          notes: draft.notes,
-          estimateId: draft.estimateId,
+        maintainiacJobRecordFromDraft(
+          draft: draft,
+          now: now,
           workProfileId: operational.workProfileId,
-          vehicleIds: [operational.activeVehicleId],
-          scheduledStart: draft.scheduledStart,
-          scheduledEnd: draft.scheduledEnd,
-          repeatRule: draft.repeatRule.name,
-          inAppReminder: draft.inAppReminder,
-          pushReminder: draft.pushReminder,
-          soundReminder: draft.soundReminder,
-          reminderLeadMinutes: draft.reminderLeadMinutes,
-          createdAt: now,
-          updatedAt: now,
+          activeVehicleId: operational.activeVehicleId,
         ),
       );
     } catch (error) {

@@ -125,23 +125,3 @@ final _expenseCategoryNames = [
       category.category,
   },
 ];
-
-const _stockUnits = [
-  'each',
-  'bottle',
-  'package',
-  'pack',
-  'box',
-  'case',
-  'roll',
-  'tube',
-  'bag',
-  'gallon',
-  'quart',
-  'ounce',
-  'pound',
-  'foot',
-  'linear foot',
-  'sheet',
-  'set',
-];

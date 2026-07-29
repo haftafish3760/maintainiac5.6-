@@ -100,11 +100,8 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
-    final expenseSettings = area == ReceiptCaptureArea.expenses
-        ? ExpenseSettingsScope.maybeOf(context)
-        : null;
     return AnimatedBuilder(
-      animation: Listenable.merge([settings, ?expenseSettings]),
+      animation: settings,
       builder: (context, _) {
         return Padding(
           padding: EdgeInsets.fromLTRB(12, 0, 12, bottom + 12),
@@ -157,10 +154,6 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               _ReceiptDataSaverDefaultPicker(settings: settings),
-              if (expenseSettings != null) ...[
-                const SizedBox(height: 8),
-                _ExpenseReceiptReviewDefaultPicker(settings: expenseSettings),
-              ],
               const SizedBox(height: 8),
               _ReceiptScannerBehaviorSettings(settings: settings),
               const SizedBox(height: 8),

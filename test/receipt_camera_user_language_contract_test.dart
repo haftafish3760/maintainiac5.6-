@@ -28,7 +28,12 @@ void main() {
     final proofControls = File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_and_proof_controls.dart',
     ).readAsStringSync();
-    expect(proofControls, contains("'Receipt Details And Saved Proof'"));
+    expect(
+      proofControls,
+      contains(
+        "'Save device space without losing the original reading source'",
+      ),
+    );
     expect(proofControls, isNot(contains("'OCR")));
 
     final preparedPhotoCopy = File(

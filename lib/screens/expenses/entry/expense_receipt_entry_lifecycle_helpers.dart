@@ -91,12 +91,9 @@ extension _ExpenseReceiptEntryLifecycleHelpers
         vehicleLabel: activeVehicle?.displayName ?? '',
       );
     }
-    if (!_appliedReceiptReviewStyleDefault) {
-      _appliedReceiptReviewStyleDefault = true;
-      _detailEntryMode = _ReceiptDetailEntryModeX.fromSettingsStyle(
-        expenseSettings.receiptReviewStyle,
-      );
-    }
+    // A receipt is one editable form. OCR may prefill fields, but it never
+    // decides that a user only gets a price-only or summary-only form.
+    _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;
     if (!_receiptEntryGuideInitialized) {
       _receiptEntryGuideInitialized = true;
       _showReceiptEntryGuide =

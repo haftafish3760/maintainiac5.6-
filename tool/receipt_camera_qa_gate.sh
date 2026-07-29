@@ -35,8 +35,10 @@ phase2_tests=(
 
 phase3_tests=(
   test/receipt_camera_phase3_viewer_contract_test.dart
+  test/receipt_camera_zoom_handoff_contract_test.dart
   test/receipt_native_camera_shell_test.dart
   test/receipt_native_camera_shell_controls_test.dart
+  test/receipt_native_capture_per_photo_zoom_contract_test.dart
   test/receipt_native_ios_settings_guidance_contract_test.dart
   test/receipt_native_ios_camera_session_capability_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
@@ -58,6 +60,7 @@ phase4_tests=(
 phase5_tests=(
   test/receipt_camera_phase5_long_receipt_contract_test.dart
   test/receipt_camera_long_receipt_guidance_test.dart
+  test/receipt_native_continuation_guide_layout_test.dart
   test/receipt_photo_review_retake_order_test.dart
   test/receipt_photo_review_section_order_ops_test.dart
   test/receipt_native_camera_previous_section_channel_test.dart
@@ -130,7 +133,9 @@ phase3_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_native_camera_shell_guidance.dart
   ios/Runner/ReceiptCameraViewControllerLabels.swift
   test/receipt_camera_phase3_viewer_contract_test.dart
+  test/receipt_camera_zoom_handoff_contract_test.dart
   test/receipt_native_camera_shell_controls_test.dart
+  test/receipt_native_capture_per_photo_zoom_contract_test.dart
   test/receipt_native_ios_settings_guidance_contract_test.dart
   test/receipt_native_ios_camera_session_capability_test.dart
   test/receipt_native_android_guidance_policy_gate_test.dart
@@ -171,6 +176,7 @@ phase5_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_capture_flow_helpers.dart
   test/receipt_camera_phase5_long_receipt_contract_test.dart
   test/receipt_camera_long_receipt_guidance_test.dart
+  test/receipt_native_continuation_guide_layout_test.dart
   test/receipt_photo_review_retake_order_test.dart
   test/receipt_photo_review_section_order_ops_test.dart
   test/receipt_native_camera_previous_section_channel_test.dart
@@ -411,6 +417,9 @@ stitch_tests=(
 )
 
 full_only_tests=(
+  test/receipt_camera_zoom_handoff_contract_test.dart
+  test/receipt_native_capture_per_photo_zoom_contract_test.dart
+  test/receipt_native_continuation_guide_layout_test.dart
   test/receipt_camera_capture_busy_handoff_test.dart
   test/receipt_native_ghost_orientation_contract_test.dart
   test/receipt_native_ios_camera_session_capability_test.dart

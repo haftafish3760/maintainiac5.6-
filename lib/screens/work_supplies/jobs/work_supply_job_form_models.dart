@@ -1,8 +1,10 @@
 enum JobRepeatRule {
   none('Does not repeat'),
+  daily('Every day'),
   weekly('Every week'),
   everyTwoWeeks('Every 2 weeks'),
-  monthly('Every month');
+  monthly('Every month'),
+  selectedWeekdays('Selected weekdays');
 
   const JobRepeatRule(this.label);
 
@@ -25,6 +27,9 @@ class WorkSupplyJobDraft {
     this.estimateId = '',
     this.scheduledStart,
     this.scheduledEnd,
+    this.scheduleEnabled = true,
+    this.repeatWeekdays = const <int>[],
+    this.repeatUntil,
   });
 
   final String name;
@@ -35,7 +40,10 @@ class WorkSupplyJobDraft {
   final String notes;
   final DateTime? scheduledStart;
   final DateTime? scheduledEnd;
+  final bool scheduleEnabled;
   final JobRepeatRule repeatRule;
+  final List<int> repeatWeekdays;
+  final DateTime? repeatUntil;
   final bool inAppReminder;
   final bool pushReminder;
   final bool soundReminder;

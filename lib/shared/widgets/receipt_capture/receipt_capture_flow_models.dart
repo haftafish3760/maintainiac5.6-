@@ -81,7 +81,7 @@ class ReceiptCaptureFlowOptions {
       ReceiptCaptureFlowModule.maintenanceRepair =>
         ReceiptNativeReviewDepth.detailedLines,
       ReceiptCaptureFlowModule.expenses ||
-      ReceiptCaptureFlowModule.shared => ReceiptNativeReviewDepth.pricesOnly,
+      ReceiptCaptureFlowModule.shared => ReceiptNativeReviewDepth.detailedLines,
     };
   }
 }

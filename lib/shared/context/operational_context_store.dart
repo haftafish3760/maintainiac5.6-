@@ -118,6 +118,19 @@ class OperationalContextController extends ChangeNotifier {
     );
   }
 
+  Future<void> setActiveWorkProfile({
+    required String workProfileId,
+    required String workProfileName,
+  }) {
+    return _update(
+      (current) => current.copyWith(
+        workProfileId: workProfileId,
+        workProfileName: workProfileName,
+        updatedAt: DateTime.now(),
+      ),
+    );
+  }
+
   Future<void> setDashboardMode(OperationalDashboardMode mode) async {
     return _update(
       (current) => current.copyWith(

@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
 import '../storage/app_storage_guard.dart';
+import 'maintainiac_job_schedule_exception.dart';
 
 typedef MaintainiacJobStorageCheck = Future<AppStorageCheck> Function();
 
@@ -26,6 +26,9 @@ class MaintainiacJobRecord {
     this.scheduledStart,
     this.scheduledEnd,
     this.repeatRule = 'none',
+    this.repeatWeekdays = const [],
+    this.repeatUntil,
+    this.scheduleExceptions = const [],
     this.inAppReminder = false,
     this.pushReminder = false,
     this.soundReminder = false,
@@ -61,6 +64,11 @@ class MaintainiacJobRecord {
       repeatRule: _jobString(map['repeatRule']).isEmpty
           ? 'none'
           : _jobString(map['repeatRule']),
+      repeatWeekdays: _jobWeekdays(map['repeatWeekdays']),
+      repeatUntil: _jobDate(map['repeatUntil']),
+      scheduleExceptions: maintainiacJobScheduleExceptionsFromStorage(
+        map['scheduleExceptions'],
+      ),
       inAppReminder: map['inAppReminder'] == true,
       pushReminder: map['pushReminder'] == true,
       soundReminder: map['soundReminder'] == true,
@@ -90,6 +98,9 @@ class MaintainiacJobRecord {
   final DateTime? scheduledStart;
   final DateTime? scheduledEnd;
   final String repeatRule;
+  final List<int> repeatWeekdays;
+  final DateTime? repeatUntil;
+  final List<MaintainiacJobScheduleException> scheduleExceptions;
   final bool inAppReminder;
   final bool pushReminder;
   final bool soundReminder;
@@ -116,6 +127,11 @@ class MaintainiacJobRecord {
     'scheduledStart': scheduledStart?.toIso8601String(),
     'scheduledEnd': scheduledEnd?.toIso8601String(),
     'repeatRule': repeatRule,
+    'repeatWeekdays': repeatWeekdays,
+    'repeatUntil': repeatUntil?.toIso8601String(),
+    'scheduleExceptions': [
+      for (final value in scheduleExceptions) value.toMap(),
+    ],
     'inAppReminder': inAppReminder,
     'pushReminder': pushReminder,
     'soundReminder': soundReminder,
@@ -143,6 +159,9 @@ class MaintainiacJobRecord {
     DateTime? scheduledStart,
     DateTime? scheduledEnd,
     String? repeatRule,
+    List<int>? repeatWeekdays,
+    DateTime? repeatUntil,
+    List<MaintainiacJobScheduleException>? scheduleExceptions,
     bool? inAppReminder,
     bool? pushReminder,
     bool? soundReminder,
@@ -169,6 +188,9 @@ class MaintainiacJobRecord {
       scheduledStart: scheduledStart ?? this.scheduledStart,
       scheduledEnd: scheduledEnd ?? this.scheduledEnd,
       repeatRule: repeatRule ?? this.repeatRule,
+      repeatWeekdays: repeatWeekdays ?? this.repeatWeekdays,
+      repeatUntil: repeatUntil ?? this.repeatUntil,
+      scheduleExceptions: scheduleExceptions ?? this.scheduleExceptions,
       inAppReminder: inAppReminder ?? this.inAppReminder,
       pushReminder: pushReminder ?? this.pushReminder,
       soundReminder: soundReminder ?? this.soundReminder,
@@ -283,6 +305,11 @@ class MaintainiacJobController extends ChangeNotifier {
         scheduledStart: job.scheduledStart,
         scheduledEnd: job.scheduledEnd,
         repeatRule: job.repeatRule.trim(),
+        repeatWeekdays: _jobWeekdays(job.repeatWeekdays),
+        repeatUntil: job.repeatUntil,
+        scheduleExceptions: normalizeMaintainiacJobScheduleExceptions(
+          job.scheduleExceptions,
+        ),
         inAppReminder: job.inAppReminder,
         pushReminder: job.pushReminder,
         soundReminder: job.soundReminder,
@@ -387,6 +414,22 @@ List<String> _jobStringList(dynamic value) {
   return _normalizedIds(value.map(_jobString));
 }
 
+List<int> _jobWeekdays(dynamic value) {
+  if (value is! Iterable) return const [];
+  final result = <int>{};
+  for (final candidate in value) {
+    final weekday = candidate is int
+        ? candidate
+        : int.tryParse(_jobString(candidate));
+    if (weekday != null &&
+        weekday >= DateTime.monday &&
+        weekday <= DateTime.sunday) {
+      result.add(weekday);
+    }
+  }
+  return result.toList()..sort();
+}
+
 List<String> _normalizedIds(Iterable<String> values) {
   final seen = <String>{};
   return [
@@ -422,13 +465,32 @@ void _validate(MaintainiacJobRecord job) {
   if (start != null && end != null && end.isBefore(start)) {
     throw ArgumentError('A job cannot end before it starts.');
   }
-  if (job.soundReminder && !job.pushReminder) {
-    throw ArgumentError('A sound reminder requires a push reminder.');
+  if (job.repeatUntil != null &&
+      start != null &&
+      _dayOnly(job.repeatUntil!).isBefore(_dayOnly(start))) {
+    throw ArgumentError(
+      'A repeat end date cannot be before the first job date.',
+    );
   }
+  if (job.repeatRule == 'selectedWeekdays' && job.repeatWeekdays.isEmpty) {
+    throw ArgumentError(
+      'Selected-weekday schedules need at least one weekday.',
+    );
+  }
+  validateMaintainiacJobScheduleExceptions(
+    scheduledStart: start,
+    repeatRule: job.repeatRule,
+    repeatWeekdays: job.repeatWeekdays,
+    repeatUntil: job.repeatUntil,
+    exceptions: job.scheduleExceptions,
+  );
   if (job.reminderLeadMinutes < 0) {
     throw ArgumentError('Reminder lead time cannot be negative.');
   }
 }
+
+DateTime _dayOnly(DateTime value) =>
+    DateTime(value.year, value.month, value.day);
 
 bool _isSafeJobId(String value) =>
     value.isNotEmpty &&

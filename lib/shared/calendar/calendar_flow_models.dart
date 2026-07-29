@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'calendar_projection_contract.dart';
+
 enum CalendarDayMode { past, today, future }
 
 enum CalendarFlowSource {
@@ -13,6 +15,7 @@ enum CalendarFlowSource {
 
 enum CalendarEntryType {
   tripEntry,
+  job,
   stop,
   pickup,
   delivery,
@@ -75,7 +78,62 @@ class CalendarTimelineEntry {
     required this.source,
     required this.summary,
     required this.details,
+    this.timeLabel,
+    this.projection,
   });
+
+  factory CalendarTimelineEntry.fromProjection(CalendarProjectionEvent event) {
+    final timing = event.timing;
+    final stateLabel = _projectionStateLabel(event.state);
+    return CalendarTimelineEntry(
+      id: event.eventId,
+      timestamp: timing.chronologicalTime,
+      timeLabel: switch (timing.timeSource) {
+        CalendarTimeSource.actual || CalendarTimeSource.scheduled => null,
+        CalendarTimeSource.recorded => 'Recorded',
+        CalendarTimeSource.unknown => 'Time?',
+      },
+      type: _entryTypeForProjectionSource(event.source),
+      status: _entryStatusForProjectionState(event.state),
+      title: event.title,
+      source: _projectionSourceLabel(event.source),
+      summary:
+          '$stateLabel · ${timing.displayTimeLabel} · ${event.conciseDetail}',
+      details: [
+        'State: $stateLabel',
+        '${timing.displayTimeLabel}: ${_projectionDateTimeLabel(timing.displayChronologicalTime)}',
+        if (timing.scheduledEndAt != null)
+          'Planned end: ${_projectionDateTimeLabel(timing.displayScheduledAt(timing.scheduledEndAt!))}',
+        'Recorded: ${_projectionDateTimeLabel(timing.displayRecordedAt(timing.recordedAt))}',
+        if (timing.timezoneId != null) 'Source time zone: ${timing.timezoneId}',
+        if (event.vehicleIds.isNotEmpty)
+          'Vehicle: ${event.vehicleIds.join(', ')}',
+        if (event.workProfileId != null) 'Work profile: ${event.workProfileId}',
+        if (event.businessClassification != null)
+          'Use: ${_businessClassificationLabel(event.businessClassification!)}',
+        if (event.participantIds.isNotEmpty)
+          'People: ${event.participantIds.join(', ')}',
+        if (event.evidence.evidenceId != null)
+          'Evidence ID: ${event.evidence.evidenceId}',
+        if (event.evidence.proposalId != null)
+          'Proposal ID: ${event.evidence.proposalId}',
+        if (event.evidence.summary != null)
+          'Evidence: ${event.evidence.summary}',
+        if (event.evidence.strength != null)
+          'Evidence strength: ${event.evidence.strength}',
+        if (event.evidence.recommendationConfidence != null)
+          'Recommendation confidence: ${_confidenceLabel(event.evidence.recommendationConfidence!)}',
+        if (event.evidence.explanation != null)
+          'Review detail: ${event.evidence.explanation}',
+        if (event.evidence.acceptanceImpact != null)
+          'If accepted: ${event.evidence.acceptanceImpact}',
+        if (event.evidence.ignoreImpact != null)
+          'If ignored: ${event.evidence.ignoreImpact}',
+        if (event.auditReference != null) 'Audit: ${event.auditReference}',
+      ],
+      projection: event,
+    );
+  }
 
   final String id;
   final DateTime timestamp;
@@ -85,6 +143,88 @@ class CalendarTimelineEntry {
   final String source;
   final String summary;
   final List<String> details;
+  final String? timeLabel;
+  final CalendarProjectionEvent? projection;
+}
+
+String _confidenceLabel(double confidence) =>
+    '${(confidence.clamp(0, 1) * 100).toStringAsFixed(0)}%';
+
+CalendarEntryType _entryTypeForProjectionSource(
+  CalendarProjectionSource source,
+) => switch (source) {
+  CalendarProjectionSource.activeWorkday => CalendarEntryType.tripEntry,
+  CalendarProjectionSource.trip => CalendarEntryType.tripEntry,
+  CalendarProjectionSource.stop => CalendarEntryType.stop,
+  CalendarProjectionSource.job => CalendarEntryType.job,
+  CalendarProjectionSource.expense => CalendarEntryType.expense,
+  CalendarProjectionSource.receipt => CalendarEntryType.receiptPhoto,
+  CalendarProjectionSource.invoice ||
+  CalendarProjectionSource.estimate => CalendarEntryType.invoiceEstimate,
+  CalendarProjectionSource.payment => CalendarEntryType.payment,
+  CalendarProjectionSource.maintenance => CalendarEntryType.maintenance,
+  CalendarProjectionSource.inventory => CalendarEntryType.materials,
+  CalendarProjectionSource.reminder => CalendarEntryType.reminderSchedule,
+  CalendarProjectionSource.workTime => CalendarEntryType.note,
+  CalendarProjectionSource.odometer => CalendarEntryType.tripEntry,
+  CalendarProjectionSource.vehicleProfile => CalendarEntryType.note,
+};
+
+CalendarEntryStatus _entryStatusForProjectionState(
+  CalendarProjectionState state,
+) => switch (state) {
+  CalendarProjectionState.proposed => CalendarEntryStatus.planned,
+  CalendarProjectionState.confirmed ||
+  CalendarProjectionState.historical => CalendarEntryStatus.completed,
+  _ => CalendarEntryStatus.needsAttention,
+};
+
+String _projectionStateLabel(CalendarProjectionState state) => switch (state) {
+  CalendarProjectionState.confirmed => 'Confirmed',
+  CalendarProjectionState.proposed => 'Proposed',
+  CalendarProjectionState.needsReview => 'Needs review',
+  CalendarProjectionState.rejected => 'Rejected',
+  CalendarProjectionState.voided => 'Voided',
+  CalendarProjectionState.historical => 'Historical',
+  CalendarProjectionState.incomplete => 'Incomplete',
+  CalendarProjectionState.blocked => 'Blocked',
+};
+
+String _businessClassificationLabel(CalendarBusinessClassification value) =>
+    switch (value) {
+      CalendarBusinessClassification.business => 'Business',
+      CalendarBusinessClassification.personal => 'Personal',
+      CalendarBusinessClassification.mixed => 'Business and personal',
+      CalendarBusinessClassification.unclassified => 'Needs classification',
+    };
+
+String _projectionSourceLabel(CalendarProjectionSource source) =>
+    switch (source) {
+      CalendarProjectionSource.activeWorkday => 'Active workday',
+      CalendarProjectionSource.trip => 'Trip tracking',
+      CalendarProjectionSource.stop => 'Stop review',
+      CalendarProjectionSource.job => 'Jobs',
+      CalendarProjectionSource.expense => 'Expenses',
+      CalendarProjectionSource.receipt => 'Receipts',
+      CalendarProjectionSource.invoice => 'Invoices',
+      CalendarProjectionSource.estimate => 'Estimates',
+      CalendarProjectionSource.payment => 'Payments',
+      CalendarProjectionSource.maintenance => 'Maintenance',
+      CalendarProjectionSource.inventory => 'Inventory',
+      CalendarProjectionSource.reminder => 'Reminders',
+      CalendarProjectionSource.workTime => 'Work time',
+      CalendarProjectionSource.odometer => 'Odometer',
+      CalendarProjectionSource.vehicleProfile => 'Vehicle profile',
+    };
+
+String _projectionDateTimeLabel(DateTime time) {
+  final hour = time.hour == 0
+      ? 12
+      : time.hour > 12
+      ? time.hour - 12
+      : time.hour;
+  final minute = time.minute.toString().padLeft(2, '0');
+  return '${time.month}/${time.day}/${time.year} $hour:$minute ${time.hour >= 12 ? 'PM' : 'AM'}${time.isUtc ? ' UTC' : ''}';
 }
 
 class CalendarEntryMeta {
@@ -181,6 +321,7 @@ List<CalendarEntryType> calendarTypesForMode(CalendarDayMode mode) {
   return switch (mode) {
     CalendarDayMode.past => const [
       CalendarEntryType.tripEntry,
+      CalendarEntryType.job,
       CalendarEntryType.stop,
       CalendarEntryType.pickup,
       CalendarEntryType.delivery,
@@ -194,6 +335,7 @@ List<CalendarEntryType> calendarTypesForMode(CalendarDayMode mode) {
     ],
     CalendarDayMode.today => const [
       CalendarEntryType.tripEntry,
+      CalendarEntryType.job,
       CalendarEntryType.stop,
       CalendarEntryType.pickup,
       CalendarEntryType.delivery,
@@ -208,6 +350,7 @@ List<CalendarEntryType> calendarTypesForMode(CalendarDayMode mode) {
     ],
     CalendarDayMode.future => const [
       CalendarEntryType.reminderSchedule,
+      CalendarEntryType.job,
       CalendarEntryType.note,
       CalendarEntryType.invoiceEstimate,
       CalendarEntryType.maintenance,
@@ -220,6 +363,47 @@ List<CalendarEntryType> calendarTypesForSource(
   CalendarDayMode mode,
   CalendarFlowSource source,
 ) {
+  // Keep the Dashboard Quick Add contract stable. Jobs own scheduling in their
+  // own screen; this source-specific grid must remain the established set of
+  // quick entries rather than gaining a competing Job tile.
+  if (source == CalendarFlowSource.dashboard) {
+    return switch (mode) {
+      CalendarDayMode.past => const [
+        CalendarEntryType.tripEntry,
+        CalendarEntryType.stop,
+        CalendarEntryType.pickup,
+        CalendarEntryType.delivery,
+        CalendarEntryType.expense,
+        CalendarEntryType.payment,
+        CalendarEntryType.invoiceEstimate,
+        CalendarEntryType.maintenance,
+        CalendarEntryType.materials,
+        CalendarEntryType.receiptPhoto,
+        CalendarEntryType.note,
+      ],
+      CalendarDayMode.today => const [
+        CalendarEntryType.tripEntry,
+        CalendarEntryType.stop,
+        CalendarEntryType.pickup,
+        CalendarEntryType.delivery,
+        CalendarEntryType.expense,
+        CalendarEntryType.payment,
+        CalendarEntryType.invoiceEstimate,
+        CalendarEntryType.maintenance,
+        CalendarEntryType.materials,
+        CalendarEntryType.receiptPhoto,
+        CalendarEntryType.note,
+        CalendarEntryType.reminderSchedule,
+      ],
+      CalendarDayMode.future => const [
+        CalendarEntryType.reminderSchedule,
+        CalendarEntryType.note,
+        CalendarEntryType.invoiceEstimate,
+        CalendarEntryType.maintenance,
+        CalendarEntryType.materials,
+      ],
+    };
+  }
   if (source == CalendarFlowSource.expenses) {
     return switch (mode) {
       CalendarDayMode.past || CalendarDayMode.today => const [
@@ -242,6 +426,7 @@ List<CalendarEntryType> calendarTypesForSource(
     return switch (mode) {
       CalendarDayMode.past || CalendarDayMode.today => const [
         CalendarEntryType.invoiceEstimate,
+        CalendarEntryType.job,
         CalendarEntryType.payment,
         CalendarEntryType.expense,
         CalendarEntryType.materials,
@@ -252,6 +437,7 @@ List<CalendarEntryType> calendarTypesForSource(
       ],
       CalendarDayMode.future => const [
         CalendarEntryType.reminderSchedule,
+        CalendarEntryType.job,
         CalendarEntryType.invoiceEstimate,
         CalendarEntryType.materials,
         CalendarEntryType.maintenance,
@@ -263,6 +449,7 @@ List<CalendarEntryType> calendarTypesForSource(
     return switch (mode) {
       CalendarDayMode.past || CalendarDayMode.today => const [
         CalendarEntryType.tripEntry,
+        CalendarEntryType.job,
         CalendarEntryType.invoiceEstimate,
         CalendarEntryType.expense,
         CalendarEntryType.materials,
@@ -272,6 +459,7 @@ List<CalendarEntryType> calendarTypesForSource(
       ],
       CalendarDayMode.future => const [
         CalendarEntryType.reminderSchedule,
+        CalendarEntryType.job,
         CalendarEntryType.invoiceEstimate,
         CalendarEntryType.materials,
         CalendarEntryType.maintenance,
@@ -288,6 +476,11 @@ CalendarEntryMeta calendarEntryMeta(CalendarEntryType type) {
       label: 'Trip Entry',
       icon: Icons.route_rounded,
       color: Color(0xFF4FE8FF),
+    ),
+    CalendarEntryType.job => const CalendarEntryMeta(
+      label: 'Job / Appointment',
+      icon: Icons.event_available_rounded,
+      color: Color(0xFF20F060),
     ),
     CalendarEntryType.stop => const CalendarEntryMeta(
       label: 'Stop',

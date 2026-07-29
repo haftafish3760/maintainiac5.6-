@@ -71,7 +71,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var uiLocale = "en-US"
     internal var settingsContractVersion = "receipt_native_camera_settings_v1"
     internal var devicePolicyLabel = "balanced_receipt_camera"
-    internal var reviewDepth = "pricesOnly"
+    internal var reviewDepth = "detailedLines"
     internal var focusMode = "continuous"
     internal var exposureMode = "auto"
     internal var whiteBalanceMode = "auto"

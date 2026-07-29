@@ -390,23 +390,11 @@ void main() {
         contains('receiptFullyVisibleWarningEnabled'),
       );
       expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
-      expect(cameraController, contains('Review style'));
-      expect(cameraController, contains('func setReceiptReviewStyle('));
-      expect(cameraController, contains('safeReceiptReviewDepth'));
-      expect(cameraController, contains('reviewDepth = value'));
-      expect(
-        cameraController,
-        contains('reviewDepth = safeReceiptReviewDepth('),
-      );
-      expect(cameraController, contains('Review style: \\(review)'));
-      expect(
-        cameraController,
-        contains('? receiptCameraText("Detailed receipt lines"'),
-      );
-      expect(
-        cameraController,
-        contains(': receiptCameraText("Price-only receipt lines"'),
-      );
+      expect(cameraController, contains('Receipt review: \\(review)'));
+      expect(cameraController, contains('"Editable receipt lines"'));
+      expect(cameraController, isNot(contains('setReceiptReviewStyle(')));
+      expect(cameraController, isNot(contains('safeReceiptReviewDepth')));
+      expect(cameraController, isNot(contains('Price-only receipt lines')));
       expect(cameraController, contains('Saved proof size'));
       expect(cameraController, contains('"Local original"'));
       expect(cameraController, contains('"High quality"'));

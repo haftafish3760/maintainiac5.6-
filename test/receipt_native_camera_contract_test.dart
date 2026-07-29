@@ -14,7 +14,7 @@ void main() {
       const settings = ReceiptNativeCameraSettings();
 
       expect(settings.assistedReceiptFill, isFalse);
-      expect(settings.reviewDepth, ReceiptNativeReviewDepth.pricesOnly);
+      expect(settings.reviewDepth, ReceiptNativeReviewDepth.detailedLines);
       expect(settings.manualShutterAlwaysAvailable, isTrue);
       expect(settings.autoCaptureEnabled, isFalse);
       expect(settings.tapFocusEnabled, isFalse);
@@ -106,7 +106,7 @@ void main() {
     final ids = descriptors.map((descriptor) => descriptor.id).toSet();
 
     expect(ids, contains('assisted_receipt_fill'));
-    expect(ids, contains('review_depth'));
+    expect(ids, isNot(contains('review_depth')));
     expect(ids, contains('auto_capture'));
     expect(ids, isNot(contains('tap_focus')));
     expect(ids, contains('pinch_zoom'));

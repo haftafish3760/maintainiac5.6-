@@ -55,11 +55,9 @@ void main() {
         'settingsStatusStrip.visibility = if (shouldShowSettingsStatusStrip()) {',
       ),
     );
-    expect(cameraActivity, contains('private fun safeReceiptReviewDepth'));
-    expect(cameraActivity, contains('Regex("[\\\\s_-]+")'));
-    expect(cameraActivity, contains('?.lowercase()'));
-    expect(cameraActivity, contains('"detailedlines" -> "detailedLines"'));
-    expect(cameraActivity, contains('"pricesonly" -> "pricesOnly"'));
+    expect(cameraActivity, isNot(contains('safeReceiptReviewDepth')));
+    expect(cameraActivity, contains('reviewDepth = "detailedLines"'));
+    expect(cameraActivity, contains('val depth = "Editable lines"'));
     expect(cameraActivity, contains('Receipt Camera Settings'));
     expect(
       cameraActivity,
@@ -350,7 +348,7 @@ void main() {
     expect(cameraActivity, contains('val assist = if (assistedReceiptFill)'));
     expect(cameraActivity, contains('"Assist on"'));
     expect(cameraActivity, contains('"Manual fill"'));
-    expect(cameraActivity, contains('"Price-only lines"'));
+    expect(cameraActivity, contains('"Editable lines"'));
     expect(cameraActivity, contains('"Long receipt"'));
     expect(cameraActivity, isNot(contains('"Price review"')));
     expect(cameraActivity, isNot(contains('"Long receipt on"')));

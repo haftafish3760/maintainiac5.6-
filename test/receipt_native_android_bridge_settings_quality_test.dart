@@ -295,8 +295,8 @@ void main() {
       );
       expect(guidanceToggleBlock, contains('textTooSmallWarningEnabled'));
       expect(cameraActivity, isNot(contains('Receipt details style')));
-      expect(cameraActivity, contains('safeReceiptReviewDepth'));
-      expect(cameraActivity, contains('reviewDepth = safeReceiptReviewDepth('));
+      expect(cameraActivity, contains('reviewDepth = "detailedLines"'));
+      expect(cameraActivity, isNot(contains('safeReceiptReviewDepth')));
       expect(cameraActivity, isNot(contains('Saved proof size')));
       expect(
         cameraActivity,

@@ -5,45 +5,6 @@ import 'expense_settings_write_queue.dart';
 
 part 'expense_settings_scope.dart';
 
-enum ExpenseReceiptReviewStyle {
-  basicReceipt,
-  simpleAmounts,
-  fullItemDetails,
-  askEachTime;
-
-  static ExpenseReceiptReviewStyle fromName(String? value) {
-    final normalized = value?.trim().toLowerCase();
-    return switch (normalized) {
-      'basicreceipt' => ExpenseReceiptReviewStyle.basicReceipt,
-      'fullitemdetails' => ExpenseReceiptReviewStyle.fullItemDetails,
-      'askeachtime' => ExpenseReceiptReviewStyle.askEachTime,
-      _ => ExpenseReceiptReviewStyle.simpleAmounts,
-    };
-  }
-
-  String get label {
-    return switch (this) {
-      ExpenseReceiptReviewStyle.basicReceipt => 'Simple Receipt',
-      ExpenseReceiptReviewStyle.simpleAmounts => 'Basic Receipt',
-      ExpenseReceiptReviewStyle.fullItemDetails => 'Detailed Receipt',
-      ExpenseReceiptReviewStyle.askEachTime => 'Ask me each time',
-    };
-  }
-
-  String get description {
-    return switch (this) {
-      ExpenseReceiptReviewStyle.basicReceipt =>
-        'Record the store, optional whole-receipt category, final total, and Business, Personal, or Split use.',
-      ExpenseReceiptReviewStyle.simpleAmounts =>
-        'Add category and price lines without quantities or unit-price details. Each line can be Business, Personal, or Split.',
-      ExpenseReceiptReviewStyle.fullItemDetails =>
-        'Preserve editable receipt lines as printed, including quantities, prices, discounts, taxes, and totals. Each line can have its own category and Business, Personal, or Split choice.',
-      ExpenseReceiptReviewStyle.askEachTime =>
-        'Choose Simple, Basic, or Detailed when you begin each receipt.',
-    };
-  }
-}
-
 /// Determines whether a user-approved Expense backup may leave the device.
 /// Manual is the safe default; records always save locally regardless.
 enum ExpenseBackupSyncMode {
@@ -92,11 +53,6 @@ class ExpenseSettingsController extends ChangeNotifier {
   bool get draftReminder => _readBool(_Keys.draftReminder, true);
   bool get receiptEntryGuideSeen =>
       _readBool(_Keys.receiptEntryGuideSeen, false);
-  ExpenseReceiptReviewStyle get receiptReviewStyle {
-    final value = _box.get(_Keys.receiptReviewStyle);
-    return ExpenseReceiptReviewStyle.fromName(value is String ? value : null);
-  }
-
   ExpenseBackupSyncMode get backupSyncMode {
     final value = _box.get(_Keys.backupSyncMode);
     return ExpenseBackupSyncMode.fromName(value is String ? value : null);
@@ -171,7 +127,6 @@ class ExpenseSettingsController extends ChangeNotifier {
       'pushNotifications': pushNotifications,
       'audibleNotifications': audibleNotifications,
       'draftReminder': draftReminder,
-      'receiptReviewStyle': receiptReviewStyle.name,
       'backupSyncMode': backupSyncMode.name,
       'backupScheduleTimesMinutes': backupSchedule.timesMinutesAfterMidnight,
       'backupTransport': backupSchedule.transport.name,
@@ -208,12 +163,6 @@ class ExpenseSettingsController extends ChangeNotifier {
       _writeBool(_Keys.draftReminder, value);
   Future<void> markReceiptEntryGuideSeen() =>
       _writeBool(_Keys.receiptEntryGuideSeen, true);
-  Future<void> setReceiptReviewStyle(ExpenseReceiptReviewStyle value) =>
-      _writes.enqueue(() async {
-        await _box.put(_Keys.receiptReviewStyle, value.name);
-        notifyListeners();
-      });
-
   Future<void> setBackupSyncMode(
     ExpenseBackupSyncMode value, {
     DateTime? nowUtc,
@@ -481,7 +430,6 @@ class _Keys {
   static const audibleNotifications = 'audible_notifications';
   static const draftReminder = 'draft_reminder';
   static const receiptEntryGuideSeen = 'receipt_entry_guide_seen';
-  static const receiptReviewStyle = 'receipt_review_style';
   static const backupSyncMode = 'expense_backup_sync_mode';
   static const backupScheduleTimes = 'expense_backup_schedule_times';
   static const backupTransport = 'expense_backup_transport';

@@ -11,12 +11,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
   Widget _buildLegacyReceiptEntryScaffold(BuildContext context) {
     final showAttachmentBeforeReview = !_receiptReviewFlowStarted;
     final receiptAttachmentPanel = _buildReceiptAttachmentPanel(context);
-    final showSharedReceiptLines =
-        _lines.isNotEmpty &&
-        (_detailEntryMode != _ReceiptDetailEntryMode.basicReceipt ||
-            widget.initialCategory == 'Fuel' ||
-            _isMaterialsFlow ||
-            _isMaintenanceRepairFlow);
+    final showSharedReceiptLines = _lines.isNotEmpty;
     final showClassificationSuggestion =
         _receiptClassification != null &&
         _receiptClassification!.kind !=
@@ -69,11 +64,6 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
             ),
             const SizedBox(height: 8),
             _buildJobContextPanel(context),
-            const SizedBox(height: 8),
-            _ReceiptDetailLevelPanel(
-              selectedMode: _detailEntryMode,
-              onSelected: _selectReceiptDetailMode,
-            ),
             const SizedBox(height: 8),
             if (_isMaterialsFlow) ...[
               _InventoryTrackingPrompt(
@@ -212,10 +202,8 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               materialMode: _isMaterialsFlow,
               maintenanceRepairMode: _isMaintenanceRepairFlow,
               fuelMode: widget.initialCategory == 'Fuel',
-              basicMode:
-                  _detailEntryMode == _ReceiptDetailEntryMode.basicReceipt,
-              detailedMode:
-                  _detailEntryMode == _ReceiptDetailEntryMode.detailedItems,
+              basicMode: false,
+              detailedMode: true,
               onAddBusiness: () => _addReceiptLineForMode(
                 use: _ExpenseLineUse.business,
                 category: _isMaterialsFlow
@@ -240,9 +228,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                       : 'Repair',
                 ),
               ),
-              onSwitchToCategoryLines: () => _selectReceiptDetailMode(
-                _ReceiptDetailEntryMode.quickClassify,
-              ),
+              onSwitchToCategoryLines: () {},
             ),
             const SizedBox(height: 8),
             if (showSharedReceiptLines) ...[
@@ -294,15 +280,6 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               receiptTotalController: _receiptTotalController,
             ),
             const SizedBox(height: 8),
-            if (_detailEntryMode == _ReceiptDetailEntryMode.basicReceipt) ...[
-              _ReceiptSummaryUsePanel(
-                detailMode: _detailEntryMode,
-                selectedCategory: _receiptCategory,
-                onCategorySelected: _selectReceiptCategory,
-                onUseSelected: _setReceiptSummaryUse,
-              ),
-              const SizedBox(height: 8),
-            ],
             _ReceiptSavePanel(
               detailMode: _detailEntryMode,
               lineCount: _lines.length,

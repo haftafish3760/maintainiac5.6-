@@ -1,9 +1,13 @@
 part of 'active_workday_screen.dart';
 
 class _WorkdayContextBar extends StatelessWidget {
-  const _WorkdayContextBar({required this.workProfileName});
+  const _WorkdayContextBar({
+    required this.workProfileName,
+    required this.onChangeContext,
+  });
 
   final String workProfileName;
+  final VoidCallback onChangeContext;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +59,14 @@ class _WorkdayContextBar extends StatelessWidget {
               ),
             ),
             IconButton(
+              tooltip: 'Change vehicle or work profile',
+              onPressed: onChangeContext,
+              icon: const Icon(
+                Icons.swap_horiz_rounded,
+                color: Color(0xFFEAF2F5),
+              ),
+            ),
+            IconButton(
               tooltip: 'Open contractor dashboard',
               onPressed: () => Navigator.of(context).push(
                 appNativeRoute<void>(
@@ -66,11 +78,6 @@ class _WorkdayContextBar extends StatelessWidget {
                 Icons.dashboard_customize_rounded,
                 color: Color(0xFF7CC7FF),
               ),
-            ),
-            const Icon(
-              Icons.lock_outline_rounded,
-              size: 18,
-              color: Color(0xFFC9D9E0),
             ),
           ],
         ),

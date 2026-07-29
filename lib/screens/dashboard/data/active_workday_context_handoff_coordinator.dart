@@ -3,6 +3,8 @@
 // It does not own records or decide whether GPS evidence permits a handoff.
 // Dashboard confirmation UI and app bootstrap consume this coordinator.
 
+import 'package:flutter/widgets.dart';
+
 import '../../../shared/records/maintainiac_durable_record_store.dart';
 import 'active_workday_store.dart';
 
@@ -125,7 +127,8 @@ final class ActiveWorkdayContextHandoffPorts {
   final Future<bool> Function(String vehicleId) switchOdometerVehicle;
   final Future<void> Function(String vehicleId) selectVehicle;
   final Future<void> Function(String profileId) selectWorkProfile;
-  final Future<void> Function(String vehicleId) syncOperationalContext;
+  final Future<void> Function(ActiveWorkdayContextHandoffRequest request)
+  syncOperationalContext;
 }
 
 /// Replays a persisted handoff until every owning store has the same context.
@@ -256,7 +259,7 @@ final class ActiveWorkdayContextHandoffCoordinator {
         record = await _save(request, phase, record);
       }
       if (phase == ActiveWorkdayContextHandoffPhase.profileApplied) {
-        await _ports.syncOperationalContext(request.vehicleId);
+        await _ports.syncOperationalContext(request);
         phase = ActiveWorkdayContextHandoffPhase.contextApplied;
         record = await _save(request, phase, record);
       }
@@ -336,3 +339,24 @@ bool _sameRequest(
     left.endingOdometer == right.endingOdometer &&
     left.startingOdometer == right.startingOdometer &&
     left.occurredAt.toUtc().isAtSameMomentAs(right.occurredAt.toUtc());
+
+/// Makes the one app-wide handoff coordinator available to Dashboard routes.
+class ActiveWorkdayContextHandoffScope extends InheritedWidget {
+  const ActiveWorkdayContextHandoffScope({
+    super.key,
+    required this.coordinator,
+    required super.child,
+  });
+
+  final ActiveWorkdayContextHandoffCoordinator coordinator;
+
+  static ActiveWorkdayContextHandoffCoordinator? maybeOf(
+    BuildContext context,
+  ) => context
+      .dependOnInheritedWidgetOfExactType<ActiveWorkdayContextHandoffScope>()
+      ?.coordinator;
+
+  @override
+  bool updateShouldNotify(ActiveWorkdayContextHandoffScope oldWidget) =>
+      oldWidget.coordinator != coordinator;
+}

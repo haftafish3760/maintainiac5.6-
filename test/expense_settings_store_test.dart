@@ -205,54 +205,15 @@ void main() {
     expect(settings.recapTileVisible('materialsSpend'), isTrue);
   });
 
-  test('receipt review style saves the expense receipt default', () async {
+  test('expense settings no longer persist a receipt type', () async {
     final settings = await ExpenseSettingsController.create();
 
-    expect(
-      settings.receiptReviewStyle,
-      ExpenseReceiptReviewStyle.simpleAmounts,
-    );
-    expect(ExpenseReceiptReviewStyle.basicReceipt.label, 'Simple Receipt');
-    expect(ExpenseReceiptReviewStyle.simpleAmounts.label, 'Basic Receipt');
-    expect(ExpenseReceiptReviewStyle.fullItemDetails.label, 'Detailed Receipt');
-
-    await settings.setReceiptReviewStyle(
-      ExpenseReceiptReviewStyle.fullItemDetails,
-    );
-
-    expect(
-      settings.receiptReviewStyle,
-      ExpenseReceiptReviewStyle.fullItemDetails,
-    );
     expect(
       settings.toBackupMap(
         ownerUid: 'owner',
         exportedAtUtc: DateTime.utc(2026),
       ),
-      containsPair('receiptReviewStyle', 'fullItemDetails'),
-    );
-  });
-
-  test('receipt review style restores padded and case-varied values', () {
-    expect(
-      ExpenseReceiptReviewStyle.fromName(' basicReceipt '),
-      ExpenseReceiptReviewStyle.basicReceipt,
-    );
-    expect(
-      ExpenseReceiptReviewStyle.fromName(' fullItemDetails '),
-      ExpenseReceiptReviewStyle.fullItemDetails,
-    );
-    expect(
-      ExpenseReceiptReviewStyle.fromName('FULLITEMDETAILS'),
-      ExpenseReceiptReviewStyle.fullItemDetails,
-    );
-    expect(
-      ExpenseReceiptReviewStyle.fromName('simpleAmounts'),
-      ExpenseReceiptReviewStyle.simpleAmounts,
-    );
-    expect(
-      ExpenseReceiptReviewStyle.fromName('unknown'),
-      ExpenseReceiptReviewStyle.simpleAmounts,
+      isNot(contains('receiptReviewStyle')),
     );
   });
 
@@ -335,21 +296,6 @@ void main() {
     expect(settings.lastBackupAttemptAt, latest);
     expect(settings.lastSuccessfulBackupAt, latest);
   });
-
-  test(
-    'receipt review style ignores corrupted non-string storage values',
-    () async {
-      final settings = await ExpenseSettingsController.create();
-      final box = Hive.box<dynamic>(ExpenseSettingsController.boxName);
-
-      await box.put('receiptReviewStyle', 17);
-
-      expect(
-        settings.receiptReviewStyle,
-        ExpenseReceiptReviewStyle.simpleAmounts,
-      );
-    },
-  );
 
   test(
     'expense settings scope can be optional for shared receipt widgets',

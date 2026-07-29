@@ -275,6 +275,10 @@ void main() {
       find.byType(TextFormField).at(2),
       'jordan@example.com',
     );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Crew title (optional)'),
+      'Foreman',
+    );
 
     await tester.tap(find.text('Save Employee').first);
     await tester.pumpAndSettle();
@@ -285,6 +289,7 @@ void main() {
     await tester.tap(find.text('Jordan Helper'));
     await tester.pumpAndSettle();
     expect(find.text('Ready to invite'), findsOneWidget);
+    expect(find.text('Foreman'), findsOneWidget);
     await tester.tap(find.text('Queue Invite'));
     await tester.pumpAndSettle();
 

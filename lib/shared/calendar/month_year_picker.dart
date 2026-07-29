@@ -86,8 +86,8 @@ class _CalendarMonthYearPickerSheetState
     );
   }
 
-  int get _firstYear => DateTime.now().year - 10;
-  int get _lastYear => DateTime.now().year + 10;
+  int get _firstYear => 1900;
+  int get _lastYear => 2100;
   int get _yearCount => _lastYear - _firstYear + 1;
 
   @override

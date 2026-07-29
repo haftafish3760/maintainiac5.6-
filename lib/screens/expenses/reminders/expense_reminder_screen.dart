@@ -12,7 +12,9 @@ import '../../../shared/records/maintainiac_record_lifecycle.dart';
 import '../../../shared/state/expense_settings_store.dart';
 
 class ExpenseReminderScreen extends StatefulWidget {
-  const ExpenseReminderScreen({super.key});
+  const ExpenseReminderScreen({super.key, this.initialReminderId});
+
+  final String? initialReminderId;
 
   @override
   State<ExpenseReminderScreen> createState() => _ExpenseReminderScreenState();
@@ -32,6 +34,7 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
   Timer? _draftTimer;
   var _restoringDraft = false;
   var _draftFailureShown = false;
+  var _openedInitialReminder = false;
 
   @override
   void initState() {
@@ -48,6 +51,16 @@ class _ExpenseReminderScreenState extends State<ExpenseReminderScreen>
     _titleController.addListener(_scheduleDraftSave);
     _detailsController.addListener(_scheduleDraftSave);
     unawaited(_openDraftStore());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final id = widget.initialReminderId?.trim() ?? '';
+    if (_openedInitialReminder || id.isEmpty) return;
+    _openedInitialReminder = true;
+    final reminder = ExpenseReminderScope.of(context).recordById(id);
+    if (reminder != null && !reminder.isDeleted) _beginEditing(reminder);
   }
 
   @override

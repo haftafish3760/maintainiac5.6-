@@ -160,7 +160,7 @@ class _ReceiptOcrProofLaneCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Receipt Details And Saved Proof',
+              'Save device space without losing the original reading source',
               style: TextStyle(
                 color: Color(0xFFE8ECEE),
                 fontSize: 12,
@@ -192,7 +192,7 @@ class _ReceiptOcrProofLaneCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              selected.cleanupLabel,
+              '${selected.cleanupLabel} The app reads the clear original first; this choice controls only the saved proof copy.',
               style: const TextStyle(
                 color: Color(0xFFC7D0D4),
                 fontSize: 10.5,

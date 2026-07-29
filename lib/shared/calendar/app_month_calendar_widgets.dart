@@ -21,65 +21,77 @@ class _CalendarDayCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 140),
-      curve: Curves.easeOut,
-      margin: EdgeInsets.zero,
-      decoration: BoxDecoration(
-        color: _cellOverlayColor(),
-        boxShadow: _cellShadows(),
+    return Semantics(
+      label: calendarDayAccessibilityLabel(
+        day: day,
+        entryCount: entryCount,
+        hasScheduled: hasScheduled,
+        hasCompleted: hasCompleted,
+        isOutsideMonth: isOutsideMonth,
       ),
-      child: Stack(
-        children: [
-          Align(
-            alignment: Alignment.topCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 5),
-              child: Text(
-                '${day.day}',
-                style: TextStyle(
-                  color: _dayNumberColor(),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
-                  shadows: _dayNumberShadows(),
-                ),
-              ),
-            ),
-          ),
-          if (!isOutsideMonth && entryCount > 0)
-            Positioned(
-              top: 4,
-              right: 4,
-              child: _CalendarBadge(
-                color: const Color(0xFFFF4F46),
-                label: entryCount > 9 ? '9+' : '$entryCount',
-              ),
-            ),
-          if (!isOutsideMonth)
+      selected: isSelected,
+      excludeSemantics: true,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        curve: Curves.easeOut,
+        margin: EdgeInsets.zero,
+        decoration: BoxDecoration(
+          color: _cellOverlayColor(),
+          boxShadow: _cellShadows(),
+        ),
+        child: Stack(
+          children: [
             Align(
-              alignment: Alignment.bottomCenter,
+              alignment: Alignment.topCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (hasScheduled)
-                      const _CalendarBadge(
-                        color: Color(0xFF29D86D),
-                        label: 'S',
-                      ),
-                    if (hasScheduled && hasCompleted) const SizedBox(width: 3),
-                    if (hasCompleted)
-                      const _CalendarBadge(
-                        color: Color(0xFFFF4F46),
-                        label: 'D',
-                      ),
-                  ],
+                padding: const EdgeInsets.only(top: 5),
+                child: Text(
+                  '${day.day}',
+                  style: TextStyle(
+                    color: _dayNumberColor(),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                    shadows: _dayNumberShadows(),
+                  ),
                 ),
               ),
             ),
-        ],
+            if (!isOutsideMonth && entryCount > 0)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: _CalendarBadge(
+                  color: const Color(0xFFFF4F46),
+                  label: entryCount > 9 ? '9+' : '$entryCount',
+                ),
+              ),
+            if (!isOutsideMonth)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (hasScheduled)
+                        const _CalendarBadge(
+                          color: Color(0xFF29D86D),
+                          label: 'S',
+                        ),
+                      if (hasScheduled && hasCompleted)
+                        const SizedBox(width: 3),
+                      if (hasCompleted)
+                        const _CalendarBadge(
+                          color: Color(0xFFFF4F46),
+                          label: 'D',
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

@@ -22,6 +22,15 @@ extension _WorkSupplyJobFormActions on _WorkSupplyJobFormScreenState {
     });
   }
 
+  Future<void> _pickRepeatUntil() async {
+    final picked = await showAppDatePicker(
+      context: context,
+      initialDate: _repeatUntil ?? _scheduledDay,
+      firstDate: _scheduledDay,
+    );
+    if (picked != null) _change(() => _repeatUntil = picked);
+  }
+
   DateTime _atTime(TimeOfDay time) => DateTime(
     _scheduledDay.year,
     _scheduledDay.month,
@@ -33,13 +42,26 @@ extension _WorkSupplyJobFormActions on _WorkSupplyJobFormScreenState {
   void _save() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     final start = _scheduleJob ? _atTime(_startTime) : null;
-    final end = _scheduleJob ? _atTime(_endTime) : null;
+    final end = _scheduleJob
+        ? _atTime(
+            _endTime,
+          ).add(_endsNextDay ? const Duration(days: 1) : Duration.zero)
+        : null;
     if (start != null && end != null && !end.isAfter(start)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Finish time must be after start time.')),
       );
       return;
     }
+    if (_scheduleJob &&
+        _repeatRule == JobRepeatRule.selectedWeekdays &&
+        _repeatWeekdays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Choose at least one repeat day.')),
+      );
+      return;
+    }
+    final repeatRule = _scheduleJob ? _repeatRule : JobRepeatRule.none;
     _dirty = false;
     Navigator.of(context).pop(
       WorkSupplyJobDraft(
@@ -51,7 +73,12 @@ extension _WorkSupplyJobFormActions on _WorkSupplyJobFormScreenState {
         notes: _notes.text.trim(),
         scheduledStart: start,
         scheduledEnd: end,
-        repeatRule: _repeatRule,
+        scheduleEnabled: _scheduleJob,
+        repeatRule: repeatRule,
+        repeatWeekdays: repeatRule == JobRepeatRule.selectedWeekdays
+            ? (_repeatWeekdays.toList()..sort())
+            : const <int>[],
+        repeatUntil: repeatRule == JobRepeatRule.none ? null : _repeatUntil,
         inAppReminder: _inAppReminder,
         pushReminder: _pushReminder,
         soundReminder: _soundReminder,

@@ -141,7 +141,7 @@ void main() {
     expect(reviewCropAndProofControls, contains('_ReceiptDataSaverReviewCopy'));
     expect(
       reviewCropAndProofControls,
-      contains('Receipt Details And Saved Proof'),
+      contains('Save device space without losing the original reading source'),
     );
     expect(reviewScreen, contains('_deleteGeneratedDataSaverPreviews'));
     expect(reviewScreen, contains('_deleteGeneratedStitchPreview'));

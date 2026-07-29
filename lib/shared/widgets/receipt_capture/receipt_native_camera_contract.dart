@@ -11,7 +11,7 @@ part 'receipt_native_camera_session_ghost_guide.dart';
 enum ReceiptNativeCameraEngine {
   cameraX('CameraX'),
   avFoundation('AVFoundation'),
-  unavailable('Native camera unavailable');
+  unavailable('Receipt camera backup needed');
 
   const ReceiptNativeCameraEngine(this.label);
 
@@ -52,7 +52,7 @@ enum ReceiptNativeFlashMode { off, on, auto }
 
 enum ReceiptNativeImageFormat { jpeg, yuvLiveFrame, rawFuture }
 
-enum ReceiptNativeReviewDepth { pricesOnly, detailedLines }
+enum ReceiptNativeReviewDepth { detailedLines }
 
 class ReceiptNativeCameraSettingDescriptor {
   const ReceiptNativeCameraSettingDescriptor({

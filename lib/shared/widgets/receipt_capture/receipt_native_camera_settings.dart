@@ -3,7 +3,7 @@ part of 'receipt_native_camera_contract.dart';
 class ReceiptNativeCameraSettings {
   const ReceiptNativeCameraSettings({
     this.assistedReceiptFill = false,
-    this.reviewDepth = ReceiptNativeReviewDepth.pricesOnly,
+    this.reviewDepth = ReceiptNativeReviewDepth.detailedLines,
     this.longReceiptMode = true,
     this.manualShutterAlwaysAvailable = true,
     this.autoCaptureEnabled = false,

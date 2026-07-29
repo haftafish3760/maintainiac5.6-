@@ -55,7 +55,7 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var uiLocale = "en-US"
   var settingsContractVersion = "receipt_native_camera_settings_v1"
   var devicePolicyLabel = "balanced_receipt_camera"
-  var reviewDepth = "pricesOnly"
+  var reviewDepth = "detailedLines"
   var focusMode = "continuous"
   var exposureMode = "auto"
   var whiteBalanceMode = "auto"

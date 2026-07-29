@@ -6,6 +6,7 @@ import 'dashboard_panels.dart';
 import 'dashboard_active_day_panel.dart';
 import 'gig_start_day_setup_sheet.dart';
 import 'start_day_panel.dart';
+import 'trip_tracking_setup_sheet.dart';
 import 'vehicle_profile_flow.dart';
 import 'vehicle_profile_widgets.dart';
 import '../../shared/navigation/app_page_routes.dart';
@@ -302,14 +303,42 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
         vehicleLabel: selectedVehicle.nickname,
         usage: selectedVehicle.usage,
       );
+      await operationalContext.setActiveWorkProfile(
+        workProfileId: selectedWorkProfile.id,
+        workProfileName: selectedWorkProfile.name,
+      );
     }
     if (!mounted) return;
-    final confirmedStartOdometer = await openOdometerEntryResult(
-      context,
-      title: 'Enter Current Odometer',
-      saveLabel: 'Start Day',
-      autofocus: false,
-    );
+    int? confirmedStartOdometer;
+    var startGpsWhenOpened = false;
+    // The first GPS choice is part of Start Day, not an afterthought. Do not
+    // create a workday until the user finishes it; Back must return here.
+    while (mounted) {
+      confirmedStartOdometer = await openOdometerEntryResult(
+        context,
+        title: 'Enter Current Odometer',
+        saveLabel: 'Continue',
+        autofocus: false,
+      );
+      if (!mounted || confirmedStartOdometer == null) return;
+      final settingsController = TripTrackingSettingsScope.maybeOf(context);
+      final settings = settingsController?.settings;
+      if (settingsController == null || settings == null) break;
+      if (!settings.tripTrackingSetupCompleted) {
+        final setup = await openTripTrackingSetupSheet(
+          context,
+          currentSettings: settings,
+        );
+        if (!mounted) return;
+        if (setup == null) continue;
+        await settingsController.update(setup.settings);
+        if (!mounted) return;
+        startGpsWhenOpened = setup.action == TripTrackingSetupAction.start;
+      } else {
+        startGpsWhenOpened = settings.gpsAssistedTrackingEnabled;
+      }
+      break;
+    }
     if (!mounted || confirmedStartOdometer == null) return;
     if (!mounted) return;
     await activeWorkday.startDay(
@@ -322,16 +351,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
     _openActiveWorkday(
       activeVehicle: selectedVehicle,
       activeWorkProfileName: selectedWorkProfile.name,
-      promptForTripTrackingSetup:
-          TripTrackingSettingsScope.maybeOf(
-            context,
-          )?.settings.tripTrackingSetupCompleted ==
-          false,
-      startGpsWhenOpened:
-          TripTrackingSettingsScope.maybeOf(
-            context,
-          )?.settings.gpsAssistedTrackingEnabled ==
-          true,
+      startGpsWhenOpened: startGpsWhenOpened,
     );
   }
 

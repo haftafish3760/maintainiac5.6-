@@ -36,8 +36,11 @@ class _WorkSupplyJobFormScreenState extends State<WorkSupplyJobFormScreen> {
   late DateTime _scheduledDay;
   var _startTime = const TimeOfDay(hour: 8, minute: 0);
   var _endTime = const TimeOfDay(hour: 9, minute: 0);
+  var _endsNextDay = false;
   var _scheduleJob = true;
   var _repeatRule = JobRepeatRule.none;
+  final _repeatWeekdays = <int>{};
+  DateTime? _repeatUntil;
   var _inAppReminder = false;
   var _pushReminder = false;
   var _soundReminder = false;
@@ -69,6 +72,30 @@ class _WorkSupplyJobFormScreenState extends State<WorkSupplyJobFormScreen> {
       _clientEmail.text = initial.clientEmail;
       _serviceAddress.text = initial.serviceAddress;
       _notes.text = initial.notes;
+      _scheduleJob = initial.scheduleEnabled;
+      _repeatRule = initial.repeatRule;
+      _repeatWeekdays.addAll(initial.repeatWeekdays);
+      _repeatUntil = initial.repeatUntil;
+      _inAppReminder = initial.inAppReminder;
+      _pushReminder = initial.pushReminder;
+      _soundReminder = initial.soundReminder;
+      _reminderLeadMinutes = initial.reminderLeadMinutes;
+      final scheduledStart = initial.scheduledStart;
+      final scheduledEnd = initial.scheduledEnd;
+      if (scheduledStart != null) {
+        _scheduledDay = DateTime(
+          scheduledStart.year,
+          scheduledStart.month,
+          scheduledStart.day,
+        );
+        _startTime = TimeOfDay.fromDateTime(scheduledStart);
+      }
+      if (scheduledEnd != null) {
+        _endTime = TimeOfDay.fromDateTime(scheduledEnd);
+        if (scheduledStart != null) {
+          _endsNextDay = !DateUtils.isSameDay(scheduledStart, scheduledEnd);
+        }
+      }
     }
     for (final controller in _controllers) {
       controller.addListener(_markDirty);
@@ -108,7 +135,10 @@ class _WorkSupplyJobFormScreenState extends State<WorkSupplyJobFormScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              AppScreenHeader(title: 'Create Job', onBack: _requestClose),
+              AppScreenHeader(
+                title: widget.initialDraft == null ? 'Create Job' : 'Edit Job',
+                onBack: _requestClose,
+              ),
               Expanded(
                 child: Form(
                   key: _formKey,

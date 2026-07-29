@@ -2539,6 +2539,40 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
     tags: {'inventory', 'generated-fixtures', 'surgical', 'performance'},
   ),
   MaintainiacSurgicalTestSelector(
+    id: 'maintainiac_firestore_upload_queue_server_reservation_obtained_once',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName:
+        'server reservation is obtained once before a hosted batch writes',
+    reason: 'Run only the hosted batch reservation behavior.',
+    tags: {'durable-storage', 'hosted-sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'maintainiac_firestore_upload_queue_failed_reservation_preserves_pending',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName: 'failed hosted reservation preserves every pending write',
+    reason: 'Run only the failed hosted reservation preservation behavior.',
+    tags: {'durable-storage', 'hosted-sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'maintainiac_firestore_upload_queue_empty_queue_skips_reservation',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName: 'empty hosted queue does not consume a server reservation',
+    reason: 'Run only the empty hosted queue reservation behavior.',
+    tags: {'durable-storage', 'hosted-sync', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'maintainiac_firestore_upload_queue_unchanged_pending_document_deduplication',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_firestore_upload_queue_test.dart',
+    plainName:
+        'deduplicates an unchanged pending document without resetting it',
+    reason: 'Run only unchanged pending document deduplication.',
+    tags: {'durable-storage', 'deduplication', 'regression'},
+  ),
+  MaintainiacSurgicalTestSelector(
     id: 'maintainiac_firestore_upload_queue_refuses_a_retry_ledger_write_when_device_storage_is_critical',
     scope: MaintainiacSurgicalTestScope.singleBehavior,
     file: 'test/maintainiac_firestore_upload_queue_test.dart',
@@ -2711,6 +2745,14 @@ const maintainiacSurgicalTestSelectorRegistry = MaintainiacSurgicalTestSelectorR
         'a failed upload retries successfully after a local queue restart',
     reason: 'Run only this focused behavior after its owning system changes.',
     tags: {'durable-storage', 'regression', 'privacy'},
+  ),
+  MaintainiacSurgicalTestSelector(
+    id: 'maintainiac_hosted_cache_concurrent_stores_preserve_global_bound',
+    scope: MaintainiacSurgicalTestScope.singleBehavior,
+    file: 'test/maintainiac_hosted_cache_test.dart',
+    plainName: 'concurrent stores preserve the global cache record bound',
+    reason: 'Run only concurrent hosted cache global-bound enforcement.',
+    tags: {'hosted-cache', 'concurrency', 'regression'},
   ),
   MaintainiacSurgicalTestSelector(
     id: 'maintainiac_hosted_cache_treats_a_tampered_persisted_cache_value_as_a_cache_miss',

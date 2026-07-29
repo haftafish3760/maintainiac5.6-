@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/jobs/maintainiac_job_store.dart';
+import 'package:maintaniac/shared/jobs/maintainiac_job_schedule_exception.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
@@ -183,6 +184,89 @@ void main() {
     },
   );
 
+  test('round-trips bounded selected-weekday schedules', () async {
+    final controller = MaintainiacJobController.memory();
+    final start = DateTime(2026, 7, 27, 8, 30);
+    final saved = await controller.save(
+      MaintainiacJobRecord(
+        id: 'JOB-weekdays',
+        name: 'Route service',
+        scheduledStart: start,
+        repeatRule: 'selectedWeekdays',
+        repeatWeekdays: const [DateTime.wednesday, DateTime.monday],
+        repeatUntil: DateTime(2026, 8, 31),
+        createdAt: start,
+        updatedAt: start,
+      ),
+    );
+
+    final restored = MaintainiacJobRecord.fromMap(saved.toMap());
+    expect(restored.repeatWeekdays, [DateTime.monday, DateTime.wednesday]);
+    expect(restored.repeatUntil, DateTime(2026, 8, 31));
+  });
+
+  test('allows an audible job reminder without push delivery', () async {
+    final controller = MaintainiacJobController.memory();
+    addTearDown(controller.dispose);
+    final now = DateTime(2026, 7, 29, 8);
+
+    await controller.save(
+      MaintainiacJobRecord(
+        id: 'JOB-audio-only',
+        name: 'Audio-only reminder visit',
+        scheduledStart: now,
+        soundReminder: true,
+        reminderLeadMinutes: 30,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+
+    final saved = controller.jobs.singleWhere(
+      (candidate) => candidate.id == 'JOB-audio-only',
+    );
+    expect(saved.soundReminder, isTrue);
+    expect(saved.pushReminder, isFalse);
+  });
+
+  test(
+    'round-trips source-owned skipped and rescheduled occurrences',
+    () async {
+      final controller = MaintainiacJobController.memory();
+      final start = DateTime(2026, 7, 27, 8);
+      final saved = await controller.save(
+        MaintainiacJobRecord(
+          id: 'JOB-exceptions',
+          name: 'Recurring service',
+          scheduledStart: start,
+          scheduledEnd: start.add(const Duration(hours: 2)),
+          repeatRule: 'weekly',
+          scheduleExceptions: [
+            MaintainiacJobScheduleException(
+              day: DateTime(2026, 8, 3),
+              startOverride: DateTime(2026, 8, 3, 9),
+              endOverride: DateTime(2026, 8, 3, 11),
+            ),
+            MaintainiacJobScheduleException(
+              day: DateTime(2026, 8, 10),
+              cancelled: true,
+            ),
+          ],
+          createdAt: start,
+          updatedAt: start,
+        ),
+      );
+
+      final restored = MaintainiacJobRecord.fromMap(saved.toMap());
+      expect(restored.scheduleExceptions, hasLength(2));
+      expect(
+        restored.scheduleExceptions.first.startOverride,
+        DateTime(2026, 8, 3, 9),
+      );
+      expect(restored.scheduleExceptions.last.cancelled, isTrue);
+    },
+  );
+
   test('rejects unsafe references and invalid schedule windows', () async {
     final controller = MaintainiacJobController.memory();
     final now = DateTime.utc(2026, 7, 22);
@@ -192,6 +276,51 @@ void main() {
         MaintainiacJobRecord(
           id: 'JOB/unsafe',
           name: 'Unsafe job',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      controller.save(
+        MaintainiacJobRecord(
+          id: 'JOB-off-schedule',
+          name: 'Off schedule exception',
+          scheduledStart: DateTime(2026, 7, 27, 8),
+          repeatRule: 'weekly',
+          scheduleExceptions: [
+            MaintainiacJobScheduleException(day: DateTime(2026, 7, 28)),
+          ],
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      controller.save(
+        MaintainiacJobRecord(
+          id: 'JOB-duplicate-exception',
+          name: 'Duplicate exception',
+          scheduledStart: now,
+          scheduleExceptions: [
+            MaintainiacJobScheduleException(day: now),
+            MaintainiacJobScheduleException(day: now),
+          ],
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ),
+      throwsArgumentError,
+    );
+    await expectLater(
+      controller.save(
+        MaintainiacJobRecord(
+          id: 'JOB-no-days',
+          name: 'No weekdays',
+          scheduledStart: now,
+          repeatRule: 'selectedWeekdays',
           createdAt: now,
           updatedAt: now,
         ),

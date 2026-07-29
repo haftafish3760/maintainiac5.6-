@@ -32,11 +32,13 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
   final _phone = TextEditingController();
   final _email = TextEditingController();
   final _rate = TextEditingController();
+  final _crewTitle = TextEditingController();
   var _role = UserRole.helper;
   var _vehicle = 'Work Truck 1';
   var _payType = 'hourly';
   var _payFrequency = 'weekly';
   var _payPeriodStartDay = 'monday';
+  DateTime? _payPeriodAnchorDate;
   var _customizedPermissions = false;
   late Set<String> _structuredPermissions;
   final Map<String, Set<String>> _allowedRolesByPermission = {};
@@ -54,6 +56,7 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
     _phone.dispose();
     _email.dispose();
     _rate.dispose();
+    _crewTitle.dispose();
     super.dispose();
   }
 
@@ -124,6 +127,11 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
                   const _SetupNote(),
                   const SizedBox(height: 8),
                   _roleDropdown(),
+                  _field(
+                    _crewTitle,
+                    'Crew title (optional)',
+                    inputFormatters: [LengthLimitingTextInputFormatter(80)],
+                  ),
                   const SizedBox(height: 8),
                   _permissionSetupButton(),
                 ],
@@ -182,8 +190,12 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
                         'semimonthly': 'Twice a month',
                         'monthly': 'Monthly',
                       },
-                      onChanged: (value) =>
-                          setState(() => _payFrequency = value),
+                      onChanged: (value) => setState(() {
+                        _payFrequency = value;
+                        _payPeriodAnchorDate ??= _alignedPayPeriodAnchor(
+                          DateTime.now(),
+                        );
+                      }),
                     ),
                   ),
                   SizedBox(
@@ -208,10 +220,27 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
                         'saturday': 'Starts Saturday',
                         'sunday': 'Starts Sunday',
                       },
-                      onChanged: (value) =>
-                          setState(() => _payPeriodStartDay = value),
+                      onChanged: (value) => setState(() {
+                        _payPeriodStartDay = value;
+                        final anchor = _payPeriodAnchorDate;
+                        if (anchor != null) {
+                          _payPeriodAnchorDate = _alignedPayPeriodAnchor(
+                            anchor,
+                          );
+                        }
+                      }),
                     ),
                   ),
+                  if (_payFrequency == 'biweekly')
+                    SizedBox(
+                      width: 250,
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('pay-period-anchor-button'),
+                        onPressed: _selectPayPeriodAnchor,
+                        icon: const Icon(Icons.event_repeat_rounded),
+                        label: Text('Cycle begins: $_payPeriodAnchorLabel'),
+                      ),
+                    ),
                   SizedBox(width: 170, child: _field(_rate, 'Gross rate')),
                   SizedBox(
                     width: 250,
@@ -251,13 +280,24 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
+    if (_rate.text.trim().isNotEmpty &&
+        employeePayRateCents(_rate.text) == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Enter a valid non-negative gross pay rate.'),
+        ),
+      );
+      return;
+    }
     final profile = UserProfileScope.maybeOf(context)?.activeProfile;
     final record = EmployeeDirectoryRecord.create(
       ownerProfileId: profile?.id ?? 'local-owner',
       name: _name.text,
       phone: _formatPhone(_phone.text),
       email: _email.text,
-      roleLabel: _role.label,
+      roleLabel: _crewTitle.text.trim().isEmpty
+          ? _role.label
+          : _crewTitle.text.trim(),
       roleName: _role.name,
       customizedRole: _customizedPermissions,
       permissions: permissionsForRole(_role),
@@ -268,9 +308,48 @@ class _EmployeeAddScreenState extends State<EmployeeAddScreen> {
       payFrequency: _payFrequency,
       grossRate: _rate.text,
       payPeriodStartDay: _payPeriodStartDay,
+      payPeriodAnchorDate:
+          _payPeriodAnchorDate ?? _alignedPayPeriodAnchor(DateTime.now()),
       assignedVehicleLabel: _vehicle,
     );
     widget.onSave(record);
     Navigator.of(context).maybePop();
+  }
+
+  String get _payPeriodAnchorLabel {
+    final day = _payPeriodAnchorDate ?? _alignedPayPeriodAnchor(DateTime.now());
+    return '${day.month}/${day.day}/${day.year}';
+  }
+
+  DateTime _alignedPayPeriodAnchor(DateTime value) {
+    const weekdays = {
+      'monday': DateTime.monday,
+      'tuesday': DateTime.tuesday,
+      'wednesday': DateTime.wednesday,
+      'thursday': DateTime.thursday,
+      'friday': DateTime.friday,
+      'saturday': DateTime.saturday,
+      'sunday': DateTime.sunday,
+    };
+    final target = weekdays[_payPeriodStartDay] ?? DateTime.monday;
+    final day = DateTime(value.year, value.month, value.day);
+    return DateTime(
+      day.year,
+      day.month,
+      day.day - (day.weekday - target + 7) % 7,
+    );
+  }
+
+  Future<void> _selectPayPeriodAnchor() async {
+    final chosen = await showDatePicker(
+      context: context,
+      initialDate:
+          _payPeriodAnchorDate ?? _alignedPayPeriodAnchor(DateTime.now()),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: 'Choose the first day of this pay cycle',
+    );
+    if (!mounted || chosen == null) return;
+    setState(() => _payPeriodAnchorDate = _alignedPayPeriodAnchor(chosen));
   }
 }

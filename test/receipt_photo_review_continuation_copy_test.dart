@@ -26,7 +26,10 @@ void main() {
     final models = await readReceiptCaptureModelsSource();
     expect(controls, contains('Opening receipt details'));
     expect(controls, contains('Review Photos'));
-    expect(cropAndProofControls, contains('Receipt Details And Saved Proof'));
+    expect(
+      cropAndProofControls,
+      contains('Save device space without losing the original reading source'),
+    );
     expect(cropAndProofControls, contains('Use Clear Photo'));
     expect(cropAndProofControls, contains('Save Small Copy'));
     expect(controls, contains('selectedReviewGuidance'));

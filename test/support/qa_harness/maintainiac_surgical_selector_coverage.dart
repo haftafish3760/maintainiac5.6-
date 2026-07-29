@@ -388,7 +388,11 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
       plainNames: {
         'queues safe documents but does not upload while disabled',
         'uploads enabled batches and marks records uploaded',
+        'server reservation is obtained once before a hosted batch writes',
+        'failed hosted reservation preserves every pending write',
+        'empty hosted queue does not consume a server reservation',
         'replaces pending documents for the same path',
+        'deduplicates an unchanged pending document without resetting it',
         'retains failed writes with retry metadata',
         'enforces max batch size even when caller asks for more',
         'rejects unsafe paths, sensitive fields, and per-item catalog reads',
@@ -428,6 +432,7 @@ const maintainiacSurgicalSelectorCoverage = MaintainiacSurgicalSelectorCoverage(
         'sha256 fingerprint is stable regardless of map key order',
         'treats a tampered persisted cache value as a cache miss',
         'malformed persisted cache data keys are sanitized on restore',
+        'concurrent stores preserve the global cache record bound',
       },
     ),
     MaintainiacSurgicalCoverageExpectation(

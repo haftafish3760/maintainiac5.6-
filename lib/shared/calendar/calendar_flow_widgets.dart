@@ -36,77 +36,84 @@ class CalendarTimelineItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final meta = calendarEntryMeta(entry.type);
 
-    return SizedBox(
-      height: 64,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Material(
-          color: const Color(0xFF2A3135),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
-            side: BorderSide(color: _statusBorderColor(entry.status)),
-          ),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(5),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: 42,
-                    child: Text(
-                      calendarTimeLabel(entry.timestamp),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xFFE2E8EA),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                        height: 1,
+    return Semantics(
+      button: true,
+      label: calendarTimelineAccessibilityLabel(entry),
+      hint: 'Open ${entry.source} details',
+      onTap: onTap,
+      excludeSemantics: true,
+      child: SizedBox(
+        height: 64,
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Material(
+            color: const Color(0xFF2A3135),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+              side: BorderSide(color: _statusBorderColor(entry.status)),
+            ),
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(5),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 42,
+                      child: Text(
+                        entry.timeLabel ?? calendarTimeLabel(entry.timestamp),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Color(0xFFE2E8EA),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          height: 1,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(meta.icon, color: meta.color, size: 21),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entry.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFFE2E8EA),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w900,
-                            height: 1.05,
+                    const SizedBox(width: 8),
+                    Icon(meta.icon, color: meta.color, size: 21),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            entry.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFE2E8EA),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              height: 1.05,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          entry.summary,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Color(0xFFB7C4CA),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            height: 1.05,
+                          const SizedBox(height: 2),
+                          Text(
+                            entry.summary,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Color(0xFFB7C4CA),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              height: 1.05,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    _statusIcon(entry.status),
-                    color: _statusColor(entry.status),
-                    size: 18,
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    Icon(
+                      _statusIcon(entry.status),
+                      color: _statusColor(entry.status),
+                      size: 18,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -139,6 +146,19 @@ class CalendarTimelineItem extends StatelessWidget {
     };
   }
 }
+
+String calendarTimelineAccessibilityLabel(CalendarTimelineEntry entry) {
+  final time = entry.timeLabel ?? calendarTimeLabel(entry.timestamp);
+  return '$time. ${entry.title}. ${entry.summary}. '
+      'Status: ${_calendarEntryStatusLabel(entry.status)}.';
+}
+
+String _calendarEntryStatusLabel(CalendarEntryStatus status) =>
+    switch (status) {
+      CalendarEntryStatus.planned => 'Planned',
+      CalendarEntryStatus.completed => 'Confirmed',
+      CalendarEntryStatus.needsAttention => 'Needs review',
+    };
 
 class CalendarEntryDetailPanel extends StatelessWidget {
   const CalendarEntryDetailPanel({
@@ -180,7 +200,7 @@ class CalendarEntryDetailPanel extends StatelessWidget {
                 ),
               ),
               Text(
-                calendarTimeLabel(entry.timestamp),
+                entry.timeLabel ?? calendarTimeLabel(entry.timestamp),
                 style: const TextStyle(
                   color: Color(0xFF4FE8FF),
                   fontWeight: FontWeight.w900,
@@ -236,6 +256,9 @@ String calendarTimeLabel(DateTime time) {
   final suffix = time.hour >= 12 ? 'PM' : 'AM';
   return '$hour:$minute $suffix';
 }
+
+String calendarDateTimeLabel(DateTime time) =>
+    '${time.month}/${time.day}/${time.year} ${calendarTimeLabel(time)}';
 
 class CalendarRecapStrip extends StatelessWidget {
   const CalendarRecapStrip({super.key, required this.items});

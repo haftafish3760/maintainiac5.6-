@@ -8,6 +8,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/maintaniac_app.dart';
 import 'screens/dashboard/active_workday_actions.dart';
+import 'screens/dashboard/data/active_workday_context_handoff_coordinator.dart';
 import 'screens/dashboard/data/active_workday_store.dart';
 import 'screens/dashboard/data/dashboard_firestore_mirror.dart';
 import 'screens/dashboard/data/dashboard_trip_tracking_summary_reporter.dart';
@@ -29,6 +30,7 @@ import 'shared/device_capabilities/device_capabilities.dart';
 import 'shared/jobs/maintainiac_job_store.dart';
 import 'shared/maps/mapbox_runtime.dart';
 import 'shared/profiles/user_profile_store.dart';
+import 'shared/profiles/employee_work_time_store.dart';
 import 'shared/records/maintainiac_durable_record_store.dart';
 import 'shared/signatures/app_signature_store.dart';
 import 'shared/state/global_odometer.dart';
@@ -75,6 +77,7 @@ Future<void> main() async {
   final signatureStore = await AppSignatureStore.create();
   final invoiceLedger = await InvoiceLedgerStore.create();
   final userProfiles = await UserProfileController.create();
+  final employeeWorkTime = await EmployeeWorkTimeController.createOrMemory();
   final appState = await AppStateController.create();
   ExpenseCloudBackupMirror expenseCloudBackup =
       const NoopExpenseCloudBackupMirror();
@@ -124,6 +127,10 @@ Future<void> main() async {
     activeVehicleUsage:
         appState.activeVehicle?.usage ?? VehicleUsage.businessPersonal,
   );
+  await operationalContext.setActiveWorkProfile(
+    workProfileId: expenseWorkProfiles.activeWorkProfile.id,
+    workProfileName: expenseWorkProfiles.activeWorkProfile.name,
+  );
   final odometerSnapshot = odometerStore.snapshotForVehicle(activeVehicleId);
   final globalOdometer = GlobalOdometerController(
     vehicleId: odometerSnapshot.vehicleId,
@@ -149,6 +156,58 @@ Future<void> main() async {
   final durableRecordStore = await MaintainiacDurableRecordStore.create(
     'maintainiac_durable_records',
   );
+  final activeWorkdayContextHandoffs = ActiveWorkdayContextHandoffCoordinator(
+    records: durableRecordStore,
+    ports: ActiveWorkdayContextHandoffPorts(
+      activeSession: () => activeWorkday.activeSession,
+      applyWorkdayBoundary: (request) => activeWorkday.handoffContext(
+        vehicleId: request.vehicleId,
+        vehicleLabel: request.vehicleLabel,
+        workProfileId: request.workProfileId,
+        endingOdometer: request.endingOdometer,
+        startingOdometer: request.startingOdometer,
+        occurredAt: request.occurredAt,
+      ),
+      switchOdometerVehicle: (vehicleId) => globalOdometer.switchVehicleById(
+        odometerVehicleIdForVehicleId(vehicleId),
+      ),
+      selectVehicle: (vehicleId) async {
+        final vehicle = appState.vehicleById(vehicleId);
+        if (vehicle == null || vehicle.isArchived) {
+          throw StateError('The selected vehicle is not available.');
+        }
+        await appState.selectVehicle(vehicle);
+      },
+      selectWorkProfile: (profileId) async {
+        final profile = expenseWorkProfiles.profileById(profileId);
+        if (profile == null || profile.isArchived) {
+          throw StateError('The selected work profile is not available.');
+        }
+        await expenseWorkProfiles.select(profile.id);
+      },
+      syncOperationalContext: (request) async {
+        final vehicle = appState.vehicleById(request.vehicleId);
+        final profile = expenseWorkProfiles.profileById(request.workProfileId);
+        if (vehicle == null ||
+            vehicle.isArchived ||
+            profile == null ||
+            profile.isArchived) {
+          throw StateError('The selected work context is not available.');
+        }
+        await operationalContext.save(
+          operationalContext.context.copyWith(
+            activeVehicleId: globalOdometer.vehicleId,
+            activeVehicleLabel: vehicle.nickname,
+            activeVehicleUsage: vehicle.usage,
+            workProfileId: profile.id,
+            workProfileName: profile.name,
+            updatedAt: DateTime.now(),
+          ),
+        );
+      },
+    ),
+  );
+  await activeWorkdayContextHandoffs.recoverPending();
   DashboardFirestoreMirror? dashboardMirror;
   if (firebaseSupported && userProfiles.activeProfile.id.trim().isNotEmpty) {
     final queueStore = await MaintainiacFirestoreUploadQueueStore.create();
@@ -312,29 +371,35 @@ Future<void> main() async {
                       controller: expenseExports,
                       child: ReceiptCaptureSettingsScope(
                         controller: receiptCaptureSettings,
-                        child: ActiveWorkdayScope(
-                          controller: activeWorkday,
-                          child: WorkdayQuickActionLayoutScope(
-                            controller: quickActionLayout,
-                            child: GlobalOdometerScope(
-                              controller: globalOdometer,
-                              child: TripTrackingSettingsScope(
-                                controller: tripTrackingSettings,
-                                child: TripTrackingScope(
-                                  controller: tripTracking,
-                                  child: IncomingReceiptShareScope(
-                                    controller: incomingReceiptShare,
-                                    child: AppSignatureStoreScope(
-                                      store: signatureStore,
-                                      child: UserProfileScope(
-                                        controller: userProfiles,
-                                        child: OperationalContextScope(
-                                          controller: operationalContext,
-                                          child: InvoiceLedgerScope(
-                                            controller: invoiceLedger,
-                                            child: MaintaniacApp(
-                                              bluetoothTripRuntime:
-                                                  bluetoothTripRuntime,
+                        child: ActiveWorkdayContextHandoffScope(
+                          coordinator: activeWorkdayContextHandoffs,
+                          child: ActiveWorkdayScope(
+                            controller: activeWorkday,
+                            child: WorkdayQuickActionLayoutScope(
+                              controller: quickActionLayout,
+                              child: GlobalOdometerScope(
+                                controller: globalOdometer,
+                                child: TripTrackingSettingsScope(
+                                  controller: tripTrackingSettings,
+                                  child: TripTrackingScope(
+                                    controller: tripTracking,
+                                    child: IncomingReceiptShareScope(
+                                      controller: incomingReceiptShare,
+                                      child: AppSignatureStoreScope(
+                                        store: signatureStore,
+                                        child: UserProfileScope(
+                                          controller: userProfiles,
+                                          child: EmployeeWorkTimeScope(
+                                            controller: employeeWorkTime,
+                                            child: OperationalContextScope(
+                                              controller: operationalContext,
+                                              child: InvoiceLedgerScope(
+                                                controller: invoiceLedger,
+                                                child: MaintaniacApp(
+                                                  bluetoothTripRuntime:
+                                                      bluetoothTripRuntime,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),

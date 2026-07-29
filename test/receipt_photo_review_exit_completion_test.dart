@@ -53,7 +53,14 @@ void main() {
     expect(saveActions, contains('receiptBrainDiagnosticsSource'));
     expect(saveActions, contains('receipt_photo_review_default_local_policy'));
     expect(saveActions, contains('if (!beginReceiptReviewClose()) return;'));
-    expect(saveActions, contains('navigator.pop(keptForLaterResult);'));
+    expect(
+      saveActions,
+      contains(
+        'final reviewResult = action == _ReceiptReviewExitAction.saveDraft',
+      ),
+    );
+    expect(saveActions, contains('ReceiptPhotoReviewResult.discardedByUser'));
+    expect(saveActions, contains('navigator.pop(reviewResult);'));
     expect(saveActions, contains('bool beginReceiptReviewClose()'));
     expect(
       saveActions,
@@ -81,8 +88,18 @@ void main() {
       saveActions,
       isNot(contains('Receipt details have not been filled yet.')),
     );
-    expect(saveActions, contains('You can return to this photo later.'));
-    expect(saveActions, contains('You can return to these photos later.'));
+    expect(
+      saveActions,
+      contains(
+        'Save Draft keeps this photo on this device so you can return later. Exit Without Saving discards it.',
+      ),
+    );
+    expect(
+      saveActions,
+      contains(
+        'Save Draft keeps these photos on this device so you can return later. Exit Without Saving discards them.',
+      ),
+    );
     expect(
       saveActions,
       contains(
@@ -284,28 +301,23 @@ void main() {
     expect(orderControls, contains('Receipt details open in this order.'));
     expect(stitchControls, contains("'Photos aligned'"));
     expect(stitchControls, contains("'Photos will stay separate'"));
-    expect(stitchControls, contains('Checking photo order and repeated receipt lines.'));
     expect(
       stitchControls,
-      contains(
-        'The sections matched and will open as one receipt.',
-      ),
+      contains('Checking photo order and repeated receipt lines.'),
+    );
+    expect(
+      stitchControls,
+      contains('The sections matched and will open as one receipt.'),
     );
     expect(stitchControls, contains('the originals remain unchanged'));
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
-    expect(
-      reviewScreen,
-      contains('Align repeated lines'),
-    );
+    expect(reviewScreen, contains('Align repeated lines'));
     expect(reviewScreen, isNot(contains('match guide')));
     expect(reviewScreen, contains('maxScale: 6'));
     expect(stitchControls, contains('Previous Pair'));
     expect(stitchControls, contains('Next Pair'));
     expect(stitchControls, isNot(contains('_ReceiptStitchEvidenceChip')));
-    expect(
-      stitchControls,
-      contains("final duplicatePhoto ="),
-    );
+    expect(stitchControls, contains("final duplicatePhoto ="));
     expect(stitchControls, contains("'Remove Duplicate Photo'"));
     expect(stitchControls, contains("'Reorder Photos'"));
     expect(stitchControls, isNot(contains("'Fix \$failedPairLabel'")));
@@ -315,10 +327,7 @@ void main() {
       contains('You can still use these photos, but review '),
     );
     expect(commonControls, contains('every line before saving.'));
-    expect(
-      stitchControls,
-      contains('the originals remain unchanged.'),
-    );
+    expect(stitchControls, contains('the originals remain unchanged.'));
   });
 
   test('reviewed receipt photos announce app fill handoff safely', () async {

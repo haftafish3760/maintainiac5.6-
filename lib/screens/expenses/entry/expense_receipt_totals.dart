@@ -21,13 +21,8 @@ class _ReceiptSavePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final issueCount = reviewCount + splitPercentIssueCount;
     final canSave = lineCount > 0 && total > 0;
-    final saveLabel = switch (detailMode) {
-      _ReceiptDetailEntryMode.basicReceipt => 'Save Receipt | ${_money(total)}',
-      _ReceiptDetailEntryMode.quickClassify =>
-        'Save Categorized Receipt | ${_money(total)}',
-      _ReceiptDetailEntryMode.detailedItems =>
-        'Save $lineCount ${lineCount == 1 ? 'Item' : 'Items'} | ${_money(total)}',
-    };
+    final saveLabel =
+        'Save $lineCount ${lineCount == 1 ? 'Item' : 'Items'} | ${_money(total)}';
     return ReceiptFormPanel(
       title: 'Save Receipt',
       subtitle: canSave
@@ -128,9 +123,6 @@ class _ReceiptTotalsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showDetailedAmounts =
-        detailMode == _ReceiptDetailEntryMode.detailedItems;
-    final priceOnly = detailMode == _ReceiptDetailEntryMode.basicReceipt;
     final enteredSubtotal = _parseMoneyInput(receiptSubtotalController.text);
     final enteredTax = _parseMoneyInput(salesTaxController.text);
     final enteredTotal = _parseMoneyInput(receiptTotalController.text);
@@ -148,17 +140,12 @@ class _ReceiptTotalsPanel extends StatelessWidget {
         : inferredTax / enteredSubtotal;
 
     return ReceiptFormPanel(
-      title: priceOnly ? 'Receipt Price' : 'Receipt Total',
-      subtitle: showDetailedAmounts
-          ? 'Review the subtotal, sales tax, and final total exactly as printed.'
-          : priceOnly
-          ? 'Review the final price paid. The original receipt stays attached as proof.'
-          : 'Review the final total after sales tax, then choose All Business or All Personal.',
+      title: 'Receipt Total',
+      subtitle: 'Review the subtotal, sales tax, and final total exactly as printed.',
       icon: Icons.calculate_rounded,
       accentColor: const Color(0xFF58D67D),
       children: [
-        if (showDetailedAmounts)
-          Container(
+        Container(
             padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
             decoration: BoxDecoration(
               color: const Color(0xFF101719),
@@ -190,9 +177,8 @@ class _ReceiptTotalsPanel extends StatelessWidget {
               ],
             ),
           ),
-        if (showDetailedAmounts) const SizedBox(height: 8),
-        if (showDetailedAmounts)
-          Row(
+        const SizedBox(height: 8),
+        Row(
             children: [
               Expanded(
                 child: RecordTextField(
@@ -219,13 +205,12 @@ class _ReceiptTotalsPanel extends StatelessWidget {
           ),
         const SizedBox(height: 8),
         RecordTextField(
-          label: priceOnly ? 'Price Paid' : 'Final Total After Tax',
+          label: 'Final Total After Tax',
           controller: receiptTotalController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           helperText: 'Final amount paid, including sales tax.',
         ),
-        if (showDetailedAmounts &&
-            (inferredTax != null || taxRate != null)) ...[
+        if (inferredTax != null || taxRate != null) ...[
           const SizedBox(height: 8),
           _ReceiptTaxHint(tax: inferredTax ?? 0, taxRate: taxRate),
         ],

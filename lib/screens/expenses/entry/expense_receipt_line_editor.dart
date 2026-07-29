@@ -119,7 +119,9 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
       padding: EdgeInsets.only(
         left: 10,
         right: 10,
-        top: 10,
+        // A tall bottom sheet can extend behind the status bar on Samsung
+        // devices. Preserve that inset before the editor title.
+        top: MediaQuery.paddingOf(context).top + 12,
         bottom:
             math.max(
               MediaQuery.viewInsetsOf(context).bottom,
@@ -173,7 +175,7 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Optional. Leave this blank when the receipt does not need a category.',
+            'Category is optional. Leave it unresolved if you are not sure.',
             style: TextStyle(
               color: Color(0xFFC8D0D3),
               fontSize: 12,

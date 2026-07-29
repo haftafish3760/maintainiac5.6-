@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/context/operational_context_store.dart';
+import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../data/expense_work_profile_store.dart';
+import 'expense_work_profile_editor_screen.dart';
 
 class ExpenseWorkProfileScreen extends StatelessWidget {
   const ExpenseWorkProfileScreen({super.key});
@@ -45,7 +48,7 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
             _ProfileTile(
               profile: profile,
               selected: profile.id == active.id,
-              onSelect: () => profiles.select(profile.id),
+              onSelect: () => _selectProfile(context, profile),
               onEdit: profile.isDefault
                   ? null
                   : () => _editProfile(context, existing: profile),
@@ -87,12 +90,13 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
     BuildContext context, {
     ExpenseWorkProfile? existing,
   }) async {
-    final name = await showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      builder: (sheetContext) => _WorkProfileEditorSheet(
-        initialName: existing?.name ?? '',
-        isEditing: existing != null,
+    final name = await Navigator.of(context).push<String>(
+      appNativeRoute<String>(
+        context,
+        ExpenseWorkProfileEditorScreen(
+          initialName: existing?.name ?? '',
+          isEditing: existing != null,
+        ),
       ),
     );
     final trimmed = name?.trim() ?? '';
@@ -106,7 +110,36 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
         updatedAt: existing?.updatedAt ?? DateTime.now(),
       ),
     );
-    if (existing == null) await profiles.select(saved.id);
+    if (!context.mounted) return;
+    if (existing == null) {
+      await _selectProfile(context, saved);
+      return;
+    }
+    if (profiles.activeWorkProfile.id == saved.id) {
+      await _syncOperationalContext(context, saved);
+    }
+  }
+
+  Future<void> _selectProfile(
+    BuildContext context,
+    ExpenseWorkProfile profile,
+  ) async {
+    final profiles = ExpenseWorkProfileScope.of(context);
+    await profiles.select(profile.id);
+    if (!context.mounted) return;
+    await _syncOperationalContext(context, profile);
+  }
+
+  Future<void> _syncOperationalContext(
+    BuildContext context,
+    ExpenseWorkProfile profile,
+  ) async {
+    final operational = OperationalContextScope.maybeOf(context);
+    if (operational == null) return;
+    await operational.setActiveWorkProfile(
+      workProfileId: profile.id,
+      workProfileName: profile.name,
+    );
   }
 
   Future<void> _deleteProfile(
@@ -133,7 +166,16 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    await ExpenseWorkProfileScope.of(context).delete(profile.id);
+    final profiles = ExpenseWorkProfileScope.of(context);
+    await profiles.delete(profile.id);
+    if (!context.mounted) return;
+    final active = profiles.activeWorkProfile;
+    final operational = OperationalContextScope.maybeOf(context);
+    if (operational == null) return;
+    await operational.setActiveWorkProfile(
+      workProfileId: active.id,
+      workProfileName: active.name,
+    );
   }
 
   Future<void> _restoreProfile(
@@ -145,82 +187,6 @@ class ExpenseWorkProfileScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('“${profile.name}” is available for new expenses.'),
-      ),
-    );
-  }
-}
-
-class _WorkProfileEditorSheet extends StatefulWidget {
-  const _WorkProfileEditorSheet({
-    required this.initialName,
-    required this.isEditing,
-  });
-
-  final String initialName;
-  final bool isEditing;
-
-  @override
-  State<_WorkProfileEditorSheet> createState() =>
-      _WorkProfileEditorSheetState();
-}
-
-class _WorkProfileEditorSheetState extends State<_WorkProfileEditorSheet> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialName);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _submit([String? value]) {
-    Navigator.of(context).pop(value ?? _controller.text);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        20,
-        20,
-        20 + MediaQuery.viewInsetsOf(context).bottom,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            widget.isEditing ? 'Rename work profile' : 'New work profile',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Use profiles only when you want expenses separated by job, contract, or work line. The default works without any setup.',
-          ),
-          const SizedBox(height: 14),
-          TextField(
-            controller: _controller,
-            autofocus: true,
-            maxLength: 80,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(
-              labelText: 'Profile name',
-              hintText: 'Example: Evening delivery',
-            ),
-            onSubmitted: _submit,
-          ),
-          const SizedBox(height: 8),
-          FilledButton(onPressed: _submit, child: const Text('Save profile')),
-        ],
       ),
     );
   }

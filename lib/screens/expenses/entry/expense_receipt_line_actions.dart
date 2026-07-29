@@ -31,26 +31,8 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (basicMode) {
-      return _ReceiptActionButton(
-        label: 'Add Itemized Category Lines',
-        helper:
-            'Simple Receipt saves one final total. Switch to Category Receipt to add one price and an optional category for each line.',
-        icon: Icons.playlist_add_rounded,
-        color: const Color(0xFF2E78B7),
-        onTap: onSwitchToCategoryLines,
-      );
-    }
-    final label = nextLineNumber == 1
-        ? detailedMode
-              ? 'Add Item'
-              : 'Add Category Lines'
-        : detailedMode
-        ? 'Add Another Item'
-        : 'Add Another Category Line';
-    final helper = !detailedMode && !fuelMode && !maintenanceRepairMode
-        ? 'Basic receipt: add a category and price without quantity or unit-price details.'
-        : fuelMode
+    final label = nextLineNumber == 1 ? 'Add Item' : 'Add Another Item';
+    final helper = fuelMode
         ? 'Enter the fuel line from this receipt.'
         : maintenanceRepairMode
         ? 'Enter the service or repair line from this receipt.'
@@ -65,10 +47,6 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
   }
 
   Future<void> _showReceiptItemChoice(BuildContext context) async {
-    if (detailedMode) {
-      onAddBusiness();
-      return;
-    }
     if (fuelMode) {
       onAddBusiness();
       return;

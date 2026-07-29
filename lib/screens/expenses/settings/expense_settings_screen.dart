@@ -85,8 +85,6 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
           const SizedBox(height: 12),
           _RecapTileSettingsPanel(settings: settings),
           const SizedBox(height: 12),
-          _ReceiptReviewStyleSettingsPanel(settings: settings),
-          const SizedBox(height: 12),
           _BackupSyncModeSettingsPanel(
             settings: settings,
             onBackupNow: () async {
