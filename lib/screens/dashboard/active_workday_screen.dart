@@ -356,9 +356,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
 
   void _returnToDashboardAfterEndDay() {
     // The active day may be a pushed route or Dashboard's rebuilt root body.
-    // Returning to the root is safe in both cases and avoids exposing an
-    // empty intermediate navigator surface after a confirmed workday end.
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    // Pop only this screen when it is pushed. Popping an arbitrary route stack
+    // after the odometer sheet closes can expose an empty intermediary surface.
+    // At the root, ActiveWorkdayScope's notification rebuilds Dashboard instead.
+    final navigator = Navigator.of(context);
+    if (navigator.canPop()) {
+      navigator.pop();
+    }
   }
 
   Future<bool> _recordOdometerEvent({
