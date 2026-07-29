@@ -36,6 +36,11 @@ void main() {
 
     expect(store.activeSession?.vehicleId, 'truck-1');
     expect(store.activeSession?.startOdometer, 125000);
+    expect(store.activeSession?.resolvedContextSegments, hasLength(1));
+    expect(
+      store.activeSession?.resolvedContextSegments.single.vehicleId,
+      'truck-1',
+    );
     expect(
       store.activeSession?.events.single.type,
       ActiveWorkdayEventType.started,
@@ -44,6 +49,10 @@ void main() {
     final restored = await ActiveWorkdayController.create();
     expect(restored.activeSession?.vehicleLabel, 'Work Truck 1');
     expect(restored.activeSession?.startedAt, startedAt);
+    expect(
+      restored.activeSession?.resolvedContextSegments.single.workProfileId,
+      'Business',
+    );
   });
 
   test('starting an active workday twice keeps the original session', () async {

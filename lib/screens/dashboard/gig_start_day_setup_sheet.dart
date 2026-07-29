@@ -353,7 +353,9 @@ Future<String?> _pickChoice(
 }) {
   return showModalBottomSheet<String>(
     context: context,
-    backgroundColor: const Color(0xFF2E3A40),
+    // This picker uses dark title and list text; retain a light base surface
+    // so a vehicle or work-profile choice stays readable in every theme.
+    backgroundColor: const Color(0xFFF3F6F7),
     builder: (context) => SafeArea(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),

@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../shared/storage/app_storage_guard.dart';
+import 'active_workday_context_segment.dart';
 
 typedef ActiveWorkdayStorageCheck = Future<AppStorageCheck> Function();
 
@@ -106,6 +107,7 @@ class ActiveWorkdaySessionRecord {
     required this.startOdometer,
     required this.status,
     required this.events,
+    this.contextSegments = const [],
     this.endedAt,
     this.endOdometer,
     this.hasValidIdentity = true,
@@ -119,12 +121,31 @@ class ActiveWorkdaySessionRecord {
   final int startOdometer;
   final ActiveWorkdayStatus status;
   final List<ActiveWorkdayEvent> events;
+  final List<ActiveWorkdayContextSegment> contextSegments;
   final DateTime? endedAt;
   final int? endOdometer;
   final bool hasValidIdentity;
 
   bool get isActive => status != ActiveWorkdayStatus.ended;
   bool get isPaused => status == ActiveWorkdayStatus.paused;
+
+  /// Legacy sessions resolve to one immutable segment until they are saved
+  /// again. This preserves their original vehicle/profile attribution.
+  List<ActiveWorkdayContextSegment> get resolvedContextSegments {
+    if (contextSegments.isNotEmpty) return List.unmodifiable(contextSegments);
+    return List.unmodifiable([
+      ActiveWorkdayContextSegment(
+        id: 'legacy-$id',
+        vehicleId: vehicleId,
+        vehicleLabel: vehicleLabel,
+        workProfileId: workProfileId,
+        startedAt: startedAt,
+        startOdometer: startOdometer,
+        endedAt: status == ActiveWorkdayStatus.ended ? endedAt : null,
+        endOdometer: status == ActiveWorkdayStatus.ended ? endOdometer : null,
+      ),
+    ]);
+  }
 
   /// Elapsed work time excludes each durable paused interval. Event timestamps
   /// are clamped to the requested end so a stale or future-dated record cannot
@@ -172,6 +193,7 @@ class ActiveWorkdaySessionRecord {
     int? startOdometer,
     ActiveWorkdayStatus? status,
     List<ActiveWorkdayEvent>? events,
+    List<ActiveWorkdayContextSegment>? contextSegments,
     DateTime? endedAt,
     int? endOdometer,
     bool clearEndedAt = false,
@@ -198,6 +220,7 @@ class ActiveWorkdaySessionRecord {
       startOdometer: startOdometer ?? this.startOdometer,
       status: status ?? this.status,
       events: events ?? this.events,
+      contextSegments: contextSegments ?? this.contextSegments,
       endedAt: clearEndedAt ? null : endedAt ?? this.endedAt,
       endOdometer: clearEndOdometer ? null : endOdometer ?? this.endOdometer,
       hasValidIdentity: hasValidIdentity,
@@ -226,6 +249,9 @@ class ActiveWorkdaySessionRecord {
       'startOdometer': _safeOdometer(startOdometer) ?? 0,
       'status': status.name,
       'events': events.map((event) => event.toMap()).toList(),
+      'contextSegments': resolvedContextSegments
+          .map((segment) => segment.toMap())
+          .toList(growable: false),
       'endedAt': endedAt?.toIso8601String(),
       'endOdometer': _safeOdometer(endOdometer),
     };
@@ -236,6 +262,7 @@ class ActiveWorkdaySessionRecord {
     final rawVehicleId = map['vehicleId'];
     final rawWorkProfileId = map['workProfileId'];
     final rawEvents = map['events'];
+    final rawContextSegments = map['contextSegments'];
     final parsedEvents = <ActiveWorkdayEvent>[];
     if (rawEvents is Iterable) {
       for (final event in rawEvents) {
@@ -243,6 +270,26 @@ class ActiveWorkdaySessionRecord {
           parsedEvents.add(event);
         } else if (event is Map) {
           parsedEvents.add(ActiveWorkdayEvent.fromMap(event));
+        }
+      }
+    }
+    final parsedContextSegments = <ActiveWorkdayContextSegment>[];
+    var hasInvalidContextSegment = false;
+    if (rawContextSegments != null) {
+      if (rawContextSegments is! Iterable) {
+        hasInvalidContextSegment = true;
+      } else {
+        for (final segment in rawContextSegments) {
+          if (segment is! Map) {
+            hasInvalidContextSegment = true;
+            continue;
+          }
+          final parsed = ActiveWorkdayContextSegment.tryFromMap(segment);
+          if (parsed == null) {
+            hasInvalidContextSegment = true;
+          } else {
+            parsedContextSegments.add(parsed);
+          }
         }
       }
     }
@@ -301,6 +348,7 @@ class ActiveWorkdaySessionRecord {
       startOdometer: startOdometer,
       status: recoveredStatus,
       events: events,
+      contextSegments: parsedContextSegments,
       endedAt: hasCoherentEndedState ? endedAt : null,
       endOdometer: hasCoherentEndedState ? endOdometer : null,
       hasValidIdentity:
@@ -308,6 +356,7 @@ class ActiveWorkdaySessionRecord {
           _isSafeActiveWorkdayIdValue(rawVehicleId) &&
           _isSafeActiveWorkdayIdValue(rawWorkProfileId) &&
           _hasKnownStatusName(rawStatus) &&
+          !hasInvalidContextSegment &&
           events.every((event) => event.hasValidIdentity),
     );
   }
@@ -438,6 +487,16 @@ class ActiveWorkdayController extends ChangeNotifier {
       startOdometer: startOdometer,
       status: ActiveWorkdayStatus.active,
       events: [startedEvent],
+      contextSegments: [
+        ActiveWorkdayContextSegment(
+          id: _newId('context'),
+          vehicleId: vehicleId,
+          vehicleLabel: vehicleLabel,
+          workProfileId: workProfileId,
+          startedAt: now,
+          startOdometer: startOdometer,
+        ),
+      ],
     );
     await _saveSession(session);
     await _setActiveSessionId(sessionId);
@@ -590,6 +649,19 @@ class ActiveWorkdayController extends ChangeNotifier {
         session.events[unsafeEventIndex].id,
         'session.events[$unsafeEventIndex].id',
         'Active workday events require non-empty safe ids.',
+      );
+    }
+    final unsafeSegmentIndex = session.resolvedContextSegments.indexWhere(
+      (segment) =>
+          !_isSafeActiveWorkdayId(segment.id) ||
+          !_isSafeActiveWorkdayId(segment.vehicleId) ||
+          !_isSafeActiveWorkdayId(segment.workProfileId),
+    );
+    if (unsafeSegmentIndex >= 0) {
+      throw ArgumentError.value(
+        session.resolvedContextSegments[unsafeSegmentIndex].id,
+        'session.contextSegments[$unsafeSegmentIndex]',
+        'Active workday context segments require safe ids.',
       );
     }
     if (_box == null) {

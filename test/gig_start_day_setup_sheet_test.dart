@@ -79,11 +79,20 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Start Your Delivery Day'), findsOneWidget);
+    expect(find.text('Start workday'), findsOneWidget);
+    expect(
+      find.text('Step 1 of 2: confirm who and what vehicle this workday uses.'),
+      findsOneWidget,
+    );
     expect(find.byType(TextField), findsNothing);
 
     await tester.tap(find.text('Work Truck'));
     await tester.pumpAndSettle();
+    expect(find.text('Choose vehicle'), findsOneWidget);
+    expect(
+      tester.widget<BottomSheet>(find.byType(BottomSheet).last).backgroundColor,
+      const Color(0xFFF3F6F7),
+    );
     await tester.tap(find.text('Delivery Van'));
     await tester.pumpAndSettle();
 
@@ -92,7 +101,7 @@ void main() {
     await tester.tap(find.text('Rideshare'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Enter Odometer'));
+    await tester.tap(find.text('Continue to odometer'));
     await tester.pumpAndSettle();
 
     expect(result?.vehicleId, van.id);
