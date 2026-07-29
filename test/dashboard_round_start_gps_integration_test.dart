@@ -197,6 +197,10 @@ void main() {
         find.textContaining('cannot end below its starting odometer'),
         findsOneWidget,
       );
+      expect(
+        find.textContaining('reviewed odometer correction flow'),
+        findsOneWidget,
+      );
       expect(workday.activeSession, isNotNull);
       expect(find.text('Ending Odometer'), findsOneWidget);
       expect(tester.takeException(), isNull);

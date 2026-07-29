@@ -288,8 +288,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           ).activeSession?.startOdometer,
           minimumReadingMessage:
               'An active workday cannot end below its starting odometer. '
-              'Keep this day open and record the lower reading as a '
-              'backdated trip instead.',
+              'Keep this day open and use the reviewed odometer correction '
+              'flow for the earlier reading.',
         );
         if (saved && mounted) {
           _returnToDashboardAfterEndDay();

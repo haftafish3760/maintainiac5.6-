@@ -8,6 +8,7 @@ import 'package:maintaniac/shared/context/operational_context_store.dart';
 import 'package:maintaniac/shared/profiles/user_profile_models.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+import 'package:maintaniac/shared/widgets/app_back_button.dart';
 
 void main() {
   testWidgets(
@@ -95,6 +96,55 @@ void main() {
     expect(find.text('Delivery dashboard'), findsOneWidget);
     expect(find.text('Start day'), findsOneWidget);
     expect(find.text('Payments this week'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pre-workday Start Day remains a prominent rectangular command', (
+    tester,
+  ) async {
+    final harness = await _pumpDashboard(
+      tester,
+      OperationalDashboardMode.gigDriver,
+      logicalSize: const Size(375, 667),
+    );
+    addTearDown(harness.dispose);
+
+    final command = find.ancestor(
+      of: find.text('Start day'),
+      matching: find.byType(FilledButton),
+    );
+    expect(command, findsOneWidget);
+    final size = tester.getSize(command);
+    expect(size.height, 54);
+    expect(size.width, greaterThan(300));
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('pre-workday telemetry opens its matching review surface', (
+    tester,
+  ) async {
+    final harness = await _pumpDashboard(
+      tester,
+      OperationalDashboardMode.gigDriver,
+    );
+    addTearDown(harness.dispose);
+
+    await tester.tap(find.text('Payments this week'));
+    await tester.pumpAndSettle();
+    expect(find.text('Payments Review'), findsOneWidget);
+
+    await tester.tap(find.byType(AppBackButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Expenses this week'));
+    await tester.pumpAndSettle();
+    expect(find.text('Expense Review'), findsOneWidget);
+
+    await tester.tap(find.byType(AppBackButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Fuel recorded'));
+    await tester.pumpAndSettle();
+    expect(find.text('Fuel Review'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
