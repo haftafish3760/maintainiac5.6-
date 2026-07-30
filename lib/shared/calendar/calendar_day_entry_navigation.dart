@@ -26,6 +26,7 @@ void calendarOpenDayEntry(
   required CalendarDayMode mode,
   required CalendarFlowSource source,
   required CalendarTimelineEntry entry,
+  String? employeeId,
   CalendarSourceEventDetailBuilder? sourceEventDetailBuilder,
 }) {
   final deepLink = entry.projection?.deepLink;
@@ -102,6 +103,7 @@ void calendarOpenDayEntry(
             day: day,
             source: source,
             record: record,
+            employeeId: record.employeeId,
           ),
         );
         return;
@@ -119,6 +121,7 @@ void calendarOpenDayEntry(
       mode: mode,
       entry: entry,
       source: source,
+      employeeId: employeeId,
     ),
   );
 }

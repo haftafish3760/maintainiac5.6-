@@ -77,7 +77,12 @@ class CalendarMonthProjectionReader {
             reminders.records,
             day,
           ),
-      ...calendarScheduleEventsForDay(context, source, day),
+      ...calendarScheduleEventsForDay(
+        context,
+        source,
+        day,
+        employeeId: employeeId,
+      ),
       if (source == CalendarFlowSource.dashboard ||
           source == CalendarFlowSource.contractor ||
           source == CalendarFlowSource.jobs)
@@ -126,8 +131,9 @@ class CalendarMonthProjectionReader {
   static List<CalendarProjectionEvent> calendarScheduleEventsForDay(
     BuildContext context,
     CalendarFlowSource source,
-    DateTime day,
-  ) {
+    DateTime day, {
+    String? employeeId,
+  }) {
     final active = OperationalContextScope.maybeOf(context)?.context;
     final schedules = CalendarScheduleScope.maybeOf(context);
     if (schedules == null) return const [];
@@ -136,7 +142,10 @@ class CalendarMonthProjectionReader {
         schedules.records.where(
           (schedule) =>
               source == CalendarFlowSource.dashboard ||
-              schedule.screenScope == source.name,
+              (schedule.screenScope == source.name &&
+                  (source != CalendarFlowSource.employee ||
+                      (employeeId?.trim().isNotEmpty ?? false) &&
+                          schedule.employeeId == employeeId!.trim())),
         ),
         day,
       ).where((event) => _matchesContext(event, active)),

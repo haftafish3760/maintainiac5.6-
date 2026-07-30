@@ -46,12 +46,14 @@ CalendarDayData calendarDataWithSchedules(
   BuildContext context,
   CalendarDayData sourceData,
   CalendarFlowSource source,
-  DateTime day,
-) {
+  DateTime day, {
+  String? employeeId,
+}) {
   final schedules = CalendarMonthProjectionReader.calendarScheduleEventsForDay(
     context,
     source,
     day,
+    employeeId: employeeId,
   );
   if (schedules.isEmpty) return sourceData;
   final entries = [

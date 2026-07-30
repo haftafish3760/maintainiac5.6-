@@ -13,11 +13,13 @@ class CalendarEntryTypeSelectorScreen extends StatelessWidget {
     required this.day,
     required this.mode,
     this.source = CalendarFlowSource.dashboard,
+    this.employeeId,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
   final CalendarFlowSource source;
+  final String? employeeId;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,11 @@ class CalendarEntryTypeSelectorScreen extends StatelessWidget {
                   Navigator.of(context).push(
                     appNativeRoute<void>(
                       context,
-                      CalendarScheduleEditorScreen(day: day, source: source),
+                      CalendarScheduleEditorScreen(
+                        day: day,
+                        source: source,
+                        employeeId: employeeId,
+                      ),
                     ),
                   );
                   return;
@@ -77,12 +83,14 @@ class CalendarEntryDetailScreen extends StatelessWidget {
     required this.mode,
     required this.entry,
     this.source = CalendarFlowSource.dashboard,
+    this.employeeId,
   });
 
   final DateTime day;
   final CalendarDayMode mode;
   final CalendarTimelineEntry entry;
   final CalendarFlowSource source;
+  final String? employeeId;
 
   @override
   Widget build(BuildContext context) {
@@ -129,6 +137,7 @@ class CalendarEntryDetailScreen extends StatelessWidget {
                       day: day,
                       mode: mode,
                       source: source,
+                      employeeId: employeeId,
                     ),
                   ),
                 );

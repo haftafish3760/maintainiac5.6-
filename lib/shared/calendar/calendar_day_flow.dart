@@ -207,6 +207,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
             ),
             CalendarFlowSource.employee,
             day,
+            employeeId: employeeId,
           ),
         );
       }
@@ -377,6 +378,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
           mode: mode,
           source: widget.source,
           entry: entry,
+          employeeId: widget.employeeId,
           sourceEventDetailBuilder: widget.sourceEventDetailBuilder,
         ),
       ),
@@ -395,6 +397,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
           day: day,
           mode: mode,
           source: widget.source,
+          employeeId: widget.employeeId,
         ),
       ),
     );
@@ -404,7 +407,11 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     Navigator.of(context).push(
       appNativeRoute<void>(
         context,
-        CalendarScheduleEditorScreen(day: day, source: widget.source),
+        CalendarScheduleEditorScreen(
+          day: day,
+          source: widget.source,
+          employeeId: widget.employeeId,
+        ),
       ),
     );
   }

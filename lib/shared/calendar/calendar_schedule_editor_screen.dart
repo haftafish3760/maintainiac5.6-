@@ -18,11 +18,13 @@ class CalendarScheduleEditorScreen extends StatefulWidget {
     required this.day,
     required this.source,
     this.record,
+    this.employeeId,
   });
 
   final DateTime day;
   final CalendarFlowSource source;
   final CalendarScheduleRecord? record;
+  final String? employeeId;
 
   @override
   State<CalendarScheduleEditorScreen> createState() =>
@@ -340,7 +342,10 @@ class _CalendarScheduleEditorScreenState
         ),
         vehicleId: active?.activeVehicleId ?? '',
         workProfileId: active?.workProfileId ?? '',
-        screenScope: widget.source.name,
+        employeeId: widget.employeeId?.trim() ?? existing?.employeeId ?? '',
+        // A Dashboard projection can open any schedule. Editing there must not
+        // re-home an employee or source-calendar appointment into Dashboard.
+        screenScope: existing?.screenScope ?? widget.source.name,
         // The platform does not expose an IANA identifier through core Dart.
         // Keep it null rather than persisting an ambiguous abbreviation such as
         // "EST"; the projection retains the actual signed offset instead.

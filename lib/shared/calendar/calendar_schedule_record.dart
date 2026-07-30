@@ -17,6 +17,7 @@ class CalendarScheduleRecord {
     this.details = '',
     this.vehicleId = '',
     this.workProfileId = '',
+    this.employeeId = '',
     this.screenScope = 'dashboard',
     this.timezoneId,
     this.active = true,
@@ -34,6 +35,10 @@ class CalendarScheduleRecord {
   final String vehicleId;
   final String workProfileId;
 
+  /// Employee calendar schedules are private to this employee. Empty means
+  /// that the appointment belongs to a non-employee calendar scope.
+  final String employeeId;
+
   /// Calendar screen that owns this appointment's planning context. Dashboard
   /// projects every scope; source calendars project only their own.
   final String screenScope;
@@ -49,6 +54,7 @@ class CalendarScheduleRecord {
     List<CalendarScheduleException>? exceptions,
     String? vehicleId,
     String? workProfileId,
+    String? employeeId,
     String? screenScope,
     String? timezoneId,
     bool? active,
@@ -63,6 +69,7 @@ class CalendarScheduleRecord {
     exceptions: exceptions ?? this.exceptions,
     vehicleId: vehicleId ?? this.vehicleId,
     workProfileId: workProfileId ?? this.workProfileId,
+    employeeId: employeeId ?? this.employeeId,
     screenScope: screenScope ?? this.screenScope,
     timezoneId: timezoneId ?? this.timezoneId,
     active: active ?? this.active,
@@ -79,6 +86,7 @@ class CalendarScheduleRecord {
       recordedAt: _date(map['recordedAt']) ?? start,
       vehicleId: '${map['vehicleId'] ?? ''}',
       workProfileId: '${map['workProfileId'] ?? ''}',
+      employeeId: '${map['employeeId'] ?? ''}',
       screenScope: '${map['screenScope'] ?? 'dashboard'}',
       timezoneId: _blankToNull('${map['timezoneId'] ?? ''}'),
       active: map['active'] != false,
@@ -129,6 +137,7 @@ class CalendarScheduleRecord {
     ],
     'vehicleId': vehicleId,
     'workProfileId': workProfileId,
+    'employeeId': employeeId,
     'screenScope': screenScope,
     'timezoneId': timezoneId,
     'active': active,
