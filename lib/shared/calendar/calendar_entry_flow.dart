@@ -5,6 +5,7 @@ import '../widgets/app_back_button.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
 import 'calendar_owner_entry_router.dart';
+import 'calendar_schedule_editor_screen.dart';
 
 class CalendarEntryTypeSelectorScreen extends StatelessWidget {
   const CalendarEntryTypeSelectorScreen({
@@ -45,11 +46,22 @@ class CalendarEntryTypeSelectorScreen extends StatelessWidget {
               mode: mode,
               source: source,
               types: types,
-              onSelected: (type) => CalendarOwnerEntryRouter.open(
-                context: context,
-                day: day,
-                type: type,
-              ),
+              onSelected: (type) {
+                if (type == CalendarEntryType.reminderSchedule) {
+                  Navigator.of(context).push(
+                    appNativeRoute<void>(
+                      context,
+                      CalendarScheduleEditorScreen(day: day, source: source),
+                    ),
+                  );
+                  return;
+                }
+                CalendarOwnerEntryRouter.open(
+                  context: context,
+                  day: day,
+                  type: type,
+                );
+              },
             ),
           ],
         ),
