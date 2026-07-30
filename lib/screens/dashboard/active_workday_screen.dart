@@ -200,12 +200,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
+                _SessionActivityList(events: session?.events ?? const []),
+                const SizedBox(height: 16),
                 // The Dashboard Calendar remains available while a workday is
                 // active. It projects scheduled and recorded source records;
-                // the activity list below is not a replacement for it.
+                // the activity list above is not a replacement for it. Like
+                // every major landing screen, Calendar remains at the bottom.
                 const DashboardCalendar(),
-                const SizedBox(height: 16),
-                _SessionActivityList(events: session?.events ?? const []),
               ],
             ),
           ),

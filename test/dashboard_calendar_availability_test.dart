@@ -21,7 +21,7 @@ void main() {
     expect(activeWorkday, contains('const DashboardCalendar()'));
     expect(
       activeWorkday.indexOf('const DashboardCalendar()'),
-      lessThan(activeWorkday.indexOf('_SessionActivityList(')),
+      greaterThan(activeWorkday.indexOf('_SessionActivityList(')),
     );
   });
 }
