@@ -8,6 +8,7 @@ import '../widgets/app_back_button.dart';
 import 'calendar_day_flow_support.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_schedule_record.dart';
+import 'calendar_schedule_exception_editor_screen.dart';
 import 'calendar_schedule_recurrence_contract.dart';
 import 'month_year_picker.dart';
 
@@ -223,15 +224,9 @@ class _CalendarScheduleEditorScreenState
             ),
             if (widget.record != null) ...[
               const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: _saving ? null : _confirmRemove,
-                icon: const Icon(Icons.delete_outline_rounded),
-                label: const Text('Remove schedule'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(48),
-                  foregroundColor: const Color(0xFFFFB4AB),
-                  side: const BorderSide(color: Color(0xFFFFB4AB)),
-                ),
+              CalendarScheduleManagementActions(
+                record: widget.record!,
+                disabled: _saving,
               ),
             ],
           ],
@@ -352,35 +347,6 @@ class _CalendarScheduleEditorScreenState
         timezoneId: existing?.timezoneId,
       ),
     );
-    if (mounted) navigator.pop();
-  }
-
-  Future<void> _confirmRemove() async {
-    final remove = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Remove this schedule?'),
-        content: const Text(
-          'This removes future Calendar occurrences. It does not alter any Jobs, Expenses, Trips, or other source records.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Keep schedule'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-    if (remove != true || !mounted) return;
-    final controller = CalendarScheduleScope.maybeOf(context);
-    if (controller == null || widget.record == null) return;
-    final navigator = Navigator.of(context);
-    setState(() => _saving = true);
-    await controller.remove(widget.record!.id);
     if (mounted) navigator.pop();
   }
 }

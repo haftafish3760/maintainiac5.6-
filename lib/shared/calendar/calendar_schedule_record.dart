@@ -40,6 +40,34 @@ class CalendarScheduleRecord {
   final String? timezoneId;
   final bool active;
 
+  CalendarScheduleRecord copyWith({
+    String? title,
+    String? details,
+    DateTime? startsAt,
+    DateTime? endsAt,
+    CalendarScheduleRule? rule,
+    List<CalendarScheduleException>? exceptions,
+    String? vehicleId,
+    String? workProfileId,
+    String? screenScope,
+    String? timezoneId,
+    bool? active,
+  }) => CalendarScheduleRecord(
+    id: id,
+    title: title ?? this.title,
+    details: details ?? this.details,
+    startsAt: startsAt ?? this.startsAt,
+    endsAt: endsAt ?? this.endsAt,
+    recordedAt: recordedAt,
+    rule: rule ?? this.rule,
+    exceptions: exceptions ?? this.exceptions,
+    vehicleId: vehicleId ?? this.vehicleId,
+    workProfileId: workProfileId ?? this.workProfileId,
+    screenScope: screenScope ?? this.screenScope,
+    timezoneId: timezoneId ?? this.timezoneId,
+    active: active ?? this.active,
+  );
+
   factory CalendarScheduleRecord.fromMap(Map<dynamic, dynamic> map) {
     final start = DateTime.parse('${map['startsAt']}').toLocal();
     return CalendarScheduleRecord(

@@ -55,4 +55,38 @@ void main() {
 
     expect(controller.records, isEmpty);
   });
+
+  test(
+    'one-time changes retain schedule context and replace one date only',
+    () {
+      final record = CalendarScheduleRecord(
+        id: 'route',
+        title: 'Weekly route',
+        startsAt: DateTime(2026, 7, 6, 8),
+        recordedAt: DateTime(2026, 7, 1),
+        vehicleId: 'truck-1',
+        workProfileId: 'delivery',
+        rule: const CalendarScheduleRule(
+          frequency: CalendarScheduleFrequency.weekly,
+        ),
+      );
+
+      final changed = record.copyWith(
+        exceptions: [
+          CalendarScheduleException(
+            day: DateTime(2026, 7, 13),
+            startOverride: DateTime(2026, 7, 13, 10),
+            endOverride: DateTime(2026, 7, 13, 11),
+          ),
+        ],
+      );
+
+      expect(changed.vehicleId, 'truck-1');
+      expect(changed.workProfileId, 'delivery');
+      expect(
+        changed.exceptions.single.startOverride,
+        DateTime(2026, 7, 13, 10),
+      );
+    },
+  );
 }
