@@ -9,7 +9,7 @@ enum CalendarFirstDayOfWeek { sunday, monday }
 
 class CalendarPresentationPreferences {
   const CalendarPresentationPreferences({
-    this.firstDayOfWeek = CalendarFirstDayOfWeek.sunday,
+    this.firstDayOfWeek = CalendarFirstDayOfWeek.monday,
     this.showReviewShortcuts = true,
   });
 
@@ -27,8 +27,8 @@ class CalendarPresentationPreferences {
   factory CalendarPresentationPreferences.fromMap(Map<dynamic, dynamic> map) =>
       CalendarPresentationPreferences(
         firstDayOfWeek: switch ('${map['firstDayOfWeek'] ?? ''}') {
-          'monday' => CalendarFirstDayOfWeek.monday,
-          _ => CalendarFirstDayOfWeek.sunday,
+          'sunday' => CalendarFirstDayOfWeek.sunday,
+          _ => CalendarFirstDayOfWeek.monday,
         },
         showReviewShortcuts: map['showReviewShortcuts'] != false,
       );

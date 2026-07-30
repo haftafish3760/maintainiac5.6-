@@ -7,6 +7,13 @@ import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 void main() {
+  test('Calendar defaults to the Monday through Sunday reporting week', () {
+    expect(
+      const CalendarPresentationPreferences().firstDayOfWeek,
+      CalendarFirstDayOfWeek.monday,
+    );
+  });
+
   test(
     'Calendar preferences save through the Calendar durable record boundary',
     () async {
@@ -77,5 +84,26 @@ void main() {
           .startingDayOfWeek,
       StartingDayOfWeek.monday,
     );
+  });
+
+  testWidgets('Calendar settings remain readable on a compact phone', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(320, 800));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.5)),
+          child: CalendarPreferencesScope(
+            controller: CalendarPreferencesController.memory(),
+            child: const CalendarSettingsScreen(),
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Calendar presentation'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.binding.setSurfaceSize(null);
   });
 }
