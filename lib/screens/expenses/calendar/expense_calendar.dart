@@ -30,5 +30,4 @@ part 'expense_receipt_detail_proof_preview.dart';
 part 'expense_receipt_detail_line_items.dart';
 part 'expense_calendar_actions.dart';
 part 'expense_calendar_models.dart';
-part 'expense_calendar_painter.dart';
 part 'expense_calendar_context_header.dart';
