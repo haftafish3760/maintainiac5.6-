@@ -36,4 +36,23 @@ void main() {
       expect(saved.exceptions.single.cancelled, isTrue);
     },
   );
+
+  test('removing a schedule soft-deletes it from active projections', () async {
+    final controller = CalendarScheduleController.memory();
+    await controller.save(
+      CalendarScheduleRecord(
+        id: 'remove-me',
+        title: 'Temporary route',
+        startsAt: DateTime(2026, 7, 29, 8),
+        recordedAt: DateTime(2026, 7, 29, 7),
+        rule: const CalendarScheduleRule(
+          frequency: CalendarScheduleFrequency.once,
+        ),
+      ),
+    );
+
+    await controller.remove('remove-me');
+
+    expect(controller.records, isEmpty);
+  });
 }

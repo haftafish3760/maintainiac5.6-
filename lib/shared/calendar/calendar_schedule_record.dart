@@ -136,6 +136,13 @@ class CalendarScheduleController extends ChangeNotifier {
     notifyListeners();
     return value;
   }
+
+  /// Soft-deletes the Calendar-owned schedule while preserving its audit trail.
+  Future<void> remove(String id) async {
+    if (id.trim().isEmpty) return;
+    await _records.delete(_module, id);
+    notifyListeners();
+  }
 }
 
 class CalendarScheduleScope
