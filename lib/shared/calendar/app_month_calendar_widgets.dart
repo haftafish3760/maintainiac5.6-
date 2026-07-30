@@ -5,6 +5,9 @@ class _CalendarDayCell extends StatelessWidget {
     required this.day,
     required this.hasScheduled,
     required this.hasCompleted,
+    required this.plannedEntryCount,
+    required this.confirmedEntryCount,
+    required this.reviewRequiredEntryCount,
     required this.isSelected,
     required this.isToday,
     required this.entryCount,
@@ -14,6 +17,9 @@ class _CalendarDayCell extends StatelessWidget {
   final DateTime day;
   final bool hasScheduled;
   final bool hasCompleted;
+  final int plannedEntryCount;
+  final int confirmedEntryCount;
+  final int reviewRequiredEntryCount;
   final bool isSelected;
   final bool isToday;
   final int entryCount;
@@ -27,6 +33,9 @@ class _CalendarDayCell extends StatelessWidget {
         entryCount: entryCount,
         hasScheduled: hasScheduled,
         hasCompleted: hasCompleted,
+        plannedEntryCount: plannedEntryCount,
+        confirmedEntryCount: confirmedEntryCount,
+        reviewRequiredEntryCount: reviewRequiredEntryCount,
         isOutsideMonth: isOutsideMonth,
       ),
       selected: isSelected,
@@ -62,7 +71,7 @@ class _CalendarDayCell extends StatelessWidget {
                 top: 4,
                 right: 4,
                 child: _CalendarBadge(
-                  color: const Color(0xFFFF4F46),
+                  color: const Color(0xFF65B8FF),
                   label: entryCount > 9 ? '9+' : '$entryCount',
                 ),
               ),
@@ -74,17 +83,22 @@ class _CalendarDayCell extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (hasScheduled)
-                        const _CalendarBadge(
-                          color: Color(0xFF29D86D),
-                          label: 'S',
+                      if (confirmedEntryCount > 0)
+                        _CalendarBadge(
+                          color: const Color(0xFF29D86D),
+                          label: confirmedEntryCount > 9
+                              ? '✓9+'
+                              : '✓$confirmedEntryCount',
                         ),
-                      if (hasScheduled && hasCompleted)
+                      if (confirmedEntryCount > 0 &&
+                          reviewRequiredEntryCount > 0)
                         const SizedBox(width: 3),
-                      if (hasCompleted)
-                        const _CalendarBadge(
+                      if (reviewRequiredEntryCount > 0)
+                        _CalendarBadge(
                           color: Color(0xFFFF4F46),
-                          label: 'D',
+                          label: reviewRequiredEntryCount > 9
+                              ? '!9+'
+                              : '!$reviewRequiredEntryCount',
                         ),
                     ],
                   ),
@@ -202,7 +216,7 @@ class _CalendarBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 17,
+      width: label.length > 1 ? 25 : 17,
       height: 17,
       alignment: Alignment.center,
       decoration: BoxDecoration(

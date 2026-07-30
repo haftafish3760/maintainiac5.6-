@@ -23,13 +23,17 @@ void main() {
     );
   });
 
-  testWidgets('timeline filters by source module and review state', (
+  testWidgets('dashboard timeline filters by entry type and review state', (
     tester,
   ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: CalendarFilteredTimeline(entries: _entries(), onOpen: (_) {}),
+          body: CalendarFilteredTimeline(
+            entries: _entries(),
+            enableFiltering: true,
+            onOpen: (_) {},
+          ),
         ),
       ),
     );
@@ -65,7 +69,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: CalendarFilteredTimeline(entries: _entries(), onOpen: (_) {}),
+          body: CalendarFilteredTimeline(
+            entries: _entries(),
+            enableFiltering: true,
+            onOpen: (_) {},
+          ),
         ),
       ),
     );
@@ -99,7 +107,11 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
-          body: CalendarFilteredTimeline(entries: _entries(), onOpen: (_) {}),
+          body: CalendarFilteredTimeline(
+            entries: _entries(),
+            enableFiltering: true,
+            onOpen: (_) {},
+          ),
         ),
       ),
     );
@@ -131,6 +143,7 @@ void main() {
               width: 320,
               child: CalendarFilteredTimeline(
                 entries: _entries(),
+                enableFiltering: true,
                 onOpen: (_) {},
               ),
             ),
@@ -142,6 +155,22 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.text('Vehicle'), findsOneWidget);
     expect(find.text('Work profile'), findsOneWidget);
+  });
+
+  testWidgets('source calendars do not render Dashboard filter controls', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: CalendarFilteredTimeline(entries: _entries(), onOpen: (_) {}),
+        ),
+      ),
+    );
+
+    expect(find.text('FILTER ENTRIES'), findsNothing);
+    expect(find.text('Fuel'), findsOneWidget);
+    expect(find.text('Client visit'), findsOneWidget);
   });
 }
 

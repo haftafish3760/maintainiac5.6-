@@ -27,7 +27,6 @@ import 'calendar_day_flow_support.dart';
 import 'calendar_active_workday_projection_route.dart';
 import 'calendar_cross_module_recap.dart';
 import 'calendar_entry_flow.dart';
-import 'calendar_owner_entry_router.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
 import 'calendar_maintenance_projection_adapter.dart';
@@ -240,13 +239,6 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayMode mode,
     CalendarDayData data,
   ) {
-    final planned = data.entriesForStatus(CalendarEntryStatus.planned);
-    final logged =
-        data.entries
-            .where((entry) => entry.status != CalendarEntryStatus.planned)
-            .toList()
-          ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
     return [
       CalendarSectionTitle.withAction(
         label: 'ACTIVE DAY STATE',
@@ -267,25 +259,12 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
       ],
       const SizedBox(height: 14),
       CalendarSectionTitle.withAction(
-        label: 'PLANNED TODAY',
-        actionLabel: 'Add plan',
-        onPressed: () => _openEntryDraft(
-          context,
-          day,
-          mode,
-          CalendarEntryType.reminderSchedule,
-        ),
-      ),
-      const SizedBox(height: 8),
-      ..._timelineRows(context, day, mode, planned),
-      const SizedBox(height: 14),
-      CalendarSectionTitle.withAction(
-        label: 'LOGGED TODAY',
-        actionLabel: 'Quick add',
+        label: 'CHRONOLOGICAL ENTRIES',
+        actionLabel: 'Add missed entry',
         onPressed: () => _openEntrySelector(context, day, mode),
       ),
       const SizedBox(height: 8),
-      ..._timelineRows(context, day, mode, logged),
+      ..._timelineRows(context, day, mode, data.entries),
     ];
   }
 
@@ -322,6 +301,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     return [
       CalendarFilteredTimeline(
         entries: entries,
+        enableFiltering: widget.source == CalendarFlowSource.dashboard,
         onOpen: (entry) => _openEntryDetail(context, day, mode, entry),
       ),
     ];
@@ -343,13 +323,6 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
       ),
     );
   }
-
-  void _openEntryDraft(
-    BuildContext context,
-    DateTime day,
-    CalendarDayMode mode,
-    CalendarEntryType type,
-  ) => CalendarOwnerEntryRouter.open(context: context, day: day, type: type);
 
   void _openEntryDetail(
     BuildContext context,

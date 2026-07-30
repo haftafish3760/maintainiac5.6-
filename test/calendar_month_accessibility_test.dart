@@ -8,13 +8,16 @@ void main() {
       entryCount: 3,
       hasScheduled: true,
       hasCompleted: true,
+      plannedEntryCount: 1,
+      confirmedEntryCount: 2,
+      reviewRequiredEntryCount: 1,
       isOutsideMonth: false,
     );
 
     expect(
       label,
-      '7/29/2026. 3 calendar entries. scheduled work. '
-      'confirmed or historical records',
+      '7/29/2026. 3 calendar entries. scheduled work. 1 planned entries. '
+      '2 confirmed or historical records. 1 entries need review',
     );
   });
 

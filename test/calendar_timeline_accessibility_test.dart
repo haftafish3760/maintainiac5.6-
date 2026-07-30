@@ -36,6 +36,38 @@ void main() {
     expect(opened, isTrue);
     handle.dispose();
   });
+
+  testWidgets('timeline keeps important title and summary text readable', (
+    tester,
+  ) async {
+    final entry = CalendarTimelineEntry(
+      id: 'job-1',
+      timestamp: DateTime(2026, 7, 29, 9, 30),
+      type: CalendarEntryType.job,
+      status: CalendarEntryStatus.planned,
+      title: 'Jones Tree Work and Stump Removal at the North Property',
+      source: 'Jobs',
+      summary: 'Planned time · Bring the chipper and confirm arrival details.',
+      details: const [],
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SizedBox(
+            width: 280,
+            child: CalendarTimelineItem(entry: entry, onTap: () {}),
+          ),
+        ),
+      ),
+    );
+
+    final title = tester.widget<Text>(find.text(entry.title));
+    final summary = tester.widget<Text>(find.text(entry.summary));
+    expect(title.overflow, isNull);
+    expect(summary.overflow, isNull);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 CalendarTimelineEntry _entry() => CalendarTimelineEntry(

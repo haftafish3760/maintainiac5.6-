@@ -18,6 +18,9 @@ void main() {
     ]);
 
     expect(badge.entryCount, 2);
+    expect(badge.plannedEntryCount, 1);
+    expect(badge.confirmedEntryCount, 1);
+    expect(badge.reviewRequiredEntryCount, 1);
     expect(badge.hasScheduled, isTrue);
     expect(badge.hasCompleted, isTrue);
   });
@@ -32,6 +35,8 @@ void main() {
     ]);
 
     expect(badge.entryCount, 1);
+    expect(badge.confirmedEntryCount, 0);
+    expect(badge.reviewRequiredEntryCount, 1);
     expect(badge.hasScheduled, isFalse);
     expect(badge.hasCompleted, isFalse);
   });

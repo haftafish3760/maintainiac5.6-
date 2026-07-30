@@ -34,158 +34,169 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: const _CalendarPanelPainter(),
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFF111517), width: 1.4),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x88000000),
-              blurRadius: 7,
-              offset: Offset(0, 3),
-            ),
-          ],
-        ),
-        child: TableCalendar<void>(
-          firstDay: DateTime.utc(1900),
-          lastDay: DateTime.utc(2100, 12, 31),
-          focusedDay: _focusedDay,
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          headerVisible: true,
-          // Preserve the 5.6 large, always-month tile presentation. Day and
-          // month navigation remain available without collapsing this shared
-          // landing Calendar into a week layout.
-          calendarFormat: CalendarFormat.month,
-          availableGestures: AvailableGestures.horizontalSwipe,
-          availableCalendarFormats: const {CalendarFormat.month: 'Month'},
-          sixWeekMonthsEnforced: true,
-          rowHeight: 70,
-          daysOfWeekHeight: 26,
-          headerStyle: HeaderStyle(
-            formatButtonVisible: false,
-            titleCentered: true,
-            titleTextFormatter: (date, locale) {
-              final selected = _selectedDay;
-              if (selected != null) {
-                return calendarFullDateLabel(selected);
-              }
-              return calendarMonthYearLabel(date);
-            },
-            titleTextStyle: const TextStyle(
-              color: Color(0xFFF7FAF4),
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              shadows: [
-                Shadow(
-                  color: Color(0xEE000000),
-                  blurRadius: 2,
-                  offset: Offset(0, 1),
-                ),
-                Shadow(
-                  color: Color(0xAA000000),
-                  blurRadius: 5,
-                  offset: Offset(0, 0),
-                ),
-              ],
-            ),
-            leftChevronIcon: const Icon(
-              Icons.chevron_left_rounded,
-              color: Color(0xFFF7FAF4),
-              shadows: [
-                Shadow(
-                  color: Color(0xEE000000),
-                  blurRadius: 2,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-            rightChevronIcon: const Icon(
-              Icons.chevron_right_rounded,
-              color: Color(0xFFF7FAF4),
-              shadows: [
-                Shadow(
-                  color: Color(0xEE000000),
-                  blurRadius: 2,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-          ),
-          daysOfWeekStyle: const DaysOfWeekStyle(
-            weekdayStyle: TextStyle(
-              color: Color(0xFFF7FAF4),
-              fontWeight: FontWeight.w900,
-              shadows: [
-                Shadow(
-                  color: Color(0xEE000000),
-                  blurRadius: 2,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-            weekendStyle: TextStyle(
-              color: Color(0xFFF7FAF4),
-              fontWeight: FontWeight.w900,
-              shadows: [
-                Shadow(
-                  color: Color(0xEE000000),
-                  blurRadius: 2,
-                  offset: Offset(0, 1),
-                ),
-              ],
-            ),
-          ),
-          calendarStyle: const CalendarStyle(
-            outsideDaysVisible: true,
-            cellMargin: EdgeInsets.zero,
-            cellPadding: EdgeInsets.zero,
-            tablePadding: EdgeInsets.zero,
-            tableBorder: TableBorder(
-              horizontalInside: BorderSide(
-                color: Color(0xFF111517),
-                width: 1.2,
+    return LayoutBuilder(
+      builder: (context, constraints) => CustomPaint(
+        painter: const _CalendarPanelPainter(),
+        child: Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFF111517), width: 1.4),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x88000000),
+                blurRadius: 7,
+                offset: Offset(0, 3),
               ),
-              verticalInside: BorderSide(color: Color(0xFF111517), width: 1.2),
-              top: BorderSide(color: Color(0xFF111517), width: 1.2),
-              bottom: BorderSide(color: Color(0xFF111517), width: 1.2),
-              left: BorderSide(color: Color(0xFF111517), width: 1.2),
-              right: BorderSide(color: Color(0xFF111517), width: 1.2),
-            ),
-            markersMaxCount: 0,
-            markerSize: 0,
-            defaultTextStyle: TextStyle(
-              color: Color(0xFF111517),
-              fontWeight: FontWeight.w800,
-            ),
-            weekendTextStyle: TextStyle(
-              color: Color(0xFF111517),
-              fontWeight: FontWeight.w800,
-            ),
-            todayDecoration: BoxDecoration(),
-            selectedDecoration: BoxDecoration(),
-            defaultDecoration: BoxDecoration(),
+            ],
           ),
-          onDaySelected: (selectedDay, focusedDay) {
-            setState(() {
-              _selectedDay = selectedDay;
-              _focusedDay = focusedDay;
-            });
-            widget.onDaySelected?.call(selectedDay);
-            _openCalendarDay(context, selectedDay);
-          },
-          onPageChanged: (focusedDay) => _focusedDay = focusedDay,
-          onHeaderTapped: (_) => _openMonthYearPicker(context),
-          calendarBuilders: CalendarBuilders(
-            defaultBuilder: _calendarDayBuilder,
-            todayBuilder: _calendarDayBuilder,
-            selectedBuilder: _calendarDayBuilder,
-            outsideBuilder: _calendarOutsideDayBuilder,
+          child: TableCalendar<void>(
+            firstDay: DateTime.utc(1900),
+            lastDay: DateTime.utc(2100, 12, 31),
+            focusedDay: _focusedDay,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            headerVisible: true,
+            // Preserve the 5.6 large, always-month tile presentation. Day and
+            // month navigation remain available without collapsing this shared
+            // landing Calendar into a week layout.
+            calendarFormat: CalendarFormat.month,
+            availableGestures: AvailableGestures.horizontalSwipe,
+            availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+            sixWeekMonthsEnforced: true,
+            rowHeight: _rowHeightFor(constraints.maxWidth),
+            daysOfWeekHeight: 26,
+            headerStyle: HeaderStyle(
+              formatButtonVisible: false,
+              titleCentered: true,
+              titleTextFormatter: (date, locale) {
+                final selected = _selectedDay;
+                if (selected != null) {
+                  return calendarFullDateLabel(selected);
+                }
+                return calendarMonthYearLabel(date);
+              },
+              titleTextStyle: const TextStyle(
+                color: Color(0xFFF7FAF4),
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                shadows: [
+                  Shadow(
+                    color: Color(0xEE000000),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                  Shadow(
+                    color: Color(0xAA000000),
+                    blurRadius: 5,
+                    offset: Offset(0, 0),
+                  ),
+                ],
+              ),
+              leftChevronIcon: const Icon(
+                Icons.chevron_left_rounded,
+                color: Color(0xFFF7FAF4),
+                shadows: [
+                  Shadow(
+                    color: Color(0xEE000000),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              rightChevronIcon: const Icon(
+                Icons.chevron_right_rounded,
+                color: Color(0xFFF7FAF4),
+                shadows: [
+                  Shadow(
+                    color: Color(0xEE000000),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+            ),
+            daysOfWeekStyle: const DaysOfWeekStyle(
+              weekdayStyle: TextStyle(
+                color: Color(0xFFF7FAF4),
+                fontWeight: FontWeight.w900,
+                shadows: [
+                  Shadow(
+                    color: Color(0xEE000000),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+              weekendStyle: TextStyle(
+                color: Color(0xFFF7FAF4),
+                fontWeight: FontWeight.w900,
+                shadows: [
+                  Shadow(
+                    color: Color(0xEE000000),
+                    blurRadius: 2,
+                    offset: Offset(0, 1),
+                  ),
+                ],
+              ),
+            ),
+            calendarStyle: const CalendarStyle(
+              outsideDaysVisible: true,
+              cellMargin: EdgeInsets.zero,
+              cellPadding: EdgeInsets.zero,
+              tablePadding: EdgeInsets.zero,
+              tableBorder: TableBorder(
+                horizontalInside: BorderSide(
+                  color: Color(0xFF111517),
+                  width: 1.2,
+                ),
+                verticalInside: BorderSide(
+                  color: Color(0xFF111517),
+                  width: 1.2,
+                ),
+                top: BorderSide(color: Color(0xFF111517), width: 1.2),
+                bottom: BorderSide(color: Color(0xFF111517), width: 1.2),
+                left: BorderSide(color: Color(0xFF111517), width: 1.2),
+                right: BorderSide(color: Color(0xFF111517), width: 1.2),
+              ),
+              markersMaxCount: 0,
+              markerSize: 0,
+              defaultTextStyle: TextStyle(
+                color: Color(0xFF111517),
+                fontWeight: FontWeight.w800,
+              ),
+              weekendTextStyle: TextStyle(
+                color: Color(0xFF111517),
+                fontWeight: FontWeight.w800,
+              ),
+              todayDecoration: BoxDecoration(),
+              selectedDecoration: BoxDecoration(),
+              defaultDecoration: BoxDecoration(),
+            ),
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDay = selectedDay;
+                _focusedDay = focusedDay;
+              });
+              widget.onDaySelected?.call(selectedDay);
+              _openCalendarDay(context, selectedDay);
+            },
+            onPageChanged: (focusedDay) => _focusedDay = focusedDay,
+            onHeaderTapped: (_) => _openMonthYearPicker(context),
+            calendarBuilders: CalendarBuilders(
+              defaultBuilder: _calendarDayBuilder,
+              todayBuilder: _calendarDayBuilder,
+              selectedBuilder: _calendarDayBuilder,
+              outsideBuilder: _calendarOutsideDayBuilder,
+            ),
           ),
         ),
       ),
     );
+  }
+
+  double _rowHeightFor(double width) {
+    if (width >= 960) return 92;
+    if (width >= 680) return 80;
+    return 70;
   }
 
   void _openCalendarDay(BuildContext context, DateTime day) {
@@ -242,6 +253,9 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
       day: day,
       hasScheduled: badge.hasScheduled,
       hasCompleted: badge.hasCompleted,
+      plannedEntryCount: badge.plannedEntryCount,
+      confirmedEntryCount: badge.confirmedEntryCount,
+      reviewRequiredEntryCount: badge.reviewRequiredEntryCount,
       isSelected: isSelected,
       isToday: isToday,
       entryCount: entryCount,
@@ -260,6 +274,9 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
       day: day,
       hasScheduled: false,
       hasCompleted: false,
+      plannedEntryCount: 0,
+      confirmedEntryCount: 0,
+      reviewRequiredEntryCount: 0,
       isSelected: isSelected,
       isToday: isToday,
       entryCount: 0,
@@ -273,6 +290,9 @@ String calendarDayAccessibilityLabel({
   required int entryCount,
   required bool hasScheduled,
   required bool hasCompleted,
+  int plannedEntryCount = 0,
+  int confirmedEntryCount = 0,
+  int reviewRequiredEntryCount = 0,
   required bool isOutsideMonth,
 }) {
   final details = <String>[
@@ -282,7 +302,10 @@ String calendarDayAccessibilityLabel({
     if (!isOutsideMonth && entryCount == 1) '1 calendar entry',
     if (!isOutsideMonth && entryCount > 1) '$entryCount calendar entries',
     if (hasScheduled) 'scheduled work',
-    if (hasCompleted) 'confirmed or historical records',
+    if (plannedEntryCount > 0) '$plannedEntryCount planned entries',
+    if (hasCompleted) '$confirmedEntryCount confirmed or historical records',
+    if (reviewRequiredEntryCount > 0)
+      '$reviewRequiredEntryCount entries need review',
   ];
   return details.join('. ');
 }

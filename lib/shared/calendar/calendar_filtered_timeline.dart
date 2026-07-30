@@ -12,10 +12,12 @@ class CalendarFilteredTimeline extends StatefulWidget {
     super.key,
     required this.entries,
     required this.onOpen,
+    this.enableFiltering = false,
   });
 
   final List<CalendarTimelineEntry> entries;
   final ValueChanged<CalendarTimelineEntry> onOpen;
+  final bool enableFiltering;
 
   @override
   State<CalendarFilteredTimeline> createState() =>
@@ -58,46 +60,47 @@ class _CalendarFilteredTimelineState extends State<CalendarFilteredTimeline> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _TimelineFilterPanel(
-          source: _source,
-          status: _status,
-          businessClassification: _businessClassification,
-          vehicleId: _vehicleId,
-          workProfileId: _workProfileId,
-          vehicleIds: _vehicleIds(widget.entries),
-          workProfileIds: _workProfileIds(widget.entries),
-          onSourceChanged: (value) => setState(() => _source = value),
-          onStatusChanged: (value) => setState(() => _status = value),
-          onBusinessClassificationChanged: (value) =>
-              setState(() => _businessClassification = value),
-          onVehicleChanged: (value) => setState(() => _vehicleId = value),
-          onWorkProfileChanged: (value) =>
-              setState(() => _workProfileId = value),
-          onClear:
-              _source == null &&
-                  _status == null &&
-                  _businessClassification == null &&
-                  _vehicleId == null &&
-                  _workProfileId == null
-              ? null
-              : () => setState(() {
-                  _source = null;
-                  _status = null;
-                  _businessClassification = null;
-                  _vehicleId = null;
-                  _workProfileId = null;
-                }),
-        ),
-        const SizedBox(height: 8),
+        if (widget.enableFiltering)
+          _TimelineFilterPanel(
+            source: _source,
+            status: _status,
+            businessClassification: _businessClassification,
+            vehicleId: _vehicleId,
+            workProfileId: _workProfileId,
+            vehicleIds: _vehicleIds(widget.entries),
+            workProfileIds: _workProfileIds(widget.entries),
+            onSourceChanged: (value) => setState(() => _source = value),
+            onStatusChanged: (value) => setState(() => _status = value),
+            onBusinessClassificationChanged: (value) =>
+                setState(() => _businessClassification = value),
+            onVehicleChanged: (value) => setState(() => _vehicleId = value),
+            onWorkProfileChanged: (value) =>
+                setState(() => _workProfileId = value),
+            onClear:
+                _source == null &&
+                    _status == null &&
+                    _businessClassification == null &&
+                    _vehicleId == null &&
+                    _workProfileId == null
+                ? null
+                : () => setState(() {
+                    _source = null;
+                    _status = null;
+                    _businessClassification = null;
+                    _vehicleId = null;
+                    _workProfileId = null;
+                  }),
+          ),
+        if (widget.enableFiltering) const SizedBox(height: 8),
         if (visible.isEmpty)
           CalendarStatusPanel(
             icon: _hasNoFilters
                 ? Icons.event_busy_rounded
                 : Icons.filter_alt_off_rounded,
-            title: _hasNoFilters
+            title: _hasNoFilters || !widget.enableFiltering
                 ? 'No entries for this day'
                 : 'No matching entries',
-            subtitle: _hasNoFilters
+            subtitle: _hasNoFilters || !widget.enableFiltering
                 ? 'Add a record in its owning module, or plan work for this date.'
                 : 'Clear a filter or add an entry in its owning module.',
           )
@@ -152,126 +155,145 @@ class _TimelineFilterPanel extends StatelessWidget {
   final VoidCallback? onClear;
 
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(8),
-    decoration: BoxDecoration(
-      color: const Color(0xFF182227),
-      borderRadius: BorderRadius.circular(6),
-      border: Border.all(color: const Color(0xFF53656D)),
-    ),
-    child: Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        SizedBox(
-          width: 172,
-          child: DropdownButtonFormField<CalendarProjectionSource?>(
-            initialValue: source,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Source module'),
-            items: [
-              const DropdownMenuItem(value: null, child: Text('All modules')),
-              for (final item in CalendarProjectionSource.values)
-                DropdownMenuItem(value: item, child: Text(_sourceLabel(item))),
-            ],
-            onChanged: onSourceChanged,
+  Widget build(BuildContext context) => Semantics(
+    container: true,
+    label: 'Filter entries',
+    child: Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF182227),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF53656D)),
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          const Text(
+            'FILTER ENTRIES',
+            style: TextStyle(
+              color: Color(0xFFF7FAF4),
+              fontSize: 12,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
+            ),
           ),
-        ),
-        if (vehicleIds.isNotEmpty)
           SizedBox(
-            width: 190,
-            child: DropdownButtonFormField<String?>(
-              initialValue: vehicleId,
+            width: 172,
+            child: DropdownButtonFormField<CalendarProjectionSource?>(
+              initialValue: source,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Vehicle'),
+              decoration: const InputDecoration(labelText: 'Entry type'),
               items: [
                 const DropdownMenuItem(
                   value: null,
-                  child: Text('All vehicles'),
+                  child: Text('All entry types'),
                 ),
-                for (final id in vehicleIds)
-                  DropdownMenuItem(value: id, child: Text(id)),
+                for (final item in CalendarProjectionSource.values)
+                  DropdownMenuItem(
+                    value: item,
+                    child: Text(_sourceLabel(item)),
+                  ),
               ],
-              onChanged: onVehicleChanged,
+              onChanged: onSourceChanged,
             ),
           ),
-        if (workProfileIds.isNotEmpty)
+          if (vehicleIds.isNotEmpty)
+            SizedBox(
+              width: 190,
+              child: DropdownButtonFormField<String?>(
+                initialValue: vehicleId,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Vehicle'),
+                items: [
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text('All vehicles'),
+                  ),
+                  for (final id in vehicleIds)
+                    DropdownMenuItem(value: id, child: Text(id)),
+                ],
+                onChanged: onVehicleChanged,
+              ),
+            ),
+          if (workProfileIds.isNotEmpty)
+            SizedBox(
+              width: 190,
+              child: DropdownButtonFormField<String?>(
+                initialValue: workProfileId,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Work profile'),
+                items: [
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text('All profiles'),
+                  ),
+                  for (final id in workProfileIds)
+                    DropdownMenuItem(value: id, child: Text(id)),
+                ],
+                onChanged: onWorkProfileChanged,
+              ),
+            ),
+          SizedBox(
+            width: 162,
+            child: DropdownButtonFormField<CalendarEntryStatus?>(
+              initialValue: status,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Review state'),
+              items: const [
+                DropdownMenuItem(value: null, child: Text('All states')),
+                DropdownMenuItem(
+                  value: CalendarEntryStatus.planned,
+                  child: Text('Planned'),
+                ),
+                DropdownMenuItem(
+                  value: CalendarEntryStatus.completed,
+                  child: Text('Confirmed'),
+                ),
+                DropdownMenuItem(
+                  value: CalendarEntryStatus.needsAttention,
+                  child: Text('Needs review'),
+                ),
+              ],
+              onChanged: onStatusChanged,
+            ),
+          ),
           SizedBox(
             width: 190,
-            child: DropdownButtonFormField<String?>(
-              initialValue: workProfileId,
+            child: DropdownButtonFormField<CalendarBusinessClassification?>(
+              initialValue: businessClassification,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Work profile'),
-              items: [
-                const DropdownMenuItem(
-                  value: null,
-                  child: Text('All profiles'),
+              decoration: const InputDecoration(labelText: 'Business use'),
+              items: const [
+                DropdownMenuItem(value: null, child: Text('All use types')),
+                DropdownMenuItem(
+                  value: CalendarBusinessClassification.business,
+                  child: Text('Business'),
                 ),
-                for (final id in workProfileIds)
-                  DropdownMenuItem(value: id, child: Text(id)),
+                DropdownMenuItem(
+                  value: CalendarBusinessClassification.personal,
+                  child: Text('Personal'),
+                ),
+                DropdownMenuItem(
+                  value: CalendarBusinessClassification.mixed,
+                  child: Text('Business and personal'),
+                ),
+                DropdownMenuItem(
+                  value: CalendarBusinessClassification.unclassified,
+                  child: Text('Needs classification'),
+                ),
               ],
-              onChanged: onWorkProfileChanged,
+              onChanged: onBusinessClassificationChanged,
             ),
           ),
-        SizedBox(
-          width: 162,
-          child: DropdownButtonFormField<CalendarEntryStatus?>(
-            initialValue: status,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Review state'),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('All states')),
-              DropdownMenuItem(
-                value: CalendarEntryStatus.planned,
-                child: Text('Planned'),
-              ),
-              DropdownMenuItem(
-                value: CalendarEntryStatus.completed,
-                child: Text('Confirmed'),
-              ),
-              DropdownMenuItem(
-                value: CalendarEntryStatus.needsAttention,
-                child: Text('Needs review'),
-              ),
-            ],
-            onChanged: onStatusChanged,
+          TextButton.icon(
+            onPressed: onClear,
+            icon: const Icon(Icons.clear_all_rounded),
+            label: const Text('Clear'),
           ),
-        ),
-        SizedBox(
-          width: 190,
-          child: DropdownButtonFormField<CalendarBusinessClassification?>(
-            initialValue: businessClassification,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Business use'),
-            items: const [
-              DropdownMenuItem(value: null, child: Text('All use types')),
-              DropdownMenuItem(
-                value: CalendarBusinessClassification.business,
-                child: Text('Business'),
-              ),
-              DropdownMenuItem(
-                value: CalendarBusinessClassification.personal,
-                child: Text('Personal'),
-              ),
-              DropdownMenuItem(
-                value: CalendarBusinessClassification.mixed,
-                child: Text('Business and personal'),
-              ),
-              DropdownMenuItem(
-                value: CalendarBusinessClassification.unclassified,
-                child: Text('Needs classification'),
-              ),
-            ],
-            onChanged: onBusinessClassificationChanged,
-          ),
-        ),
-        TextButton.icon(
-          onPressed: onClear,
-          icon: const Icon(Icons.clear_all_rounded),
-          label: const Text('Clear'),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }

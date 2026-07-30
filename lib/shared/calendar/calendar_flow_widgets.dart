@@ -42,78 +42,73 @@ class CalendarTimelineItem extends StatelessWidget {
       hint: 'Open ${entry.source} details',
       onTap: onTap,
       excludeSemantics: true,
-      child: SizedBox(
-        height: 64,
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Material(
-            color: const Color(0xFF2A3135),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
-              side: BorderSide(color: _statusBorderColor(entry.status)),
-            ),
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(5),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 42,
-                      child: Text(
-                        entry.timeLabel ?? calendarTimeLabel(entry.timestamp),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Color(0xFFE2E8EA),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          height: 1,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Material(
+          color: const Color(0xFF2A3135),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(5),
+            side: BorderSide(color: _statusBorderColor(entry.status)),
+          ),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(5),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 42,
+                    child: Text(
+                      entry.timeLabel ?? calendarTimeLabel(entry.timestamp),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFFE2E8EA),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(meta.icon, color: meta.color, size: 21),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          entry.title,
+                          softWrap: true,
+                          style: const TextStyle(
+                            color: Color(0xFFE2E8EA),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w900,
+                            height: 1.05,
+                          ),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Icon(meta.icon, color: meta.color, size: 21),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            entry.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFFE2E8EA),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                              height: 1.05,
-                            ),
+                        const SizedBox(height: 2),
+                        Text(
+                          entry.summary,
+                          softWrap: true,
+                          style: const TextStyle(
+                            color: Color(0xFFB7C4CA),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            height: 1.05,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            entry.summary,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Color(0xFFB7C4CA),
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              height: 1.05,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Icon(
-                      _statusIcon(entry.status),
-                      color: _statusColor(entry.status),
-                      size: 18,
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(
+                    _statusIcon(entry.status),
+                    color: _statusColor(entry.status),
+                    size: 18,
+                  ),
+                ],
               ),
             ),
           ),
