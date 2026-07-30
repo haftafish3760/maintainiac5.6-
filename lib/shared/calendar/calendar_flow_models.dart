@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'calendar_projection_contract.dart';
 
+/// Read-only source-owner detail handoff for a projected Calendar event.
+typedef CalendarSourceEventDetailBuilder =
+    Widget? Function(CalendarProjectionEvent event);
+
 enum CalendarDayMode { past, today, future }
 
 enum CalendarFlowSource {

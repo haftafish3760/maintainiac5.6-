@@ -5,6 +5,7 @@ import '../../../shared/calendar/calendar_inventory_projection_adapter.dart';
 import '../calendar/work_supply_calendar_panel.dart';
 import '../data/work_supply_models.dart';
 import '../data/work_supply_inventory_recap.dart';
+import '../inventory/work_supply_inventory_transaction_detail_screen.dart';
 
 part 'work_supply_home_calendar_sections.dart';
 part 'work_supply_home_status_sections.dart';

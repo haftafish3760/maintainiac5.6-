@@ -32,6 +32,7 @@ class CalendarDayFlowScreen extends StatefulWidget {
     this.source = CalendarFlowSource.dashboard,
     this.employeeId,
     this.sourceEventsForDay,
+    this.sourceEventDetailBuilder,
   });
 
   final DateTime day;
@@ -39,6 +40,7 @@ class CalendarDayFlowScreen extends StatefulWidget {
   final String? employeeId;
   final List<CalendarProjectionEvent> Function(DateTime day)?
   sourceEventsForDay;
+  final CalendarSourceEventDetailBuilder? sourceEventDetailBuilder;
 
   @override
   State<CalendarDayFlowScreen> createState() => _CalendarDayFlowScreenState();
@@ -375,6 +377,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
           mode: mode,
           source: widget.source,
           entry: entry,
+          sourceEventDetailBuilder: widget.sourceEventDetailBuilder,
         ),
       ),
     ];

@@ -21,6 +21,7 @@ class AppMonthCalendar extends StatefulWidget {
     this.onDaySelected,
     this.openCalendarDay = true,
     this.dayEventsForDay,
+    this.sourceEventDetailBuilder,
   });
 
   final CalendarFlowSource source;
@@ -32,6 +33,7 @@ class AppMonthCalendar extends StatefulWidget {
 
   /// Narrow source-owner handoff for a shared Calendar day presentation.
   final List<CalendarProjectionEvent> Function(DateTime day)? dayEventsForDay;
+  final CalendarSourceEventDetailBuilder? sourceEventDetailBuilder;
 
   @override
   State<AppMonthCalendar> createState() => _AppMonthCalendarState();
@@ -219,6 +221,7 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
           source: widget.source,
           employeeId: widget.employeeId,
           sourceEventsForDay: widget.dayEventsForDay,
+          sourceEventDetailBuilder: widget.sourceEventDetailBuilder,
         ),
       ),
     );

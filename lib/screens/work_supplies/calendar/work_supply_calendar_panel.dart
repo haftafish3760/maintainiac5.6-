@@ -28,6 +28,7 @@ class WorkSupplyCalendarPanel extends StatefulWidget {
     this.calendarSource,
     this.openCalendarDay = false,
     this.dayEventsForDay,
+    this.sourceEventDetailBuilder,
   });
 
   final Map<DateTime, List<WorkSupplyCalendarMarker>> markersByDay;
@@ -36,6 +37,7 @@ class WorkSupplyCalendarPanel extends StatefulWidget {
   final CalendarFlowSource? calendarSource;
   final bool openCalendarDay;
   final List<CalendarProjectionEvent> Function(DateTime day)? dayEventsForDay;
+  final CalendarSourceEventDetailBuilder? sourceEventDetailBuilder;
 
   @override
   State<WorkSupplyCalendarPanel> createState() =>
@@ -56,6 +58,7 @@ class _WorkSupplyCalendarPanelState extends State<WorkSupplyCalendarPanel> {
         dayBadges: _sharedBadges(),
         openCalendarDay: widget.openCalendarDay,
         dayEventsForDay: widget.dayEventsForDay,
+        sourceEventDetailBuilder: widget.sourceEventDetailBuilder,
       );
     }
     return CustomPaint(

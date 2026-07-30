@@ -26,8 +26,16 @@ void calendarOpenDayEntry(
   required CalendarDayMode mode,
   required CalendarFlowSource source,
   required CalendarTimelineEntry entry,
+  CalendarSourceEventDetailBuilder? sourceEventDetailBuilder,
 }) {
   final deepLink = entry.projection?.deepLink;
+  final sourceDetail = entry.projection == null
+      ? null
+      : sourceEventDetailBuilder?.call(entry.projection!);
+  if (sourceDetail != null) {
+    _push(context, sourceDetail);
+    return;
+  }
   if (deepLink?.target == CalendarDeepLinkTarget.expenseDetail) {
     _push(
       context,

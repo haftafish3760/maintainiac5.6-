@@ -62,6 +62,16 @@ class _InventoryCalendarHomePanel extends StatelessWidget {
                     transactions,
                     day,
                   ),
+              sourceEventDetailBuilder: (event) {
+                for (final transaction in transactions) {
+                  if (transaction.id == event.sourceRecordId) {
+                    return WorkSupplyInventoryTransactionDetailScreen(
+                      transaction: transaction,
+                    );
+                  }
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 10),
             _CalendarDayEntries(day: selectedDay, records: dayRecords),

@@ -10,6 +10,7 @@ void main() {
         'lib/shared/calendar/calendar_day_flow.dart',
         'lib/shared/calendar/calendar_day_entry_navigation.dart',
         'lib/shared/calendar/calendar_active_workday_projection_route.dart',
+        'lib/shared/calendar/calendar_inventory_projection_adapter.dart',
       ].map(File.new).map((file) => file.readAsStringSync()).join('\n');
       for (final target in const [
         'expenseDetail',
@@ -23,11 +24,16 @@ void main() {
         'paymentDetail',
         'reminderDetail',
         'calendarScheduleDetail',
+        'inventoryDetail',
       ]) {
         expect(source, contains('CalendarDeepLinkTarget.$target'));
       }
       expect(source, contains('ExpenseReminderScreen(initialReminderId:'));
       expect(source, contains('deepLink!.sourceRecordId'));
+      final routeSource = File(
+        'lib/shared/calendar/calendar_day_entry_navigation.dart',
+      ).readAsStringSync();
+      expect(routeSource, contains('sourceEventDetailBuilder'));
     },
   );
 
