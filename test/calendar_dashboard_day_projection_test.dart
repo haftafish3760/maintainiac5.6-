@@ -32,19 +32,56 @@ void main() {
       'job',
     ]);
     expect(data.recapItems.map((item) => item.label), [
+      'Total entries',
+      'Stops',
+      'Awaiting review',
       'Cash received',
       'Business spend',
       'Net cash flow',
       'Approved hours',
     ]);
+    expect(data.recapItems[0].value, '3');
+    expect(data.recapItems[1].value, '0');
+    expect(data.recapItems[2].value, '0');
+  });
+
+  test('dashboard day reports stop and review counts from event state', () {
+    final day = DateTime(2026, 7, 29);
+    final data = CalendarDashboardDayProjection.fromSources(
+      day: day,
+      events: [
+        _event(
+          'confirmed-stop',
+          CalendarProjectionSource.stop,
+          day.add(const Duration(hours: 8)),
+        ),
+        _event(
+          'review-stop',
+          CalendarProjectionSource.stop,
+          day.add(const Duration(hours: 9)),
+          state: CalendarProjectionState.needsReview,
+        ),
+        _event(
+          'planned-job',
+          CalendarProjectionSource.job,
+          day.add(const Duration(hours: 10)),
+          state: CalendarProjectionState.proposed,
+        ),
+      ],
+    );
+
+    expect(data.recapItems[0].value, '3');
+    expect(data.recapItems[1].value, '2');
+    expect(data.recapItems[2].value, '2');
   });
 }
 
 CalendarProjectionEvent _event(
   String id,
   CalendarProjectionSource source,
-  DateTime at,
-) => CalendarProjectionEvent(
+  DateTime at, {
+  CalendarProjectionState state = CalendarProjectionState.confirmed,
+}) => CalendarProjectionEvent(
   eventId: id,
   source: source,
   sourceRecordId: id,
@@ -56,7 +93,7 @@ CalendarProjectionEvent _event(
   ),
   title: id,
   conciseDetail: id,
-  state: CalendarProjectionState.confirmed,
+  state: state,
   sourceRecordStatus: 'active',
   revision: 1,
   evidence: const CalendarProjectionEvidence(),

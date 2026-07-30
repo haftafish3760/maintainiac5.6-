@@ -33,6 +33,20 @@ class CalendarDashboardDayProjection {
     return CalendarDayData(
       recapItems: [
         CalendarRecapItem(
+          label: 'Total entries',
+          value: '${normalized.length}',
+        ),
+        CalendarRecapItem(
+          label: 'Stops',
+          value:
+              '${normalized.where((event) => event.source == CalendarProjectionSource.stop).length}',
+        ),
+        CalendarRecapItem(
+          label: 'Awaiting review',
+          value:
+              '${recap.proposedCount + recap.needsReviewCount + recap.incompleteCount}',
+        ),
+        CalendarRecapItem(
           label: 'Cash received',
           value: _money(recap.paymentReceived),
         ),
