@@ -50,7 +50,7 @@ void main() {
     expect(find.text('Fuel'), findsOneWidget);
     expect(find.text('Client visit'), findsNothing);
 
-    await tester.tap(find.text('Clear'));
+    await tester.tap(find.text('Clear filters'));
     await tester.pumpAndSettle();
     await tester.tap(
       find.byType(DropdownButtonFormField<CalendarEntryStatus?>).first,
@@ -88,7 +88,7 @@ void main() {
     expect(find.text('Fuel'), findsOneWidget);
     expect(find.text('Client visit'), findsNothing);
 
-    await tester.tap(find.text('Clear'));
+    await tester.tap(find.text('Clear filters'));
     await tester.pumpAndSettle();
     await tester.tap(
       find.byType(DropdownButtonFormField<CalendarBusinessClassification?>),
@@ -132,29 +132,21 @@ void main() {
     expect(find.text('No matching entries'), findsOneWidget);
   });
 
-  testWidgets('five filters wrap without overflow on a narrow phone', (
+  testWidgets('Dashboard filters fit phone, tablet, and desktop widths', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Center(
-            child: SizedBox(
-              width: 320,
-              child: CalendarFilteredTimeline(
-                entries: _entries(),
-                enableFiltering: true,
-                onOpen: (_) {},
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+    for (final width in [320.0, 412.0, 768.0, 1280.0]) {
+      await tester.pumpWidget(_filterTimelineForWidth(width));
 
-    expect(tester.takeException(), isNull);
-    expect(find.text('Vehicle'), findsOneWidget);
-    expect(find.text('Work profile'), findsOneWidget);
+      expect(
+        tester.takeException(),
+        isNull,
+        reason: 'Dashboard filters overflowed at $width logical pixels.',
+      );
+      expect(find.text('FILTER ENTRIES'), findsOneWidget);
+      expect(find.text('Vehicle'), findsOneWidget);
+      expect(find.text('Work profile'), findsOneWidget);
+    }
   });
 
   testWidgets('source calendars do not render Dashboard filter controls', (
@@ -173,6 +165,21 @@ void main() {
     expect(find.text('Client visit'), findsOneWidget);
   });
 }
+
+Widget _filterTimelineForWidth(double width) => MaterialApp(
+  home: Scaffold(
+    body: Center(
+      child: SizedBox(
+        width: width,
+        child: CalendarFilteredTimeline(
+          entries: _entries(),
+          enableFiltering: true,
+          onOpen: (_) {},
+        ),
+      ),
+    ),
+  ),
+);
 
 List<CalendarTimelineEntry> _entries() => [
   _entry(
