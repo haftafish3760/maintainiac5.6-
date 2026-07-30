@@ -35,6 +35,9 @@ class _CalendarScheduleEditorScreenState
   late DateTime _start;
   DateTime? _end;
   late CalendarScheduleFrequency _frequency;
+  late int _interval;
+  late Set<int> _weekdays;
+  DateTime? _until;
   bool _saving = false;
 
   @override
@@ -48,6 +51,9 @@ class _CalendarScheduleEditorScreenState
         DateTime(widget.day.year, widget.day.month, widget.day.day, 9);
     _end = record?.endsAt;
     _frequency = record?.rule.frequency ?? CalendarScheduleFrequency.once;
+    _interval = record?.rule.interval ?? 1;
+    _weekdays = {...?record?.rule.weekdays};
+    _until = record?.rule.until;
   }
 
   @override
@@ -121,6 +127,75 @@ class _CalendarScheduleEditorScreenState
               ],
               onChanged: (value) => setState(() => _frequency = value!),
             ),
+            if (_frequency != CalendarScheduleFrequency.once) ...[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                initialValue: _interval,
+                dropdownColor: const Color(0xFF2A3135),
+                style: const TextStyle(
+                  color: Color(0xFFE8ECEE),
+                  fontWeight: FontWeight.w700,
+                ),
+                decoration: _decoration('Repeat interval'),
+                items: [
+                  for (var interval = 1; interval <= 12; interval++)
+                    DropdownMenuItem(
+                      value: interval,
+                      child: Text(_intervalLabel(_frequency, interval)),
+                    ),
+                ],
+                onChanged: (value) => setState(() => _interval = value!),
+              ),
+              if (_usesWeekdays(_frequency)) ...[
+                const SizedBox(height: 12),
+                const Text(
+                  'REPEAT ON',
+                  style: TextStyle(
+                    color: Color(0xFFB7C4CA),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.6,
+                  ),
+                ),
+                const SizedBox(height: 7),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (
+                      var day = DateTime.monday;
+                      day <= DateTime.sunday;
+                      day++
+                    )
+                      FilterChip(
+                        label: Text(_weekdayLabel(day)),
+                        selected: _weekdays.contains(day),
+                        onSelected: (selected) => setState(() {
+                          if (selected) {
+                            _weekdays.add(day);
+                          } else {
+                            _weekdays.remove(day);
+                          }
+                        }),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Leave all days unselected to repeat on the start day only.',
+                  style: TextStyle(color: Color(0xFFB7C4CA), fontSize: 12),
+                ),
+              ],
+              const SizedBox(height: 12),
+              _ScheduleDateTimeCard(
+                label: _until == null
+                    ? 'No repeat end date'
+                    : 'Repeats through',
+                value: _until,
+                showTime: false,
+                onPressed: () => _pickUntil(context),
+              ),
+            ],
             const SizedBox(height: 12),
             _ContextCard(
               vehicle:
@@ -180,6 +255,19 @@ class _CalendarScheduleEditorScreenState
     }
   }
 
+  Future<void> _pickUntil(BuildContext context) async {
+    final initial = _until ?? _start;
+    final date = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime(_start.year, _start.month, _start.day),
+      lastDate: DateTime(2100),
+    );
+    if (date != null && mounted) {
+      setState(() => _until = DateTime(date.year, date.month, date.day));
+    }
+  }
+
   Future<DateTime?> _pickDateTime(
     BuildContext context,
     DateTime initial,
@@ -222,7 +310,12 @@ class _CalendarScheduleEditorScreenState
         startsAt: _start,
         endsAt: _end,
         recordedAt: existing?.recordedAt ?? now,
-        rule: CalendarScheduleRule(frequency: _frequency),
+        rule: CalendarScheduleRule(
+          frequency: _frequency,
+          interval: _interval,
+          until: _until,
+          weekdays: _weekdays,
+        ),
         vehicleId: active?.activeVehicleId ?? '',
         workProfileId: active?.workProfileId ?? '',
         screenScope: widget.source.name,
@@ -255,10 +348,12 @@ class _ScheduleDateTimeCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onPressed,
+    this.showTime = true,
   });
   final String label;
   final DateTime? value;
   final VoidCallback onPressed;
+  final bool showTime;
   @override
   Widget build(BuildContext context) => OutlinedButton.icon(
     onPressed: onPressed,
@@ -266,7 +361,9 @@ class _ScheduleDateTimeCard extends StatelessWidget {
     label: Text(
       value == null
           ? label
-          : '$label · ${calendarFullDateLabel(value!)} · ${TimeOfDay.fromDateTime(value!).format(context)}',
+          : showTime
+          ? '$label · ${calendarFullDateLabel(value!)} · ${TimeOfDay.fromDateTime(value!).format(context)}'
+          : '$label · ${calendarFullDateLabel(value!)}',
     ),
     style: OutlinedButton.styleFrom(
       minimumSize: const Size.fromHeight(52),
@@ -311,4 +408,33 @@ String _frequencyLabel(CalendarScheduleFrequency value) => switch (value) {
   CalendarScheduleFrequency.biweekly => 'Every other week',
   CalendarScheduleFrequency.monthly => 'Every month',
   CalendarScheduleFrequency.customDays => 'Custom days',
+};
+
+bool _usesWeekdays(CalendarScheduleFrequency value) =>
+    value == CalendarScheduleFrequency.weekly ||
+    value == CalendarScheduleFrequency.biweekly ||
+    value == CalendarScheduleFrequency.customDays;
+
+String _intervalLabel(CalendarScheduleFrequency frequency, int interval) {
+  final unit = switch (frequency) {
+    CalendarScheduleFrequency.daily => interval == 1 ? 'day' : 'days',
+    CalendarScheduleFrequency.monthly => interval == 1 ? 'month' : 'months',
+    CalendarScheduleFrequency.weekly ||
+    CalendarScheduleFrequency.customDays => interval == 1 ? 'week' : 'weeks',
+    CalendarScheduleFrequency.biweekly =>
+      interval == 1 ? '2 weeks' : '${interval * 2} weeks',
+    CalendarScheduleFrequency.once => 'time',
+  };
+  return 'Every $interval $unit';
+}
+
+String _weekdayLabel(int weekday) => switch (weekday) {
+  DateTime.monday => 'Mon',
+  DateTime.tuesday => 'Tue',
+  DateTime.wednesday => 'Wed',
+  DateTime.thursday => 'Thu',
+  DateTime.friday => 'Fri',
+  DateTime.saturday => 'Sat',
+  DateTime.sunday => 'Sun',
+  _ => '',
 };
