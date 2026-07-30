@@ -47,6 +47,7 @@ void main(List<String> args) {
   try {
     final source = jsonDecode(file.readAsStringSync());
     final entries = _caseEntries(source);
+    _validateBenchmarkIdentities(entries);
     final cases = entries.map(_caseFromJson).toList(growable: false);
     final report = scoreReceiptOcrBenchmark(cases);
     final scenarioCounts = _scenarioCounts(entries);
@@ -112,6 +113,8 @@ void main(List<String> args) {
     final hasRealEvidence = entries.any(
       (entry) => _realSourceKinds.contains(_provenance(entry)['sourceKind']),
     );
+    final realRunIdentities = _realRunIdentities(entries);
+    final mixedRealRunIdentities = realRunIdentities.length > 1;
 
     stdout.writeln(
       const JsonEncoder.withIndent('  ').convert({
@@ -121,6 +124,8 @@ void main(List<String> args) {
         'requiresRealEvidence': requireReal,
         'requiresCompleteCoverage': requireCompleteCoverage,
         'hasRealEvidence': hasRealEvidence,
+        'realRunIdentities': realRunIdentities.toList()..sort(),
+        'mixedRealRunIdentities': mixedRealRunIdentities,
         'metrics': report.metrics,
         'metricCaseCounts': report.coverage,
         'missingCoverage': missingCoverage,
@@ -146,7 +151,8 @@ void main(List<String> args) {
         (releaseGate &&
             (missingRealScenarios.isNotEmpty ||
                 underSampledRealScenarios.isNotEmpty ||
-                realScenarioBelowMinimum.isNotEmpty))) {
+                realScenarioBelowMinimum.isNotEmpty ||
+                mixedRealRunIdentities))) {
       exitCode = 1;
     }
   } on FormatException catch (error) {
@@ -176,6 +182,42 @@ List<Map<String, Object?>> _caseEntries(Object? source) {
         return entry;
       })
       .toList(growable: false);
+}
+
+void _validateBenchmarkIdentities(List<Map<String, Object?>> entries) {
+  final caseIds = <String>{};
+  final realSourceIds = <String>{};
+  for (final entry in entries) {
+    final id = entry['id'];
+    if (id is! String || id.trim().isEmpty) {
+      throw const FormatException('Every benchmark case needs an id.');
+    }
+    if (!caseIds.add(id.trim())) {
+      throw FormatException('Benchmark case id ${id.trim()} is repeated.');
+    }
+    final provenance = _provenance(entry);
+    final tags = _scenarioTags(entry);
+    if (tags.isEmpty) {
+      throw FormatException(
+        'Benchmark case ${id.trim()} needs at least one scenario tag.',
+      );
+    }
+    if (!_realSourceKinds.contains(provenance['sourceKind'])) continue;
+    final sourceId = (provenance['sourceId']! as String).trim();
+    if (!realSourceIds.add(sourceId)) {
+      throw FormatException(
+        'Real receipt source $sourceId is repeated. Each physical receipt or long-receipt photo set can be counted once.',
+      );
+    }
+  }
+}
+
+Set<String> _realRunIdentities(List<Map<String, Object?>> entries) {
+  return {
+    for (final entry in entries)
+      if (_realSourceKinds.contains(_provenance(entry)['sourceKind']))
+        '${(_provenance(entry)['engine']! as String).trim()}@${(_provenance(entry)['processingVersion']! as String).trim()}',
+  };
 }
 
 Map<String, Object?> _provenance(Map<String, Object?> source) {

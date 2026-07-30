@@ -111,4 +111,59 @@ void main() {
     expect(report['realScenarioCaseCounts']['thermal'], 3);
     expect(report['realScenarioBelowMinimum']['thermal'], isNotEmpty);
   });
+
+  test('benchmark rejects duplicate real receipt sources and release mixes',
+      () async {
+    final temp = await Directory.systemTemp.createTemp('ocr_benchmark_runs_');
+    addTearDown(() => temp.delete(recursive: true));
+    Map<String, Object?> caseFor({
+      required String id,
+      required String sourceId,
+      required String engine,
+      required String version,
+    }) => {
+      'id': id,
+      'provenance': {
+        'sourceId': sourceId,
+        'sourceKind': 'camera',
+        'engine': engine,
+        'processingVersion': version,
+        'scenarioTags': ['thermal'],
+      },
+      'expected': {'text': 'STORE\\nTOTAL 10.00', 'total': '10.00'},
+      'actual': {'text': 'STORE\\nTOTAL 10.00', 'total': '10.00'},
+    };
+
+    final duplicate = File('${temp.path}/duplicate.json');
+    await duplicate.writeAsString(jsonEncode({
+      'cases': [
+        caseFor(id: 'one', sourceId: 'capture-a', engine: 'local', version: 'v1'),
+        caseFor(id: 'two', sourceId: 'capture-a', engine: 'local', version: 'v1'),
+      ],
+    }));
+    final duplicateResult = await Process.run('dart', [
+      'tool/receipt_ocr_benchmark_runner.dart',
+      '--input=${duplicate.path}',
+    ]);
+    expect(duplicateResult.exitCode, 65);
+    expect(duplicateResult.stderr, contains('Each physical receipt'));
+
+    final mixed = File('${temp.path}/mixed.json');
+    await mixed.writeAsString(jsonEncode({
+      'cases': [
+        caseFor(id: 'one', sourceId: 'capture-a', engine: 'local', version: 'v1'),
+        caseFor(id: 'two', sourceId: 'capture-b', engine: 'local', version: 'v2'),
+      ],
+    }));
+    final mixedResult = await Process.run('dart', [
+      'tool/receipt_ocr_benchmark_runner.dart',
+      '--input=${mixed.path}',
+      '--release-gate',
+    ]);
+    expect(mixedResult.exitCode, 1);
+    final mixedReport =
+        jsonDecode(mixedResult.stdout as String) as Map<String, dynamic>;
+    expect(mixedReport['mixedRealRunIdentities'], isTrue);
+    expect(mixedReport['realRunIdentities'], ['local@v1', 'local@v2']);
+  });
 }
