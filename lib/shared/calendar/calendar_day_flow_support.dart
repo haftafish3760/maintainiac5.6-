@@ -58,6 +58,98 @@ String calendarScreenTitle(CalendarFlowSource source) => switch (source) {
   _ => 'Calendar',
 };
 
+/// Calendar presentation of the shared operating context. Vehicle and profile
+/// selection remains owned by their established screens; Calendar only makes
+/// the active scope explicit before projecting source-owned records.
+class CalendarActiveContextStrip extends StatelessWidget {
+  const CalendarActiveContextStrip({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final controller = OperationalContextScope.maybeOf(context);
+    if (controller == null) return const SizedBox.shrink();
+    return AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final active = controller.context;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFF101719),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFF445159)),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _CalendarContextValue(
+                  icon: Icons.directions_car_filled_rounded,
+                  label: 'VEHICLE',
+                  value: active.activeVehicleLabel,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _CalendarContextValue(
+                  icon: Icons.badge_rounded,
+                  label: 'WORK PROFILE',
+                  value: active.workProfileName,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CalendarContextValue extends StatelessWidget {
+  const _CalendarContextValue({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Icon(icon, color: const Color(0xFF65B8FF), size: 18),
+      const SizedBox(width: 6),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFFB7C4CA),
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.6,
+              ),
+            ),
+            Text(
+              value,
+              softWrap: true,
+              style: const TextStyle(
+                color: Color(0xFFE8ECEE),
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                height: 1.1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
 void calendarOpenRecap(
   BuildContext context,
   DateTime day,

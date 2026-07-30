@@ -81,6 +81,8 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
               headerLabel: 'ACTIVE VEHICLE / WORK PROFILE',
             ),
             const SizedBox(height: 12),
+            const CalendarActiveContextStrip(),
+            const SizedBox(height: 12),
             CalendarDayNavigation(
               day: _selectedDay,
               onPreviousDay: () => _shiftDay(-1),
