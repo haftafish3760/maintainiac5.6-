@@ -10,6 +10,7 @@ import '../widgets/app_back_button.dart';
 import '../widgets/app_screen_shell.dart';
 import 'app_date_picker.dart';
 import 'calendar_employee_day_projection.dart';
+import 'calendar_action_required_panel.dart';
 import 'calendar_filtered_timeline.dart';
 import 'calendar_expense_day_projection.dart';
 import 'calendar_invoice_day_projection.dart';
@@ -277,6 +278,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     return [
       ..._recapSection(context, day, data, label: 'COMPLETED DAY RECAP'),
       const SizedBox(height: 14),
+      ..._actionRequiredSection(context, day, mode, data.entries),
       CalendarSectionTitle.withAction(
         label: widget.source == CalendarFlowSource.expenses
             ? 'EXPENSE ENTRIES'
@@ -314,6 +316,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
       const SizedBox(height: 12),
       ..._recapSection(context, day, data, label: 'TODAY AT A GLANCE'),
       const SizedBox(height: 14),
+      ..._actionRequiredSection(context, day, mode, data.entries),
       CalendarSectionTitle.withAction(
         label: 'CHRONOLOGICAL ENTRIES',
         actionLabel: 'Add missed entry',
@@ -333,6 +336,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     return [
       ..._recapSection(context, day, data, label: 'PLAN AT A GLANCE'),
       const SizedBox(height: 14),
+      ..._actionRequiredSection(context, day, mode, data.entries),
       CalendarSectionTitle.withAction(
         label: 'PLANNED ITEMS',
         actionLabel: 'Schedule item',
@@ -370,6 +374,32 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
           sourceEventDetailBuilder: widget.sourceEventDetailBuilder,
         ),
       ),
+    ];
+  }
+
+  List<Widget> _actionRequiredSection(
+    BuildContext context,
+    DateTime day,
+    CalendarDayMode mode,
+    List<CalendarTimelineEntry> entries,
+  ) {
+    if (calendarActionRequiredEntries(entries).isEmpty) return const [];
+    return [
+      const CalendarSectionTitle('REVIEW REQUIRED'),
+      const SizedBox(height: 8),
+      CalendarActionRequiredPanel(
+        entries: entries,
+        onOpen: (entry) => calendarOpenDayEntry(
+          context,
+          day: day,
+          mode: mode,
+          source: widget.source,
+          entry: entry,
+          employeeId: widget.employeeId,
+          sourceEventDetailBuilder: widget.sourceEventDetailBuilder,
+        ),
+      ),
+      const SizedBox(height: 14),
     ];
   }
 
