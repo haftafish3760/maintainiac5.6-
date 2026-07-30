@@ -7,6 +7,7 @@ import 'calendar_flow_models.dart';
 import 'calendar_projection_contract.dart';
 import 'calendar_month_event_badge.dart';
 import 'calendar_month_projection_reader.dart';
+import 'calendar_preferences_store.dart';
 import 'month_year_picker.dart';
 
 part 'app_month_calendar_widgets.dart';
@@ -45,6 +46,9 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
 
   @override
   Widget build(BuildContext context) {
+    final preferences =
+        CalendarPreferencesScope.maybeOf(context)?.preferences ??
+        const CalendarPresentationPreferences();
     return LayoutBuilder(
       builder: (context, constraints) => CustomPaint(
         painter: const _CalendarPanelPainter(),
@@ -64,6 +68,10 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
             firstDay: DateTime.utc(1900),
             lastDay: DateTime.utc(2100, 12, 31),
             focusedDay: _focusedDay,
+            startingDayOfWeek:
+                preferences.firstDayOfWeek == CalendarFirstDayOfWeek.monday
+                ? StartingDayOfWeek.monday
+                : StartingDayOfWeek.sunday,
             selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
             headerVisible: true,
             // Preserve the 5.6 large, always-month tile presentation. Day and

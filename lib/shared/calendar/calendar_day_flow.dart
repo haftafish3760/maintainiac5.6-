@@ -24,7 +24,9 @@ import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
 import 'calendar_month_projection_reader.dart';
 import 'calendar_projection_contract.dart';
+import 'calendar_preferences_store.dart';
 import 'calendar_schedule_editor_screen.dart';
+import 'calendar_settings_screen.dart';
 
 class CalendarDayFlowScreen extends StatefulWidget {
   const CalendarDayFlowScreen({
@@ -70,7 +72,17 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 92),
           children: [
-            AppScreenHeader(title: calendarScreenTitle(widget.source)),
+            AppScreenHeader(
+              title: calendarScreenTitle(widget.source),
+              actions: [
+                IconButton(
+                  tooltip: 'Calendar settings',
+                  onPressed: () => _openCalendarSettings(context),
+                  icon: const Icon(Icons.settings_rounded),
+                  color: const Color(0xFFE2E8EA),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             GlobalOdometerHeader(
               section: calendarAppSectionFor(widget.source),
@@ -381,6 +393,12 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayMode mode,
     List<CalendarTimelineEntry> entries,
   ) {
+    if (CalendarPreferencesScope.maybeOf(
+          context,
+        )?.preferences.showReviewShortcuts ==
+        false) {
+      return const [];
+    }
     if (calendarActionRequiredEntries(entries).isEmpty) return const [];
     return [
       const CalendarSectionTitle('REVIEW REQUIRED'),
@@ -456,6 +474,12 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         ),
       ),
     );
+  }
+
+  void _openCalendarSettings(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(appNativeRoute<void>(context, const CalendarSettingsScreen()));
   }
 
   void _shiftDay(int offset) {
