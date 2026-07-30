@@ -15,6 +15,13 @@ void main() {
 
     expect(script, contains(r'batch_count="${3:-1}"'));
     expect(script, contains(r'stress_scenarios="${4:-0}"'));
+    expect(script, contains(r'android_serial="${ANDROID_SERIAL:-}"'));
+    expect(script, contains('resolve_android_serial()'));
+    expect(script, contains('DEVICE_SELECTION_REQUIRED'));
+    expect(
+      script,
+      contains('Set ANDROID_SERIAL when zero or multiple Android devices'),
+    );
     expect(script, contains('./tool/trip_tracking_stress_gate.sh'));
     expect(script, contains(r'PASS_${stress_scenarios}_SCENARIOS'));
     expect(script, contains('batch count must be between 1 and 10'));

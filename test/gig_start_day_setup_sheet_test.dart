@@ -91,7 +91,7 @@ void main() {
     expect(find.text('Choose vehicle'), findsOneWidget);
     expect(
       tester.widget<BottomSheet>(find.byType(BottomSheet).last).backgroundColor,
-      const Color(0xFFF3F6F7),
+      const Color(0xFF2E3A40),
     );
     await tester.tap(find.text('Delivery Van'));
     await tester.pumpAndSettle();

@@ -10,7 +10,11 @@
 set -u
 
 bundle_id="com.maintainiac"
-android_serial="${ANDROID_SERIAL:-R5CX14WC8FA}"
+# A USB or wireless Android transport changes over time. Prefer the explicit
+# caller-provided serial, then safely use the sole connected device. Refusing
+# an ambiguous selection prevents this field-evidence helper from operating
+# on the wrong phone.
+android_serial="${ANDROID_SERIAL:-}"
 ios_device="${IOS_DEVICE:-robbies-iPhone.coredevice.local}"
 mode="${1:-both}"
 wait_seconds="${2:-20}"
@@ -67,8 +71,31 @@ run_simulation() {
   fi
 }
 
+resolve_android_serial() {
+  if [ -n "${android_serial}" ]; then
+    printf '%s\n' "${android_serial}"
+    return 0
+  fi
+
+  local discovered
+  discovered="$(adb devices 2>/dev/null | awk '$2 == "device" { print $1 }')"
+  local count
+  count="$(printf '%s\n' "${discovered}" | sed '/^$/d' | wc -l | tr -d ' ')"
+  if [ "${count}" -ne 1 ]; then
+    return 1
+  fi
+  printf '%s\n' "${discovered}"
+}
+
 run_android() {
-  if ! adb -s "${android_serial}" get-state > "${run_dir}/android_connection.log" 2>&1; then
+  local resolved_android_serial
+  if ! resolved_android_serial="$(resolve_android_serial)"; then
+    printf '%s\n' 'Set ANDROID_SERIAL when zero or multiple Android devices are connected.' \
+      > "${run_dir}/android_connection.log"
+    android_result="DEVICE_SELECTION_REQUIRED"
+    return
+  fi
+  if ! adb -s "${resolved_android_serial}" get-state > "${run_dir}/android_connection.log" 2>&1; then
     android_result="NOT_CONNECTED"
     return
   fi
@@ -77,23 +104,23 @@ run_android() {
   while [ "${batch}" -le "${batch_count}" ]; do
     batch_dir="${run_dir}/android_batch_${batch}"
     mkdir -p "${batch_dir}"
-    if ! adb -s "${android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
+    if ! adb -s "${resolved_android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
       > "${batch_dir}/launch.log" 2>&1; then
       android_result="LAUNCH_FAILED"
       return
     fi
     sleep 2
-    adb -s "${android_serial}" shell pidof "${bundle_id}" \
+    adb -s "${resolved_android_serial}" shell pidof "${bundle_id}" \
       > "${batch_dir}/foreground_pid.log" 2>&1 || true
-    adb -s "${android_serial}" shell input keyevent HOME \
+    adb -s "${resolved_android_serial}" shell input keyevent HOME \
       > "${batch_dir}/background_action.log" 2>&1 || true
     sleep "${wait_seconds}"
-    adb -s "${android_serial}" shell pidof "${bundle_id}" \
+    adb -s "${resolved_android_serial}" shell pidof "${bundle_id}" \
       > "${batch_dir}/background_pid.log" 2>&1 || true
-    adb -s "${android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
+    adb -s "${resolved_android_serial}" shell am start -n "${bundle_id}/.MainActivity" \
       > "${batch_dir}/resume.log" 2>&1 || true
     sleep 2
-    adb -s "${android_serial}" shell pidof "${bundle_id}" \
+    adb -s "${resolved_android_serial}" shell pidof "${bundle_id}" \
       > "${batch_dir}/resume_pid.log" 2>&1 || true
     if [ -s "${batch_dir}/background_pid.log" ] && \
       [ -s "${batch_dir}/resume_pid.log" ]; then
@@ -101,7 +128,7 @@ run_android() {
     fi
     batch=$((batch + 1))
   done
-  adb -s "${android_serial}" logcat -d -v epoch \
+  adb -s "${resolved_android_serial}" logcat -d -v epoch \
     | grep -Ei 'maintainiac|triptracking|trip_tracking' \
     > "${run_dir}/android_trip_logcat.log" || true
   if [ "${android_survived_batches}" -eq "${batch_count}" ]; then
