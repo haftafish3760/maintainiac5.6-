@@ -8,6 +8,7 @@ void main() {
     () {
       final source = [
         'lib/shared/calendar/calendar_day_flow.dart',
+        'lib/shared/calendar/calendar_day_entry_navigation.dart',
         'lib/shared/calendar/calendar_active_workday_projection_route.dart',
       ].map(File.new).map((file) => file.readAsStringSync()).join('\n');
       for (final target in const [
@@ -21,6 +22,7 @@ void main() {
         'estimateDetail',
         'paymentDetail',
         'reminderDetail',
+        'calendarScheduleDetail',
       ]) {
         expect(source, contains('CalendarDeepLinkTarget.$target'));
       }
@@ -33,7 +35,7 @@ void main() {
     'an unsupported projection target cannot open generic calendar editing',
     () {
       final source = File(
-        'lib/shared/calendar/calendar_day_flow.dart',
+        'lib/shared/calendar/calendar_day_entry_navigation.dart',
       ).readAsStringSync();
 
       final projectionGuard = source.indexOf('if (entry.projection != null)');

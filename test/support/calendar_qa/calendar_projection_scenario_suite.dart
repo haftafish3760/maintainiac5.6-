@@ -77,27 +77,27 @@ List<CalendarProjectionEvent> _events(int count, {required int seed}) {
       1 + (index * 7 % 12),
       1 + (index * 11 % 27),
     );
-    final id = 'scenario:$seed:${index ~/ 2}';
+    final id = 'scenario:$seed:$index';
     events.add(
       _event(
         id: id,
         source: source,
         state: state,
         time: day.add(Duration(minutes: (index * 37) % 1440)),
-        revision: index.isEven ? 1 : 2,
+        revision: 1,
       ),
     );
-    if (index.isEven) {
-      events.add(
-        _event(
-          id: id,
-          source: source,
-          state: state,
-          time: day.add(Duration(minutes: (index * 37) % 1440)),
-          revision: 2,
-        ),
-      );
-    }
+    // A stale revision must be replaced by the same source record, not by a
+    // different generated state that merely shares a synthetic ID.
+    events.add(
+      _event(
+        id: id,
+        source: source,
+        state: state,
+        time: day.add(Duration(minutes: (index * 37) % 1440)),
+        revision: 2,
+      ),
+    );
   }
   return events;
 }
