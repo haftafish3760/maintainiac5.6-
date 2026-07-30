@@ -83,6 +83,31 @@ void main(List<String> args) {
                 .map(_caseFromJson),
           ).below(failUnder),
     };
+    final realScenarioBelowMinimum = <String, List<String>>{
+      for (final scenario in realScenarioCoverage)
+        if (scoreReceiptOcrBenchmark(
+          entries
+              .where(
+                (entry) =>
+                    _realSourceKinds.contains(
+                      _provenance(entry)['sourceKind'],
+                    ) &&
+                    _scenarioTags(entry).contains(scenario),
+              )
+              .map(_caseFromJson),
+        ).below(failUnder).isNotEmpty)
+          scenario: scoreReceiptOcrBenchmark(
+            entries
+                .where(
+                  (entry) =>
+                      _realSourceKinds.contains(
+                        _provenance(entry)['sourceKind'],
+                      ) &&
+                      _scenarioTags(entry).contains(scenario),
+                )
+                .map(_caseFromJson),
+          ).below(failUnder),
+    };
     final belowMinimum = report.below(failUnder);
     final hasRealEvidence = entries.any(
       (entry) => _realSourceKinds.contains(_provenance(entry)['sourceKind']),
@@ -107,6 +132,7 @@ void main(List<String> args) {
         'realScenarioCaseCounts': realScenarioCounts,
         'underSampledRealScenarios': underSampledRealScenarios,
         'scenarioBelowMinimum': scenarioBelowMinimum,
+        'realScenarioBelowMinimum': realScenarioBelowMinimum,
         'belowMinimum': belowMinimum,
       }),
     );
@@ -119,7 +145,8 @@ void main(List<String> args) {
                 scenarioBelowMinimum.isNotEmpty)) ||
         (releaseGate &&
             (missingRealScenarios.isNotEmpty ||
-                underSampledRealScenarios.isNotEmpty))) {
+                underSampledRealScenarios.isNotEmpty ||
+                realScenarioBelowMinimum.isNotEmpty))) {
       exitCode = 1;
     }
   } on FormatException catch (error) {
