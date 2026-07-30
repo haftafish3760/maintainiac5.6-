@@ -3,11 +3,13 @@ part of 'work_supply_home_screen.dart';
 class _InventoryCalendarHomePanel extends StatelessWidget {
   const _InventoryCalendarHomePanel({
     required this.records,
+    required this.transactions,
     required this.selectedDay,
     required this.onDaySelected,
   });
 
   final List<WorkSupplyInventoryRecord> records;
+  final List<WorkSupplyInventoryTransaction> transactions;
   final DateTime selectedDay;
   final ValueChanged<DateTime> onDaySelected;
 
@@ -54,6 +56,12 @@ class _InventoryCalendarHomePanel extends StatelessWidget {
               markersByDay: _homeInventoryMarkers(records),
               onDaySelected: (day) => onDaySelected(_dayKey(day)),
               calendarSource: CalendarFlowSource.materials,
+              openCalendarDay: true,
+              dayEventsForDay: (day) =>
+                  CalendarInventoryProjectionAdapter.eventsForDay(
+                    transactions,
+                    day,
+                  ),
             ),
             const SizedBox(height: 10),
             _CalendarDayEntries(day: selectedDay, records: dayRecords),

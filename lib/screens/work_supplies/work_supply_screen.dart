@@ -63,6 +63,7 @@ class _WorkSupplyScreenState extends State<WorkSupplyScreen> {
                   WorkSupplyHomeScreen(
                     query: _query,
                     inventoryRecords: _inventory,
+                    inventoryTransactions: _transactions,
                     draftCount: _drafts.length,
                     selectedCalendarDay: _selectedInventoryDay,
                     inventoryCount: _inventory.length,

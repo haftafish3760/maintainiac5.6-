@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../navigation/app_page_routes.dart';
 import 'calendar_day_flow.dart';
 import 'calendar_flow_models.dart';
+import 'calendar_projection_contract.dart';
 import 'calendar_month_event_badge.dart';
 import 'calendar_month_projection_reader.dart';
 import 'month_year_picker.dart';
@@ -19,6 +20,7 @@ class AppMonthCalendar extends StatefulWidget {
     this.employeeId,
     this.onDaySelected,
     this.openCalendarDay = true,
+    this.dayEventsForDay,
   });
 
   final CalendarFlowSource source;
@@ -27,6 +29,9 @@ class AppMonthCalendar extends StatefulWidget {
   final String? employeeId;
   final ValueChanged<DateTime>? onDaySelected;
   final bool openCalendarDay;
+
+  /// Narrow source-owner handoff for a shared Calendar day presentation.
+  final List<CalendarProjectionEvent> Function(DateTime day)? dayEventsForDay;
 
   @override
   State<AppMonthCalendar> createState() => _AppMonthCalendarState();
@@ -213,6 +218,7 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
           day: day,
           source: widget.source,
           employeeId: widget.employeeId,
+          sourceEventsForDay: widget.dayEventsForDay,
         ),
       ),
     );

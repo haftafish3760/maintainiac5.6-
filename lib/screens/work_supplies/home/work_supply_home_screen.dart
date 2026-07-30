@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/calendar/calendar_flow_models.dart';
+import '../../../shared/calendar/calendar_inventory_projection_adapter.dart';
 import '../calendar/work_supply_calendar_panel.dart';
 import '../data/work_supply_models.dart';
 import '../data/work_supply_inventory_recap.dart';
@@ -13,6 +14,7 @@ class WorkSupplyHomeScreen extends StatelessWidget {
     super.key,
     required this.query,
     required this.inventoryRecords,
+    required this.inventoryTransactions,
     required this.draftCount,
     required this.selectedCalendarDay,
     required this.inventoryCount,
@@ -30,6 +32,7 @@ class WorkSupplyHomeScreen extends StatelessWidget {
 
   final String query;
   final List<WorkSupplyInventoryRecord> inventoryRecords;
+  final List<WorkSupplyInventoryTransaction> inventoryTransactions;
   final int draftCount;
   final DateTime selectedCalendarDay;
   final int inventoryCount;
@@ -86,6 +89,7 @@ class WorkSupplyHomeScreen extends StatelessWidget {
           const SizedBox(height: 12),
           _InventoryCalendarHomePanel(
             records: inventoryRecords,
+            transactions: inventoryTransactions,
             selectedDay: selectedCalendarDay,
             onDaySelected: onCalendarDaySelected,
           ),

@@ -4,6 +4,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../../../shared/calendar/app_month_calendar.dart';
 import '../../../shared/calendar/calendar_month_event_badge.dart';
 import '../../../shared/calendar/calendar_flow_models.dart';
+import '../../../shared/calendar/calendar_projection_contract.dart';
 import '../../../shared/calendar/month_year_picker.dart';
 
 class WorkSupplyCalendarMarker {
@@ -26,6 +27,7 @@ class WorkSupplyCalendarPanel extends StatefulWidget {
     this.markersForDay,
     this.calendarSource,
     this.openCalendarDay = false,
+    this.dayEventsForDay,
   });
 
   final Map<DateTime, List<WorkSupplyCalendarMarker>> markersByDay;
@@ -33,6 +35,7 @@ class WorkSupplyCalendarPanel extends StatefulWidget {
   final List<WorkSupplyCalendarMarker> Function(DateTime day)? markersForDay;
   final CalendarFlowSource? calendarSource;
   final bool openCalendarDay;
+  final List<CalendarProjectionEvent> Function(DateTime day)? dayEventsForDay;
 
   @override
   State<WorkSupplyCalendarPanel> createState() =>
@@ -52,6 +55,7 @@ class _WorkSupplyCalendarPanelState extends State<WorkSupplyCalendarPanel> {
         onDaySelected: widget.onDaySelected,
         dayBadges: _sharedBadges(),
         openCalendarDay: widget.openCalendarDay,
+        dayEventsForDay: widget.dayEventsForDay,
       );
     }
     return CustomPaint(

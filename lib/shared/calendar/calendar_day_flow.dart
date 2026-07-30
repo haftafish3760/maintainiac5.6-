@@ -22,6 +22,7 @@ import 'calendar_entry_flow.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
 import 'calendar_month_projection_reader.dart';
+import 'calendar_projection_contract.dart';
 import 'calendar_schedule_editor_screen.dart';
 
 class CalendarDayFlowScreen extends StatefulWidget {
@@ -30,11 +31,14 @@ class CalendarDayFlowScreen extends StatefulWidget {
     required this.day,
     this.source = CalendarFlowSource.dashboard,
     this.employeeId,
+    this.sourceEventsForDay,
   });
 
   final DateTime day;
   final CalendarFlowSource source;
   final String? employeeId;
+  final List<CalendarProjectionEvent> Function(DateTime day)?
+  sourceEventsForDay;
 
   @override
   State<CalendarDayFlowScreen> createState() => _CalendarDayFlowScreenState();
@@ -229,6 +233,33 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
           CalendarFlowSource.maintenance,
           day,
         ),
+      );
+    }
+    if (widget.source == CalendarFlowSource.materials &&
+        widget.sourceEventsForDay != null) {
+      final events = CalendarProjectionTimeline.normalize([
+        ...widget.sourceEventsForDay!(day),
+        ...CalendarMonthProjectionReader.calendarScheduleEventsForDay(
+          context,
+          CalendarFlowSource.materials,
+          day,
+        ),
+      ]);
+      return CalendarDayData(
+        recapItems: [
+          CalendarRecapItem(
+            label: 'Inventory entries',
+            value: '${events.length}',
+          ),
+          CalendarRecapItem(
+            label: 'Needs review',
+            value: '${events.where((event) => event.isActionable).length}',
+          ),
+        ],
+        entries: [
+          for (final event in events)
+            CalendarTimelineEntry.fromProjection(event),
+        ],
       );
     }
     return const CalendarDayData(recapItems: [], entries: []);
