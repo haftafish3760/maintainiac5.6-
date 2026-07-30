@@ -181,9 +181,14 @@ class _CalendarScheduleEditorScreenState
                   ],
                 ),
                 const SizedBox(height: 6),
-                const Text(
-                  'Leave all days unselected to repeat on the start day only.',
-                  style: TextStyle(color: Color(0xFFB7C4CA), fontSize: 12),
+                Text(
+                  _frequency == CalendarScheduleFrequency.customDays
+                      ? 'Choose one or more days for a custom schedule.'
+                      : 'Leave all days unselected to repeat on the start day only.',
+                  style: const TextStyle(
+                    color: Color(0xFFB7C4CA),
+                    fontSize: 12,
+                  ),
                 ),
               ],
               const SizedBox(height: 12),
@@ -305,6 +310,15 @@ class _CalendarScheduleEditorScreenState
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Give this schedule item a title.')),
+      );
+      return;
+    }
+    if (_frequency == CalendarScheduleFrequency.customDays &&
+        _weekdays.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Choose at least one day for a custom schedule.'),
+        ),
       );
       return;
     }
