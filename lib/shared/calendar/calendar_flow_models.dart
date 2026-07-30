@@ -167,6 +167,8 @@ CalendarEntryType _entryTypeForProjectionSource(
   CalendarProjectionSource.maintenance => CalendarEntryType.maintenance,
   CalendarProjectionSource.inventory => CalendarEntryType.materials,
   CalendarProjectionSource.reminder => CalendarEntryType.reminderSchedule,
+  CalendarProjectionSource.calendarSchedule =>
+    CalendarEntryType.reminderSchedule,
   CalendarProjectionSource.workTime => CalendarEntryType.note,
   CalendarProjectionSource.odometer => CalendarEntryType.tripEntry,
   CalendarProjectionSource.vehicleProfile => CalendarEntryType.note,
@@ -214,6 +216,7 @@ String _projectionSourceLabel(CalendarProjectionSource source) =>
       CalendarProjectionSource.maintenance => 'Maintenance',
       CalendarProjectionSource.inventory => 'Inventory',
       CalendarProjectionSource.reminder => 'Reminders',
+      CalendarProjectionSource.calendarSchedule => 'Calendar schedule',
       CalendarProjectionSource.workTime => 'Work time',
       CalendarProjectionSource.odometer => 'Odometer',
       CalendarProjectionSource.vehicleProfile => 'Vehicle profile',
@@ -258,7 +261,7 @@ CalendarModeProfile calendarModeProfileFor(CalendarDayMode mode) {
     CalendarDayMode.past => const CalendarModeProfile(
       title: 'History / Edit Mode',
       subtitle: 'Review the day, correct records, or add anything missed.',
-      fabLabel: 'Add Entry',
+      fabLabel: 'Schedule',
       fabIcon: Icons.edit_note_rounded,
       fabColor: Color(0xFFFFD166),
       fabForeground: Color(0xFF17120A),
@@ -266,7 +269,7 @@ CalendarModeProfile calendarModeProfileFor(CalendarDayMode mode) {
     CalendarDayMode.today => const CalendarModeProfile(
       title: 'Today / Active Timeline',
       subtitle: 'See planned work, completed work, and active-day status.',
-      fabLabel: 'Quick Add',
+      fabLabel: 'Schedule',
       fabIcon: Icons.add_task_rounded,
       fabColor: Color(0xFF20F060),
       fabForeground: Color(0xFF07100A),
@@ -274,7 +277,7 @@ CalendarModeProfile calendarModeProfileFor(CalendarDayMode mode) {
     CalendarDayMode.future => const CalendarModeProfile(
       title: 'Planning Mode',
       subtitle: 'Schedule work, reminders, notes, vehicles, and helpers.',
-      fabLabel: 'Plan',
+      fabLabel: 'Schedule',
       fabIcon: Icons.event_available_rounded,
       fabColor: Color(0xFF4FE8FF),
       fabForeground: Color(0xFF061013),

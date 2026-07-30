@@ -17,6 +17,7 @@ class CalendarScheduleRecord {
     this.details = '',
     this.vehicleId = '',
     this.workProfileId = '',
+    this.screenScope = 'dashboard',
     this.timezoneId,
     this.active = true,
     this.exceptions = const [],
@@ -32,6 +33,10 @@ class CalendarScheduleRecord {
   final List<CalendarScheduleException> exceptions;
   final String vehicleId;
   final String workProfileId;
+
+  /// Calendar screen that owns this appointment's planning context. Dashboard
+  /// projects every scope; source calendars project only their own.
+  final String screenScope;
   final String? timezoneId;
   final bool active;
 
@@ -46,6 +51,7 @@ class CalendarScheduleRecord {
       recordedAt: _date(map['recordedAt']) ?? start,
       vehicleId: '${map['vehicleId'] ?? ''}',
       workProfileId: '${map['workProfileId'] ?? ''}',
+      screenScope: '${map['screenScope'] ?? 'dashboard'}',
       timezoneId: _blankToNull('${map['timezoneId'] ?? ''}'),
       active: map['active'] != false,
       rule: CalendarScheduleRule(
@@ -95,6 +101,7 @@ class CalendarScheduleRecord {
     ],
     'vehicleId': vehicleId,
     'workProfileId': workProfileId,
+    'screenScope': screenScope,
     'timezoneId': timezoneId,
     'active': active,
   };

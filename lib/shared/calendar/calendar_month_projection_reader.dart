@@ -22,6 +22,8 @@ import 'calendar_job_projection_adapter.dart';
 import 'calendar_maintenance_due_projection_adapter.dart';
 import 'calendar_maintenance_projection_adapter.dart';
 import 'calendar_projection_contract.dart';
+import 'calendar_schedule_projection_adapter.dart';
+import 'calendar_schedule_record.dart';
 import 'calendar_work_time_projection_adapter.dart';
 import 'calendar_workday_context_projection_adapter.dart';
 
@@ -75,6 +77,7 @@ class CalendarMonthProjectionReader {
             reminders.records,
             day,
           ),
+      ...calendarScheduleEventsForDay(context, source, day),
       if (source == CalendarFlowSource.dashboard ||
           source == CalendarFlowSource.contractor ||
           source == CalendarFlowSource.jobs)
@@ -115,6 +118,28 @@ class CalendarMonthProjectionReader {
     ];
     return CalendarProjectionTimeline.normalize(
       events.where((event) => _matchesContext(event, active)),
+    );
+  }
+
+  /// Calendar-owned plans are visible on Dashboard and on the source calendar
+  /// where they were created. Context filtering prevents vehicle/profile bleed.
+  static List<CalendarProjectionEvent> calendarScheduleEventsForDay(
+    BuildContext context,
+    CalendarFlowSource source,
+    DateTime day,
+  ) {
+    final active = OperationalContextScope.maybeOf(context)?.context;
+    final schedules = CalendarScheduleScope.maybeOf(context);
+    if (schedules == null) return const [];
+    return CalendarProjectionTimeline.normalize(
+      CalendarScheduleProjectionAdapter.eventsForDay(
+        schedules.records.where(
+          (schedule) =>
+              source == CalendarFlowSource.dashboard ||
+              schedule.screenScope == source.name,
+        ),
+        day,
+      ).where((event) => _matchesContext(event, active)),
     );
   }
 

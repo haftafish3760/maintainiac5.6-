@@ -15,6 +15,7 @@ void main() {
         recordedAt: DateTime(2026, 7, 28, 18),
         vehicleId: 'truck-1',
         workProfileId: 'lawn-care',
+        screenScope: 'jobs',
         rule: CalendarScheduleRule(
           frequency: CalendarScheduleFrequency.weekly,
           weekdays: const {DateTime.wednesday},
@@ -30,6 +31,7 @@ void main() {
       expect(saved.title, 'Jones Lawn Care');
       expect(saved.vehicleId, 'truck-1');
       expect(saved.workProfileId, 'lawn-care');
+      expect(saved.screenScope, 'jobs');
       expect(saved.rule.frequency, CalendarScheduleFrequency.weekly);
       expect(saved.exceptions.single.cancelled, isTrue);
     },

@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../screens/expenses/calendar/expense_calendar.dart';
 import '../../screens/expenses/data/expense_ledger_store.dart';
 import '../../screens/expenses/data/expense_reminder_store.dart';
-import '../../screens/expenses/reminders/expense_reminder_screen.dart';
-import '../../screens/maintenance/maintenance_service_event_detail_screen.dart';
-import '../../screens/maintenance/maintenance_item_detail_screen.dart';
-import '../../screens/profiles/employee_work_time_detail_screen.dart';
 import '../../screens/invoices/data/invoice_ledger_store.dart';
-import '../../screens/invoices/home/invoice_form_screen.dart';
-import '../../screens/work_supplies/jobs/maintainiac_job_detail_screen.dart';
 import '../jobs/maintainiac_job_store.dart';
 import '../context/operational_context_store.dart';
 import '../profiles/employee_work_time_store.dart';
 import '../navigation/app_page_routes.dart';
-import '../state/app_state.dart';
 import '../widgets/app_back_button.dart';
 import '../widgets/app_screen_shell.dart';
 import 'app_date_picker.dart';
@@ -24,14 +16,13 @@ import 'calendar_invoice_day_projection.dart';
 import 'calendar_contractor_day_projection.dart';
 import 'calendar_dashboard_day_projection.dart';
 import 'calendar_day_flow_support.dart';
-import 'calendar_active_workday_projection_route.dart';
+import 'calendar_day_entry_navigation.dart';
 import 'calendar_cross_module_recap.dart';
 import 'calendar_entry_flow.dart';
 import 'calendar_flow_models.dart';
 import 'calendar_flow_widgets.dart';
-import 'calendar_maintenance_projection_adapter.dart';
 import 'calendar_month_projection_reader.dart';
-import 'calendar_projection_contract.dart';
+import 'calendar_schedule_editor_screen.dart';
 
 class CalendarDayFlowScreen extends StatefulWidget {
   const CalendarDayFlowScreen({
@@ -65,7 +56,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         foregroundColor: profile.fabForeground,
         icon: Icon(profile.fabIcon),
         label: Text(profile.fabLabel),
-        onPressed: () => _openEntrySelector(context, _selectedDay, mode),
+        onPressed: () => _openScheduleEditor(context, _selectedDay),
       ),
       body: SafeArea(
         top: false,
@@ -128,12 +119,17 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         final active = OperationalContextScope.maybeOf(context)?.context;
         return calendarFilterToActiveContext(
           context,
-          CalendarExpenseDayProjection.forDay(
-            ledger,
+          calendarDataWithSchedules(
+            context,
+            CalendarExpenseDayProjection.forDay(
+              ledger,
+              day,
+              vehicleId: active?.activeVehicleId ?? '',
+              workProfileId: active?.workProfileId ?? '',
+              reminders: ExpenseReminderScope.of(context).records,
+            ),
+            CalendarFlowSource.expenses,
             day,
-            vehicleId: active?.activeVehicleId ?? '',
-            workProfileId: active?.workProfileId ?? '',
-            reminders: ExpenseReminderScope.of(context).records,
           ),
         );
       }
@@ -141,11 +137,16 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     if (widget.source == CalendarFlowSource.contractor) {
       return calendarFilterToActiveContext(
         context,
-        CalendarContractorDayProjection.forDay(
-          day: day,
-          expenses: ExpenseLedgerScope.maybeOf(context),
-          jobs: MaintainiacJobScope.maybeOf(context),
-          workTime: EmployeeWorkTimeScope.maybeOf(context),
+        calendarDataWithSchedules(
+          context,
+          CalendarContractorDayProjection.forDay(
+            day: day,
+            expenses: ExpenseLedgerScope.maybeOf(context),
+            jobs: MaintainiacJobScope.maybeOf(context),
+            workTime: EmployeeWorkTimeScope.maybeOf(context),
+          ),
+          CalendarFlowSource.contractor,
+          day,
         ),
       );
     }
@@ -192,8 +193,13 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
       if (employeeId.isNotEmpty && workTime != null) {
         return calendarFilterToActiveContext(
           context,
-          CalendarEmployeeDayProjection.forDay(
-            workTime.recordsForEmployee(employeeId),
+          calendarDataWithSchedules(
+            context,
+            CalendarEmployeeDayProjection.forDay(
+              workTime.recordsForEmployee(employeeId),
+              day,
+            ),
+            CalendarFlowSource.employee,
             day,
           ),
         );
@@ -205,14 +211,24 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
       if (ledger != null) {
         return calendarFilterToActiveContext(
           context,
-          CalendarInvoiceDayProjection.forDay(ledger, day),
+          calendarDataWithSchedules(
+            context,
+            CalendarInvoiceDayProjection.forDay(ledger, day),
+            CalendarFlowSource.invoices,
+            day,
+          ),
         );
       }
     }
     if (widget.source == CalendarFlowSource.maintenance) {
       return calendarFilterToActiveContext(
         context,
-        calendarMaintenanceDataFor(context, day),
+        calendarDataWithSchedules(
+          context,
+          calendarMaintenanceDataFor(context, day),
+          CalendarFlowSource.maintenance,
+          day,
+        ),
       );
     }
     return const CalendarDayData(recapItems: [], entries: []);
@@ -297,8 +313,8 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     return [
       CalendarSectionTitle.withAction(
         label: 'PLANNED ITEMS',
-        actionLabel: 'Plan item',
-        onPressed: () => _openEntrySelector(context, day, mode),
+        actionLabel: 'Schedule item',
+        onPressed: () => _openScheduleEditor(context, day),
       ),
       const SizedBox(height: 8),
       ..._timelineRows(context, day, mode, data.entries),
@@ -322,7 +338,13 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
       CalendarFilteredTimeline(
         entries: entries,
         enableFiltering: widget.source == CalendarFlowSource.dashboard,
-        onOpen: (entry) => _openEntryDetail(context, day, mode, entry),
+        onOpen: (entry) => calendarOpenDayEntry(
+          context,
+          day: day,
+          mode: mode,
+          source: widget.source,
+          entry: entry,
+        ),
       ),
     ];
   }
@@ -344,129 +366,14 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     );
   }
 
-  void _openEntryDetail(
-    BuildContext context,
-    DateTime day,
-    CalendarDayMode mode,
-    CalendarTimelineEntry entry,
-  ) {
-    final deepLink = entry.projection?.deepLink;
-    if (deepLink?.target == CalendarDeepLinkTarget.expenseDetail) {
-      Navigator.of(context).push(
-        appNativeRoute<void>(
-          context,
-          ExpenseReceiptDetailScreen(receiptId: deepLink!.sourceRecordId),
-        ),
-      );
-      return;
-    }
-    if (deepLink != null &&
-        calendarOpenActiveWorkdayProjectionRoute(context, deepLink)) {
-      return;
-    }
-    if (deepLink?.target == CalendarDeepLinkTarget.jobDetail) {
-      Navigator.of(context).push(
-        appNativeRoute<void>(
-          context,
-          MaintainiacJobDetailScreen(jobId: deepLink!.sourceRecordId),
-        ),
-      );
-      return;
-    }
-    if (deepLink?.target == CalendarDeepLinkTarget.maintenanceDetail) {
-      final record = AppStateScope.of(context).allMaintenanceRecords.where(
-        (candidate) => candidate.recordId == deepLink!.sourceRecordId,
-      );
-      if (record.isNotEmpty) {
-        Navigator.of(context).push(
-          appNativeRoute<void>(
-            context,
-            MaintenanceItemDetailScreen(record: record.first),
-          ),
-        );
-        return;
-      }
-      final matching = AppStateScope.of(context).maintenanceEvents.where(
-        (candidate) =>
-            CalendarMaintenanceProjectionAdapter.sourceIdFor(candidate) ==
-            deepLink!.sourceRecordId,
-      );
-      if (matching.isNotEmpty) {
-        Navigator.of(context).push(
-          appNativeRoute<void>(
-            context,
-            MaintenanceServiceEventDetailScreen(event: matching.first),
-          ),
-        );
-        return;
-      }
-    }
-    if (deepLink?.target == CalendarDeepLinkTarget.workTimeDetail) {
-      Navigator.of(context).push(
-        appNativeRoute<void>(
-          context,
-          EmployeeWorkTimeDetailScreen(recordId: deepLink!.sourceRecordId),
-        ),
-      );
-      return;
-    }
-    if (deepLink?.target == CalendarDeepLinkTarget.invoiceDetail ||
-        deepLink?.target == CalendarDeepLinkTarget.estimateDetail ||
-        deepLink?.target == CalendarDeepLinkTarget.paymentDetail) {
-      Navigator.of(context).push(
-        appNativeRoute<void>(
-          context,
-          InvoiceFormScreen(recordId: deepLink!.sourceRecordId),
-        ),
-      );
-      return;
-    }
-    if (deepLink?.target == CalendarDeepLinkTarget.reminderDetail) {
-      Navigator.of(context).push(
-        appNativeRoute<void>(
-          context,
-          ExpenseReminderScreen(initialReminderId: deepLink!.sourceRecordId),
-        ),
-      );
-      return;
-    }
-    if (entry.projection != null) {
-      _showUnavailableSourceRecord(context, entry.projection!);
-      return;
-    }
+  void _openScheduleEditor(BuildContext context, DateTime day) {
     Navigator.of(context).push(
       appNativeRoute<void>(
         context,
-        CalendarEntryDetailScreen(
-          day: day,
-          mode: mode,
-          entry: entry,
-          source: widget.source,
-        ),
+        CalendarScheduleEditorScreen(day: day, source: widget.source),
       ),
     );
   }
-
-  Future<void> _showUnavailableSourceRecord(
-    BuildContext context,
-    CalendarProjectionEvent event,
-  ) => showDialog<void>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Source record unavailable'),
-      content: Text(
-        '${event.source.name} record ${event.sourceRecordId} cannot be opened '
-        'because its owner route is not available in this build. Calendar did '
-        'not open a duplicate editor.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('Close'),
-        ),
-      ],
-    ),
-  );
 
   void _shiftDay(int offset) {
     setState(() {

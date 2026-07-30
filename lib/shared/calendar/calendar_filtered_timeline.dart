@@ -327,6 +327,7 @@ String _sourceLabel(CalendarProjectionSource source) => switch (source) {
   CalendarProjectionSource.maintenance => 'Maintenance',
   CalendarProjectionSource.inventory => 'Inventory',
   CalendarProjectionSource.reminder => 'Reminder',
+  CalendarProjectionSource.calendarSchedule => 'Calendar schedule',
   CalendarProjectionSource.workTime => 'Work time',
   CalendarProjectionSource.odometer => 'Odometer',
   CalendarProjectionSource.vehicleProfile => 'Vehicle profile',

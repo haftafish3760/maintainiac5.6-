@@ -5,6 +5,7 @@ import '../navigation/app_page_routes.dart';
 import '../state/app_state.dart';
 import '../widgets/app_screen_shell.dart';
 import 'calendar_flow_models.dart';
+import 'calendar_month_projection_reader.dart';
 import 'calendar_maintenance_due_projection_adapter.dart';
 import 'calendar_maintenance_projection_adapter.dart';
 import 'calendar_recap_screen.dart';
@@ -37,6 +38,27 @@ CalendarDayData calendarFilterToActiveContext(
     ],
     entries: entries,
   );
+}
+
+/// Adds Calendar-owned appointments to a source-specific day view without
+/// duplicating its source records. The Dashboard already reads all projections.
+CalendarDayData calendarDataWithSchedules(
+  BuildContext context,
+  CalendarDayData sourceData,
+  CalendarFlowSource source,
+  DateTime day,
+) {
+  final schedules = CalendarMonthProjectionReader.calendarScheduleEventsForDay(
+    context,
+    source,
+    day,
+  );
+  if (schedules.isEmpty) return sourceData;
+  final entries = [
+    ...sourceData.entries,
+    for (final event in schedules) CalendarTimelineEntry.fromProjection(event),
+  ]..sort((left, right) => left.timestamp.compareTo(right.timestamp));
+  return CalendarDayData(recapItems: sourceData.recapItems, entries: entries);
 }
 
 AppSection calendarAppSectionFor(CalendarFlowSource source) => switch (source) {
