@@ -1,8 +1,10 @@
 import 'package:flutter/widgets.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
+import '../../../shared/odometer/odometer_correction_review.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import 'active_workday_context_segment.dart';
+import 'active_workday_odometer_review.dart';
 
 typedef ActiveWorkdayStorageCheck = Future<AppStorageCheck> Function();
 
@@ -117,6 +119,7 @@ class ActiveWorkdaySessionRecord {
     required this.status,
     required this.events,
     this.contextSegments = const [],
+    this.odometerReviews = const [],
     this.endedAt,
     this.endOdometer,
     this.hasValidIdentity = true,
@@ -131,6 +134,7 @@ class ActiveWorkdaySessionRecord {
   final ActiveWorkdayStatus status;
   final List<ActiveWorkdayEvent> events;
   final List<ActiveWorkdayContextSegment> contextSegments;
+  final List<ActiveWorkdayOdometerReview> odometerReviews;
   final DateTime? endedAt;
   final int? endOdometer;
   final bool hasValidIdentity;
@@ -231,6 +235,7 @@ class ActiveWorkdaySessionRecord {
     ActiveWorkdayStatus? status,
     List<ActiveWorkdayEvent>? events,
     List<ActiveWorkdayContextSegment>? contextSegments,
+    List<ActiveWorkdayOdometerReview>? odometerReviews,
     DateTime? endedAt,
     int? endOdometer,
     bool clearEndedAt = false,
@@ -258,6 +263,7 @@ class ActiveWorkdaySessionRecord {
       status: status ?? this.status,
       events: events ?? this.events,
       contextSegments: contextSegments ?? this.contextSegments,
+      odometerReviews: odometerReviews ?? this.odometerReviews,
       endedAt: clearEndedAt ? null : endedAt ?? this.endedAt,
       endOdometer: clearEndOdometer ? null : endOdometer ?? this.endOdometer,
       hasValidIdentity: hasValidIdentity,
@@ -289,6 +295,9 @@ class ActiveWorkdaySessionRecord {
       'contextSegments': resolvedContextSegments
           .map((segment) => segment.toMap())
           .toList(growable: false),
+      'odometerReviews': odometerReviews
+          .map((review) => review.toMap())
+          .toList(growable: false),
       'endedAt': endedAt?.toIso8601String(),
       'endOdometer': _safeOdometer(endOdometer),
     };
@@ -300,6 +309,7 @@ class ActiveWorkdaySessionRecord {
     final rawWorkProfileId = map['workProfileId'];
     final rawEvents = map['events'];
     final rawContextSegments = map['contextSegments'];
+    final rawOdometerReviews = map['odometerReviews'];
     final parsedEvents = <ActiveWorkdayEvent>[];
     if (rawEvents is Iterable) {
       for (final event in rawEvents) {
@@ -327,6 +337,27 @@ class ActiveWorkdaySessionRecord {
           } else {
             parsedContextSegments.add(parsed);
           }
+        }
+      }
+    }
+    final parsedOdometerReviews = <ActiveWorkdayOdometerReview>[];
+    var hasInvalidOdometerReview = false;
+    if (rawOdometerReviews != null) {
+      if (rawOdometerReviews is! Iterable) {
+        hasInvalidOdometerReview = true;
+      } else {
+        for (final review in rawOdometerReviews) {
+          if (review is! Map) {
+            hasInvalidOdometerReview = true;
+            continue;
+          }
+          final parsed = ActiveWorkdayOdometerReview.fromMap(review);
+          if (parsed.id == 'invalid-review' ||
+              parsed.enteredOdometer >= parsed.startingOdometer) {
+            hasInvalidOdometerReview = true;
+            continue;
+          }
+          parsedOdometerReviews.add(parsed);
         }
       }
     }
@@ -405,6 +436,7 @@ class ActiveWorkdaySessionRecord {
       status: recoveredStatus,
       events: events,
       contextSegments: parsedContextSegments,
+      odometerReviews: parsedOdometerReviews,
       endedAt: hasCoherentEndedState ? endedAt : null,
       endOdometer: hasCoherentEndedState ? endOdometer : null,
       hasValidIdentity:
@@ -413,6 +445,7 @@ class ActiveWorkdaySessionRecord {
           _isSafeActiveWorkdayIdValue(rawWorkProfileId) &&
           _hasKnownStatusName(rawStatus) &&
           !hasInvalidContextSegment &&
+          !hasInvalidOdometerReview &&
           _hasCoherentContextSegmentLifecycle(
             parsedContextSegments,
             status: recoveredStatus,
@@ -717,6 +750,50 @@ class ActiveWorkdayController extends ChangeNotifier {
     if (type == ActiveWorkdayEventType.ended) {
       await _setActiveSessionId(null);
     }
+    notifyListeners();
+    return updated;
+  });
+
+  /// Preserves an End Day discrepancy for review without ending the workday
+  /// or changing canonical odometer history.
+  Future<ActiveWorkdaySessionRecord?> requestOdometerReview({
+    required int enteredOdometer,
+    required OdometerCorrectionReason reason,
+    DateTime? createdAt,
+  }) => _enqueue(() async {
+    final session = activeSession;
+    if (session == null || session.status == ActiveWorkdayStatus.ended) {
+      return null;
+    }
+    final startingOdometer = session.currentContextSegment.startOdometer;
+    if (enteredOdometer < 0 || enteredOdometer >= startingOdometer) {
+      throw ArgumentError.value(
+        enteredOdometer,
+        'enteredOdometer',
+        'A workday odometer review requires a reading below its active starting odometer.',
+      );
+    }
+    await _ensureStorageForWrite();
+    final created = createdAt ?? DateTime.now();
+    if (created.isBefore(session.startedAt) ||
+        _isUnreasonablyFutureWorkdayTime(created)) {
+      throw ArgumentError.value(
+        created,
+        'createdAt',
+        'Invalid odometer review time.',
+      );
+    }
+    final review = ActiveWorkdayOdometerReview(
+      id: _newId('odometer_review'),
+      createdAt: created,
+      startingOdometer: startingOdometer,
+      enteredOdometer: enteredOdometer,
+      reason: reason,
+    );
+    final updated = session.copyWith(
+      odometerReviews: [...session.odometerReviews, review],
+    );
+    await _saveSession(updated);
     notifyListeners();
     return updated;
   });

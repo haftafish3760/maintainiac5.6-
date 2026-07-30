@@ -1,6 +1,6 @@
 /// Compact Active Day financial command-center metrics from saved ledgers.
 ///
-/// Owns responsive presentation of received, business-spent, net, and fuel
+/// Owns responsive presentation of payments, business-spent, net, and fuel
 /// totals. It does not edit ledger records or infer income from invoices.
 /// Consumed by ActiveWorkdayScreen; all values remain local, attributed data.
 library;
@@ -83,7 +83,7 @@ class _FinancialSummaryContent extends StatelessWidget {
               childAspectRatio: columns == 4 ? 1.22 : 1.9,
               children: [
                 _FinancialMetricTile(
-                  'Received',
+                  'Payments',
                   summary.receivedCents,
                   onTap: () => Navigator.of(context).push(
                     appNativeRoute<void>(

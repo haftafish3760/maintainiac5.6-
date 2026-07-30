@@ -11,6 +11,9 @@ import '../../shared/context/operational_context_models.dart';
 import '../../shared/context/operational_context_store.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
+import '../../shared/odometer/odometer_correction_review.dart';
+import '../../shared/odometer/odometer_entry_sheet.dart'
+    show OdometerMinimumReadingReviewHandler;
 import '../../shared/state/app_state.dart';
 import '../../shared/state/global_odometer.dart';
 import '../../shared/trip_tracking/trip_tracking_capability_guidance.dart';
@@ -35,6 +38,7 @@ import 'active_workday_actions.dart';
 import 'active_workday_context_handoff_sheet.dart';
 import 'contractor/contractor_dashboard_screen.dart';
 import 'active_workday_financial_summary_panel.dart';
+import 'active_workday_odometer_review_panel.dart';
 import 'active_workday_tracking_status_line.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_elapsed_clock.dart';
@@ -157,6 +161,16 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   resumeInFlight: _gpsStartInFlight,
                   stopInFlight: _gpsCancelInFlight,
                 ),
+                if (session?.odometerReviews.isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  ActiveWorkdayOdometerReviewNotice(
+                    reviews: session!.odometerReviews,
+                    onPressed: () => showActiveWorkdayOdometerReviews(
+                      context,
+                      reviews: session.odometerReviews,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 ActiveWorkdayFinancialSummaryPanel(
                   session: session,
@@ -301,9 +315,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
             context,
           ).activeSession?.startOdometer,
           minimumReadingMessage:
-              'An active workday cannot end below its starting odometer. '
-              'Keep this day open and use the reviewed odometer correction '
-              'flow for the earlier reading.',
+              'Your workday stays open until this lower reading is reviewed.',
+          onMinimumReadingReview: _recordEndDayOdometerReview,
         );
         if (saved && mounted) {
           _returnToDashboardAfterEndDay();
@@ -443,12 +456,14 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     required ActiveWorkdayEventType type,
     int? minimumReading,
     String? minimumReadingMessage,
+    OdometerMinimumReadingReviewHandler? onMinimumReadingReview,
   }) async {
     final reading = await _recordOdometerReading(
       title: title,
       saveLabel: saveLabel,
       minimumReading: minimumReading,
       minimumReadingMessage: minimumReadingMessage,
+      onMinimumReadingReview: onMinimumReadingReview,
     );
     if (!mounted) return false;
     if (reading != null) {
@@ -464,6 +479,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     required String saveLabel,
     int? minimumReading,
     String? minimumReadingMessage,
+    OdometerMinimumReadingReviewHandler? onMinimumReadingReview,
   }) {
     return openOdometerEntryResult(
       context,
@@ -471,7 +487,23 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       saveLabel: saveLabel,
       minimumReading: minimumReading,
       minimumReadingMessage: minimumReadingMessage,
+      onMinimumReadingReview: onMinimumReadingReview,
     );
+  }
+
+  Future<bool> _recordEndDayOdometerReview({
+    required int enteredOdometer,
+    required OdometerCorrectionReview review,
+  }) async {
+    final saved = await ActiveWorkdayScope.of(context).requestOdometerReview(
+      enteredOdometer: enteredOdometer,
+      reason: review.reason,
+    );
+    if (saved == null || !mounted) return false;
+    _showGpsMessage(
+      'Odometer review saved. Your day is still open; nothing was changed automatically.',
+    );
+    return true;
   }
 
   Future<void> _recordStoredEvent(

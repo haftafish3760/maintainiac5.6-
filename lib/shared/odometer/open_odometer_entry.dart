@@ -12,6 +12,7 @@ Future<bool> openOdometerEntry(
   String? helperText,
   int? minimumReading,
   String? minimumReadingMessage,
+  OdometerMinimumReadingReviewHandler? onMinimumReadingReview,
   TripTrackingReviewRecord? tripReview,
   bool commitToOdometer = true,
 }) async {
@@ -23,6 +24,7 @@ Future<bool> openOdometerEntry(
     helperText: helperText,
     minimumReading: minimumReading,
     minimumReadingMessage: minimumReadingMessage,
+    onMinimumReadingReview: onMinimumReadingReview,
     tripReview: tripReview,
     commitToOdometer: commitToOdometer,
   );
@@ -37,6 +39,7 @@ Future<int?> openOdometerEntryResult(
   String? helperText,
   int? minimumReading,
   String? minimumReadingMessage,
+  OdometerMinimumReadingReviewHandler? onMinimumReadingReview,
   TripTrackingReviewRecord? tripReview,
   bool commitToOdometer = true,
 }) async {
@@ -44,10 +47,10 @@ Future<int?> openOdometerEntryResult(
   return showModalBottomSheet<int>(
     context: context,
     isScrollControlled: true,
-    // The sheet uses dark body text and a light input surface. Keep its base
-    // surface light as well so its title and instructions never disappear
-    // against a dark modal background.
-    backgroundColor: const Color(0xFFF4F7F8),
+    // Odometer entry is used in Start Day and End Day. Keep it inside the
+    // application's dark modal system so its hierarchy is consistent with
+    // the surrounding workday flow.
+    backgroundColor: const Color(0xFF101719),
     builder: (_) => GlobalOdometerScope(
       controller: odometer,
       child: OdometerEntrySheet(
@@ -57,6 +60,7 @@ Future<int?> openOdometerEntryResult(
         helperText: helperText,
         minimumReading: minimumReading,
         minimumReadingMessage: minimumReadingMessage,
+        onMinimumReadingReview: onMinimumReadingReview,
         tripReview: tripReview,
         commitToOdometer: commitToOdometer,
       ),

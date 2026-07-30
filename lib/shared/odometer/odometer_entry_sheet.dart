@@ -11,6 +11,12 @@ import '../trip_tracking/trip_tracking_session_store.dart';
 part 'odometer_correction_review_panel.dart';
 part 'odometer_entry_audit_correction_actions.dart';
 
+typedef OdometerMinimumReadingReviewHandler =
+    Future<bool> Function({
+      required int enteredOdometer,
+      required OdometerCorrectionReview review,
+    });
+
 class OdometerEntrySheet extends StatefulWidget {
   const OdometerEntrySheet({
     super.key,
@@ -20,6 +26,7 @@ class OdometerEntrySheet extends StatefulWidget {
     this.helperText,
     this.minimumReading,
     this.minimumReadingMessage,
+    this.onMinimumReadingReview,
     this.onSaved,
     this.tripReview,
     this.commitToOdometer = true,
@@ -31,6 +38,7 @@ class OdometerEntrySheet extends StatefulWidget {
   final String? helperText;
   final int? minimumReading;
   final String? minimumReadingMessage;
+  final OdometerMinimumReadingReviewHandler? onMinimumReadingReview;
   final VoidCallback? onSaved;
   final TripTrackingReviewRecord? tripReview;
   final bool commitToOdometer;
@@ -114,7 +122,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
             Text(
               widget.title,
               style: const TextStyle(
-                color: Color(0xFF101416),
+                color: Color(0xFFF0F4F2),
                 fontSize: 19,
                 fontWeight: FontWeight.w900,
               ),
@@ -124,7 +132,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
               controller: _controller,
               autofocus: widget.autofocus,
               style: const TextStyle(
-                color: Color(0xFF101416),
+                color: Color(0xFFF0F4F2),
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
               ),
@@ -161,17 +169,30 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                 // Match the field surface so the label stays legible on the
                 // Start Day sheet on high-contrast Android displays.
                 floatingLabelStyle: const TextStyle(
-                  color: Color(0xFF101416),
-                  backgroundColor: Color(0xFFAAB4B9),
+                  color: Color(0xFFF0F4F2),
+                  backgroundColor: Color(0xFF1B2427),
                   fontWeight: FontWeight.w800,
                 ),
                 hintText: '298150',
+                hintStyle: const TextStyle(color: Color(0xFFB7C5CA)),
                 errorText: _errorText,
                 errorMaxLines: 3,
                 filled: true,
-                fillColor: const Color(0xFFAAB4B9),
+                fillColor: const Color(0xFF1B2427),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(6),
+                  borderSide: const BorderSide(color: Color(0xFF526168)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: const BorderSide(color: Color(0xFF526168)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFFFC857),
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -180,7 +201,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
               Text(
                 widget.helperText!,
                 style: const TextStyle(
-                  color: Color(0xFF101416),
+                  color: Color(0xFFC8D0D3),
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   height: 1.25,
@@ -277,13 +298,52 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     final minimumReading = widget.minimumReading;
     if (savedReading != null &&
         minimumReading != null &&
-        savedReading < minimumReading) {
+        savedReading < minimumReading &&
+        (_pendingCurrentReading != minimumReading ||
+            _pendingCandidateReading != savedReading)) {
       setState(() {
-        _errorText =
-            widget.minimumReadingMessage ??
-            'This reading cannot be lower than the required minimum of '
-                '$minimumReading.';
+        _pendingCurrentReading = minimumReading;
+        _pendingCandidateReading = savedReading;
+        _selectedCorrectionReason = null;
+        _errorText = null;
       });
+      return;
+    }
+    if (savedReading != null &&
+        minimumReading != null &&
+        savedReading < minimumReading) {
+      final review = correctionReview;
+      if (review == null) {
+        setState(() {
+          _errorText = 'Select the option that best explains this reading.';
+        });
+        return;
+      }
+      if (review.shouldStopAndLetUserRetry) {
+        setState(() {
+          _errorText = review.reason == OdometerCorrectionReason.wrongVehicle
+              ? 'Switch to the vehicle used for this workday, then enter its odometer reading.'
+              : 'Double-check the entered reading, then try again.';
+        });
+        return;
+      }
+      final handled =
+          await widget.onMinimumReadingReview?.call(
+            enteredOdometer: savedReading,
+            review: review,
+          ) ??
+          false;
+      if (handled && mounted) {
+        Navigator.of(context).pop();
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _errorText =
+              widget.minimumReadingMessage ??
+              'This workday stays open until the lower odometer reading is reviewed.';
+        });
+      }
       return;
     }
     if (savedReading != null &&

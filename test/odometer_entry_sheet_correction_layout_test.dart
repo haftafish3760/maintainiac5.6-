@@ -5,6 +5,39 @@ import 'package:maintaniac/shared/odometer/odometer_entry_sheet.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 
 void main() {
+  testWidgets('odometer entry uses the dark workday surface palette', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle-1',
+      initialReading: 1000,
+    );
+    addTearDown(odometer.dispose);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: const Scaffold(
+            body: OdometerEntrySheet(
+              title: 'Enter Current Odometer',
+              saveLabel: 'Continue',
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final title = tester.widget<Text>(find.text('Enter Current Odometer'));
+    final field = tester.widget<TextField>(find.byType(TextField));
+    final decoration = field.decoration!;
+
+    expect(title.style?.color, const Color(0xFFF0F4F2));
+    expect(field.style?.color, const Color(0xFFF0F4F2));
+    expect(decoration.fillColor, const Color(0xFF1B2427));
+    expect(decoration.floatingLabelStyle?.color, const Color(0xFFF0F4F2));
+  });
+
   for (final textScale in <double>[1, 2]) {
     testWidgets(
       'lower-reading review wraps fully without overflow at ${textScale}x text',

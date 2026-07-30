@@ -105,11 +105,90 @@ Future<void> _completeGuidedStartDay(WidgetTester tester) async {
   await tester.tap(find.text('Continue to odometer'));
   await tester.pumpAndSettle();
   expect(find.text('Enter Current Odometer'), findsOneWidget);
-  await tester.tap(find.text('Start Day'));
+  // Start Day is only created after its odometer value and, when needed,
+  // tracking setup have both been reviewed. This action intentionally says
+  // Continue so it does not imply that a workday already exists.
+  await tester.tap(find.text('Continue'));
   await tester.pumpAndSettle();
 }
 
 void main() {
+  testWidgets(
+    'dismissing first-run GPS setup returns to odometer without starting a workday',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 1800);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final appState = AppStateController();
+      final workProfiles = ExpenseWorkProfileController.memory();
+      final workday = ActiveWorkdayController.memory();
+      final odometer = GlobalOdometerController(initialReading: 12000);
+      final gateway = _RoundStartGpsGateway();
+      final trip = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: gateway,
+      );
+      final settings = TripTrackingSettingsController.memory(
+        const TripTrackingSettings(),
+      );
+      addTearDown(appState.dispose);
+      addTearDown(workProfiles.dispose);
+      addTearDown(workday.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(settings.dispose);
+      addTearDown(() async {
+        trip.dispose();
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        await gateway.close();
+      });
+
+      await tester.pumpWidget(
+        AppStateScope(
+          controller: appState,
+          child: ExpenseWorkProfileScope(
+            controller: workProfiles,
+            child: ActiveWorkdayScope(
+              controller: workday,
+              child: GlobalOdometerScope(
+                controller: odometer,
+                child: TripTrackingSettingsScope(
+                  controller: settings,
+                  child: TripTrackingScope(
+                    controller: trip,
+                    child: const MaterialApp(home: DashboardScreen()),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Start day'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue to odometer'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+      expect(find.text('What Type of Work Do You Do?'), findsOneWidget);
+
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter Current Odometer'), findsOneWidget);
+      expect(workday.activeSession, isNull);
+      expect(trip.activeSession, isNull);
+      expect(gateway.startCalls, 0);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('Delivery dashboard'), findsOneWidget);
+      expect(workday.activeSession, isNull);
+    },
+  );
+
   testWidgets(
     'command-center Start Day remains manual when GPS assistance is off',
     (tester) async {
@@ -193,20 +272,29 @@ void main() {
       await tester.enterText(find.byType(TextField).last, '11999');
       await tester.tap(find.text('End Day').last);
       await tester.pumpAndSettle();
-      expect(
-        find.textContaining('cannot end below its starting odometer'),
-        findsOneWidget,
+      expect(find.text('Please review this odometer reading'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('This is a backdated receipt or trip'),
+        250,
+        scrollable: find.byType(Scrollable).first,
       );
-      expect(
-        find.textContaining('reviewed odometer correction flow'),
-        findsOneWidget,
+      await tester.tap(find.text('This is a backdated receipt or trip'));
+      await tester.scrollUntilVisible(
+        find.text('Save Review'),
+        250,
+        scrollable: find.byType(Scrollable).first,
       );
+      await tester.tap(find.text('Save Review'));
+      await tester.pumpAndSettle();
       expect(workday.activeSession, isNotNull);
-      expect(find.text('Ending Odometer'), findsOneWidget);
+      expect(workday.activeSession!.odometerReviews, hasLength(1));
+      expect(
+        workday.activeSession!.odometerReviews.single.reason.name,
+        'backdatedEntry',
+      );
+      expect(odometer.confirmedReading, 12000);
       expect(tester.takeException(), isNull);
 
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
       await tester.tap(find.text('End Day'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('End Day').last);

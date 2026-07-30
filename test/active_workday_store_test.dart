@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/dashboard/data/active_workday_store.dart';
+import 'package:maintaniac/shared/odometer/odometer_correction_review.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
@@ -1096,5 +1097,59 @@ void main() {
     expect(event['note'], isNot(contains('\n')));
     expect((event['sourceType'] as String), hasLength(80));
     expect((event['sourceId'] as String), hasLength(160));
+  });
+
+  test(
+    'lower End Day review persists without closing or changing mileage',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      await store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: 125000,
+        startedAt: DateTime(2026, 6, 12, 8),
+      );
+
+      final reviewed = await store.requestOdometerReview(
+        enteredOdometer: 124900,
+        reason: OdometerCorrectionReason.backdatedEntry,
+        createdAt: DateTime(2026, 6, 12, 10),
+      );
+
+      expect(reviewed?.status, ActiveWorkdayStatus.active);
+      expect(reviewed?.endOdometer, isNull);
+      expect(reviewed?.odometerReviews, hasLength(1));
+      final review = reviewed!.odometerReviews.single;
+      expect(review.startingOdometer, 125000);
+      expect(review.enteredOdometer, 124900);
+      expect(review.differenceMiles, 100);
+      expect(review.reason, OdometerCorrectionReason.backdatedEntry);
+      expect(store.activeSession?.status, ActiveWorkdayStatus.active);
+      expect(store.activeSession?.endOdometer, isNull);
+    },
+  );
+
+  test('lower End Day review survives local recovery', () async {
+    final store = await ActiveWorkdayController.create();
+    await store.startDay(
+      vehicleId: 'truck-1',
+      vehicleLabel: 'Work Truck 1',
+      workProfileId: 'Business',
+      startOdometer: 125000,
+      startedAt: DateTime(2026, 6, 12, 8),
+    );
+    await store.requestOdometerReview(
+      enteredOdometer: 124900,
+      reason: OdometerCorrectionReason.odometerReplaced,
+      createdAt: DateTime(2026, 6, 12, 10),
+    );
+
+    final recovered = await ActiveWorkdayController.create();
+    final review = recovered.activeSession!.odometerReviews.single;
+    expect(recovered.activeSession?.status, ActiveWorkdayStatus.active);
+    expect(recovered.activeSession?.endOdometer, isNull);
+    expect(review.reason, OdometerCorrectionReason.odometerReplaced);
+    expect(review.enteredOdometer, 124900);
   });
 }
