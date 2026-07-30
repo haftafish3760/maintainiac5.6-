@@ -212,13 +212,15 @@ class CalendarEntryTypeGrid extends StatelessWidget {
             for (final type in types)
               SizedBox(
                 width: itemWidth,
-                height: 82,
-                child: _CalendarEntryTypeButton(
-                  day: day,
-                  mode: mode,
-                  source: source,
-                  type: type,
-                  onSelected: onSelected,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 82),
+                  child: _CalendarEntryTypeButton(
+                    day: day,
+                    mode: mode,
+                    source: source,
+                    type: type,
+                    onSelected: onSelected,
+                  ),
                 ),
               ),
           ],
@@ -271,8 +273,7 @@ class _CalendarEntryTypeButton extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   meta.label,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  softWrap: true,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Color(0xFFE2E8EA),
