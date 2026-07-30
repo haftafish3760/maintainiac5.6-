@@ -5,6 +5,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_models.dart';
 import 'package:maintaniac/screens/expenses/data/expense_ledger_store.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
+import 'package:maintaniac/shared/state/vehicle_profile_durable_record_bridge.dart';
+import 'package:maintaniac/shared/records/maintainiac_durable_record_store.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
 void main() {
@@ -45,6 +47,98 @@ void main() {
         isTrue,
       );
       expect(restored.activeVehicle?.id, 'vehicle-keep');
+    },
+  );
+
+  test(
+    'durable vehicle bridge restores a missing primary vehicle snapshot',
+    () async {
+      final records = await MaintainiacDurableRecordStore.create(
+        'vehicle_profile_durable_recovery_test',
+      );
+      final first = await AppStateController.create(
+        durableVehicleBridge: VehicleProfileDurableRecordBridge(records),
+      );
+      final vehicle = VehicleProfile(
+        id: 'vehicle-durable-recovery',
+        nickname: 'Recovery van',
+        year: '2025',
+        make: 'Ford',
+        model: 'Transit',
+      );
+      await first.addVehicle(vehicle);
+      await first.selectVehicle(vehicle);
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final primary = await Hive.openBox<dynamic>(
+        AppStateController.vehicleBoxName,
+      );
+      await primary.delete('snapshot');
+      await primary.close();
+      final recoveredRecords = await MaintainiacDurableRecordStore.create(
+        'vehicle_profile_durable_recovery_test',
+      );
+      final restored = await AppStateController.create(
+        durableVehicleBridge: VehicleProfileDurableRecordBridge(
+          recoveredRecords,
+        ),
+      );
+
+      expect(
+        restored.vehicles.any(
+          (candidate) => candidate.id == 'vehicle-durable-recovery',
+        ),
+        isTrue,
+      );
+      expect(restored.activeVehicle?.id, 'vehicle-durable-recovery');
+    },
+  );
+
+  test(
+    'durable vehicle bridge recovers from a corrupt primary payload',
+    () async {
+      final records = await MaintainiacDurableRecordStore.create(
+        'vehicle_profile_durable_corrupt_recovery_test',
+      );
+      final first = await AppStateController.create(
+        durableVehicleBridge: VehicleProfileDurableRecordBridge(records),
+      );
+      final vehicle = VehicleProfile(
+        id: 'vehicle-durable-corrupt-recovery',
+        nickname: 'Recovery truck',
+      );
+      await first.addVehicle(vehicle);
+      await first.selectVehicle(vehicle);
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final primary = await Hive.openBox<dynamic>(
+        AppStateController.vehicleBoxName,
+      );
+      await primary.put('snapshot', {
+        'vehicles': [
+          {'id': '../unsafe', 'nickname': 'Unsafe'},
+        ],
+        'activeVehicleId': '../unsafe',
+      });
+      await primary.close();
+      final recoveredRecords = await MaintainiacDurableRecordStore.create(
+        'vehicle_profile_durable_corrupt_recovery_test',
+      );
+      final restored = await AppStateController.create(
+        durableVehicleBridge: VehicleProfileDurableRecordBridge(
+          recoveredRecords,
+        ),
+      );
+
+      expect(restored.activeVehicle?.id, 'vehicle-durable-corrupt-recovery');
+      expect(
+        restored.vehicles.any(
+          (candidate) => candidate.id == 'vehicle-durable-corrupt-recovery',
+        ),
+        isTrue,
+      );
     },
   );
 

@@ -5,6 +5,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import '../maintenance/maintenance_local_store.dart';
 import '../storage/app_storage_guard.dart';
+import 'vehicle_profile_durable_record_bridge.dart';
 
 part 'app_state_maintenance_models.dart';
 part 'app_state_maintenance_controller.dart';
@@ -212,12 +213,15 @@ class AppStateController extends ChangeNotifier {
   AppStateController()
     : _vehicleBox = null,
       _vehicleStorageCheck = null,
+      _durableVehicleBridge = null,
       _maintenanceStore = null;
   AppStateController._(
     this._vehicleBox, {
     VehicleProfileStorageCheck? storageCheck,
+    VehicleProfileDurableRecordBridge? durableVehicleBridge,
     required MaintenanceLocalStore maintenanceStore,
   }) : _vehicleStorageCheck = storageCheck ?? _defaultVehicleStorageCheck,
+       _durableVehicleBridge = durableVehicleBridge,
        _maintenanceStore = maintenanceStore;
 
   static const vehicleBoxName = 'maintainiac_vehicle_profiles';
@@ -226,10 +230,12 @@ class AppStateController extends ChangeNotifier {
   static Future<AppStateController> create({
     VehicleProfileStorageCheck? storageCheck,
     MaintenanceStorageCheck? maintenanceStorageCheck,
+    VehicleProfileDurableRecordBridge? durableVehicleBridge,
   }) async {
     final controller = AppStateController._(
       await Hive.openBox<dynamic>(vehicleBoxName),
       storageCheck: storageCheck,
+      durableVehicleBridge: durableVehicleBridge,
       maintenanceStore: await MaintenanceLocalStore.create(
         storageCheck: maintenanceStorageCheck,
       ),
@@ -241,6 +247,7 @@ class AppStateController extends ChangeNotifier {
 
   final Box<dynamic>? _vehicleBox;
   final VehicleProfileStorageCheck? _vehicleStorageCheck;
+  final VehicleProfileDurableRecordBridge? _durableVehicleBridge;
   final MaintenanceLocalStore? _maintenanceStore;
   final List<VehicleProfile> _vehicles = <VehicleProfile>[
     VehicleProfile(
@@ -406,31 +413,70 @@ class AppStateController extends ChangeNotifier {
     final box = _vehicleBox;
     if (box == null) return;
     final snapshot = box.get(_vehicleSnapshotKey);
-    if (snapshot is! Map) {
-      await _persistVehicles();
-      return;
-    }
-    final restored = (snapshot['vehicles'] as List? ?? const [])
-        .whereType<Map>()
-        .map(VehicleProfile.fromMap)
-        .where((vehicle) => vehicle.id.trim().isNotEmpty)
-        .toList(growable: false);
-    if (restored.isEmpty) {
-      await _persistVehicles();
+    final restored = _restorePrimaryVehicleSnapshot(snapshot);
+    if (restored == null) {
+      final recovered = _durableVehicleBridge?.load();
+      if (recovered == null) {
+        await _persistVehicles();
+        return;
+      }
+      _vehicles
+        ..clear()
+        ..addAll(recovered.vehicles.map(VehicleProfile.fromMap));
+      _activeVehicle = _activeVehicleForId(recovered.activeVehicleId);
+      await _writeVehicleSnapshot(_vehicles, _activeVehicle);
+      notifyListeners();
       return;
     }
     _vehicles
       ..clear()
       ..addAll(restored);
-    final activeId = snapshot['activeVehicleId']?.toString();
-    final activeVehicles = vehicles;
-    _activeVehicle = activeId == null || activeVehicles.isEmpty
-        ? null
-        : activeVehicles.firstWhere(
-            (vehicle) => vehicle.id == activeId,
-            orElse: () => activeVehicles.first,
-          );
+    _activeVehicle = _activeVehicleForId(
+      (snapshot as Map)['activeVehicleId']?.toString(),
+    );
+    final durableBridge = _durableVehicleBridge;
+    if (durableBridge != null && durableBridge.load() == null) {
+      await durableBridge.save(_durableSnapshot(_vehicles, _activeVehicle));
+    }
     notifyListeners();
+  }
+
+  List<VehicleProfile>? _restorePrimaryVehicleSnapshot(Object? snapshot) {
+    if (snapshot is! Map || snapshot['vehicles'] is! List) return null;
+    final rawVehicles = snapshot['vehicles'] as List;
+    if (rawVehicles.any((vehicle) => vehicle is! Map)) return null;
+    final rawActiveVehicleId = snapshot['activeVehicleId'];
+    final requestedActiveVehicleId = rawActiveVehicleId is String
+        ? rawActiveVehicleId
+        : null;
+    final activeVehicleId =
+        rawVehicles.any(
+          (vehicle) =>
+              vehicle['id'] == requestedActiveVehicleId &&
+              vehicle['archivedAt'] == null,
+        )
+        ? requestedActiveVehicleId
+        : null;
+    final candidate = VehicleProfileDurableSnapshot(
+      vehicles: rawVehicles
+          .cast<Map>()
+          .map((vehicle) => Map<String, dynamic>.from(vehicle))
+          .toList(growable: false),
+      activeVehicleId: activeVehicleId,
+    );
+    if (!candidate.isValid) return null;
+    return candidate.vehicles
+        .map(VehicleProfile.fromMap)
+        .toList(growable: false);
+  }
+
+  VehicleProfile? _activeVehicleForId(String? activeVehicleId) {
+    final activeVehicles = vehicles;
+    if (activeVehicleId == null || activeVehicles.isEmpty) return null;
+    return activeVehicles.firstWhere(
+      (vehicle) => vehicle.id == activeVehicleId,
+      orElse: () => activeVehicles.first,
+    );
   }
 
   Future<void> _persistVehicles() async {
@@ -454,7 +500,21 @@ class AppStateController extends ChangeNotifier {
       'vehicles': [for (final vehicle in vehicles) vehicle.toMap()],
       'activeVehicleId': activeVehicle?.id,
     });
+    await _durableVehicleBridge?.save(
+      _durableSnapshot(vehicles, activeVehicle),
+    );
   }
+
+  VehicleProfileDurableSnapshot _durableSnapshot(
+    List<VehicleProfile> vehicles,
+    VehicleProfile? activeVehicle,
+  ) => VehicleProfileDurableSnapshot(
+    vehicles: [
+      for (final vehicle in vehicles)
+        Map<String, dynamic>.from(vehicle.toMap()),
+    ],
+    activeVehicleId: activeVehicle?.id,
+  );
 
   Future<T> _enqueueVehicleWrite<T>(Future<T> Function() operation) {
     final next = _vehicleWriteTail.then((_) => operation());

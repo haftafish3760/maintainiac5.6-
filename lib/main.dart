@@ -43,6 +43,7 @@ import 'shared/trip_tracking/trip_tracking_controller.dart';
 import 'shared/trip_tracking/trip_tracking_bluetooth.dart';
 import 'shared/trip_tracking/trip_tracking_bluetooth_coordinator.dart';
 import 'shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
+import 'shared/state/vehicle_profile_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_route_point_store.dart';
@@ -82,7 +83,12 @@ Future<void> main() async {
   final employeeWorkTime = await EmployeeWorkTimeController.createOrMemory();
   final calendarPreferences = await CalendarPreferencesController.create();
   final calendarSchedules = await CalendarScheduleController.create();
-  final appState = await AppStateController.create();
+  final durableRecordStore = await MaintainiacDurableRecordStore.create(
+    'maintainiac_durable_records',
+  );
+  final appState = await AppStateController.create(
+    durableVehicleBridge: VehicleProfileDurableRecordBridge(durableRecordStore),
+  );
   ExpenseCloudBackupMirror expenseCloudBackup =
       const NoopExpenseCloudBackupMirror();
   if (firebaseSupported) {
@@ -157,9 +163,6 @@ Future<void> main() async {
   } catch (_) {
     routePointStore = TripTrackingRoutePointStore.unavailable();
   }
-  final durableRecordStore = await MaintainiacDurableRecordStore.create(
-    'maintainiac_durable_records',
-  );
   final activeWorkdayContextHandoffs = ActiveWorkdayContextHandoffCoordinator(
     records: durableRecordStore,
     ports: ActiveWorkdayContextHandoffPorts(
