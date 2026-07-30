@@ -154,13 +154,11 @@ class _JobScheduleSection extends StatelessWidget {
   const _JobScheduleSection({
     required this.selectedDay,
     required this.selectedJobs,
-    required this.markersForDay,
     required this.onDaySelected,
   });
 
   final DateTime selectedDay;
   final List<WorkSupplyJob> selectedJobs;
-  final List<WorkSupplyCalendarMarker> Function(DateTime day) markersForDay;
   final ValueChanged<DateTime> onDaySelected;
 
   @override
@@ -198,7 +196,6 @@ class _JobScheduleSection extends StatelessWidget {
             WorkSupplyCalendarPanel(
               markersByDay: const {},
               onDaySelected: onDaySelected,
-              markersForDay: markersForDay,
               calendarSource: CalendarFlowSource.jobs,
               openCalendarDay: true,
             ),

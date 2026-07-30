@@ -76,7 +76,6 @@ class _WorkSupplyJobsScreenState extends State<WorkSupplyJobsScreen> {
                 _JobScheduleSection(
                   selectedDay: _selectedDay,
                   selectedJobs: selectedJobs,
-                  markersForDay: (day) => _jobMarkersForDay(jobStore, day),
                   onDaySelected: (day) {
                     setState(() => _selectedDay = _dayKey(day));
                   },
@@ -99,21 +98,5 @@ class _WorkSupplyJobsScreenState extends State<WorkSupplyJobsScreen> {
         if (byId[event.sourceRecordId] case final record?)
           _workSupplyJobFromRecord(record),
     ];
-  }
-
-  List<WorkSupplyCalendarMarker> _jobMarkersForDay(
-    MaintainiacJobController store,
-    DateTime day,
-  ) {
-    final count = CalendarJobProjectionAdapter.eventsForDay(store, day).length;
-    return count == 0
-        ? const []
-        : [
-            WorkSupplyCalendarMarker(
-              label: 'J',
-              color: const Color(0xFF8FD3FF),
-              count: count,
-            ),
-          ];
   }
 }
