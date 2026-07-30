@@ -283,6 +283,38 @@ class CalendarRecapStrip extends StatelessWidget {
   }
 }
 
+/// Calendar ownership: a shared, obvious route to the read-only full recap.
+class CalendarRecapActionButton extends StatelessWidget {
+  const CalendarRecapActionButton({
+    super.key,
+    required this.onPressed,
+    this.label = 'Open full recap',
+  });
+
+  final VoidCallback onPressed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    child: SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: FilledButton.icon(
+        onPressed: onPressed,
+        icon: const Icon(Icons.insights_rounded),
+        label: Text(label),
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF65B8FF),
+          foregroundColor: const Color(0xFF071116),
+          textStyle: const TextStyle(fontWeight: FontWeight.w900),
+        ),
+      ),
+    ),
+  );
+}
+
 class CalendarStatusPanel extends StatelessWidget {
   const CalendarStatusPanel({
     super.key,
@@ -364,8 +396,6 @@ class CalendarSectionTitle extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               color: Color(0xFFE2E8EA),
               fontSize: 15,

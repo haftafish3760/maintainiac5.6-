@@ -19,3 +19,4 @@ device validation are complete.
 | 9 | 2026-07-30 | Projection replay generator was corrected so stale revisions and state coverage are deterministic under every projection source. | Full Calendar-focused suite: 105 passing tests |
 | 10 | 2026-07-30 | Calendar schedules can skip or reschedule one occurrence without changing the recurring series or its context. | 14 scheduling/recurrence tests; Calendar analyzer |
 | 11 | 2026-07-30 | Employee Calendar schedules persist an employee identity and project only to that employee; Dashboard editing cannot re-home them; a blank employee selection cannot expose employee-scoped appointments. | Full Calendar-focused suite: 108 passing tests; Calendar analyzer |
+| 12 | 2026-07-30 | Every Calendar day mode now shows screen-specific at-a-glance totals followed by a prominent full-recap action and chronological source-owned entries; headings no longer truncate. | Full Calendar-focused suite: 109 passing tests; Calendar analyzer |

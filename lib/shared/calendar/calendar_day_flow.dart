@@ -275,14 +275,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayData data,
   ) {
     return [
-      CalendarSectionTitle.withAction(
-        label: 'COMPLETED DAY RECAP',
-        actionLabel: 'View recap',
-        onPressed: () =>
-            calendarOpenRecap(context, day, widget.source, widget.employeeId),
-      ),
-      const SizedBox(height: 8),
-      CalendarRecapStrip(items: data.recapItems),
+      ..._recapSection(context, day, data, label: 'COMPLETED DAY RECAP'),
       const SizedBox(height: 14),
       CalendarSectionTitle.withAction(
         label: widget.source == CalendarFlowSource.expenses
@@ -310,12 +303,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayData data,
   ) {
     return [
-      CalendarSectionTitle.withAction(
-        label: 'ACTIVE DAY STATE',
-        actionLabel: 'View recap',
-        onPressed: () =>
-            calendarOpenRecap(context, day, widget.source, widget.employeeId),
-      ),
+      const CalendarSectionTitle('ACTIVE DAY STATE'),
       const SizedBox(height: 8),
       const CalendarStatusPanel(
         icon: Icons.timer_rounded,
@@ -323,10 +311,8 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         subtitle:
             'Today can show scheduled work and completed records together.',
       ),
-      if (data.recapItems.isNotEmpty) ...[
-        const SizedBox(height: 12),
-        CalendarRecapStrip(items: data.recapItems),
-      ],
+      const SizedBox(height: 12),
+      ..._recapSection(context, day, data, label: 'TODAY AT A GLANCE'),
       const SizedBox(height: 14),
       CalendarSectionTitle.withAction(
         label: 'CHRONOLOGICAL ENTRIES',
@@ -345,6 +331,8 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
     CalendarDayData data,
   ) {
     return [
+      ..._recapSection(context, day, data, label: 'PLAN AT A GLANCE'),
+      const SizedBox(height: 14),
       CalendarSectionTitle.withAction(
         label: 'PLANNED ITEMS',
         actionLabel: 'Schedule item',
@@ -381,6 +369,32 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
           employeeId: widget.employeeId,
           sourceEventDetailBuilder: widget.sourceEventDetailBuilder,
         ),
+      ),
+    ];
+  }
+
+  List<Widget> _recapSection(
+    BuildContext context,
+    DateTime day,
+    CalendarDayData data, {
+    required String label,
+  }) {
+    return [
+      CalendarSectionTitle(label),
+      const SizedBox(height: 8),
+      if (data.recapItems.isEmpty)
+        const CalendarStatusPanel(
+          icon: Icons.analytics_outlined,
+          title: 'No source totals yet',
+          subtitle:
+              'Entries added or reviewed for this date will update this screen-specific recap.',
+        )
+      else
+        CalendarRecapStrip(items: data.recapItems),
+      const SizedBox(height: 10),
+      CalendarRecapActionButton(
+        onPressed: () =>
+            calendarOpenRecap(context, day, widget.source, widget.employeeId),
       ),
     ];
   }
