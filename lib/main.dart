@@ -26,6 +26,7 @@ import 'shared/firebase/maintainiac_firebase.dart';
 import 'shared/firebase/app_installation_identity.dart';
 import 'shared/firebase/maintainiac_firestore_upload_queue.dart';
 import 'shared/context/operational_context_store.dart';
+import 'shared/calendar/calendar_schedule_record.dart';
 import 'shared/device_capabilities/device_capabilities.dart';
 import 'shared/jobs/maintainiac_job_store.dart';
 import 'shared/maps/mapbox_runtime.dart';
@@ -78,6 +79,7 @@ Future<void> main() async {
   final invoiceLedger = await InvoiceLedgerStore.create();
   final userProfiles = await UserProfileController.create();
   final employeeWorkTime = await EmployeeWorkTimeController.createOrMemory();
+  final calendarSchedules = await CalendarScheduleController.create();
   final appState = await AppStateController.create();
   ExpenseCloudBackupMirror expenseCloudBackup =
       const NoopExpenseCloudBackupMirror();
@@ -393,11 +395,14 @@ Future<void> main() async {
                                             controller: employeeWorkTime,
                                             child: OperationalContextScope(
                                               controller: operationalContext,
-                                              child: InvoiceLedgerScope(
-                                                controller: invoiceLedger,
-                                                child: MaintaniacApp(
-                                                  bluetoothTripRuntime:
-                                                      bluetoothTripRuntime,
+                                              child: CalendarScheduleScope(
+                                                controller: calendarSchedules,
+                                                child: InvoiceLedgerScope(
+                                                  controller: invoiceLedger,
+                                                  child: MaintaniacApp(
+                                                    bluetoothTripRuntime:
+                                                        bluetoothTripRuntime,
+                                                  ),
                                                 ),
                                               ),
                                             ),
