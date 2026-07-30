@@ -15,6 +15,7 @@ class GlobalOdometerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = AppStateScope.of(context);
+    final operationalContext = OperationalContextScope.maybeOf(context);
     final vehicle = appState.activeVehicle;
     final hasMultipleVehicles = appState.vehicles.length > 1;
     return Center(
@@ -113,6 +114,12 @@ class GlobalOdometerHeader extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (operationalContext != null) ...[
+                  const SizedBox(height: 5),
+                  _ActiveWorkProfileLine(
+                    workProfileName: operationalContext.context.workProfileName,
+                  ),
+                ],
               ],
             ),
           ),
@@ -141,6 +148,37 @@ class GlobalOdometerHeader extends StatelessWidget {
     };
     Navigator.of(context).push(appDrawerRoute<void>(screen));
   }
+}
+
+class _ActiveWorkProfileLine extends StatelessWidget {
+  const _ActiveWorkProfileLine({required this.workProfileName});
+
+  final String workProfileName;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'Active work profile: $workProfileName',
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Icon(Icons.badge_rounded, color: Color(0xFF20363D), size: 15),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            'WORK PROFILE · $workProfileName',
+            textAlign: TextAlign.center,
+            softWrap: true,
+            style: const TextStyle(
+              color: Color(0xFF20363D),
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 String _headerLabelFor(AppSection section) {
