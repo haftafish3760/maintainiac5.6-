@@ -17,3 +17,4 @@ device validation are complete.
 | 7 | 2026-07-30 | Calendar planner actions route to Calendar scheduling while missed records continue to route to their source owners. | Calendar routing, Jobs, and schedule tests |
 | 8 | 2026-07-30 | Materials/Inventory calendar days receive source-owned transaction events and open an Inventory-owned read-only transaction detail. | Inventory projection, deep-link, and full Calendar regression tests |
 | 9 | 2026-07-30 | Projection replay generator was corrected so stale revisions and state coverage are deterministic under every projection source. | Full Calendar-focused suite: 105 passing tests |
+| 10 | 2026-07-30 | Calendar schedules can skip or reschedule one occurrence without changing the recurring series or its context. | 14 scheduling/recurrence tests; Calendar analyzer |
