@@ -1,8 +1,6 @@
 // Calendar ownership: create and edit Calendar-native appointments only.
 // Jobs, invoices, expenses, and other source records keep their own editors.
-
 import 'package:flutter/material.dart';
-
 import '../context/operational_context_store.dart';
 import '../widgets/app_back_button.dart';
 import 'calendar_day_flow_support.dart';
@@ -255,8 +253,19 @@ class _CalendarScheduleEditorScreenState
 
   Future<void> _pickStart(BuildContext context) async {
     final value = await _pickDateTime(context, _start);
-    if (value != null && mounted) {
-      setState(() => _start = value);
+    if (value != null && context.mounted) {
+      final clearsEnd = _end != null && !_end!.isAfter(value);
+      setState(() {
+        _start = value;
+        if (clearsEnd) _end = null;
+      });
+      if (clearsEnd) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('End time cleared because it must be after start.'),
+          ),
+        );
+      }
     }
   }
 
@@ -265,8 +274,16 @@ class _CalendarScheduleEditorScreenState
       context,
       _end ?? _start.add(const Duration(hours: 1)),
     );
-    if (value != null && mounted) {
-      setState(() => _end = value.isAfter(_start) ? value : null);
+    if (value != null && context.mounted) {
+      if (!value.isAfter(_start)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('End time must be later than the start time.'),
+          ),
+        );
+        return;
+      }
+      setState(() => _end = value);
     }
   }
 
@@ -326,33 +343,48 @@ class _CalendarScheduleEditorScreenState
     final active = OperationalContextScope.maybeOf(context)?.context;
     final existing = widget.record;
     final now = DateTime.now();
-    await controller.save(
-      CalendarScheduleRecord(
-        id: existing?.id ?? 'calendar-${now.microsecondsSinceEpoch}',
-        title: title,
-        details: _details.text.trim(),
-        startsAt: _start,
-        endsAt: _end,
-        recordedAt: existing?.recordedAt ?? now,
-        rule: CalendarScheduleRule(
-          frequency: _frequency,
-          interval: _interval,
-          until: _until,
-          weekdays: _weekdays,
+    try {
+      await controller.save(
+        CalendarScheduleRecord(
+          id: existing?.id ?? 'calendar-${now.microsecondsSinceEpoch}',
+          title: title,
+          details: _details.text.trim(),
+          startsAt: _start,
+          endsAt: _end,
+          recordedAt: existing?.recordedAt ?? now,
+          rule: CalendarScheduleRule(
+            frequency: _frequency,
+            interval: _interval,
+            until: _until,
+            weekdays: _weekdays,
+          ),
+          vehicleId: active?.activeVehicleId ?? '',
+          workProfileId: active?.workProfileId ?? '',
+          employeeId: widget.employeeId?.trim() ?? existing?.employeeId ?? '',
+          // Preserve the employee/source scope when editing via Dashboard.
+          screenScope: existing?.screenScope ?? widget.source.name,
+          // Core Dart lacks a reliable IANA zone; preserve the existing value.
+          timezoneId: existing?.timezoneId,
         ),
-        vehicleId: active?.activeVehicleId ?? '',
-        workProfileId: active?.workProfileId ?? '',
-        employeeId: widget.employeeId?.trim() ?? existing?.employeeId ?? '',
-        // A Dashboard projection can open any schedule. Editing there must not
-        // re-home an employee or source-calendar appointment into Dashboard.
-        screenScope: existing?.screenScope ?? widget.source.name,
-        // The platform does not expose an IANA identifier through core Dart.
-        // Keep it null rather than persisting an ambiguous abbreviation such as
-        // "EST"; the projection retains the actual signed offset instead.
-        timezoneId: existing?.timezoneId,
-      ),
-    );
-    if (mounted) navigator.pop();
+      );
+      if (mounted) navigator.pop();
+    } on ArgumentError catch (error) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message?.toString() ?? 'Invalid schedule.'),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not save this schedule. Try again.'),
+        ),
+      );
+    }
   }
 }
 

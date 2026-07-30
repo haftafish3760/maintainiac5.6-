@@ -150,6 +150,31 @@ void main() {
   });
 
   test(
+    'schedule rejects an end time that is not after its start time',
+    () async {
+      final controller = CalendarScheduleController.memory();
+      final start = DateTime(2026, 7, 29, 9);
+
+      await expectLater(
+        controller.save(
+          CalendarScheduleRecord(
+            id: 'invalid-time-window',
+            title: 'Invalid appointment',
+            startsAt: start,
+            endsAt: start,
+            recordedAt: start,
+            rule: const CalendarScheduleRule(
+              frequency: CalendarScheduleFrequency.once,
+            ),
+          ),
+        ),
+        throwsArgumentError,
+      );
+      expect(controller.records, isEmpty);
+    },
+  );
+
+  test(
     'one-time changes retain schedule context and replace one date only',
     () {
       final record = CalendarScheduleRecord(

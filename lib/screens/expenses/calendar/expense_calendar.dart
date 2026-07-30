@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
-
 import '../../../shared/navigation/app_page_routes.dart';
+import '../../../shared/calendar/expense_calendar.dart';
 import '../../../shared/calendar/month_year_picker.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/widgets/app_back_button.dart';

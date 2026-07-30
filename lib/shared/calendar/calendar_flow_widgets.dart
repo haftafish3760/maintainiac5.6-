@@ -265,7 +265,13 @@ class CalendarRecapStrip extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         const spacing = 7.0;
-        final itemWidth = (constraints.maxWidth - spacing) / 2;
+        final columns = switch (constraints.maxWidth) {
+          >= 900 => 4,
+          >= 600 => 3,
+          _ => 2,
+        };
+        final itemWidth =
+            (constraints.maxWidth - (spacing * (columns - 1))) / columns;
 
         return Wrap(
           spacing: spacing,
