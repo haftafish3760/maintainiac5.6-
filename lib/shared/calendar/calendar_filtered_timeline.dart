@@ -101,8 +101,8 @@ class _CalendarFilteredTimelineState extends State<CalendarFilteredTimeline> {
                 ? 'No entries for this day'
                 : 'No matching entries',
             subtitle: _hasNoFilters || !widget.enableFiltering
-                ? 'Add a record in its owning module, or plan work for this date.'
-                : 'Clear a filter or add an entry in its owning module.',
+                ? 'Add a record in its own screen, or plan work for this date.'
+                : 'Clear a filter or add an entry in its own screen.',
           )
         else
           for (final entry in visible)

@@ -18,7 +18,7 @@ void main() {
 
     expect(find.text('No entries for this day'), findsOneWidget);
     expect(
-      find.textContaining('Add a record in its owning module'),
+      find.textContaining('Add a record in its own screen'),
       findsOneWidget,
     );
   });

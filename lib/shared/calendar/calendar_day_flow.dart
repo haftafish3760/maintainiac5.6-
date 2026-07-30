@@ -70,8 +70,6 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 92),
           children: [
-            const AppBackButton(),
-            const SizedBox(height: 8),
             AppScreenHeader(title: calendarScreenTitle(widget.source)),
             const SizedBox(height: 12),
             GlobalOdometerHeader(
