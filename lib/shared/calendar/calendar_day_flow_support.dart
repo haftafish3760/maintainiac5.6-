@@ -43,6 +43,8 @@ AppSection calendarAppSectionFor(CalendarFlowSource source) => switch (source) {
   CalendarFlowSource.expenses => AppSection.expenses,
   CalendarFlowSource.invoices => AppSection.invoices,
   CalendarFlowSource.maintenance => AppSection.maintenance,
+  CalendarFlowSource.jobs => AppSection.materials,
+  CalendarFlowSource.materials => AppSection.materials,
   _ => AppSection.dashboard,
 };
 
@@ -50,6 +52,8 @@ String calendarScreenTitle(CalendarFlowSource source) => switch (source) {
   CalendarFlowSource.expenses => 'Expense Calendar',
   CalendarFlowSource.maintenance => 'Maintenance Calendar',
   CalendarFlowSource.contractor => 'Contractor Calendar',
+  CalendarFlowSource.jobs => 'Jobs Calendar',
+  CalendarFlowSource.materials => 'Materials Calendar',
   CalendarFlowSource.employee => 'Employee Calendar',
   _ => 'Calendar',
 };

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/calendar/calendar_flow_models.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../data/work_supply_inventory_recap.dart';
 import '../data/work_supply_models.dart';
@@ -51,6 +52,7 @@ class _WorkSupplyInventoryCalendarScreenState
                   onDaySelected: (day) {
                     setState(() => _selectedDay = _dayKey(day));
                   },
+                  calendarSource: CalendarFlowSource.materials,
                 ),
                 const SizedBox(height: 10),
                 _InventoryMonthRecapPanel(recap: monthRecap),

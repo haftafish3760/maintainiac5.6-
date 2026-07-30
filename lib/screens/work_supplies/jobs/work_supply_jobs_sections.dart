@@ -199,6 +199,8 @@ class _JobScheduleSection extends StatelessWidget {
               markersByDay: const {},
               onDaySelected: onDaySelected,
               markersForDay: markersForDay,
+              calendarSource: CalendarFlowSource.jobs,
+              openCalendarDay: true,
             ),
             const SizedBox(height: 10),
             _JobsForDayPanel(day: selectedDay, jobs: selectedJobs),

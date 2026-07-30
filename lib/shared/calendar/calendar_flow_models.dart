@@ -7,6 +7,8 @@ enum CalendarDayMode { past, today, future }
 enum CalendarFlowSource {
   dashboard,
   contractor,
+  jobs,
+  materials,
   expenses,
   invoices,
   maintenance,
@@ -441,6 +443,20 @@ List<CalendarEntryType> calendarTypesForSource(
         CalendarEntryType.invoiceEstimate,
         CalendarEntryType.materials,
         CalendarEntryType.maintenance,
+        CalendarEntryType.note,
+      ],
+    };
+  }
+  if (source == CalendarFlowSource.jobs) {
+    return switch (mode) {
+      CalendarDayMode.past || CalendarDayMode.today => const [
+        CalendarEntryType.job,
+        CalendarEntryType.note,
+        CalendarEntryType.reminderSchedule,
+      ],
+      CalendarDayMode.future => const [
+        CalendarEntryType.job,
+        CalendarEntryType.reminderSchedule,
         CalendarEntryType.note,
       ],
     };

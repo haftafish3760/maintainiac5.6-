@@ -213,6 +213,8 @@ String _recapTitle(CalendarFlowSource source) => switch (source) {
   CalendarFlowSource.expenses => 'Expense Calendar',
   CalendarFlowSource.maintenance => 'Maintenance Calendar',
   CalendarFlowSource.contractor => 'Contractor Calendar',
+  CalendarFlowSource.jobs => 'Jobs Calendar',
+  CalendarFlowSource.materials => 'Materials Calendar',
   CalendarFlowSource.employee => 'Employee Calendar',
   _ => 'Calendar',
 };

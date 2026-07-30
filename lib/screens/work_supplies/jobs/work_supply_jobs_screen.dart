@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../shared/context/operational_context_store.dart';
+import '../../../shared/calendar/calendar_flow_models.dart';
 import '../../../shared/calendar/calendar_job_projection_adapter.dart';
 import '../../../shared/jobs/maintainiac_job_store.dart';
 import '../../../shared/navigation/app_page_routes.dart';

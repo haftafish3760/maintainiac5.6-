@@ -53,6 +53,7 @@ class _InventoryCalendarHomePanel extends StatelessWidget {
             WorkSupplyCalendarPanel(
               markersByDay: _homeInventoryMarkers(records),
               onDaySelected: (day) => onDaySelected(_dayKey(day)),
+              calendarSource: CalendarFlowSource.materials,
             ),
             const SizedBox(height: 10),
             _CalendarDayEntries(day: selectedDay, records: dayRecords),

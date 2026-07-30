@@ -76,7 +76,8 @@ class CalendarMonthProjectionReader {
             day,
           ),
       if (source == CalendarFlowSource.dashboard ||
-          source == CalendarFlowSource.contractor)
+          source == CalendarFlowSource.contractor ||
+          source == CalendarFlowSource.jobs)
         if (jobs != null)
           ...CalendarJobProjectionAdapter.eventsForDay(jobs, day),
       if (source == CalendarFlowSource.dashboard ||

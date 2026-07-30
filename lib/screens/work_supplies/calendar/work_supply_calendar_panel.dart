@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../shared/calendar/app_month_calendar.dart';
+import '../../../shared/calendar/calendar_month_event_badge.dart';
+import '../../../shared/calendar/calendar_flow_models.dart';
 import '../../../shared/calendar/month_year_picker.dart';
 
 class WorkSupplyCalendarMarker {
@@ -21,11 +24,15 @@ class WorkSupplyCalendarPanel extends StatefulWidget {
     required this.markersByDay,
     required this.onDaySelected,
     this.markersForDay,
+    this.calendarSource,
+    this.openCalendarDay = false,
   });
 
   final Map<DateTime, List<WorkSupplyCalendarMarker>> markersByDay;
   final ValueChanged<DateTime> onDaySelected;
   final List<WorkSupplyCalendarMarker> Function(DateTime day)? markersForDay;
+  final CalendarFlowSource? calendarSource;
+  final bool openCalendarDay;
 
   @override
   State<WorkSupplyCalendarPanel> createState() =>
@@ -38,6 +45,15 @@ class _WorkSupplyCalendarPanelState extends State<WorkSupplyCalendarPanel> {
 
   @override
   Widget build(BuildContext context) {
+    final source = widget.calendarSource;
+    if (source != null) {
+      return AppMonthCalendar(
+        source: source,
+        onDaySelected: widget.onDaySelected,
+        dayBadges: _sharedBadges(),
+        openCalendarDay: widget.openCalendarDay,
+      );
+    }
     return CustomPaint(
       painter: const _CalendarPanelPainter(),
       child: Container(
@@ -176,6 +192,28 @@ class _WorkSupplyCalendarPanelState extends State<WorkSupplyCalendarPanel> {
       widget.markersForDay?.call(day) ??
       widget.markersByDay[_dayKey(day)] ??
       const [];
+
+  Map<DateTime, CalendarMonthEventBadge> _sharedBadges() => {
+    for (final entry in widget.markersByDay.entries)
+      DateTime.utc(
+        entry.key.year,
+        entry.key.month,
+        entry.key.day,
+      ): CalendarMonthEventBadge(
+        entryCount: entry.value.fold(
+          0,
+          (total, marker) => total + marker.count,
+        ),
+        plannedEntryCount: 0,
+        confirmedEntryCount: entry.value.fold(
+          0,
+          (total, marker) => total + marker.count,
+        ),
+        reviewRequiredEntryCount: 0,
+        hasScheduled: false,
+        hasCompleted: entry.value.isNotEmpty,
+      ),
+  };
 
   Widget? _calendarOutsideDayBuilder(
     BuildContext context,

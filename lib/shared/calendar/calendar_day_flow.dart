@@ -147,6 +147,24 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         ),
       );
     }
+    if (widget.source == CalendarFlowSource.jobs) {
+      final events = CalendarMonthProjectionReader.eventsForDay(
+        context,
+        CalendarFlowSource.jobs,
+        day,
+      );
+      final needsReview = events.where((event) => event.isActionable).length;
+      return CalendarDayData(
+        recapItems: [
+          CalendarRecapItem(label: 'Scheduled jobs', value: '${events.length}'),
+          CalendarRecapItem(label: 'Needs review', value: '$needsReview'),
+        ],
+        entries: [
+          for (final event in events)
+            CalendarTimelineEntry.fromProjection(event),
+        ],
+      );
+    }
     if (widget.source == CalendarFlowSource.dashboard) {
       final active = OperationalContextScope.maybeOf(context)?.context;
       final events = CalendarMonthProjectionReader.eventsForDay(

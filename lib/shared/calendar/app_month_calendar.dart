@@ -15,14 +15,18 @@ class AppMonthCalendar extends StatefulWidget {
     super.key,
     this.source = CalendarFlowSource.dashboard,
     this.dayEntryCounts = const <DateTime, int>{},
+    this.dayBadges = const <DateTime, CalendarMonthEventBadge>{},
     this.employeeId,
     this.onDaySelected,
+    this.openCalendarDay = true,
   });
 
   final CalendarFlowSource source;
   final Map<DateTime, int> dayEntryCounts;
+  final Map<DateTime, CalendarMonthEventBadge> dayBadges;
   final String? employeeId;
   final ValueChanged<DateTime>? onDaySelected;
+  final bool openCalendarDay;
 
   @override
   State<AppMonthCalendar> createState() => _AppMonthCalendarState();
@@ -177,7 +181,9 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
                 _focusedDay = focusedDay;
               });
               widget.onDaySelected?.call(selectedDay);
-              _openCalendarDay(context, selectedDay);
+              if (widget.openCalendarDay) {
+                _openCalendarDay(context, selectedDay);
+              }
             },
             onPageChanged: (focusedDay) => _focusedDay = focusedDay,
             onHeaderTapped: (_) => _openMonthYearPicker(context),
@@ -235,7 +241,7 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
     DateTime focusedDay,
   ) {
     final normalized = DateTime.utc(day.year, day.month, day.day);
-    final badge = CalendarMonthEventBadge.fromEvents(
+    final projectedBadge = CalendarMonthEventBadge.fromEvents(
       CalendarMonthProjectionReader.eventsForDay(
         context,
         widget.source,
@@ -243,6 +249,9 @@ class _AppMonthCalendarState extends State<AppMonthCalendar> {
         employeeId: widget.employeeId,
       ),
     );
+    final badge = projectedBadge.entryCount > 0
+        ? projectedBadge
+        : widget.dayBadges[normalized] ?? projectedBadge;
     final isSelected = isSameDay(_selectedDay, day);
     final isToday = isSameDay(DateTime.now(), day);
     final entryCount = badge.entryCount > 0
