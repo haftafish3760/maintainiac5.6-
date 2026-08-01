@@ -6,7 +6,7 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dar
 
 void main() {
   test(
-    'free sync quota matrix reserves only six local attempts per window',
+    'free sync quota matrix follows the configured local attempt limit',
     () async {
       final store = CloudBackupSyncAttemptStore.memory();
       final now = DateTime.utc(2026, 7, 18, 9);
@@ -19,7 +19,11 @@ void main() {
       );
 
       final decisions = <String>[];
-      for (var index = 0; index < 8; index += 1) {
+      for (
+        var index = 0;
+        index < HostedUsageLimits.freeUserSyncsPer24HourWindow + 2;
+        index += 1
+      ) {
         final decision = await usage.reserveAuthorizedAttempt(
           networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
           wifiAvailable: true,

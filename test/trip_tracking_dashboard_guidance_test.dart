@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_dashboard_guidance.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -46,7 +47,7 @@ void main() {
     expect(guidance.recommendsActivityRecognition, isTrue);
     expect(guidance.activityRecognitionActive, isFalse);
     expect(guidance.shouldShowActivityRecognitionRecommendation, isTrue);
-    expect(guidance.odometerStatus, contains('Odometer remains'));
+    expect(guidance.odometerStatus, contains('future GPS estimates'));
     expect(guidance.shouldShowOdometerReview, isTrue);
   });
 
@@ -132,7 +133,7 @@ void main() {
       ),
       wifiAvailable: true,
       mobileDataAvailable: false,
-      syncsUsedInWindow: 5,
+      syncsUsedInWindow: HostedUsageLimits.freeUserSyncsPer24HourWindow - 1,
     );
 
     expect(guidance.syncStatus, 'Sync: Wi-Fi only; 1 free sync left');

@@ -10,59 +10,60 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 
 void main() {
-  testWidgets('calibration opt-in explains that evidence still needs review', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(900, 2400);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.view.resetPhysicalSize);
-    final settings = TripTrackingSettingsController.memory();
-    await settings.update(
-      const TripTrackingSettings(
-        gpsAssistedTrackingEnabled: true,
-        odometerAnomalyAlertsEnabled: true,
-        gpsOdometerCalibrationAssistEnabled: true,
-      ),
-    );
-    final odometer = GlobalOdometerController();
-    final tripTracking = TripTrackingController(
-      sessionStore: TripTrackingSessionStore.memory(),
-      odometer: odometer,
-    );
-    tripTracking.refreshGpsAssistanceCalibration(enabled: true);
-    addTearDown(settings.dispose);
-    addTearDown(odometer.dispose);
-    addTearDown(tripTracking.dispose);
+  testWidgets(
+    'GPS consent explains that calibration evidence still needs review',
+    (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(900, 2400);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final settings = TripTrackingSettingsController.memory();
+      await settings.update(
+        const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          odometerAnomalyAlertsEnabled: true,
+          gpsOdometerCalibrationAssistEnabled: true,
+        ),
+      );
+      final odometer = GlobalOdometerController();
+      final tripTracking = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+      );
+      tripTracking.refreshGpsAssistanceCalibration(enabled: true);
+      addTearDown(settings.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(tripTracking.dispose);
 
-    await tester.pumpWidget(
-      MaterialApp(
-        home: AppStateScope(
-          controller: AppStateController(),
-          child: GlobalOdometerScope(
-            controller: odometer,
-            child: TripTrackingSettingsScope(
-              controller: settings,
-              child: TripTrackingScope(
-                controller: tripTracking,
-                child: const TripTrackingSettingsScreen(),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AppStateScope(
+            controller: AppStateController(),
+            child: GlobalOdometerScope(
+              controller: odometer,
+              child: TripTrackingSettingsScope(
+                controller: settings,
+                child: TripTrackingScope(
+                  controller: tripTracking,
+                  child: const TripTrackingSettingsScreen(),
+                ),
               ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Calibration review'));
-    await tester.pump();
+      );
+      await tester.pumpAndSettle();
+      await tester.ensureVisible(find.text('Calibration review'));
+      await tester.pump();
 
-    expect(find.text('Calibration review'), findsOneWidget);
-    expect(
-      find.textContaining('More consistent, reviewed driving days'),
-      findsOneWidget,
-    );
-    expect(find.text('Accept current calibration review'), findsNothing);
-  });
+      expect(find.text('Calibration review'), findsOneWidget);
+      expect(
+        find.textContaining('More consistent, reviewed driving days'),
+        findsOneWidget,
+      );
+      expect(find.text('Accept current calibration review'), findsNothing);
+    },
+  );
 
   testWidgets('GPS settings are visible and remain opt-in', (tester) async {
     tester.view.devicePixelRatio = 1;
@@ -111,7 +112,7 @@ void main() {
     expect(find.text('Save optional map route history'), findsOneWidget);
     expect(find.text('Profile-specific stop detection'), findsOneWidget);
     expect(find.text('Odometer anomaly alerts'), findsOneWidget);
-    expect(find.text('Odometer calibration assist'), findsOneWidget);
+    expect(find.text('Odometer calibration review'), findsOneWidget);
     expect(find.text('Calculate vehicle-use percentages'), findsOneWidget);
     expect(
       find.textContaining('does not enable GPS, track your location'),
@@ -280,21 +281,9 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(settings.settings.odometerAnomalyAlertsEnabled, isTrue);
-    await tester.ensureVisible(find.text('Odometer calibration assist'));
-    await tester.pump();
-    final calibrationRow = find
-        .ancestor(
-          of: find.text('Odometer calibration assist'),
-          matching: find.byType(Row),
-        )
-        .first;
-    await tester.tap(
-      find.descendant(of: calibrationRow, matching: find.byType(Switch)),
-    );
-    await tester.pumpAndSettle();
     expect(settings.settings.gpsOdometerCalibrationAssistEnabled, isTrue);
     expect(
-      find.textContaining('review and accept current local evidence'),
+      find.textContaining('GPS consent permits local advisory calibration'),
       findsOneWidget,
     );
     expect(find.text('Back up reviewed mileage'), findsNothing);

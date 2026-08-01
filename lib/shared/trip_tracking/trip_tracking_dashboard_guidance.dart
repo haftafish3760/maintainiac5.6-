@@ -136,8 +136,7 @@ class TripTrackingDashboardGuidance {
         strategy.recommendedActivityRecognition;
     final backgroundActive = enabled && settings.backgroundTrackingEnabled;
     final odometerAlerts = enabled && settings.odometerAnomalyAlertsEnabled;
-    final calibrationAssist =
-        odometerAlerts && settings.gpsOdometerCalibrationAssistEnabled;
+    final calibrationAssist = enabled;
     final profileLabel = _profileLabel(settings.defaultProfile);
     return TripTrackingDashboardGuidance(
       enabled: enabled,

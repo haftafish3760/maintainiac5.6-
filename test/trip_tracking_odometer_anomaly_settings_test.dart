@@ -37,7 +37,7 @@ void main() {
     expect(restored.odometerAnomalyAlertsEnabled, isFalse);
   });
 
-  test('odometer calibration assist requires GPS and anomaly review opt-in', () {
+  test('odometer calibration follows GPS consent and survives alert changes', () {
     final gpsOnly = const TripTrackingSettings().copyWith(
       gpsAssistedTrackingEnabled: true,
       gpsOdometerCalibrationAssistEnabled: true,
@@ -50,9 +50,9 @@ void main() {
       odometerAnomalyAlertsEnabled: false,
     );
 
-    expect(gpsOnly.gpsOdometerCalibrationAssistEnabled, isFalse);
+    expect(gpsOnly.gpsOdometerCalibrationAssistEnabled, isTrue);
     expect(enabled.gpsOdometerCalibrationAssistEnabled, isTrue);
-    expect(alertsDisabledAgain.gpsOdometerCalibrationAssistEnabled, isFalse);
+    expect(alertsDisabledAgain.gpsOdometerCalibrationAssistEnabled, isTrue);
     expect(
       enabled
           .toSafeDashboardMap()['gpsOdometerCalibrationCanOverwriteConfirmedOdometer'],
@@ -60,15 +60,18 @@ void main() {
     );
   });
 
-  test('restored calibration assist fails closed without anomaly alerts', () {
-    final restored = TripTrackingSettings.fromMap(const {
-      'schemaVersion': TripTrackingSettings.schemaVersion,
-      'gpsAssistedTrackingEnabled': true,
-      'odometerAnomalyAlertsEnabled': false,
-      'gpsOdometerCalibrationAssistEnabled': true,
-    });
+  test(
+    'restored GPS consent enables advisory calibration without anomaly alerts',
+    () {
+      final restored = TripTrackingSettings.fromMap(const {
+        'schemaVersion': TripTrackingSettings.schemaVersion,
+        'gpsAssistedTrackingEnabled': true,
+        'odometerAnomalyAlertsEnabled': false,
+        'gpsOdometerCalibrationAssistEnabled': true,
+      });
 
-    expect(restored.odometerAnomalyAlertsEnabled, isFalse);
-    expect(restored.gpsOdometerCalibrationAssistEnabled, isFalse);
-  });
+      expect(restored.odometerAnomalyAlertsEnabled, isFalse);
+      expect(restored.gpsOdometerCalibrationAssistEnabled, isTrue);
+    },
+  );
 }

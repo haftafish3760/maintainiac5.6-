@@ -272,22 +272,13 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                   )
                 : null,
           ),
-          _switch(
-            title: 'Odometer calibration assist',
-            detail: settings.odometerAnomalyAlertsEnabled
-                ? 'Separate opt-in. It remains neutral until you review and accept current local evidence; then it affects future GPS estimates only, never confirmed odometer records.'
-                : 'Enable odometer anomaly alerts first. Calibration assist stays off until you opt in.',
-            value: settings.gpsOdometerCalibrationAssistEnabled,
-            onChanged: settings.odometerAnomalyAlertsEnabled
-                ? (value) => onChanged(
-                    settings.copyWith(
-                      gpsOdometerCalibrationAssistEnabled: value,
-                    ),
-                  )
-                : null,
+          _settingsNotice(
+            title: 'Odometer calibration review',
+            detail: settings.gpsAssistedTrackingEnabled
+                ? 'GPS consent permits local advisory calibration after enough trusted, reviewed evidence. It affects future GPS estimates only and never changes confirmed odometer records.'
+                : 'Enable GPS-assisted tracking before local advisory calibration can use trusted reviewed evidence.',
           ),
-          if (settings.gpsOdometerCalibrationAssistEnabled &&
-              tripTracking != null) ...[
+          if (settings.gpsAssistedTrackingEnabled && tripTracking != null) ...[
             const SizedBox(height: 8),
             _CalibrationAcceptancePanel(tripTracking: tripTracking!),
           ],

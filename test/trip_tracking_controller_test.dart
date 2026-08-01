@@ -9376,7 +9376,11 @@ void main() {
       );
 
       expect(review, isNotNull);
-      expect(review!.estimatedEndingOdometer, greaterThan(1000));
+      // The persisted legacy whole-mile value is derived from exact tenths.
+      // A sub-whole-mile GPS estimate must remain visible as tenths rather than
+      // being independently rounded into a contradictory whole-mile value.
+      expect(review!.estimatedEndingOdometer, 1000);
+      expect(review.effectiveEstimatedEndingOdometerTenths, greaterThan(10000));
       expect(store.activeSession, isNull);
       expect(store.reviewForTrip('trip_review')?.id, 'trip_review');
       expect(controller.isTracking, isFalse);

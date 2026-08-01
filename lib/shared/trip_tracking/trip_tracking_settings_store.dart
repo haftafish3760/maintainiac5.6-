@@ -168,10 +168,10 @@ class TripTrackingSettings {
           gpsEnabled &&
           (lowBatteryGpsWarningDismissed ?? this.lowBatteryGpsWarningDismissed),
       odometerAnomalyAlertsEnabled: odometerAlerts,
-      gpsOdometerCalibrationAssistEnabled:
-          odometerAlerts &&
-          (gpsOdometerCalibrationAssistEnabled ??
-              this.gpsOdometerCalibrationAssistEnabled),
+      // GPS consent enables only local, advisory calibration for future GPS
+      // projection. The persisted legacy flag is intentionally not a second
+      // consent gate and cannot authorize record mutation.
+      gpsOdometerCalibrationAssistEnabled: gpsEnabled,
       vehicleMileageAllocationEnabled:
           vehicleMileageAllocationEnabled ??
           this.vehicleMileageAllocationEnabled,
@@ -262,7 +262,8 @@ class TripTrackingSettings {
       'vehicleMileageAllocationRequiresExplicitOptIn': true,
       'vehicleMileageAllocationCanChangeExpenses': false,
       'vehicleMileageAllocationUsesOnlyConfirmedMileage': true,
-      'gpsOdometerCalibrationRequiresUserOptIn': true,
+      'gpsOdometerCalibrationRequiresUserOptIn': false,
+      'gpsOdometerCalibrationUsesGpsConsent': true,
       'gpsOdometerCalibrationCanOverwriteConfirmedOdometer': false,
       'odometerIsGlobalTruth': true,
       'calibrationRequiresTrustedGpsWindow': true,
@@ -342,8 +343,7 @@ class TripTrackingSettings {
       lowBatteryGpsWarningDismissed:
           gpsEnabled && map['lowBatteryGpsWarningDismissed'] == true,
       odometerAnomalyAlertsEnabled: odometerAlerts,
-      gpsOdometerCalibrationAssistEnabled:
-          odometerAlerts && map['gpsOdometerCalibrationAssistEnabled'] == true,
+      gpsOdometerCalibrationAssistEnabled: gpsEnabled,
       vehicleMileageAllocationEnabled:
           map['vehicleMileageAllocationEnabled'] == true,
       mapPreviewEnabled: gpsEnabled && map['mapPreviewEnabled'] == true,

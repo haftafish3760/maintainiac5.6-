@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_sync_attempt_guard.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_sync_policy.dart';
@@ -12,7 +13,10 @@ void main() {
     expect(decision.mayUploadMirror, isTrue);
     expect(decision.mustReserveFreeAttemptBeforeUpload, isTrue);
     expect(decision.consumesFreeAttempt, isTrue);
-    expect(decision.freeSyncsRemainingBeforeAttempt, 4);
+    expect(
+      decision.freeSyncsRemainingBeforeAttempt,
+      HostedUsageLimits.freeUserSyncsPer24HourWindow - 2,
+    );
     expect(decision.mirrorPayload['canonicalSource'], 'hive');
     expect(decision.mirrorPayload['firestoreRole'], 'mirror');
     expect(decision.mirrorPayload['deviceIdMatchesLocalRecord'], isTrue);
@@ -44,7 +48,7 @@ void main() {
     expect(decision.toSafeSummary()['rawTripRecordsIncluded'], isFalse);
   });
 
-  test('free users are blocked after six syncs in the rolling window', () {
+  test('free users are blocked after the configured sync limit', () {
     final decision = TripTrackingSyncAttemptGuard.evaluate(
       request(
         syncsUsedInWindow: TripTrackingBackupSyncPolicy.freeSyncsPerWindow,
@@ -74,7 +78,10 @@ void main() {
     expect(decision.mayUploadMirror, isFalse);
     expect(decision.mustReserveFreeAttemptBeforeUpload, isFalse);
     expect(decision.consumesFreeAttempt, isFalse);
-    expect(decision.freeSyncsRemainingBeforeAttempt, 6);
+    expect(
+      decision.freeSyncsRemainingBeforeAttempt,
+      HostedUsageLimits.freeUserSyncsPer24HourWindow,
+    );
     expect(decision.toSafeSummary()['syncAttemptCanDeleteLocalData'], isFalse);
   });
 

@@ -4,74 +4,80 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dar
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_sync_policy.dart';
 
 void main() {
-  test('free sync policy allows six sync attempts per 24 hour window', () {
-    for (
-      var used = 0;
-      used < HostedUsageLimits.freeUserSyncsPer24HourWindow;
-      used += 1
-    ) {
+  test(
+    'free sync policy follows the authoritative configured 24-hour limit',
+    () {
+      for (
+        var used = 0;
+        used < HostedUsageLimits.freeUserSyncsPer24HourWindow;
+        used += 1
+      ) {
+        final decision = TripTrackingBackupSyncPolicy.evaluate(
+          networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
+          wifiAvailable: true,
+          mobileDataAvailable: false,
+          syncsUsedInWindow: used,
+        );
+
+        expect(decision.mayAttemptSync, isTrue, reason: 'used=$used');
+        expect(
+          decision.freeSyncsRemaining,
+          HostedUsageLimits.freeUserSyncsPer24HourWindow - used,
+        );
+        expect(decision.reasonCode, 'sync_ready');
+      }
+    },
+  );
+
+  test(
+    'free sync policy blocks the first attempt beyond its configured limit',
+    () {
       final decision = TripTrackingBackupSyncPolicy.evaluate(
         networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
         wifiAvailable: true,
-        mobileDataAvailable: false,
-        syncsUsedInWindow: used,
+        mobileDataAvailable: true,
+        syncsUsedInWindow: HostedUsageLimits.freeUserSyncsPer24HourWindow,
       );
 
-      expect(decision.mayAttemptSync, isTrue, reason: 'used=$used');
-      expect(
-        decision.freeSyncsRemaining,
-        HostedUsageLimits.freeUserSyncsPer24HourWindow - used,
-      );
-      expect(decision.reasonCode, 'sync_ready');
-    }
-  });
-
-  test('free sync policy blocks the seventh free sync safely', () {
-    final decision = TripTrackingBackupSyncPolicy.evaluate(
-      networkPolicy: TripTrackingBackupNetworkPolicy.wifiAndMobileData,
-      wifiAvailable: true,
-      mobileDataAvailable: true,
-      syncsUsedInWindow: HostedUsageLimits.freeUserSyncsPer24HourWindow,
-    );
-
-    expect(decision.mayAttemptSync, isFalse);
-    expect(decision.freeSyncAllowed, isFalse);
-    expect(decision.freeSyncsRemaining, 0);
-    expect(decision.reasonCode, 'free_sync_limit_reached');
-    expect(decision.userFacingReason, contains('24-hour window'));
-    expect(decision.dashboardLabel, contains('0 free syncs left'));
-    expect(decision.toSafeSummary(), {
-      'schemaVersion': 1,
-      'networkPolicy': 'wifiAndMobileData',
-      'networkKnown': true,
-      'networkAllowed': true,
-      'freeSyncAllowed': false,
-      'freeSyncsRemaining': 0,
-      'mayAttemptSync': false,
-      'reasonCode': 'free_sync_limit_reached',
-      'label': 'Sync: Wi-Fi or mobile data; 0 free syncs left',
-      'freePlanSyncLimit': 6,
-      'freePlanWindowHours': 24,
-      'freePlanUsageMustBeVerified': true,
-      'networkPolicyRequiresVerification': true,
-      'usageDecisionTrustedAfterValidationOnly': true,
-      'remoteUsageCounterCanAuthorizeSync': false,
-      'malformedUsageDecisionFailsClosed': true,
-      'freeUserReservedAttemptRequired': true,
-      'syncAttemptCanDeleteLocalData': false,
-      'syncAttemptCanOverrideLocalDaytimeData': false,
-      'firestoreCanDeleteLocalTripData': false,
-      'hiveRemainsSourceOfTruth': true,
-      'firestoreMirrorOnly': true,
-      'canOverrideLocalDaytimeData': false,
-      'odometerIsGlobalTruth': true,
-      'odometerRemainsOfficialMileageTruth': true,
-      'canUploadRawGps': false,
-      'tokensIncluded': false,
-      'locationDataIncluded': false,
-      'rawModuleDataIncluded': false,
-    });
-  });
+      expect(decision.mayAttemptSync, isFalse);
+      expect(decision.freeSyncAllowed, isFalse);
+      expect(decision.freeSyncsRemaining, 0);
+      expect(decision.reasonCode, 'free_sync_limit_reached');
+      expect(decision.userFacingReason, contains('24-hour window'));
+      expect(decision.dashboardLabel, contains('0 free syncs left'));
+      expect(decision.toSafeSummary(), {
+        'schemaVersion': 1,
+        'networkPolicy': 'wifiAndMobileData',
+        'networkKnown': true,
+        'networkAllowed': true,
+        'freeSyncAllowed': false,
+        'freeSyncsRemaining': 0,
+        'mayAttemptSync': false,
+        'reasonCode': 'free_sync_limit_reached',
+        'label': 'Sync: Wi-Fi or mobile data; 0 free syncs left',
+        'freePlanSyncLimit': HostedUsageLimits.freeUserSyncsPer24HourWindow,
+        'freePlanWindowHours': 24,
+        'freePlanUsageMustBeVerified': true,
+        'networkPolicyRequiresVerification': true,
+        'usageDecisionTrustedAfterValidationOnly': true,
+        'remoteUsageCounterCanAuthorizeSync': false,
+        'malformedUsageDecisionFailsClosed': true,
+        'freeUserReservedAttemptRequired': true,
+        'syncAttemptCanDeleteLocalData': false,
+        'syncAttemptCanOverrideLocalDaytimeData': false,
+        'firestoreCanDeleteLocalTripData': false,
+        'hiveRemainsSourceOfTruth': true,
+        'firestoreMirrorOnly': true,
+        'canOverrideLocalDaytimeData': false,
+        'odometerIsGlobalTruth': true,
+        'odometerRemainsOfficialMileageTruth': true,
+        'canUploadRawGps': false,
+        'tokensIncluded': false,
+        'locationDataIncluded': false,
+        'rawModuleDataIncluded': false,
+      });
+    },
+  );
 
   test('malformed free sync counter fails closed', () {
     for (final used in const [-1, 1000]) {
@@ -172,10 +178,10 @@ void main() {
       'schemaVersion': 1,
       'windowState': 'active',
       'syncsUsedInWindow': 2,
-      'freeSyncsRemaining': 4,
+      'freeSyncsRemaining': HostedUsageLimits.freeUserSyncsPer24HourWindow - 2,
       'secondsUntilReset': 3600,
       'windowHours': 24,
-      'freePlanSyncLimit': 6,
+      'freePlanSyncLimit': HostedUsageLimits.freeUserSyncsPer24HourWindow,
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
@@ -202,7 +208,7 @@ void main() {
     final started = DateTime.utc(2026, 7, 17, 8);
     final counter = TripTrackingFreeSyncWindowCounter(
       windowStartedAtUtc: started,
-      syncsUsed: 6,
+      syncsUsed: HostedUsageLimits.freeUserSyncsPer24HourWindow,
     ).recordAttempt(started.add(const Duration(hours: 24, minutes: 1)));
 
     expect(counter.syncsUsed, 1);
@@ -214,10 +220,10 @@ void main() {
       'schemaVersion': 1,
       'windowState': 'active',
       'syncsUsedInWindow': 1,
-      'freeSyncsRemaining': 5,
+      'freeSyncsRemaining': HostedUsageLimits.freeUserSyncsPer24HourWindow - 1,
       'secondsUntilReset': 82860,
       'windowHours': 24,
-      'freePlanSyncLimit': 6,
+      'freePlanSyncLimit': HostedUsageLimits.freeUserSyncsPer24HourWindow,
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
@@ -258,7 +264,7 @@ void main() {
       'freeSyncsRemaining': null,
       'secondsUntilReset': 82800,
       'windowHours': 24,
-      'freePlanSyncLimit': 6,
+      'freePlanSyncLimit': HostedUsageLimits.freeUserSyncsPer24HourWindow,
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,
@@ -324,7 +330,7 @@ void main() {
       'freeSyncsRemaining': null,
       'secondsUntilReset': 86400,
       'windowHours': 24,
-      'freePlanSyncLimit': 6,
+      'freePlanSyncLimit': HostedUsageLimits.freeUserSyncsPer24HourWindow,
       'freePlanWindowHours': 24,
       'freePlanUsageMustBeVerified': true,
       'clockRollbackFailsClosed': true,

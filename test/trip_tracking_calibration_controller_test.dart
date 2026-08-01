@@ -262,15 +262,20 @@ void main() {
         gpsAssistanceCalibrationMultiplier:
             controller.gpsAssistanceCalibrationMultiplier,
       );
+      final neutralWholeMiles = neutralProjection.projectedTenths ~/ 10;
 
       expect(odometer.reading, greaterThan(readingBeforeRefresh));
       expect(odometer.reading, neutralReading);
-      expect(odometer.reading, isNot(recalibratedReading));
+      expect(
+        neutralProjection.projectedTenths,
+        isNot(recalibratedProjection.projectedTenths),
+      );
+      expect(neutralReading, isNot(recalibratedReading));
       final review = await controller.finishForReview(
         finishedAt: driveStart.add(const Duration(minutes: 25)),
       );
       expect(review, isNotNull);
-      expect(review!.estimatedEndingOdometer, neutralReading);
+      expect(review!.estimatedEndingOdometer, neutralWholeMiles);
       expect(odometer.confirmedReading, 1000);
     },
   );

@@ -175,7 +175,7 @@ void main() {
       );
 
       expect(ledger.records, isEmpty);
-      expect(ledger.conflictedSourceKeys, {'truck-1:trip_review:trip-1'});
+      expect(ledger.conflictedSourceKeys, {business.sourceKey});
       expect(summary.totalTenths, 0);
     }
   });
@@ -243,7 +243,7 @@ void main() {
       VehicleMileageAllocationIngestStatus.conflictingRevision,
     );
     expect(replay.ledger.records, isEmpty);
-    expect(replay.ledger.conflictedSourceKeys, {'truck-1:trip_review:trip-1'});
+    expect(replay.ledger.conflictedSourceKeys, {business.sourceKey});
   });
 
   test('allocation records round-trip only when their totals are coherent', () {
@@ -290,5 +290,47 @@ void main() {
     expect(summary.recordCount, 1);
     expect(summary.businessTenths, 100);
     expect(summary.personalTenths, 0);
+  });
+
+  test('delimiter-containing source tokens cannot collide across vehicles', () {
+    final first = record(
+      id: 'allocation-delimited-first',
+      vehicleId: 'truck:route',
+      sourceType: 'review',
+      sourceId: 'morning',
+      distanceTenths: 100,
+    );
+    final second = record(
+      id: 'allocation-delimited-second',
+      vehicleId: 'truck',
+      sourceType: 'route',
+      sourceId: 'review:morning',
+      use: VehicleMileageAllocationUse.personal,
+      distanceTenths: 200,
+    );
+
+    final ledger = VehicleMileageAllocationLedger([first, second]);
+
+    expect(ledger.records, hasLength(2));
+    expect(
+      ledger
+          .summaryFor(
+            vehicleId: 'truck:route',
+            from: occurredAt.subtract(const Duration(days: 1)),
+            until: occurredAt.add(const Duration(days: 1)),
+          )
+          .businessTenths,
+      100,
+    );
+    expect(
+      ledger
+          .summaryFor(
+            vehicleId: 'truck',
+            from: occurredAt.subtract(const Duration(days: 1)),
+            until: occurredAt.add(const Duration(days: 1)),
+          )
+          .personalTenths,
+      200,
+    );
   });
 }

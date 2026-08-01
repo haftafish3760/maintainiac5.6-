@@ -41,7 +41,22 @@ class VehicleMileageAllocationRecord {
   final int personalTenths;
   final int unclassifiedTenths;
 
-  String get sourceKey => '$vehicleId:$sourceType:$sourceId';
+  /// Collision-safe identity for one owning source inside one vehicle.
+  ///
+  /// Tokens may legitimately contain punctuation such as `:`. Length-prefixing
+  /// prevents those tokens from making two different vehicles or source
+  /// records share an allocation identity.
+  String get sourceKey => sourceKeyFor(
+    vehicleId: vehicleId,
+    sourceType: sourceType,
+    sourceId: sourceId,
+  );
+
+  static String sourceKeyFor({
+    required String vehicleId,
+    required String sourceType,
+    required String sourceId,
+  }) => _sourceIdentity(vehicleId, sourceType, sourceId);
   double get distanceMiles => distanceTenths / 10;
   double get businessMiles => businessTenths / 10;
   double get personalMiles => personalTenths / 10;
@@ -224,3 +239,6 @@ bool _safeToken(String value) =>
     value.isNotEmpty &&
     value.length <= 160 &&
     RegExp(r'^[A-Za-z0-9_.:-]+$').hasMatch(value);
+
+String _sourceIdentity(String vehicleId, String sourceType, String sourceId) =>
+    '${vehicleId.length}:$vehicleId${sourceType.length}:$sourceType${sourceId.length}:$sourceId';

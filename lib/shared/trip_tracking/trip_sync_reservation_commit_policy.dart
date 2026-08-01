@@ -1,3 +1,4 @@
+import '../firebase/hosted_usage_limits.dart';
 import 'trip_tracking_sync_attempt_guard.dart';
 
 enum TripSyncReservationCommitStatus {
@@ -32,7 +33,8 @@ class TripSyncReservationCommitDecision {
     'reservationCommittedBeforeUpload': reservationCommittedBeforeUpload,
     'consumesFreeAttempt': consumesFreeAttempt,
     'shouldRetryLater': shouldRetryLater,
-    'freePlanSyncLimitPer24Hours': 6,
+    'freePlanSyncLimitPer24Hours':
+        HostedUsageLimits.freeUserSyncsPer24HourWindow,
     'blockedAttemptConsumesFreeSync': false,
     'uploadWithoutReservationAllowed': false,
     'reservationMustCommitBeforeNetworkUpload': true,
@@ -91,7 +93,8 @@ class TripSyncReservationCommitSummaryValidation {
         summary['reasonCode']) {
       reasons.add('invalid_reservation_reason');
     }
-    if (summary['freePlanSyncLimitPer24Hours'] != 6) {
+    if (summary['freePlanSyncLimitPer24Hours'] !=
+        HostedUsageLimits.freeUserSyncsPer24HourWindow) {
       reasons.add('invalid_free_sync_limit');
     }
     for (final key in const [

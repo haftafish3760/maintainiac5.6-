@@ -1,0 +1,669 @@
+MAINTAINIAC GPS-ASSISTED TRIP-TRACKING MASTER REPORT
+=====================================================
+
+Purpose
+-------
+This is one complete working report for Maintainiac's GPS-assisted trip-
+tracking system, its Dashboard requirements, its security model, and the
+remaining engineering work. It is written as a copy-paste document for product
+planning and engineering review.
+
+This report is not source code. It is intentionally exempt from the normal
+500-line source-file limit. It is the single authoritative report requested by
+the owner; the earlier split planning files are supporting notes only.
+
+Current truthfulness statement
+------------------------------
+Maintainiac has a meaningful code-level foundation and substantial focused test
+coverage. It is NOT yet honestly describable as road-ready, field-verified,
+commercial-ready, or production-ready. It must first complete its remaining
+code-level repairs and complete gates, then undergo Android and iPhone controlled
+physical-device testing and repeated controlled road testing.
+
+The product being built
+-----------------------
+Maintainiac is a local-first commercial record-keeping system for people who
+use a vehicle in their work: gig/delivery drivers, contractors, lawn-care and
+route businesses, plumbers, electricians, HVAC technicians, service workers,
+home-health workers, non-emergency transport businesses, and similar users.
+
+It must be useful for all of these users:
+
+- A person who manually enters beginning and ending odometer readings only.
+- A person who uses optional GPS assistance while actively working.
+- A person who wants optional Bluetooth vehicle identification.
+- A person who has one vehicle, several vehicles, one work profile, or many.
+- A person whose work is all business, all personal, or mixed.
+- A person who drives an irregular route or the same route every week.
+- A person with weak signal, poor GPS conditions, background restrictions,
+  low battery, an old phone, no Bluetooth, no maps, or no internet.
+
+The system must help a hurried user avoid lost workdays and recording mistakes
+without becoming invasive, confusing, or automatic in ways that take ownership
+away from the user.
+
+Core philosophy
+---------------
+Maintainiac is an evidence engine, not an assumption engine.
+
+GPS, Bluetooth, activity recognition, schedules, maps, receipts, invoices,
+jobs, notes, historical patterns, and user entries are evidence sources. They
+may help reconstruct a day. They do not become a confirmed business record
+without user review and approval, unless a future immutable product rule
+explicitly says otherwise.
+
+The final authority for a business record is the user. The user can accept,
+correct, classify, defer, reject, or ignore a proposal. Automation exists to
+reduce effort, not to silently take control.
+
+Immutable product rules
+-----------------------
+1. The physical vehicle odometer is canonical mileage truth.
+2. GPS is advisory evidence; it does not replace an official odometer reading.
+3. Bluetooth is advisory vehicle-identification evidence; it does not prove
+   business purpose or silently change the confirmed vehicle of a trip.
+4. Maps and Mapbox are optional presentation/routing adapters only. They never
+   own GPS truth, mileage truth, trip state, stop confirmation, invoice state,
+   or business records.
+5. Tracking proposes. The user and the appropriate review/TripLog flow confirm.
+6. Manual record keeping remains usable without GPS, Bluetooth, Maps, internet,
+   cloud services, Firebase, AI, background permission, or motion sensors.
+7. Only one active local tracking session may exist at a time.
+8. Session transitions are deterministic, durable, and recoverable after crash,
+   restart, process death, operating-system kill, backgrounding, or reboot.
+9. Duplicate starts, callbacks, samples, events, revisions, completion
+   attempts, handoffs, and distance accumulation must be rejected or harmless.
+10. Ordering/revision evidence must be preserved separately from wall-clock
+    display time so clock changes cannot corrupt record ordering.
+11. Cached location is never a valid current start merely because it exists.
+12. The app never fabricates distance across a pause, rejected evidence, or a
+    signal gap.
+13. Accepted measured distance, estimated-gap distance, and rejected distance
+    are separate facts.
+14. Walking never creates vehicle mileage.
+15. Stationary behavior never automatically finalizes a trip or workday.
+16. Confirmed vehicle, profile, odometer, trip, allocation, or business history
+    is never silently rewritten by GPS, Bluetooth, Maps, cloud, or automation.
+17. Every automated proposal includes evidence, a human explanation, expected
+    result if accepted, decision state, and audit history.
+18. Uncertain/conflicting evidence is communicated honestly; it is never shown
+    as certainty.
+19. Privacy, security, data minimization, and local-first behavior apply from
+    the first release, not later.
+20. A remote counter, backup, map, GPS stream, or AI result cannot set local
+    odometer truth or silently finalize a business record.
+
+What has been implemented and verified so far
+---------------------------------------------
+
+ODOMETER TRUTH AND TENTH-MILE SUPPORT
+
+Implemented:
+
+- Odometer history is kept conceptually separate from GPS distance.
+- Start/end odometer entries support optional tenths of a mile.
+- A user is not forced to enter a tenth because many modern physical odometers
+  display only whole miles.
+- Exact tenths are retained as integers where known. This avoids floating-point
+  drift and supports accurate 0.1-mile display.
+- Legacy whole-mile compatibility fields are derived from exact tenths instead
+  of separately rounded. This prevents recovered records from disagreeing about
+  the same mileage value.
+- A confirmed trip, vehicle, work profile, or odometer event cannot be silently
+  rewritten by GPS estimates, calibration, recovery, or remote data.
+
+Verified focused evidence:
+
+- Odometer integrity suite: 146 passing tests at the prior checkpoint.
+- Exact-tenth calibration/reconciliation suite: 64 passing tests after a
+  compatibility repair.
+- Settings/odometer policy suite: 36 passing tests after consent-policy repair.
+
+Current user-facing lower-reading behavior represented in code:
+
+- If end mileage is lower than the active workday start, the workday remains
+  open. The app does not close the day, change the odometer, or create a fake
+  trip.
+- A durable pending review record can preserve the entered lower reading and
+  its reason.
+- The lower-reading correction panel offers these reasons:
+  * Correct the entered reading.
+  * Choose a different vehicle.
+  * This is a backdated receipt or trip.
+  * Review the previous odometer entry.
+  * The odometer was repaired or replaced.
+  * The odometer completed a rollover.
+  * The distance unit setting changed.
+  * I am not sure yet.
+- “Typed wrong” and “wrong vehicle” tell the user to retry without saving the
+  lower value as official mileage.
+- “Backdated receipt/trip” retains a review item rather than rolling the current
+  odometer backward.
+- Prior-entry error, replacement, rollover, and unit change are intended to use
+  an audited correction flow that keeps original history.
+- “I am not sure” retains an unresolved review item instead of blocking every
+  other part of the workday.
+
+Important incomplete work in this area:
+
+- The final visible Dashboard placement of odometer anomaly/calibration alerts
+  is not currently proven. Two old tests target a widget explicitly marked as
+  retired and never rendered. The logic exists, but a user cannot be told an
+  alert is visible until that alert is wired into the current Dashboard design.
+- The full lower-reading flow needs direct end-to-end widget and later device
+  proof: selecting each reason, backing out, retrying, saving a review, viewing
+  it later, correction audit, process restart, and End Day continuation.
+
+ODOMETER DISCREPANCY PREVENTION PLAN
+
+The app should prevent errors through several layers, never through a simplistic
+“block the user and offer no explanation” approach.
+
+Layer 1: direct continuity.
+
+- Compare entered end to active workday/context start.
+- Compare new start to prior confirmed same-vehicle ending.
+- Keep different vehicles completely separate.
+- Use exact tenths before display rounding.
+- Lower values require review, not silent correction.
+
+Layer 2: elapsed-time plausibility.
+
+- Calculate a soft average-mile-per-working-hour signal using workday duration.
+- Consider recorded stops/dwell time if available.
+- An extremely high apparent average is a review prompt, not an accusation:
+  highway routes, emergencies, incomplete stops, and unusual days happen.
+- This does not automatically block a truthful entry.
+
+Layer 3: optional local historical pattern.
+
+- Only for a user who explicitly enables local mileage-pattern help.
+- Use confirmed, reviewed, same-vehicle days only.
+- Exclude corrupt records, other vehicles, future confirmations, vacation/out
+  of-town markers, too few days, and outliers that distort normal history.
+- Optionally compare same weekdays or confirmed route types.
+- Explain “unusually high/low compared to your reviewed history”; do not imply
+  the user did anything wrong and do not alter the value.
+
+Layer 4: GPS-assisted comparison.
+
+- Compare official odometer delta with accepted GPS distance.
+- Clearly label GPS as estimate/evidence.
+- Show quality/degraded context when weak signal or rejected data affects it.
+- Near-zero odometer after meaningful accepted GPS movement requires review.
+- GPS never fills a missing official odometer automatically.
+
+Layer 5: advisory local calibration.
+
+- GPS permission enables transparent, local, vehicle-specific calibration after
+  enough trusted and reviewed same-vehicle evidence.
+- Calibration affects only future GPS estimates.
+- It never changes confirmed odometer history, mileage allocation, or a user
+  record.
+- Poor, interrupted, stale, mixed-vehicle, or inconsistent evidence is excluded.
+- Consistent offset can suggest tire/speedometer review. Mixed drift directions
+  must not create a false recommendation.
+
+GPS SESSION AND DISTANCE ENGINE
+-------------------------------
+Implemented/verified foundation:
+
+- One active local session is enforced.
+- Duplicate starts, callbacks, samples, revisions, handoffs, and completion
+  attempts have suppression/rejection behavior.
+- Provider-readiness, delayed registration, startup cancellation, restart,
+  heartbeat, degraded state, provider loss, and interruption paths have focused
+  regression coverage.
+- Cached/future location cannot create a current automatic-start proposal.
+- Walking evidence does not create vehicle mileage.
+- Stationary behavior does not automatically end a trip.
+- GPS distance has accepted, estimated-gap, and rejected evidence categories.
+- Signal gaps do not fabricate a continuous route.
+
+Lifecycle state model that must remain protected:
+
+- Disabled.
+- Awaiting provider registration.
+- Awaiting fresh usable initial fix.
+- Tracking.
+- Degraded tracking.
+- User-paused.
+- Completion pending.
+- Review pending.
+- Completed/cancelled terminal state.
+
+Every state transition must carry stable session ID, callback/operation ID,
+monotonic/revision evidence, persisted state, and idempotence guard. Wall clock
+time is for display; it is not enough by itself to prove ordering.
+
+Provider and location requirements:
+
+- Immediate registration works.
+- Delayed registration works.
+- Never-registering provider times out to recoverable state.
+- Late provider registration after timeout/cancel cannot create a duplicate trip.
+- Duplicate provider callbacks cannot create another session.
+- Restart while waiting recovers known state without duplication.
+- A fresh initial fix is required. Cached, stale, future, invalid-coordinate,
+  impossible-jump, implausible-speed, duplicate, or out-of-order evidence is
+  rejected or quarantined.
+- A pause, rejected sample, long gap, provider change without continuity,
+  tunnel-like gap, or clock anomaly cannot fabricate mileage.
+
+Bluetooth vehicle identification
+--------------------------------
+Implemented/verified foundation:
+
+- Bluetooth is opt-in and initially disabled.
+- A local device association can suggest a likely vehicle.
+- Bluetooth cannot silently change the vehicle of an active/completed trip.
+- Permission denial, permission revocation, retry, prompt disposal, disconnect,
+  reconnect, stale observation, repeated broadcasts, storage failure, manual
+  start race, and active-session ownership have focused tests.
+- Bluetooth connected without movement cannot create an automatic-start proposal.
+- Production bootstrap/runtime/heartbeat/Dashboard wiring tests passed together:
+  17 tests, exit code 0.
+
+Rules that must remain true:
+
+- Bluetooth disabled never disables manual tracking.
+- Unknown/stale/malformed/ambiguous device match fails to manual vehicle choice.
+- Multiple known devices must resolve deterministically; ambiguity means no
+  silent vehicle assignment.
+- Rename of a device must not silently take ownership.
+- Connection before application bootstrap is handled safely after initialization.
+- Active trip retains confirmed vehicle unless user explicitly changes context
+  through a protected vehicle/profile handoff flow.
+- Bluetooth is corroboration, never proof of a business trip.
+
+Automatic Evidence Capture / missed-start assistance
+----------------------------------------------------
+Implemented/verified foundation:
+
+- Automatic evidence capture is opt-in and proposal-only.
+- It requires current time-spaced movement, usable accuracy, enough movement
+  observations, and independent automotive evidence.
+- Independent automotive evidence may be automotive activity recognition or one
+  unambiguous associated Bluetooth vehicle.
+- GPS-only evidence, one location point, stationary Bluetooth connection, stale
+  evidence, future evidence, active/recoverable session, and unknown local
+  recovery state fail closed.
+- Proposal cannot invent starting odometer, business purpose, job, mileage
+  classification, final TripLog entry, or confirmed stop.
+- Free plan policy is four accepted recoveries per monthly period.
+- Detection, proposal display, dismissal, rejection, and expiration consume no
+  allowance. Only accepted eligible proposal uses an allowance.
+- Paid users bypass quota only; approval remains mandatory.
+- Focused automatic detector/coordinator/allowance suite passed: 16 tests.
+
+Required user-facing explanation:
+
+- What the optional feature observes.
+- Why it observes it: to stage a review if a workday may have been missed.
+- What it does not do: no silent day/trip/business classification/odometer edit.
+- Permissions potentially needed and how to turn it off.
+- That the user has final approval for every proposed entry.
+
+Proposal review requirements:
+
+- Proposed/review-needed entries should be visually distinct from user-entered
+  confirmed entries, for example orange versus green after confirmation.
+- Do not display raw confidence percentages. Explain evidence in plain English.
+- Show time range, suggested vehicle only when unambiguous, evidence summary,
+  and no-change assurance.
+- User can review now, defer, reject, or disable assistance.
+- Review allows vehicle/profile confirmation, physical odometer, classification,
+  correction/backdate context, and optional TripLog handoff.
+
+Future patterns and schedules:
+
+- User-approved regular work patterns may improve proposal ordering or wording.
+- Patterns are optional, local, explainable, removable, and never confirm a
+  record.
+- Scheduled-stop assistance may eventually combine confirmed schedule, address,
+  GPS distance/accuracy, dwell, route sequence, Bluetooth, motion, and recurring
+  history. “Same street” is not sufficient logic.
+- Raw GPS does not create a job or invoice. A confirmed job may later be used by
+  an invoice, preserving clean ownership.
+
+Vehicle-use allocation and cost-percentage foundation
+-----------------------------------------------------
+Implemented/verified foundation:
+
+- Confirmed mileage is classified business, personal, split, or unclassified.
+- Unclassified is retained and is never silently treated as business.
+- Split mileage uses exact integer tenths.
+- Allocation record includes vehicle, source type/id, source revision, occurred
+  time, confirmed time, use, total tenths, business/personal/unclassified
+  tenths.
+- Duplicate revision cannot add mileage twice.
+- Newer revision replaces older revision.
+- Stale revision cannot overwrite newer confirmation.
+- Equal conflicting revision is excluded rather than selected by input order.
+- A real collision defect was found and repaired: colon-containing valid IDs
+  could produce the same joined source key across distinct vehicle/source
+  combinations. Source identities are now length-prefixed/collision-safe.
+- Expanded allocation/consent/read-model/exact-tenth/stress suite passed 27
+  tests after this repair.
+
+Expense percentage contract:
+
+- This feature is optional.
+- No opt-in: no suggested percentage.
+- No confirmed mileage: no percentage.
+- Any unclassified mileage: review required and no percentage.
+- Complete opted-in period: expose exact business numerator and classified
+  denominator as well as a display percentage.
+- Expense may consume this as a suggestion only after user review.
+- This system does not create, edit, categorize, or approve expenses, receipts,
+  fuel records, insurance, vehicle payment, maintenance, or taxes.
+
+Localization and units
+----------------------
+Implemented/verified foundation:
+
+- GPS distance has a canonical meters representation.
+- Presentation can show miles or kilometers to one decimal.
+- Unit display conversion does not change official odometer truth or raw GPS
+  evidence.
+- English US, Spanish US, English Canada, and French Canada presentation
+  readiness have focused contracts, including French decimal presentation.
+
+Remaining requirements:
+
+- System Settings must eventually provide user-controlled miles/kilometers.
+- All GPS/start/end/review text must be localized, not only labels.
+- Spanish/French UI must be checked for overflow, grammar, readable hierarchy,
+  and decimal/unit formatting on actual narrow devices.
+
+Dashboard functional requirements
+---------------------------------
+Dashboard projects evidence; it does not own records.
+
+Pre-workday gig/delivery Dashboard must project:
+
+- Default/selected vehicle and official odometer.
+- Default/selected work profile.
+- Tracking readiness: permission, background capability, provider state,
+  Bluetooth state if enabled, and action-needed warning.
+- Review Inbox count.
+- Current day or recent summary where relevant.
+- Clear Start Day action that is not a giant distracting round control.
+- Access to configured quick actions and Dashboard navigation.
+
+Active-day gig/delivery Dashboard must project:
+
+- Active vehicle/work profile without redundant repeated labels.
+- Official live odometer and clearly separate advisory GPS estimate.
+- Tenths where known, without false precision.
+- Shift timer and day state.
+- GPS/provider/background/Bluetooth health where enabled.
+- Pending odometer reviews and proposal count.
+- Expense/payment/invoice summary projections supplied by their owners.
+- Manual stop/pickup/drop-off/note paths.
+- Compact reachable Pause/End Day actions.
+- Calendar access as a projection/navigation requirement, without Calendar record
+  ownership being taken into this system.
+
+Post-workday Dashboard must project:
+
+- Completed versus review-pending day state.
+- Odometer start/end separate from GPS evidence.
+- Classification totals/unresolved warning.
+- References to expenses/payments/invoices/receipts/stops/proposals owned by
+  their respective modules.
+- Clear “Review Workday” destination.
+
+Contractor Dashboard must be distinct:
+
+- It must support driver and office/owner views.
+- It will eventually project schedule/jobs/route/workday evidence, vehicle and
+  team context where applicable, document status, review queue, and operational
+  health.
+- It cannot directly own job, calendar, invoice, or payment records.
+
+Start Day flow requirements:
+
+1. Ask user to select work profile only if more than one valid profile exists.
+2. Ask user to select vehicle only if more than one valid vehicle exists.
+3. If only one option applies, preselect it visibly and allow change.
+4. Ask for physical current odometer; keypad must not dominate screen first.
+5. Run continuity/review checks.
+6. Create exactly one Workday Evidence Session.
+7. Back means go back/cancel, never confirmation.
+8. Navigate to active day deterministically; no blank black transition screen.
+
+End Day flow requirements:
+
+1. Safely stop/review active GPS trip before generic ending odometer entry.
+2. Ask physical ending odometer.
+3. Run continuity/history/GPS/allocation review as appropriate.
+4. Preserve lower-reading review; never silently close/erase it.
+5. Project Workday Integrity Summary.
+6. Require explicit confirmation/handoff.
+7. Return to correct Dashboard state without blank intermediary screen.
+
+Every secondary screen needs predictable Back behavior and platform navigation
+gesture support where available. Active actions must route to actual functions;
+inactive controls must be visibly unavailable rather than pretending to work.
+
+Operational health panel requirements:
+
+- Review Queue.
+- GPS Health.
+- Bluetooth Health.
+- Backup/Sync status.
+- Tracking readiness.
+- Outstanding issues.
+- Incomplete workday status.
+
+Use plain language and a next action, not meaningless raw error codes.
+
+Security and privacy requirements
+---------------------------------
+The app is local-first and privacy-first.
+
+Routine GPS health telemetry must never contain raw coordinates, route geometry,
+customer name/address, job/invoice/payment/receipt/OCR contents, photographs,
+API keys, tokens, credentials, or raw native device payloads. It should use
+aggregate counts, safe reason codes, quality bands, state transitions, permission
+categories, Bluetooth result categories, proposal outcome, and aggregate
+GPS-to-odometer discrepancy bucket.
+
+Any future owner/developer Command Center must consume safe aggregate health
+information, not use the app as a way to inspect a person’s private route or
+business data.
+
+Local integrity requirements:
+
+- Preserve originals plus correction audit, never destructive silent overwrite.
+- Reject duplicates, stale revisions, malformed IDs, invalid timestamps,
+  negative distances, invalid totals, impossible sequence/order, and corrupt
+  storage records.
+- Recover conservatively from corrupt newer snapshots using older valid local
+  evidence only where proven safe, then surface review.
+- Partial writes/interrupted completion leave recoverable state.
+
+Backup/sync boundary:
+
+- Local validated records remain operational truth.
+- Remote counter cannot authorize sync by itself.
+- Free sync requires validated local reservation/usage before upload.
+- Failed/blocked reservation cannot consume quota or delete local data.
+- Reservation success is not mirror-write success.
+- Mirror success needs validated acknowledgement.
+- Remote backup cannot alter official odometer, overwrite local daytime truth,
+  create trip/stop/classification, purge local data, or upload raw routes by
+  default.
+
+Current sync policy repair
+--------------------------
+Root cause found:
+
+- Authoritative local hosted fallback says four free syncs per rolling 24-hour
+  window.
+- Several GPS-side tests, safe summaries, and one reservation summary validator
+  hard-coded six.
+- This mismatch was responsible for the prior complete gate’s shared entitlement
+  failures after it had reached 1,978 tests.
+
+Repair in progress:
+
+- Make local GPS/settings safe summaries and validation derive from one shared
+  hosted limit rather than magic number six.
+- Update stale tests to verify the authoritative configuration.
+- Do not modify Firebase backend, durable storage schema, remote grants, backup
+  transport, or server implementation.
+- The focused test run was interrupted before final log collection. It must be
+  restarted and pass before this is claimed complete.
+
+QA and stress architecture
+--------------------------
+One reusable deterministic shared harness must serve smoke 1,000, routine
+10,000, development stress 100,000, extended 500,000, and deep 1,000,000
+scenarios. It must not create copied suites and must preserve existing Inventory
+and Work Supplies harness consumers.
+
+Harness rules:
+
+- Incremental generation in bounded batches.
+- Discard successful traces.
+- Retain detailed trace only for failure.
+- Record seed, scenario index, parameters, configuration, version, Git revision,
+  elapsed time, scenarios per second, invalid/skipped/failure counts, memory.
+- Same seed/configuration must reproduce same sequence and digest.
+- A deliberate failure-injection regression must prove replay works.
+- Do not print one line per successful scenario.
+- Avoid retaining every route/sample/event in memory.
+
+Required coverage families:
+
+- Provider immediate/delayed/never/late/duplicate/timeout/cancel/recovery.
+- Fresh/stale/inaccurate/approximate/revoked/out-of-order/duplicate/invalid GPS.
+- Stationary/walking/crawling/highway/stops/dwell/pickup/delivery/fuel/rest.
+- Foreground/background/restart/process death/OS kill/interrupted persistence.
+- Heartbeat freshness/degraded/recovery/provider loss/clock/time-zone change.
+- Normal/low/critical battery, charging/unplugging, saver/quality-mode changes.
+- Correct/wrong/multiple/stale/renamed Bluetooth; deny/revoke/reconnect/races.
+- Zero/short/long/mixed/rejected/estimated distance, calibration, exact tenths.
+- Allocation/classification/revision/collision/vehicle/profile boundaries.
+- Duplicate session/revision/handoff, corrupt snapshot, completion pending.
+
+Existing stress evidence:
+
+- 100,000 scenarios with seed 72720260801 passed.
+- Exact repeat with same seed produced same digest and passed.
+- A different seed 81820260801 passed.
+- Zero failures, invalid scenarios, or skips in those runs.
+- Successful traces were bounded; observed peak memory approximately 241–253 MB.
+
+This is simulation evidence only. It does not prove actual GPS accuracy or
+background behavior in a vehicle.
+
+Required code-level release gate
+--------------------------------
+After coherent repairs complete, run:
+
+1. Format changed files.
+2. Direct tests for the repair.
+3. Adjacent odometer, allocation, lifecycle, Bluetooth, provider, and recovery
+   tests as relevant.
+4. Focused Flutter analysis.
+5. Bluetooth and automatic-start suite.
+6. Commercial workday/recovery suite.
+7. Native source-contract suite.
+8. Complete trip gate and reusable trip QA gate.
+9. Permanent regression corpus.
+10. 100,000 scenarios, same-seed repeat, different-seed run.
+
+Stop at the first legitimate new failure. Classify it accurately: product defect,
+obsolete test/contract proven by authority, invalid generated case, or test
+infrastructure failure. Never hide it.
+
+Device and field validation plan
+--------------------------------
+No further phone testing should occur until code-level gates are green or all
+external blockers are explicitly isolated and reviewed.
+
+When code-level ready:
+
+- Build/install/launch on real Galaxy S24/S25 and iPhone SE devices.
+- Verify Start Day, End Day, odometer tenth display, manual mode, permission
+  prompts, denied/revoked permission recovery, background/foreground behavior,
+  provider readiness, Dashboard navigation, and active vehicle/profile context.
+- Verify Bluetooth where supported: disabled, permission, known device, unknown
+  device, disconnect/reconnect, no silent vehicle reassignment.
+- Do not substitute simulator for iPhone background/GPS evidence.
+
+Controlled road test:
+
+- Record physical start and ending odometer.
+- Drive a known route.
+- Pull over, stop, walk away, return, resume driving.
+- Exercise background/resume.
+- Exercise weak signal only where safe.
+- Exercise Bluetooth reconnect only where safe.
+- End the day and review every proposal/odometer/TripLog result.
+- Compare official odometer, GPS classifications, stop proposals, persistence,
+  and visible health indicators.
+- Repeat in normal and degraded conditions. One route never proves universal
+  accuracy.
+
+Remaining work, in order
+------------------------
+1. Finish and collect the interrupted focused sync-policy/guard/reservation test
+   results. Repair any legitimate failure without touching durable backend.
+2. Reconcile retired Dashboard odometer-alert tests with current Dashboard
+   redesign. Wire equivalent reachable safety projection, then test it; do not
+   claim hidden retired widget content is user-visible.
+3. Complete direct lower-reading/backdated/correction/replacement/rollover/unit
+   change workflow QA including restart/recovery and exact tenths.
+4. Finish production Bluetooth call-path audit:
+   application entry -> bootstrap -> binding -> observation -> matching ->
+   automatic evidence decision -> duplicate suppression -> local session ->
+   TripLog review handoff.
+5. Verify all settings contracts: GPS consent, Bluetooth, automatic evidence,
+   allocation opt-in, miles/kilometers, backup/sync presentation, accessibility,
+   and localized user explanations.
+6. Expand permanent regression corpus for every new discovered failure.
+7. Run complete code-level gates and repeat high-volume stress after repairs.
+8. Produce a requirement-by-requirement code-level readiness audit.
+9. Only then build/install and conduct controlled Android/iPhone field QA.
+10. Feed real field failures back into named regressions and repeat gates.
+
+Definition of code-level ready for build/install
+------------------------------------------------
+All of these must be true:
+
+- Odometer, allocation, automatic evidence, Bluetooth, provider, lifecycle,
+  localization, privacy, and safe-sync contracts pass their focused tests.
+- Safety projections are in reachable current UI, not retired widgets.
+- Complete trip gate and shared QA gate are green, or every external blocker is
+  explicitly isolated with no GPS behavior concealed behind it.
+- 100,000 stress, same-seed repeat, and different seed are green after final
+  repair set.
+- Focused analysis is clean for changed files.
+- No known in-scope regression remains.
+
+Definition of ready for owner road test
+---------------------------------------
+Code-level ready plus a real install candidate, proven production runtime
+bootstrap, permission/recovery flow checked, manual fallback checked, no blank
+or blocked critical Start/End Day flow, and a documented controlled-route sheet.
+
+Definition of commercial readiness
+----------------------------------
+Commercial readiness is much higher than a green simulator/test run. It requires
+repeated real Android/iPhone controlled-route evidence across normal/degraded
+conditions, durable recovery proof, accessible and understandable flows, privacy
+review, known limitations documented, health monitoring that does not expose
+private user data, and no unresolved integrity defect.
+
+Commit and push policy
+----------------------
+Each commit must represent one coherent, tested GPS trip-tracking capability or
+repair, with clear timestamped description, included work, reason, validation,
+remaining work, and push reason. Do not push every small pass. Respect the
+owner's at-most-hourly instruction and never use a vague commit message.
+
+End of master report.

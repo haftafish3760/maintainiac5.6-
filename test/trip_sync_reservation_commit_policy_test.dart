@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/firebase/hosted_usage_limits.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_sync_reservation_commit_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_sync_attempt_guard.dart';
@@ -38,7 +39,9 @@ void main() {
 
   test('blocked attempts never consume quota or upload', () {
     final decision = TripSyncReservationCommitPolicy.evaluate(
-      attemptDecision: attempt(syncsUsed: 6),
+      attemptDecision: attempt(
+        syncsUsed: HostedUsageLimits.freeUserSyncsPer24HourWindow,
+      ),
       reservationWriteSucceeded: true,
     );
 
@@ -56,7 +59,10 @@ void main() {
       reservationWriteSucceeded: true,
     ).toSafeSummary();
 
-    expect(safe['freePlanSyncLimitPer24Hours'], 6);
+    expect(
+      safe['freePlanSyncLimitPer24Hours'],
+      HostedUsageLimits.freeUserSyncsPer24HourWindow,
+    );
     expect(safe['blockedAttemptConsumesFreeSync'], isFalse);
     expect(safe['uploadWithoutReservationAllowed'], isFalse);
     expect(safe['reservationMustCommitBeforeNetworkUpload'], isTrue);

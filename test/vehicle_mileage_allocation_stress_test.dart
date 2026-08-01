@@ -30,7 +30,11 @@ void main() {
     for (var index = 0; index < scenarioCount; index++) {
       final vehicleId = 'vehicle-${random.nextInt(vehicleCount)}';
       final sourceId = 'source-${random.nextInt(sourceCountPerVehicle)}';
-      final sourceKey = '$vehicleId:trip_review:$sourceId';
+      final sourceKey = VehicleMileageAllocationRecord.sourceKeyFor(
+        vehicleId: vehicleId,
+        sourceType: 'trip_review',
+        sourceId: sourceId,
+      );
       final existing = expectedBySource[sourceKey];
       final revision = switch (random.nextInt(4)) {
         0 => existing?.sourceRevision ?? 0,
