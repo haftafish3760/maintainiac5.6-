@@ -125,7 +125,7 @@ void main() {
     expect(controller.platformError, isNull);
   });
 
-  test('controller enforces paid access before evaluating evidence', () {
+  test('controller offers an approval-only free recovery within allowance', () {
     final controller = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: GlobalOdometerController(
@@ -144,11 +144,10 @@ void main() {
       observations: evidence(),
     );
 
-    expect(
-      decision.disposition,
-      TripAutomaticStartDisposition.paidEntitlementRequired,
-    );
-    expect(decision.shouldSuggestStart, isFalse);
+    expect(decision.disposition, TripAutomaticStartDisposition.candidate);
+    expect(decision.shouldSuggestStart, isTrue);
+    expect(decision.canFinalizeTripLog, isFalse);
+    expect(decision.allowanceDecision?.consumesOnDetection, isFalse);
   });
 }
 

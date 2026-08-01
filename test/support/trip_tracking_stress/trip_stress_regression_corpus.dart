@@ -26,7 +26,7 @@ List<TripStressScenario> buildTripStressRegressionCorpus() {
       5,
       'active_trip_vehicle_cannot_be_reassigned',
     ),
-    ('GPS-AS-001-free-access', 6, 'free_access_cannot_automatically_start'),
+    ('GPS-AS-001-free-access', 6, 'free_access_creates_approval_only_recovery'),
     (
       'GPS-LOC-001-cached-start',
       9,

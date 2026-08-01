@@ -12,6 +12,7 @@ class TripTrackingBluetoothBinding {
     required this.coordinator,
     this.onDecision,
     this.onObservation,
+    this.onUnavailable,
   });
 
   final DeviceBluetoothConnectionProbe probe;
@@ -22,6 +23,7 @@ class TripTrackingBluetoothBinding {
     BluetoothVehicleMatchDecision decision,
   )?
   onObservation;
+  final void Function()? onUnavailable;
 
   StreamSubscription<DeviceBluetoothConnectionObservation>? _subscription;
   Future<void> _tail = Future<void>.value();
@@ -43,12 +45,17 @@ class TripTrackingBluetoothBinding {
 
     _subscription = probe.approvedConnectionChanges.listen(
       _enqueueObservation,
-      onError: (_, _) {
-        // The shared capability adapter owns recovery. Never infer a vehicle
-        // or disturb an active trip from an unavailable observation stream.
-      },
+      onError: (_, _) => _markUnavailable(),
+      onDone: _markUnavailable,
     );
     return true;
+  }
+
+  void _markUnavailable() {
+    final subscription = _subscription;
+    _subscription = null;
+    unawaited(subscription?.cancel());
+    if (!_disposed) onUnavailable?.call();
   }
 
   void _enqueueObservation(DeviceBluetoothConnectionObservation observation) {

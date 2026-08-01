@@ -14,10 +14,14 @@ void main() {
     OdometerMileageReview? review,
     bool affectsCurrentReading = true,
     OdometerCorrectionReview? correctionReview,
+    int? readingTenths,
+    int? previousReadingTenths,
   }) => OdometerReadingEvent(
     id: 'odometer-event-1',
     reading: 1100,
     previousReading: 1000,
+    readingTenths: readingTenths,
+    previousReadingTenths: previousReadingTenths,
     recordedAt: DateTime.utc(2026, 8, 1, 12),
     mileageReview: review,
     affectsCurrentReading: affectsCurrentReading,
@@ -50,6 +54,25 @@ void main() {
 
     expect(allocation?.businessTenths, 300);
     expect(allocation?.personalTenths, 700);
+    expect(allocation?.use, VehicleMileageAllocationUse.split);
+  });
+
+  test('exact tenth-mile split is preserved without whole-mile truncation', () {
+    final allocation = vehicleMileageAllocationFromOdometerEvent(
+      event(
+        readingTenths: 10008,
+        previousReadingTenths: 10000,
+        review: const OdometerMileageReview(
+          use: OdometerMileageUse.split,
+          businessTenths: 3,
+        ),
+      ),
+      vehicleId: 'truck-1',
+    );
+
+    expect(allocation?.distanceTenths, 8);
+    expect(allocation?.businessTenths, 3);
+    expect(allocation?.personalTenths, 5);
     expect(allocation?.use, VehicleMileageAllocationUse.split);
   });
 

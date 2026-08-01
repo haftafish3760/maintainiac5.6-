@@ -329,12 +329,12 @@ class TripTrackingController extends ChangeNotifier {
         currentConfirmedOdometer: _odometer.confirmedReading,
       );
   bool get nativeTracking => _nativeTracking;
+
   /// True only after the native collector confirms its provider request.
   bool get nativeProviderRegistered => _nativeProviderRegistered;
   bool get deviceAdjustedSampling =>
       _nativeSamplingPlan?.deviceAdjusted == true;
-  int? get nativeSamplingIntervalSeconds =>
-      _nativeSampling?.interval.inSeconds;
+  int? get nativeSamplingIntervalSeconds => _nativeSampling?.interval.inSeconds;
   List<TripTrackingSignalGap> get signalGaps =>
       _engine?.signalGaps ?? const <TripTrackingSignalGap>[];
   TripInitialFixAssessment? get initialFixAssessment =>
@@ -399,6 +399,7 @@ class TripTrackingController extends ChangeNotifier {
     required TripTrackingSettings settings,
     required TripAutomaticStartAccessLevel accessLevel,
     required Iterable<TripAutomaticStartObservation> observations,
+    int acceptedFreeUsesInPeriod = 0,
     TripAutomaticStartDetector detector = const TripAutomaticStartDetector(),
   }) {
     var hasUnfinishedSession = _session != null;
@@ -423,6 +424,7 @@ class TripTrackingController extends ChangeNotifier {
       accessLevel: accessLevel,
       hasActiveOrRecoverableSession: hasUnfinishedSession,
       observations: observations,
+      acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
     );
   }
 
@@ -931,8 +933,7 @@ class TripTrackingController extends ChangeNotifier {
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
-      deviceLocationIntervalFloorSeconds:
-          deviceLocationIntervalFloorSeconds,
+      deviceLocationIntervalFloorSeconds: deviceLocationIntervalFloorSeconds,
     );
     try {
       await _sessionStore.save(next);

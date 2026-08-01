@@ -72,11 +72,33 @@ void main() {
     },
   );
 
-  test('free access cannot create an automatic-start candidate', () {
+  test('free access can create one of four proposal-only recoveries', () {
     final decision = detector.evaluate(
       enabled: true,
       accessLevel: TripAutomaticStartAccessLevel.free,
       hasActiveOrRecoverableSession: false,
+      observations: [
+        observation(0, vehicleId: 'vehicle_1'),
+        observation(15, vehicleId: 'vehicle_1'),
+        observation(30, vehicleId: 'vehicle_1'),
+      ],
+    );
+
+    expect(decision.disposition, TripAutomaticStartDisposition.candidate);
+    expect(decision.shouldSuggestStart, isTrue);
+    expect(decision.requiresPaidEntitlement, isFalse);
+    expect(decision.allowanceDecision?.freeUsesRemaining, 4);
+    expect(decision.allowanceDecision?.consumesOnDetection, isFalse);
+    expect(decision.allowanceDecision?.consumesFreeUseIfAccepted, isTrue);
+    expect(decision.toMap()['confidenceScoreShown'], isFalse);
+  });
+
+  test('fifth accepted free recovery requires paid access', () {
+    final decision = detector.evaluate(
+      enabled: true,
+      accessLevel: TripAutomaticStartAccessLevel.free,
+      hasActiveOrRecoverableSession: false,
+      acceptedFreeUsesInPeriod: 4,
       observations: [
         observation(0, vehicleId: 'vehicle_1'),
         observation(15, vehicleId: 'vehicle_1'),
@@ -90,6 +112,6 @@ void main() {
     );
     expect(decision.shouldSuggestStart, isFalse);
     expect(decision.requiresPaidEntitlement, isTrue);
-    expect(decision.toMap()['paidEntitlementVerified'], isFalse);
+    expect(decision.allowanceDecision?.freeUsesRemaining, 0);
   });
 }

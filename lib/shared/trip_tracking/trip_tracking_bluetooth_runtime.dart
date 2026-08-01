@@ -27,6 +27,7 @@ class TripTrackingBluetoothRuntimeController extends ChangeNotifier {
       probe: probe,
       coordinator: coordinator,
       onObservation: _recordObservation,
+      onUnavailable: () => _setAvailability(false),
     );
   }
 

@@ -1,4 +1,5 @@
 // odometerIsGlobalTruth: true.
+import 'automatic_evidence_capture_allowance_policy.dart';
 import 'trip_tracking_models.dart';
 
 enum TripAutomaticStartDisposition {
@@ -39,6 +40,7 @@ class TripAutomaticStartDecision {
     required this.evidenceStartedAt,
     required this.evidenceEndedAt,
     required this.suggestedVehicleId,
+    this.allowanceDecision,
   });
 
   final TripAutomaticStartDisposition disposition;
@@ -47,6 +49,7 @@ class TripAutomaticStartDecision {
   final DateTime? evidenceStartedAt;
   final DateTime? evidenceEndedAt;
   final String? suggestedVehicleId;
+  final AutomaticEvidenceCaptureAllowanceDecision? allowanceDecision;
 
   bool get shouldSuggestStart =>
       disposition == TripAutomaticStartDisposition.candidate;
@@ -76,6 +79,8 @@ class TripAutomaticStartDecision {
     'canFinalizeTripLog': false,
     'canClassifyMileage': false,
     'coordinatesIncluded': false,
+    'confidenceScoreShown': false,
+    'allowance': allowanceDecision?.toSafeMap(),
   };
 }
 
@@ -103,13 +108,11 @@ class TripAutomaticStartDetector {
     required TripAutomaticStartAccessLevel accessLevel,
     required bool hasActiveOrRecoverableSession,
     required Iterable<TripAutomaticStartObservation> observations,
+    int acceptedFreeUsesInPeriod = 0,
+    AutomaticEvidenceCaptureAllowancePolicy allowancePolicy =
+        const AutomaticEvidenceCaptureAllowancePolicy(),
   }) {
     if (!enabled) return _decision(TripAutomaticStartDisposition.disabled);
-    if (accessLevel != TripAutomaticStartAccessLevel.paid) {
-      return _decision(
-        TripAutomaticStartDisposition.paidEntitlementRequired,
-      );
-    }
     if (hasActiveOrRecoverableSession) {
       return _decision(TripAutomaticStartDisposition.activeSessionExists);
     }
@@ -119,6 +122,19 @@ class TripAutomaticStartDetector {
       return _decision(TripAutomaticStartDisposition.insufficientEvidence);
     }
     final latestAt = ordered.last.recordedAt.toUtc();
+    final allowance = allowancePolicy.evaluate(
+      access: accessLevel == TripAutomaticStartAccessLevel.paid
+          ? AutomaticEvidenceCaptureAccess.paid
+          : AutomaticEvidenceCaptureAccess.free,
+      occurredAt: latestAt,
+      acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
+    );
+    if (!allowance.allowed) {
+      return _decision(
+        TripAutomaticStartDisposition.paidEntitlementRequired,
+        allowanceDecision: allowance,
+      );
+    }
     final window = ordered
         .where(
           (item) =>
@@ -172,6 +188,7 @@ class TripAutomaticStartDetector {
       startedAt: moving.first.recordedAt,
       endedAt: moving.last.recordedAt,
       vehicleId: bluetoothCorroborated ? bluetoothVehicleIds.single : null,
+      allowanceDecision: allowance,
     );
   }
 
@@ -181,6 +198,7 @@ class TripAutomaticStartDetector {
     DateTime? startedAt,
     DateTime? endedAt,
     String? vehicleId,
+    AutomaticEvidenceCaptureAllowanceDecision? allowanceDecision,
   }) => TripAutomaticStartDecision(
     disposition: disposition,
     reasonCode: switch (disposition) {
@@ -198,6 +216,7 @@ class TripAutomaticStartDetector {
     evidenceStartedAt: startedAt?.toUtc(),
     evidenceEndedAt: endedAt?.toUtc(),
     suggestedVehicleId: _safeVehicleId(vehicleId),
+    allowanceDecision: allowanceDecision,
   );
 }
 

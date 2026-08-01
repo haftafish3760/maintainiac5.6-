@@ -49,6 +49,20 @@ void main() {
     expect(fixture.runtime.observationAvailable, isTrue);
   });
 
+  test('revoked observation stream fails closed and can be retried', () async {
+    final fixture = _RuntimeFixture();
+    addTearDown(fixture.dispose);
+
+    expect(await fixture.runtime.start(), isTrue);
+    fixture.probe.addError(StateError('permission revoked'));
+    await _drainUntil(() => !fixture.runtime.observationAvailable);
+
+    expect(fixture.runtime.isListening, isFalse);
+    expect(await fixture.runtime.start(), isTrue);
+    expect(fixture.probe.capabilityReads, 2);
+    expect(fixture.runtime.observationAvailable, isTrue);
+  });
+
   test(
     'concurrent access requests show one native permission prompt',
     () async {
@@ -256,6 +270,8 @@ class _FakeBluetoothProbe implements DeviceBluetoothConnectionProbe {
 
   void add(DeviceBluetoothConnectionObservation observation) =>
       _events.add(observation);
+
+  void addError(Object error) => _events.addError(error);
 
   Future<void> dispose() => _events.close();
 }

@@ -20,7 +20,7 @@ VehicleMileageAllocationRecord? vehicleMileageAllocationFromOdometerEvent(
 }) {
   if (!event.affectsCurrentReading ||
       event.previousReading == null ||
-      event.reading < event.previousReading! ||
+      event.effectiveReadingTenths < event.effectivePreviousReadingTenths! ||
       event.correctionReview != null) {
     return null;
   }
@@ -28,11 +28,11 @@ VehicleMileageAllocationRecord? vehicleMileageAllocationFromOdometerEvent(
   if (review == null || review.use == OdometerMileageUse.calibration) {
     return null;
   }
-  final distanceTenths = (event.reading - event.previousReading!) * 10;
-  final use = _allocationUseFor(review, distanceTenths ~/ 10);
+  final distanceTenths =
+      event.effectiveReadingTenths - event.effectivePreviousReadingTenths!;
+  final use = _allocationUseFor(review, distanceTenths);
   if (use == null) return null;
-  final businessTenths =
-      review.businessMilesForDelta(distanceTenths ~/ 10) * 10;
+  final businessTenths = review.businessTenthsForDelta(distanceTenths);
   final occurredAt = event.recordedAt.toUtc();
   final requestedConfirmedAt = (confirmedAt ?? event.recordedAt).toUtc();
   return VehicleMileageAllocationRecord.confirmed(
@@ -57,7 +57,7 @@ VehicleMileageAllocationRecord? vehicleMileageAllocationFromOdometerEvent(
 
 VehicleMileageAllocationUse? _allocationUseFor(
   OdometerMileageReview review,
-  int deltaMiles,
+  int deltaTenths,
 ) {
   switch (review.use) {
     case OdometerMileageUse.business:
@@ -69,9 +69,9 @@ VehicleMileageAllocationUse? _allocationUseFor(
     case OdometerMileageUse.calibration:
       return null;
     case OdometerMileageUse.split:
-      final business = review.businessMilesForDelta(deltaMiles);
+      final business = review.businessTenthsForDelta(deltaTenths);
       if (business <= 0) return VehicleMileageAllocationUse.personal;
-      if (business >= deltaMiles) return VehicleMileageAllocationUse.business;
+      if (business >= deltaTenths) return VehicleMileageAllocationUse.business;
       return VehicleMileageAllocationUse.split;
   }
 }

@@ -255,10 +255,7 @@ final class TripStressEvaluator {
           scenario.hasActiveSession || scenario.hasUnfinishedSession,
       observations: observations,
     );
-    final blocked =
-        !scenario.paidAccess ||
-        scenario.hasActiveSession ||
-        scenario.hasUnfinishedSession;
+    final blocked = scenario.hasActiveSession || scenario.hasUnfinishedSession;
     final passed =
         (!blocked || !decision.shouldSuggestStart) &&
         (trustedBluetooth || decision.suggestedVehicleId == null);

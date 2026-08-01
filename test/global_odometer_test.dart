@@ -15,7 +15,12 @@ void main() {
       snapshotWriter: (snapshot) async => persisted = snapshot,
     );
 
-    final result = controller.updateFromText('1000.7');
+    final result = controller.updateFromText(
+      '1000.7',
+      mileageReview: const OdometerMileageReview(
+        use: OdometerMileageUse.personal,
+      ),
+    );
     await Future<void>.delayed(Duration.zero);
 
     expect(result.ok, isTrue);
@@ -839,6 +844,18 @@ void main() {
     expect(review.toMap()['businessMiles'], isNull);
     expect(restored.businessMiles, isNull);
     expect(restored.businessMilesForDelta(100), isZero);
+  });
+
+  test('odometer mileage review preserves exact split tenths', () {
+    const review = OdometerMileageReview(
+      use: OdometerMileageUse.split,
+      businessTenths: 37,
+    );
+    final restored = OdometerMileageReview.fromMap(review.toMap());
+
+    expect(restored.effectiveBusinessTenths, 37);
+    expect(restored.businessTenthsForDelta(82), 37);
+    expect(restored.toMap()['businessTenths'], 37);
   });
 
   test('odometer review notes are sanitized on restore and persistence', () {

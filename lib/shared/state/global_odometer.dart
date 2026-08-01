@@ -374,6 +374,7 @@ class GlobalOdometerController extends ChangeNotifier {
       return OdometerUpdateResult.error(validation.message);
     }
 
+    final deltaTenths = parsedTenths - _readingTenths;
     final deltaMiles = parsed - _reading;
     if (plausibilityContext != null) {
       final current = OdometerDistanceValue.fromTenths(
@@ -402,15 +403,16 @@ class GlobalOdometerController extends ChangeNotifier {
     final gpsDifferenceMiles = hasLiveTripProjection
         ? (parsed - reading).abs()
         : 0;
-    if (deltaMiles > 0 && mileageReview == null) {
+    if (deltaTenths > 0 && mileageReview == null) {
       return OdometerUpdateResult.mileageReviewRequired(
-        message: odometerMileageReviewPrompt(deltaMiles),
+        message: odometerMileageReviewPromptTenths(deltaTenths),
         deltaMiles: deltaMiles,
       );
     }
-    if (deltaMiles > 0 && mileageReview != null) {
+    if (deltaTenths > 0 && mileageReview != null) {
       final reviewError = validateOdometerMileageReview(
         deltaMiles: deltaMiles,
+        deltaTenths: deltaTenths,
         review: mileageReview,
       );
       if (reviewError != null) {
