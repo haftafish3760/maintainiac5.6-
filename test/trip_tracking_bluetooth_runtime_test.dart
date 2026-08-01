@@ -76,6 +76,25 @@ void main() {
   );
 
   test(
+    'disposing during a permission prompt cannot start observation',
+    () async {
+      final permissionResult = Completer<bool>();
+      final fixture = _RuntimeFixture(
+        requestObservationAccess: () => permissionResult.future,
+      );
+      addTearDown(fixture.probe.dispose);
+
+      final request = fixture.runtime.requestObservationAccess();
+      fixture.runtime.dispose();
+      permissionResult.complete(true);
+
+      expect(await request, isFalse);
+      expect(fixture.runtime.observationAvailable, isFalse);
+      expect(fixture.probe.hasListener, isFalse);
+    },
+  );
+
+  test(
     'native access errors fail closed without escaping to the settings UI',
     () async {
       final fixture = _RuntimeFixture(
