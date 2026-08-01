@@ -258,7 +258,9 @@ class TripTrackingReviewRecord {
     this.vehicleConfigurationRevision = 0,
     this.gpsAssistanceCalibrationMultiplier = 1,
     required this.startingOdometer,
+    this.startingOdometerTenths,
     required this.estimatedEndingOdometer,
+    this.estimatedEndingOdometerTenths,
     required this.profile,
     this.profileId = '',
     required this.startedAt,
@@ -275,8 +277,10 @@ class TripTrackingReviewRecord {
     this.cloudSyncError,
     this.cloudSyncedAt,
     this.confirmedEndingOdometer,
+    this.confirmedEndingOdometerTenths,
     this.odometerConfirmedAt,
     this.endingOdometerDraft,
+    this.endingOdometerDraftTenths,
     this.manualAdjustments = const [],
     this.advisories = const [],
     this.tripEvents = const [],
@@ -299,7 +303,9 @@ class TripTrackingReviewRecord {
   final int vehicleConfigurationRevision;
   final double gpsAssistanceCalibrationMultiplier;
   final int startingOdometer;
+  final int? startingOdometerTenths;
   final int estimatedEndingOdometer;
+  final int? estimatedEndingOdometerTenths;
   final TripTrackingProfile profile;
   final String profileId;
   String get effectiveProfileId => _safeIdentifier(profileId).isEmpty
@@ -322,8 +328,21 @@ class TripTrackingReviewRecord {
   final String? cloudSyncError;
   final DateTime? cloudSyncedAt;
   final int? confirmedEndingOdometer;
+  final int? confirmedEndingOdometerTenths;
   final DateTime? odometerConfirmedAt;
   final int? endingOdometerDraft;
+  final int? endingOdometerDraftTenths;
+  int get effectiveStartingOdometerTenths =>
+      startingOdometerTenths ?? startingOdometer * 10;
+  int get effectiveEstimatedEndingOdometerTenths =>
+      estimatedEndingOdometerTenths ?? estimatedEndingOdometer * 10;
+  int? get effectiveConfirmedEndingOdometerTenths =>
+      confirmedEndingOdometer == null
+      ? confirmedEndingOdometerTenths
+      : confirmedEndingOdometerTenths ?? confirmedEndingOdometer! * 10;
+  int? get effectiveEndingOdometerDraftTenths => endingOdometerDraft == null
+      ? endingOdometerDraftTenths
+      : endingOdometerDraftTenths ?? endingOdometerDraft! * 10;
   final List<TripManualMileageAdjustment> manualAdjustments;
   final List<TripTrackingAdvisoryEvent> advisories;
   final List<TripManualEvent> tripEvents;
@@ -346,7 +365,9 @@ class TripTrackingReviewRecord {
   bool get needsWalkingReview => engineSnapshot.walkingReviewSuggested;
   bool get isOdometerConfirmed =>
       confirmedEndingOdometer != null &&
-      confirmedEndingOdometer! >= startingOdometer &&
+      effectiveConfirmedEndingOdometerTenths != null &&
+      effectiveConfirmedEndingOdometerTenths! >=
+          effectiveStartingOdometerTenths &&
       odometerConfirmedAt != null &&
       !odometerConfirmedAt!.isBefore(finishedAt);
 
@@ -359,8 +380,10 @@ class TripTrackingReviewRecord {
     bool clearCloudSyncError = false,
     DateTime? cloudSyncedAt,
     int? confirmedEndingOdometer,
+    int? confirmedEndingOdometerTenths,
     DateTime? odometerConfirmedAt,
     int? endingOdometerDraft,
+    int? endingOdometerDraftTenths,
     bool clearEndingOdometerDraft = false,
     List<TripManualMileageAdjustment>? manualAdjustments,
     List<TripTrackingAdvisoryEvent>? advisories,
@@ -388,7 +411,9 @@ class TripTrackingReviewRecord {
       vehicleConfigurationRevision: vehicleConfigurationRevision,
       gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
       startingOdometer: startingOdometer,
+      startingOdometerTenths: startingOdometerTenths,
       estimatedEndingOdometer: estimatedEndingOdometer,
+      estimatedEndingOdometerTenths: estimatedEndingOdometerTenths,
       profile: profile,
       profileId: effectiveProfileId,
       startedAt: startedAt,
@@ -413,10 +438,15 @@ class TripTrackingReviewRecord {
       cloudSyncedAt: cloudSyncedAt ?? this.cloudSyncedAt,
       confirmedEndingOdometer:
           confirmedEndingOdometer ?? this.confirmedEndingOdometer,
+      confirmedEndingOdometerTenths:
+          confirmedEndingOdometerTenths ?? this.confirmedEndingOdometerTenths,
       odometerConfirmedAt: odometerConfirmedAt ?? this.odometerConfirmedAt,
       endingOdometerDraft: clearEndingOdometerDraft
           ? null
           : endingOdometerDraft ?? this.endingOdometerDraft,
+      endingOdometerDraftTenths: clearEndingOdometerDraft
+          ? null
+          : endingOdometerDraftTenths ?? this.endingOdometerDraftTenths,
       manualAdjustments: List.unmodifiable(
         manualAdjustments ?? this.manualAdjustments,
       ),
@@ -457,7 +487,15 @@ class TripTrackingReviewRecord {
           gpsAssistanceCalibrationMultiplier,
         ),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
+    if (_optionalPersistedOdometerTenths(startingOdometerTenths) != null)
+      'startingOdometerTenths': _optionalPersistedOdometerTenths(
+        startingOdometerTenths,
+      ),
     'estimatedEndingOdometer': _persistedOdometerValue(estimatedEndingOdometer),
+    if (_optionalPersistedOdometerTenths(estimatedEndingOdometerTenths) != null)
+      'estimatedEndingOdometerTenths': _optionalPersistedOdometerTenths(
+        estimatedEndingOdometerTenths,
+      ),
     'profile': profile.name,
     'profileId': effectiveProfileId,
     'startedAt': startedAt.toUtc().toIso8601String(),
@@ -484,11 +522,19 @@ class TripTrackingReviewRecord {
       'confirmedEndingOdometer': _optionalPersistedOdometerValue(
         confirmedEndingOdometer,
       ),
+    if (_optionalPersistedOdometerTenths(confirmedEndingOdometerTenths) != null)
+      'confirmedEndingOdometerTenths': _optionalPersistedOdometerTenths(
+        confirmedEndingOdometerTenths,
+      ),
     if (odometerConfirmedAt != null)
       'odometerConfirmedAt': odometerConfirmedAt!.toUtc().toIso8601String(),
     if (_optionalPersistedOdometerValue(endingOdometerDraft) != null)
       'endingOdometerDraft': _optionalPersistedOdometerValue(
         endingOdometerDraft,
+      ),
+    if (_optionalPersistedOdometerTenths(endingOdometerDraftTenths) != null)
+      'endingOdometerDraftTenths': _optionalPersistedOdometerTenths(
+        endingOdometerDraftTenths,
       ),
     'manualAdjustments': manualAdjustments
         .where((item) => item.isValid)
@@ -573,8 +619,14 @@ class TripTrackingReviewRecord {
             _isValidTimeZoneOffset(map['finishedTimeZoneOffsetMinutes']) &&
             _isSafeTimeZoneName(map['finishedTimeZoneName']));
     final startingOdometer = _persistedOdometerValue(map['startingOdometer']);
+    final startingOdometerTenths = _optionalPersistedOdometerTenths(
+      map['startingOdometerTenths'],
+    );
     final estimatedEndingOdometer = _persistedOdometerValue(
       map['estimatedEndingOdometer'],
+    );
+    final estimatedEndingOdometerTenths = _optionalPersistedOdometerTenths(
+      map['estimatedEndingOdometerTenths'],
     );
     final cloudSyncState = TripTrackingCloudSyncState.values.firstWhere(
       (value) => value.name == map['cloudSyncState'],
@@ -584,12 +636,41 @@ class TripTrackingReviewRecord {
     final confirmedEndingOdometer = _optionalPersistedOdometerValue(
       map['confirmedEndingOdometer'],
     );
+    final confirmedEndingOdometerTenths = _optionalPersistedOdometerTenths(
+      map['confirmedEndingOdometerTenths'],
+    );
     final odometerConfirmedAt = DateTime.tryParse(
       '${map['odometerConfirmedAt'] ?? ''}',
     );
     final endingOdometerDraft = _optionalPersistedOdometerValue(
       map['endingOdometerDraft'],
     );
+    final endingOdometerDraftTenths = _optionalPersistedOdometerTenths(
+      map['endingOdometerDraftTenths'],
+    );
+    final hasValidOdometerTenths =
+        _hasConsistentOdometerTenths(
+          map,
+          wholeKey: 'startingOdometer',
+          tenthsKey: 'startingOdometerTenths',
+        ) &&
+        _hasConsistentOdometerTenths(
+          map,
+          wholeKey: 'estimatedEndingOdometer',
+          tenthsKey: 'estimatedEndingOdometerTenths',
+        ) &&
+        _hasConsistentOdometerTenths(
+          map,
+          wholeKey: 'confirmedEndingOdometer',
+          tenthsKey: 'confirmedEndingOdometerTenths',
+          optionalWhole: true,
+        ) &&
+        _hasConsistentOdometerTenths(
+          map,
+          wholeKey: 'endingOdometerDraft',
+          tenthsKey: 'endingOdometerDraftTenths',
+          optionalWhole: true,
+        );
     final manualAdjustments = map['manualAdjustments'] is Iterable
         ? (map['manualAdjustments'] as Iterable)
               .whereType<Map>()
@@ -655,7 +736,8 @@ class TripTrackingReviewRecord {
     final hasValidConfirmation =
         (confirmedEndingOdometer == null && odometerConfirmedAt == null) ||
         (confirmedEndingOdometer != null &&
-            confirmedEndingOdometer >= startingOdometer &&
+            (confirmedEndingOdometerTenths ?? confirmedEndingOdometer * 10) >=
+                (startingOdometerTenths ?? startingOdometer * 10) &&
             odometerConfirmedAt != null &&
             finishedAt != null &&
             !odometerConfirmedAt.isBefore(finishedAt));
@@ -670,7 +752,9 @@ class TripTrackingReviewRecord {
             map['gpsAssistanceCalibrationMultiplier'],
           ),
       startingOdometer: startingOdometer,
+      startingOdometerTenths: startingOdometerTenths,
       estimatedEndingOdometer: estimatedEndingOdometer,
+      estimatedEndingOdometerTenths: estimatedEndingOdometerTenths,
       profile: safeProfile,
       profileId: _safeIdentifier(map['profileId']).isEmpty
           ? TripTrackingProfile.values
@@ -707,8 +791,10 @@ class TripTrackingReviewRecord {
       cloudSyncState: cloudSyncState,
       cloudAccountUid: _optionalSafeCloudToken(map['cloudAccountUid']),
       confirmedEndingOdometer: confirmedEndingOdometer,
+      confirmedEndingOdometerTenths: confirmedEndingOdometerTenths,
       odometerConfirmedAt: odometerConfirmedAt,
       endingOdometerDraft: endingOdometerDraft,
+      endingOdometerDraftTenths: endingOdometerDraftTenths,
       manualAdjustments: manualAdjustments,
       advisories: advisories,
       tripEvents: tripEvents,
@@ -765,6 +851,9 @@ class TripTrackingReviewRecord {
             map['cloudOrganizationId'],
           ) &&
           hasValidConfirmation &&
+          hasValidOdometerTenths &&
+          (estimatedEndingOdometerTenths ?? estimatedEndingOdometer * 10) >=
+              (startingOdometerTenths ?? startingOdometer * 10) &&
           estimatedEndingOdometer >= startingOdometer &&
           hasSupportedSchemaVersion,
     );
@@ -849,6 +938,26 @@ int? _optionalPersistedOdometerValue(Object? value) {
   if (value is! num || !value.isFinite) return null;
   final odometer = value.round();
   return odometer < 0 ? null : odometer;
+}
+
+int? _optionalPersistedOdometerTenths(Object? value) {
+  if (value is! num || !value.isFinite) return null;
+  final tenths = value.round();
+  return tenths < 0 || tenths > 99999999 ? null : tenths;
+}
+
+bool _hasConsistentOdometerTenths(
+  Map<dynamic, dynamic> map, {
+  required String wholeKey,
+  required String tenthsKey,
+  bool optionalWhole = false,
+}) {
+  if (!map.containsKey(tenthsKey)) return true;
+  final tenths = _optionalPersistedOdometerTenths(map[tenthsKey]);
+  final whole = optionalWhole
+      ? _optionalPersistedOdometerValue(map[wholeKey])
+      : _persistedOdometerValue(map[wholeKey]);
+  return tenths != null && whole != null && tenths ~/ 10 == whole;
 }
 
 String _safeIdentifier(Object? value) {

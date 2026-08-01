@@ -163,16 +163,19 @@ class GlobalOdometerController extends ChangeNotifier {
   bool beginLiveTripProjection({
     required String tripId,
     required int startingOdometer,
+    int? startingOdometerTenths,
     DateTime? observedAtUtc,
   }) {
     if (!_isSafeLiveTripId(tripId) || hasLiveTripProjection) return false;
+    final safeStartingTenths = startingOdometerTenths ?? startingOdometer * 10;
     if (startingOdometer != _reading ||
+        safeStartingTenths != _readingTenths ||
         startingOdometer > _validationPolicy.maxSupportedReading) {
       return false;
     }
     _liveTripId = tripId;
     _liveTripEstimatedReading = startingOdometer;
-    _liveTripEstimatedTenths = null;
+    _liveTripEstimatedTenths = startingOdometerTenths;
     _liveTripUpdatedAt = _safeBeginLiveProjectionUpdateTime(observedAtUtc);
     _liveTripProjectionRevision += 1;
     notifyListeners();

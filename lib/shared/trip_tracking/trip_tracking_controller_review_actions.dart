@@ -491,10 +491,12 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
           session.gpsAssistanceCalibrationMultiplier,
       ancestry: session.ancestry,
       startingOdometer: session.startingOdometer,
+      startingOdometerTenths: session.effectiveStartingOdometerTenths,
       estimatedEndingOdometer:
           estimatedEndingOdometer < session.startingOdometer
           ? session.startingOdometer
           : estimatedEndingOdometer,
+      estimatedEndingOdometerTenths: projection.projectedTenths,
       profile: session.profile,
       profileId: session.effectiveProfileId,
       startedAt: session.startedAt,

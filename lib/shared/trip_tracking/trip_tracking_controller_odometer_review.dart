@@ -190,6 +190,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
   Future<bool> confirmOdometerReview({
     required String reviewId,
     required int confirmedEndingOdometer,
+    int? confirmedEndingOdometerTenths,
     DateTime? confirmedAt,
     bool userAcknowledgedReviewPrompt = false,
   }) => _runExclusiveSessionOperation(
@@ -197,6 +198,7 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     () => _confirmOdometerReview(
       reviewId: reviewId,
       confirmedEndingOdometer: confirmedEndingOdometer,
+      confirmedEndingOdometerTenths: confirmedEndingOdometerTenths,
       confirmedAt: confirmedAt,
       userAcknowledgedReviewPrompt: userAcknowledgedReviewPrompt,
     ),
@@ -208,10 +210,13 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
   Future<bool> _confirmOdometerReview({
     required String reviewId,
     required int confirmedEndingOdometer,
+    int? confirmedEndingOdometerTenths,
     DateTime? confirmedAt,
     required bool userAcknowledgedReviewPrompt,
   }) async {
     final review = _readReviewSafely(reviewId);
+    final exactConfirmedTenths =
+        confirmedEndingOdometerTenths ?? confirmedEndingOdometer * 10;
     if (review == null ||
         !review.hasValidTimeline ||
         review.id.trim().isEmpty ||
@@ -219,7 +224,9 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
         review.isOdometerConfirmed ||
         review.vehicleId != _odometer.vehicleId ||
         review.estimatedEndingOdometer < review.startingOdometer ||
-        confirmedEndingOdometer < review.startingOdometer) {
+        confirmedEndingOdometer < review.startingOdometer ||
+        exactConfirmedTenths ~/ 10 != confirmedEndingOdometer ||
+        exactConfirmedTenths < review.effectiveStartingOdometerTenths) {
       return false;
     }
     final confirmationTime = confirmedAt ?? _clockNow();
@@ -271,8 +278,11 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     final odometerMileageReview = const OdometerMileageReview(
       use: OdometerMileageUse.unresolved,
     );
+    final exactEntry = confirmedEndingOdometerTenths == null
+        ? confirmedEndingOdometer.toString()
+        : '${exactConfirmedTenths ~/ 10}.${exactConfirmedTenths % 10}';
     final odometerPreflight = _odometer.updateFromText(
-      confirmedEndingOdometer.toString(),
+      exactEntry,
       enteredAt: confirmationTime,
       confirmSuspicious: true,
       commit: false,
@@ -284,10 +294,11 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
 
     final confirmedReview = review.copyWith(
       confirmedEndingOdometer: confirmedEndingOdometer,
+      confirmedEndingOdometerTenths: exactConfirmedTenths,
       odometerConfirmedAt: confirmationTime,
     );
     final odometerCommit = _odometer.updateFromText(
-      confirmedEndingOdometer.toString(),
+      exactEntry,
       enteredAt: confirmationTime,
       confirmSuspicious: true,
       mileageReview: odometerPreflight.mileageReview ?? odometerMileageReview,

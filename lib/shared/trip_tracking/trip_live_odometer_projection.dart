@@ -5,6 +5,7 @@ const metersPerMile = 1609.344;
 class TripLiveOdometerProjection {
   TripLiveOdometerProjection({
     required this.startingOdometer,
+    this.startingOdometerTenths,
     this.acceptedMetersBaseline = 0,
     int maxSupportedReading = 9999999,
     double maxProjectedTripMiles = 1500,
@@ -16,14 +17,14 @@ class TripLiveOdometerProjection {
          startingOdometer: startingOdometer,
          maxSupportedReading: maxSupportedReading,
        ),
-       _lastProjectedTenths =
-           _safeInitialProjection(
-             startingOdometer: startingOdometer,
-             maxSupportedReading: maxSupportedReading,
-           ) *
-           10;
+       _lastProjectedTenths = _safeStartingTenths(
+         startingOdometer,
+         startingOdometerTenths,
+         maxSupportedReading,
+       );
 
   final int startingOdometer;
+  final int? startingOdometerTenths;
   final double acceptedMetersBaseline;
   final int maxSupportedReading;
   final double maxProjectedTripMiles;
@@ -137,7 +138,12 @@ class TripLiveOdometerProjection {
       return _lastProjectedReading;
     }
     final estimated = safeStart + acceptedMiles.round();
-    final estimatedTenths = safeStart * 10 + (acceptedMiles * 10).floor();
+    final safeStartTenths = _safeStartingTenths(
+      startingOdometer,
+      startingOdometerTenths,
+      maxSupportedReading,
+    );
+    final estimatedTenths = safeStartTenths + (acceptedMiles * 10).floor();
     if (estimated > maxSupportedReading) {
       _lastUpdateExceededMax = true;
       return _lastProjectedReading;
@@ -333,6 +339,18 @@ class TripLiveOdometerDashboardPayloadValidation {
 }
 
 int _safeStartingOdometer(int value) => value < 0 ? 0 : value;
+
+int _safeStartingTenths(int whole, int? tenths, int maximumWhole) {
+  final safeMaximum = _safeMaxSupportedReading(maximumWhole);
+  final safeWhole = _safeStartingOdometer(whole).clamp(0, safeMaximum).toInt();
+  final candidate = tenths ?? safeWhole * 10;
+  if (candidate < safeWhole * 10 ||
+      candidate > safeWhole * 10 + 9 ||
+      candidate > safeMaximum * 10 + 9) {
+    return safeWhole * 10;
+  }
+  return candidate;
+}
 
 int _safeMaxSupportedReading(int value) => value < 0 ? 0 : value;
 

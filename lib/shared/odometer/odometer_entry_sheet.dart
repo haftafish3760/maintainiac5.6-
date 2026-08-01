@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'odometer_correction_review.dart';
+import 'odometer_distance_value.dart';
 import 'odometer_mileage_review.dart';
 import '../theme/app_action_colors.dart';
 import '../state/global_odometer.dart';
@@ -69,7 +70,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
       _odometer?.removeListener(_syncOdometerTextFromScope);
       _odometer = odometer..addListener(_syncOdometerTextFromScope);
     }
-    _controller ??= TextEditingController(text: odometer.reading.toString());
+    _controller ??= TextEditingController(text: odometer.displayValue);
     _lastAutomaticOdometerText ??= _controller!.text;
     _syncOdometerTextFromScope();
   }
@@ -86,7 +87,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     final controller = _controller;
     final odometer = _odometer;
     if (controller == null || odometer == null) return;
-    final nextText = odometer.reading.toString();
+    final nextText = odometer.displayValue;
     if (_odometerManuallyEdited &&
         controller.text != _lastAutomaticOdometerText) {
       return;
@@ -136,11 +137,17 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
               ),
-              keyboardType: TextInputType.number,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               textInputAction: TextInputAction.done,
               inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(7),
+                TextInputFormatter.withFunction((oldValue, newValue) {
+                  return RegExp(r'^\d{0,7}(?:\.\d?)?$').hasMatch(newValue.text)
+                      ? newValue
+                      : oldValue;
+                }),
+                LengthLimitingTextInputFormatter(9),
               ],
               onSubmitted: (_) => _saveReading(),
               onChanged: (value) {
@@ -294,7 +301,13 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     }
     final review = _buildMileageReview();
     final correctionReview = _buildCorrectionReview();
-    final savedReading = int.tryParse(_controller?.text ?? '');
+    final exactReading = OdometerDistanceValue.tryParse(
+      _controller?.text ?? '',
+      unit: OdometerDistanceUnit.miles,
+    );
+    final savedReading = exactReading == null
+        ? null
+        : exactReading.tenths ~/ 10;
     final minimumReading = widget.minimumReading;
     if (savedReading != null &&
         minimumReading != null &&
@@ -380,7 +393,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     }
 
     widget.onSaved?.call();
-    Navigator.of(context).pop(savedReading);
+    Navigator.of(context).pop(OdometerExactEntryResult(exactReading!));
   }
 
   void _showAuditCorrectionError(String? message) {

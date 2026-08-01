@@ -10,6 +10,15 @@ enum OdometerDistanceUnit { miles, kilometers }
 
 enum OdometerNumberConvention { decimalPoint, decimalComma }
 
+class OdometerExactEntryResult {
+  const OdometerExactEntryResult(this.value);
+
+  final OdometerDistanceValue value;
+
+  int get wholeReading => value.tenths ~/ 10;
+  int get readingTenths => value.tenths;
+}
+
 class OdometerDistanceValue {
   const OdometerDistanceValue._({required this.tenths, required this.unit});
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/odometer/open_odometer_entry.dart';
+import 'package:maintaniac/shared/odometer/odometer_distance_value.dart';
 import 'package:maintaniac/shared/odometer/odometer_entry_sheet.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
@@ -49,6 +50,49 @@ void main() {
 
     expect(await savedReading.future.timeout(const Duration(seconds: 1)), 1000);
     expect(odometer.confirmedReading, 1000);
+  });
+
+  testWidgets('exact entry wrapper preserves an optional tenth', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+      initialReadingTenths: 10007,
+    );
+    final result = Completer<OdometerExactEntryResult?>();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: Scaffold(
+            body: Builder(
+              builder: (context) => FilledButton(
+                onPressed: () async => result.complete(
+                  await openOdometerExactEntryResult(
+                    context,
+                    saveLabel: 'Save',
+                  ),
+                ),
+                child: const Text('Open exact odometer'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open exact odometer'));
+    await tester.pumpAndSettle();
+    expect(find.text('1000.7'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      (await result.future.timeout(const Duration(seconds: 1)))?.readingTenths,
+      10007,
+    );
   });
 
   testWidgets('validation-only odometer entry returns without mutation', (

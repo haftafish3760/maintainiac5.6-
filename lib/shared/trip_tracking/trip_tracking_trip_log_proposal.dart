@@ -24,7 +24,10 @@ class TripTrackingTripLogProposal {
       ? Duration.zero
       : finishedAt.difference(startedAt);
   int get beginningOdometer => review.startingOdometer;
+  int get beginningOdometerTenths => review.effectiveStartingOdometerTenths;
   int? get endingOdometerDraft => review.endingOdometerDraft;
+  int? get endingOdometerDraftTenths =>
+      review.effectiveEndingOdometerDraftTenths;
   int get vehicleConfigurationRevision => review.vehicleConfigurationRevision;
   double get gpsAssistanceCalibrationMultiplier =>
       review.gpsAssistanceCalibrationMultiplier;
@@ -90,7 +93,10 @@ class TripTrackingTripLogProposal {
     'finishedAt': finishedAt.toUtc().toIso8601String(),
     'durationMillis': duration.inMilliseconds,
     'beginningOdometer': beginningOdometer,
+    'beginningOdometerTenths': beginningOdometerTenths,
     if (endingOdometerDraft != null) 'endingOdometerDraft': endingOdometerDraft,
+    if (endingOdometerDraftTenths != null)
+      'endingOdometerDraftTenths': endingOdometerDraftTenths,
     'vehicleConfigurationRevision': vehicleConfigurationRevision,
     'gpsAssistanceCalibrationMultiplier': gpsAssistanceCalibrationMultiplier,
     'gpsAssistedDistanceMeters': gpsAssistedDistanceMeters,

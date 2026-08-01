@@ -1075,7 +1075,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     if (!mounted) return null;
     final confirmedEndingOdometer = review == null
         ? null
-        : await openOdometerEntryResult(
+        : await openOdometerExactEntryResult(
             context,
             title: 'Review GPS Trip Odometer',
             saveLabel: 'Confirm Odometer',
@@ -1086,7 +1086,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         confirmedEndingOdometer != null &&
         await tripTracking.confirmOdometerReview(
           reviewId: review!.id,
-          confirmedEndingOdometer: confirmedEndingOdometer,
+          confirmedEndingOdometer: confirmedEndingOdometer.wholeReading,
+          confirmedEndingOdometerTenths: confirmedEndingOdometer.readingTenths,
         );
     if (!mounted) return null;
     final confirmationError = confirmedEndingOdometer == null
@@ -1106,7 +1107,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                     ? 'GPS trip ended and is ready for review.'
                     : 'GPS trip saved locally; cloud backup will retry.'),
     );
-    return reviewConfirmed ? confirmedEndingOdometer : null;
+    return reviewConfirmed ? confirmedEndingOdometer.wholeReading : null;
   }
 
   Future<void> _reviewLatestGpsTrip() async {
@@ -1122,7 +1123,7 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
       );
       return;
     }
-    final confirmedEndingOdometer = await openOdometerEntryResult(
+    final confirmedEndingOdometer = await openOdometerExactEntryResult(
       context,
       title: 'Review GPS Trip Odometer',
       saveLabel: 'Confirm Odometer',
@@ -1133,7 +1134,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
         confirmedEndingOdometer != null &&
         await tripTracking!.confirmOdometerReview(
           reviewId: review.id,
-          confirmedEndingOdometer: confirmedEndingOdometer,
+          confirmedEndingOdometer: confirmedEndingOdometer.wholeReading,
+          confirmedEndingOdometerTenths: confirmedEndingOdometer.readingTenths,
         );
     if (!mounted) return;
     final confirmationError = confirmedEndingOdometer == null

@@ -118,7 +118,9 @@ class TripTrackingSessionRecord {
     this.vehicleConfigurationRevision = 0,
     this.gpsAssistanceCalibrationMultiplier = 1,
     required this.startingOdometer,
+    this.startingOdometerTenths,
     this.projectionAnchorOdometer,
+    this.projectionAnchorOdometerTenths,
     this.projectionAnchorAcceptedMeters = 0,
     this.deviceLocationIntervalFloorSeconds = 1,
     required this.profile,
@@ -157,11 +159,17 @@ class TripTrackingSessionRecord {
   final int vehicleConfigurationRevision;
   final double gpsAssistanceCalibrationMultiplier;
   final int startingOdometer;
+  final int? startingOdometerTenths;
   final int? projectionAnchorOdometer;
+  final int? projectionAnchorOdometerTenths;
   final double projectionAnchorAcceptedMeters;
   final int deviceLocationIntervalFloorSeconds;
   int get effectiveProjectionAnchorOdometer =>
       projectionAnchorOdometer ?? startingOdometer;
+  int get effectiveStartingOdometerTenths =>
+      startingOdometerTenths ?? startingOdometer * 10;
+  int get effectiveProjectionAnchorOdometerTenths =>
+      projectionAnchorOdometerTenths ?? effectiveProjectionAnchorOdometer * 10;
   final TripTrackingProfile profile;
   final String profileId;
   String get effectiveProfileId => _safeIdentifier(profileId).isEmpty
@@ -241,6 +249,7 @@ class TripTrackingSessionRecord {
     List<TripTrackingSessionTransitionAudit>? transitionAudits,
     TripTrackingSessionLifecycleContractState? persistedContractState,
     int? projectionAnchorOdometer,
+    int? projectionAnchorOdometerTenths,
     double? projectionAnchorAcceptedMeters,
     int? deviceLocationIntervalFloorSeconds,
   }) {
@@ -259,11 +268,13 @@ class TripTrackingSessionRecord {
       vehicleConfigurationRevision: vehicleConfigurationRevision,
       gpsAssistanceCalibrationMultiplier: gpsAssistanceCalibrationMultiplier,
       startingOdometer: startingOdometer,
+      startingOdometerTenths: startingOdometerTenths,
       projectionAnchorOdometer:
           projectionAnchorOdometer ?? this.projectionAnchorOdometer,
+      projectionAnchorOdometerTenths:
+          projectionAnchorOdometerTenths ?? this.projectionAnchorOdometerTenths,
       projectionAnchorAcceptedMeters:
-          projectionAnchorAcceptedMeters ??
-          this.projectionAnchorAcceptedMeters,
+          projectionAnchorAcceptedMeters ?? this.projectionAnchorAcceptedMeters,
       deviceLocationIntervalFloorSeconds:
           deviceLocationIntervalFloorSeconds ??
           this.deviceLocationIntervalFloorSeconds,
@@ -318,14 +329,23 @@ class TripTrackingSessionRecord {
           gpsAssistanceCalibrationMultiplier,
         ),
     'startingOdometer': _persistedOdometerValue(startingOdometer),
+    if (_optionalPersistedOdometerTenths(startingOdometerTenths) != null)
+      'startingOdometerTenths': _optionalPersistedOdometerTenths(
+        startingOdometerTenths,
+      ),
     if (projectionAnchorOdometer != null)
       'projectionAnchorOdometer': _persistedOdometerValue(
         projectionAnchorOdometer!,
       ),
+    if (_optionalPersistedOdometerTenths(projectionAnchorOdometerTenths) !=
+        null)
+      'projectionAnchorOdometerTenths': _optionalPersistedOdometerTenths(
+        projectionAnchorOdometerTenths,
+      ),
     if (projectionAnchorOdometer != null)
       'projectionAnchorAcceptedMeters': projectionAnchorAcceptedMeters,
-    'deviceLocationIntervalFloorSeconds':
-        deviceLocationIntervalFloorSeconds.clamp(1, 60),
+    'deviceLocationIntervalFloorSeconds': deviceLocationIntervalFloorSeconds
+        .clamp(1, 60),
     'profile': profile.name,
     'profileId': effectiveProfileId,
     'startedAt': startedAt.toUtc().toIso8601String(),
@@ -401,6 +421,18 @@ class TripTrackingSessionRecord {
             map['projectionAnchorAcceptedMeters'] is num &&
             (map['projectionAnchorAcceptedMeters'] as num).isFinite &&
             (map['projectionAnchorAcceptedMeters'] as num) >= 0);
+    final hasValidOdometerTenths =
+        _hasConsistentOdometerTenths(
+          map,
+          wholeKey: 'startingOdometer',
+          tenthsKey: 'startingOdometerTenths',
+        ) &&
+        _hasConsistentOdometerTenths(
+          map,
+          wholeKey: 'projectionAnchorOdometer',
+          tenthsKey: 'projectionAnchorOdometerTenths',
+          optionalWhole: true,
+        );
     final hasValidDeviceIntervalFloor =
         !map.containsKey('deviceLocationIntervalFloorSeconds') ||
         (map['deviceLocationIntervalFloorSeconds'] is int &&
@@ -461,10 +493,15 @@ class TripTrackingSessionRecord {
             map['gpsAssistanceCalibrationMultiplier'],
           ),
       startingOdometer: _persistedOdometerValue(map['startingOdometer']),
-      projectionAnchorOdometer:
-          map['projectionAnchorOdometer'] is int
+      startingOdometerTenths: _optionalPersistedOdometerTenths(
+        map['startingOdometerTenths'],
+      ),
+      projectionAnchorOdometer: map['projectionAnchorOdometer'] is int
           ? _persistedOdometerValue(map['projectionAnchorOdometer'])
           : null,
+      projectionAnchorOdometerTenths: _optionalPersistedOdometerTenths(
+        map['projectionAnchorOdometerTenths'],
+      ),
       projectionAnchorAcceptedMeters:
           map['projectionAnchorAcceptedMeters'] is num
           ? (map['projectionAnchorAcceptedMeters'] as num).toDouble()
@@ -548,6 +585,7 @@ class TripTrackingSessionRecord {
           hasValidVehicleConfigurationRevision &&
           hasValidCalibrationMultiplier &&
           hasValidProjectionAnchor &&
+          hasValidOdometerTenths &&
           hasValidDeviceIntervalFloor &&
           hasValidStartedTimeZone &&
           hasValidAncestry &&

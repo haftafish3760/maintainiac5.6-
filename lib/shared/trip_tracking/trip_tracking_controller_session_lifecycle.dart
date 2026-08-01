@@ -204,7 +204,8 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       }
       final odometerBoundaryMatches =
           parent?.vehicleId != vehicleId ||
-          parent?.confirmedEndingOdometer == _odometer.confirmedReading;
+          parent?.effectiveConfirmedEndingOdometerTenths ==
+              _odometer.confirmedReadingTenths;
       if (parent == null ||
           !parent.isOdometerConfirmed ||
           !odometerBoundaryMatches ||
@@ -218,9 +219,11 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       }
     }
     final startingOdometer = _odometer.confirmedReading;
+    final startingOdometerTenths = _odometer.confirmedReadingTenths;
     if (!_odometer.beginLiveTripProjection(
       tripId: tripId,
       startingOdometer: startingOdometer,
+      startingOdometerTenths: startingOdometerTenths,
       observedAtUtc: started,
     )) {
       _platformStatus = 'odometer_projection_unavailable';
@@ -232,6 +235,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     _engine = TripTrackingEngine(policy: _policy, profile: profile);
     _projection = TripLiveOdometerProjection(
       startingOdometer: startingOdometer,
+      startingOdometerTenths: startingOdometerTenths,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
     _activeTripCalibrationMultiplier = gpsAssistanceCalibrationMultiplier;
@@ -242,7 +246,9 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
       ancestry: ancestry,
       startingOdometer: startingOdometer,
+      startingOdometerTenths: startingOdometerTenths,
       projectionAnchorOdometer: startingOdometer,
+      projectionAnchorOdometerTenths: startingOdometerTenths,
       projectionAnchorAcceptedMeters: 0,
       profile: profile,
       profileId: effectiveProfileId,
@@ -404,13 +410,16 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
       return false;
     }
     final confirmedOdometer = _odometer.confirmedReading;
+    final confirmedOdometerTenths = _odometer.confirmedReadingTenths;
     final storedAnchorMatchesConfirmation =
-        session.effectiveProjectionAnchorOdometer == confirmedOdometer;
+        session.effectiveProjectionAnchorOdometerTenths ==
+        confirmedOdometerTenths;
     final projectionAnchorMeters = storedAnchorMatchesConfirmation
         ? session.projectionAnchorAcceptedMeters
         : session.engineSnapshot.totalAcceptedMeters;
     final projection = TripLiveOdometerProjection(
       startingOdometer: confirmedOdometer,
+      startingOdometerTenths: confirmedOdometerTenths,
       acceptedMetersBaseline: projectionAnchorMeters,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
@@ -423,6 +432,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
     if (!_odometer.beginLiveTripProjection(
       tripId: session.id,
       startingOdometer: confirmedOdometer,
+      startingOdometerTenths: confirmedOdometerTenths,
       observedAtUtc: session.startedAt,
     )) {
       return false;
@@ -1009,6 +1019,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         );
         final projection = TripLiveOdometerProjection(
           startingOdometer: session.startingOdometer,
+          startingOdometerTenths: session.effectiveStartingOdometerTenths,
           maxSupportedReading: _odometer.maxSupportedReading,
         );
         await _sessionStore.saveReview(
@@ -1062,6 +1073,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
         );
         final projection = TripLiveOdometerProjection(
           startingOdometer: session.startingOdometer,
+          startingOdometerTenths: session.effectiveStartingOdometerTenths,
           maxSupportedReading: _odometer.maxSupportedReading,
         );
         await _sessionStore.saveReview(
@@ -1154,6 +1166,7 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
   ) {
     final projection = TripLiveOdometerProjection(
       startingOdometer: session.startingOdometer,
+      startingOdometerTenths: session.effectiveStartingOdometerTenths,
       maxSupportedReading: _odometer.maxSupportedReading,
     );
     final expected = projection.updateAcceptedMeters(
@@ -1162,7 +1175,9 @@ extension TripTrackingControllerSessionLifecycle on TripTrackingController {
           session.gpsAssistanceCalibrationMultiplier,
     );
     return !projection.lastUpdateExceededMax &&
-        review.estimatedEndingOdometer == expected;
+        review.estimatedEndingOdometer == expected &&
+        review.effectiveEstimatedEndingOdometerTenths ==
+            projection.projectedTenths;
   }
 
   bool _reviewFinishedAtMatchesSession(
