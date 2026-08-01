@@ -24,6 +24,7 @@ void main() {
   test('coordinator requires explicit automatic-start opt-in', () {
     final controller = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
+      clockNow: () => at.add(const Duration(seconds: 30)),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
         initialReading: 1000,
@@ -67,6 +68,7 @@ void main() {
     );
     final controller = TripTrackingController(
       sessionStore: store,
+      clockNow: () => at.add(const Duration(seconds: 30)),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
         initialReading: 1000,
@@ -92,6 +94,7 @@ void main() {
     final store = _RecoveringActiveSessionStore();
     final controller = TripTrackingController(
       sessionStore: store,
+      clockNow: () => at.add(const Duration(seconds: 30)),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
         initialReading: 1000,
@@ -128,6 +131,7 @@ void main() {
   test('controller offers an approval-only free recovery within allowance', () {
     final controller = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
+      clockNow: () => at.add(const Duration(seconds: 30)),
       odometer: GlobalOdometerController(
         vehicleId: 'vehicle_1',
         initialReading: 1000,

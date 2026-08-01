@@ -424,7 +424,7 @@ class TripTrackingController extends ChangeNotifier {
       accessLevel: accessLevel,
       hasActiveOrRecoverableSession: hasUnfinishedSession,
       observations: observations,
-      evaluatedAt: DateTime.now(),
+      evaluatedAt: _clockNow(),
       acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
     );
   }
