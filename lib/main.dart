@@ -12,6 +12,7 @@ import 'screens/dashboard/data/active_workday_context_handoff_coordinator.dart';
 import 'screens/dashboard/data/active_workday_store.dart';
 import 'screens/dashboard/data/dashboard_firestore_mirror.dart';
 import 'screens/dashboard/data/dashboard_trip_tracking_summary_reporter.dart';
+import 'screens/dashboard/data/vehicle_mileage_allocation_dashboard_scope.dart';
 import 'screens/expenses/data/expense_draft_store.dart';
 import 'screens/expenses/data/expense_cloud_backup_service.dart';
 import 'screens/expenses/data/expense_cloud_proof_reference_store.dart';
@@ -158,6 +159,10 @@ Future<void> main() async {
   final vehicleMileageAllocationSync = VehicleMileageAllocationDurableSync(
     store: vehicleMileageAllocationStore,
   );
+  final vehicleMileageAllocationDashboard =
+      VehicleMileageAllocationDashboardController(
+        store: vehicleMileageAllocationStore,
+      );
   final tripTrackingStore = await TripTrackingSessionStore.create();
   TripTrackingTripLogProposalStore tripLogProposalStore;
   try {
@@ -281,11 +286,17 @@ Future<void> main() async {
   tripTrackingSettings.addListener(syncTripCalibrationAssist);
   void syncVehicleMileageAllocation() {
     unawaited(
-      vehicleMileageAllocationSync.sync(
-        settings: tripTrackingSettings.settings,
-        vehicleId: globalOdometer.vehicleId,
-        history: globalOdometer.history,
-      ),
+      vehicleMileageAllocationSync
+          .sync(
+            settings: tripTrackingSettings.settings,
+            vehicleId: globalOdometer.vehicleId,
+            history: globalOdometer.history,
+          )
+          .then(
+            (_) => vehicleMileageAllocationDashboard.refreshProjection(),
+            onError: (_) =>
+                vehicleMileageAllocationDashboard.refreshProjection(),
+          ),
     );
   }
 
@@ -410,30 +421,33 @@ Future<void> main() async {
                               controller: quickActionLayout,
                               child: GlobalOdometerScope(
                                 controller: globalOdometer,
-                                child: TripTrackingSettingsScope(
-                                  controller: tripTrackingSettings,
-                                  child: TripTrackingScope(
-                                    controller: tripTracking,
-                                    child: IncomingReceiptShareScope(
-                                      controller: incomingReceiptShare,
-                                      child: AppSignatureStoreScope(
-                                        store: signatureStore,
-                                        child: UserProfileScope(
-                                          controller: userProfiles,
-                                          child: EmployeeWorkTimeScope(
-                                            controller: employeeWorkTime,
-                                            child: OperationalContextScope(
-                                              controller: operationalContext,
-                                              child: CalendarScheduleScope(
-                                                controller: calendarSchedules,
-                                                child: CalendarPreferencesScope(
-                                                  controller:
-                                                      calendarPreferences,
-                                                  child: InvoiceLedgerScope(
-                                                    controller: invoiceLedger,
-                                                    child: MaintaniacApp(
-                                                      bluetoothTripRuntime:
-                                                          bluetoothTripRuntime,
+                                child: VehicleMileageAllocationDashboardScope(
+                                  controller: vehicleMileageAllocationDashboard,
+                                  child: TripTrackingSettingsScope(
+                                    controller: tripTrackingSettings,
+                                    child: TripTrackingScope(
+                                      controller: tripTracking,
+                                      child: IncomingReceiptShareScope(
+                                        controller: incomingReceiptShare,
+                                        child: AppSignatureStoreScope(
+                                          store: signatureStore,
+                                          child: UserProfileScope(
+                                            controller: userProfiles,
+                                            child: EmployeeWorkTimeScope(
+                                              controller: employeeWorkTime,
+                                              child: OperationalContextScope(
+                                                controller: operationalContext,
+                                                child: CalendarScheduleScope(
+                                                  controller: calendarSchedules,
+                                                  child: CalendarPreferencesScope(
+                                                    controller:
+                                                        calendarPreferences,
+                                                    child: InvoiceLedgerScope(
+                                                      controller: invoiceLedger,
+                                                      child: MaintaniacApp(
+                                                        bluetoothTripRuntime:
+                                                            bluetoothTripRuntime,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),

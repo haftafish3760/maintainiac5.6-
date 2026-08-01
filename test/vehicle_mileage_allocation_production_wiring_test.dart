@@ -16,6 +16,11 @@ void main() {
 
       expect(source, contains('VehicleMileageAllocationDurableStore('));
       expect(source, contains('VehicleMileageAllocationDurableSync('));
+      expect(source, contains('VehicleMileageAllocationDashboardScope('));
+      expect(
+        source,
+        contains('vehicleMileageAllocationDashboard.refreshProjection()'),
+      );
       expect(source, contains('syncVehicleMileageAllocation();'));
       expect(
         source,

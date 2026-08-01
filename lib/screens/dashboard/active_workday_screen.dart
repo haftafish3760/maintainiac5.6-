@@ -38,6 +38,7 @@ import 'active_workday_actions.dart';
 import 'active_workday_context_handoff_sheet.dart';
 import 'contractor/contractor_dashboard_screen.dart';
 import 'active_workday_financial_summary_panel.dart';
+import 'active_workday_vehicle_use_summary_panel.dart';
 import 'active_workday_odometer_review_panel.dart';
 import 'active_workday_tracking_status_line.dart';
 import 'active_workday_quick_action_editor.dart';
@@ -176,6 +177,13 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   session: session,
                   day: DateTime.now(),
                 ),
+                if (session != null) ...[
+                  const SizedBox(height: 8),
+                  ActiveWorkdayVehicleUseSummaryPanel(
+                    vehicleId: session.vehicleId,
+                    day: DateTime.now(),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   children: [
