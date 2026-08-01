@@ -17,12 +17,15 @@ class AppInstallationIdentity {
   final DateTime createdAt;
 
   /// The cloud-facing identifier. The raw random installation secret remains
-  /// only in secure local storage and is never added to durable record data.
+  /// in secure local storage; cloud metadata receives this one-way digest.
   String get installationIdSha256 =>
       sha256.convert(utf8.encode(installationId)).toString();
 
+  /// Opaque cloud device token for backup and recovery metadata.
+  String get cloudDeviceId => installationIdSha256;
+
   Map<String, dynamic> toSignupSignalPayload() => {
-    AccountCreationGateContract.appInstallationHashField: installationIdSha256,
+    AccountCreationGateContract.appInstallationHashField: cloudDeviceId,
     'installationIdVersion': AppInstallationIdentityStore.identityVersion,
     'createdAt': createdAt.toIso8601String(),
   };

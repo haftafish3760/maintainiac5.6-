@@ -28,6 +28,7 @@ void main() {
         ),
       );
       expect(first.installationIdSha256, matches(RegExp(r'^[a-f0-9]{64}$')));
+      expect(first.cloudDeviceId, first.installationIdSha256);
       expect(
         first.toSignupSignalPayload().values,
         isNot(contains(first.installationId)),

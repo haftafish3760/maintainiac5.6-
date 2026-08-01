@@ -19,7 +19,8 @@ describe('account creation Cloud Functions contract', () => {
       const result = evaluateAccountCreationGate({
         providerId,
         appCheckVerified: true,
-        appInstallationId: 'mai_install_12345678901234567890123456789012',
+        appInstallationHash:
+          '1234567890123456789012345678901234567890123456789012345678901234',
         accountsForInstall: 1,
         accountsForIpWindow: 1,
       });
@@ -32,14 +33,16 @@ describe('account creation Cloud Functions contract', () => {
     const installResult = evaluateAccountCreationGate({
       providerId: 'google.com',
       appCheckVerified: true,
-      appInstallationId: 'mai_install_12345678901234567890123456789012',
+      appInstallationHash:
+        '1234567890123456789012345678901234567890123456789012345678901234',
       accountsForInstall: 2,
       accountsForIpWindow: 0,
     });
     const ipResult = evaluateAccountCreationGate({
       providerId: 'apple.com',
       appCheckVerified: true,
-      appInstallationId: 'mai_install_abcdefghijklmnopqrstuvwxyzABCDEF',
+      appInstallationHash:
+        'abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       accountsForInstall: 0,
       accountsForIpWindow: 2,
     });
@@ -53,7 +56,8 @@ describe('account creation Cloud Functions contract', () => {
       evaluateAccountCreationGate({
         providerId: 'password',
         appCheckVerified: true,
-        appInstallationId: 'mai_install_12345678901234567890123456789012',
+        appInstallationHash:
+          '1234567890123456789012345678901234567890123456789012345678901234',
         accountsForInstall: 0,
         accountsForIpWindow: 0,
       }).action,
@@ -63,7 +67,8 @@ describe('account creation Cloud Functions contract', () => {
       evaluateAccountCreationGate({
         providerId: 'google.com',
         appCheckVerified: false,
-        appInstallationId: 'mai_install_12345678901234567890123456789012',
+        appInstallationHash:
+          '1234567890123456789012345678901234567890123456789012345678901234',
         accountsForInstall: 0,
         accountsForIpWindow: 0,
       }).action,
@@ -73,7 +78,7 @@ describe('account creation Cloud Functions contract', () => {
       evaluateAccountCreationGate({
         providerId: 'google.com',
         appCheckVerified: true,
-        appInstallationId: 'plain-device-id',
+        appInstallationHash: 'plain-device-id',
         accountsForInstall: 0,
         accountsForIpWindow: 0,
       }).action,
@@ -85,7 +90,8 @@ describe('account creation Cloud Functions contract', () => {
     const result = evaluateAccountCreationGate({
       providerId: 'google.com',
       appCheckVerified: true,
-      appInstallationId: 'mai_install_12345678901234567890123456789012',
+      appInstallationHash:
+        '1234567890123456789012345678901234567890123456789012345678901234',
       accountsForInstall: 6,
       accountsForIpWindow: 1,
       additionalVerificationSatisfied: true,

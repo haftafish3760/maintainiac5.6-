@@ -108,7 +108,7 @@ Future<void> main() async {
       queueStore: queueStore,
       uploadCoordinator: uploadCoordinator,
       proofReferences: proofReferences,
-      deviceId: installationIdentity.installationId,
+      deviceId: installationIdentity.cloudDeviceId,
       backupEnabled: () => userProfiles.activeProfile.cloudBackupEnabled,
     );
   }

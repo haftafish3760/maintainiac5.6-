@@ -14,7 +14,7 @@ export function evaluateAccountCreationGate(signal) {
   if (signal.appCheckVerified !== true) {
     return block('App Check verification is required.');
   }
-  if (!looksLikeInstallId(signal.appInstallationId)) {
+  if (!looksLikeInstallationHash(signal.appInstallationHash)) {
     return block('Valid app installation signal is required.');
   }
   if (signal.installMarkedAbusive || signal.ipWindowMarkedAbusive) {
@@ -47,6 +47,6 @@ function block(reason) {
   return { action: 'block', reason };
 }
 
-function looksLikeInstallId(value) {
-  return /^mai_install_[A-Za-z0-9_-]{32,}$/.test(value ?? '');
+function looksLikeInstallationHash(value) {
+  return /^[a-f0-9]{64}$/.test(value ?? '');
 }
