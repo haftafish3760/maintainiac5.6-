@@ -1,9 +1,11 @@
 import 'odometer_validation.dart';
+import 'odometer_distance_value.dart';
 
 class OdometerVehicleSnapshot {
   const OdometerVehicleSnapshot({
     required this.vehicleId,
     required this.currentReading,
+    this.currentReadingTenths,
     required this.updatedAt,
     required this.history,
     this.drivingPatternReviewEnabled = false,
@@ -11,6 +13,7 @@ class OdometerVehicleSnapshot {
 
   final String vehicleId;
   final int currentReading;
+  final int? currentReadingTenths;
   final DateTime updatedAt;
   final List<OdometerReadingEvent> history;
   final bool drivingPatternReviewEnabled;
@@ -20,6 +23,9 @@ class OdometerVehicleSnapshot {
     return OdometerVehicleSnapshot(
       vehicleId: safeOdometerVehicleId(map['vehicleId']),
       currentReading: _safeOdometerReading(map['currentReading']),
+      currentReadingTenths: _optionalSafeOdometerTenths(
+        map['currentReadingTenths'],
+      ),
       updatedAt:
           DateTime.tryParse('${map['updatedAt'] ?? ''}') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
@@ -37,11 +43,15 @@ class OdometerVehicleSnapshot {
     return {
       'vehicleId': vehicleId,
       'currentReading': _safeOdometerReading(currentReading),
+      'currentReadingTenths': effectiveCurrentReadingTenths,
       'updatedAt': updatedAt.toIso8601String(),
       'history': history.map((event) => event.toMap()).toList(),
       'drivingPatternReviewEnabled': drivingPatternReviewEnabled,
     };
   }
+
+  int get effectiveCurrentReadingTenths =>
+      _optionalSafeOdometerTenths(currentReadingTenths) ?? currentReading * 10;
 }
 
 int _safeOdometerReading(Object? value) {
@@ -50,12 +60,21 @@ int _safeOdometerReading(Object? value) {
   return parsed;
 }
 
+int? _optionalSafeOdometerTenths(Object? value) {
+  if (value == null) return null;
+  final parsed = value is int ? value : int.tryParse('$value');
+  if (parsed == null ||
+      parsed < 0 ||
+      parsed > OdometerDistanceValue.maximumTenths) {
+    return null;
+  }
+  return parsed;
+}
+
 const defaultVehicleId = 'active_vehicle';
 
 String safeOdometerVehicleId(Object? value) {
-  final normalized = '${value ?? ''}'
-      .trim()
-      .replaceAll(RegExp(r'\s+'), ' ');
+  final normalized = '${value ?? ''}'.trim().replaceAll(RegExp(r'\s+'), ' ');
   if (normalized.isEmpty) return defaultVehicleId;
   return normalized.length > 160 ? normalized.substring(0, 160) : normalized;
 }

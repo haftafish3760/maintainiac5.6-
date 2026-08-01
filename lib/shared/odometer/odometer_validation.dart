@@ -1,5 +1,6 @@
 import 'odometer_mileage_review.dart';
 import 'odometer_correction_review.dart';
+import 'odometer_distance_value.dart';
 
 enum OdometerValidationSeverity { accepted, needsConfirmation, blocked }
 
@@ -7,11 +8,13 @@ class OdometerReadingEvent {
   const OdometerReadingEvent({
     this.id = '',
     required this.reading,
+    this.readingTenths,
     required this.recordedAt,
     this.mileageReview,
     this.correctionReview,
     this.affectsCurrentReading = true,
     this.previousReading,
+    this.previousReadingTenths,
     this.workProfileId,
     this.sourceType,
     this.sourceId,
@@ -19,11 +22,13 @@ class OdometerReadingEvent {
 
   final String id;
   final int reading;
+  final int? readingTenths;
   final DateTime recordedAt;
   final OdometerMileageReview? mileageReview;
   final OdometerCorrectionReview? correctionReview;
   final bool affectsCurrentReading;
   final int? previousReading;
+  final int? previousReadingTenths;
   final String? workProfileId;
   final String? sourceType;
   final String? sourceId;
@@ -34,6 +39,7 @@ class OdometerReadingEvent {
     return OdometerReadingEvent(
       id: '${map['id'] ?? ''}',
       reading: _safeOdometerReading(map['reading']),
+      readingTenths: _optionalSafeOdometerTenths(map['readingTenths']),
       recordedAt:
           DateTime.tryParse('${map['recordedAt'] ?? ''}') ??
           DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
@@ -45,6 +51,9 @@ class OdometerReadingEvent {
           : null,
       affectsCurrentReading: map['affectsCurrentReading'] != false,
       previousReading: _optionalSafeOdometerReading(map['previousReading']),
+      previousReadingTenths: _optionalSafeOdometerTenths(
+        map['previousReadingTenths'],
+      ),
       workProfileId: _optionalSafeOdometerText(map['workProfileId']),
       sourceType: _optionalSafeOdometerText(map['sourceType']),
       sourceId: _optionalSafeOdometerText(map['sourceId']),
@@ -54,11 +63,13 @@ class OdometerReadingEvent {
   OdometerReadingEvent copyWith({
     String? id,
     int? reading,
+    int? readingTenths,
     DateTime? recordedAt,
     OdometerMileageReview? mileageReview,
     OdometerCorrectionReview? correctionReview,
     bool? affectsCurrentReading,
     int? previousReading,
+    int? previousReadingTenths,
     String? workProfileId,
     String? sourceType,
     String? sourceId,
@@ -66,6 +77,9 @@ class OdometerReadingEvent {
     return OdometerReadingEvent(
       id: id ?? this.id,
       reading: _safeOdometerReading(reading ?? this.reading),
+      readingTenths: _optionalSafeOdometerTenths(
+        readingTenths ?? this.readingTenths,
+      ),
       recordedAt: recordedAt ?? this.recordedAt,
       mileageReview: mileageReview ?? this.mileageReview,
       correctionReview: correctionReview ?? this.correctionReview,
@@ -73,6 +87,9 @@ class OdometerReadingEvent {
           affectsCurrentReading ?? this.affectsCurrentReading,
       previousReading: _optionalSafeOdometerReading(
         previousReading ?? this.previousReading,
+      ),
+      previousReadingTenths: _optionalSafeOdometerTenths(
+        previousReadingTenths ?? this.previousReadingTenths,
       ),
       workProfileId: workProfileId ?? this.workProfileId,
       sourceType: sourceType ?? this.sourceType,
@@ -84,16 +101,26 @@ class OdometerReadingEvent {
     return {
       'id': id,
       'reading': _safeOdometerReading(reading),
+      'readingTenths': effectiveReadingTenths,
       'recordedAt': recordedAt.toIso8601String(),
       'mileageReview': mileageReview?.toMap(),
       'correctionReview': correctionReview?.toMap(),
       'affectsCurrentReading': affectsCurrentReading,
       'previousReading': _optionalSafeOdometerReading(previousReading),
+      'previousReadingTenths': effectivePreviousReadingTenths,
       'workProfileId': workProfileId,
       'sourceType': sourceType,
       'sourceId': sourceId,
     };
   }
+
+  int get effectiveReadingTenths =>
+      _optionalSafeOdometerTenths(readingTenths) ?? reading * 10;
+
+  int? get effectivePreviousReadingTenths => previousReading == null
+      ? _optionalSafeOdometerTenths(previousReadingTenths)
+      : _optionalSafeOdometerTenths(previousReadingTenths) ??
+            previousReading! * 10;
 }
 
 int _safeOdometerReading(Object? value) {
@@ -109,11 +136,20 @@ int? _optionalSafeOdometerReading(Object? value) {
   return parsed;
 }
 
+int? _optionalSafeOdometerTenths(Object? value) {
+  if (value == null) return null;
+  final parsed = value is int ? value : int.tryParse('$value');
+  if (parsed == null ||
+      parsed < 0 ||
+      parsed > OdometerDistanceValue.maximumTenths) {
+    return null;
+  }
+  return parsed;
+}
+
 String? _optionalSafeOdometerText(Object? value, {int maxLength = 160}) {
   if (value is! String) return null;
-  final clean = value
-      .replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ')
-      .trim();
+  final clean = value.replaceAll(RegExp(r'[\x00-\x1F\x7F]'), ' ').trim();
   if (clean.isEmpty) return null;
   return clean.length > maxLength ? clean.substring(0, maxLength) : clean;
 }

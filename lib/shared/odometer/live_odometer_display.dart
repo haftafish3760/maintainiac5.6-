@@ -1,6 +1,7 @@
 class LiveOdometerDisplaySnapshot {
   const LiveOdometerDisplaySnapshot({
     required this.confirmedReading,
+    this.confirmedReadingTenths,
     required this.displayReading,
     this.displayTenths,
     required this.isLive,
@@ -9,6 +10,7 @@ class LiveOdometerDisplaySnapshot {
   });
 
   final int confirmedReading;
+  final int? confirmedReadingTenths;
   final int displayReading;
   final int? displayTenths;
   final bool isLive;
@@ -21,7 +23,7 @@ class LiveOdometerDisplaySnapshot {
   }
 
   int get deltaTenths {
-    final delta = safeDisplayTenths - confirmedReading * 10;
+    final delta = safeDisplayTenths - safeConfirmedReadingTenths;
     return isLive && delta > 0 ? delta : 0;
   }
 
@@ -48,21 +50,36 @@ class LiveOdometerDisplaySnapshot {
       : displayReading;
 
   int get safeDisplayTenths {
-    final fallback = safeDisplayReading * 10;
+    final fallback = isLive
+        ? safeDisplayReading * 10
+        : safeConfirmedReadingTenths;
     final value = displayTenths;
-    if (!isLive || value == null || value < confirmedReading * 10) {
+    if (value == null || value < safeConfirmedReadingTenths) {
       return fallback;
+    }
+    return value;
+  }
+
+  int get safeConfirmedReadingTenths {
+    final value = confirmedReadingTenths;
+    if (value == null || value < confirmedReading * 10) {
+      return confirmedReading * 10;
     }
     return value;
   }
 
   bool get hasLiveTenths => isLive && displayTenths != null;
 
-  String get displayValue => hasLiveTenths
+  bool get hasConfirmedTenths =>
+      confirmedReadingTenths != null && safeConfirmedReadingTenths % 10 != 0;
+
+  String get displayValue => hasLiveTenths || (!isLive && hasConfirmedTenths)
       ? _formatTenths(safeDisplayTenths)
       : _safeReading(safeDisplayReading).toString();
 
-  String get confirmedDisplayValue => _safeReading(confirmedReading).toString();
+  String get confirmedDisplayValue => hasConfirmedTenths
+      ? _formatTenths(safeConfirmedReadingTenths)
+      : _safeReading(confirmedReading).toString();
 
   String? get deltaLabel {
     if (!isLive) return null;

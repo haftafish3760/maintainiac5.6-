@@ -30,6 +30,44 @@ void main() {
     expect(saved.history.last.mileageReview?.businessMiles, 30);
   });
 
+  test('snapshot preserves exact confirmed tenths and legacy fallback', () {
+    final exact = OdometerVehicleSnapshot.fromMap({
+      'vehicleId': 'truck-tenths',
+      'currentReading': 1045,
+      'currentReadingTenths': 10457,
+      'updatedAt': DateTime.utc(2026, 8, 1).toIso8601String(),
+      'history': [
+        {
+          'reading': 1045,
+          'readingTenths': 10457,
+          'previousReading': 1040,
+          'previousReadingTenths': 10402,
+          'recordedAt': DateTime.utc(2026, 8, 1).toIso8601String(),
+        },
+      ],
+    });
+    final legacy = OdometerVehicleSnapshot.fromMap({
+      'vehicleId': 'truck-legacy',
+      'currentReading': 1045,
+      'updatedAt': DateTime.utc(2026, 8, 1).toIso8601String(),
+      'history': [
+        {
+          'reading': 1045,
+          'previousReading': 1040,
+          'recordedAt': DateTime.utc(2026, 8, 1).toIso8601String(),
+        },
+      ],
+    });
+
+    expect(exact.effectiveCurrentReadingTenths, 10457);
+    expect(exact.history.single.effectiveReadingTenths, 10457);
+    expect(exact.history.single.effectivePreviousReadingTenths, 10402);
+    expect(exact.toMap()['currentReadingTenths'], 10457);
+    expect(legacy.effectiveCurrentReadingTenths, 10450);
+    expect(legacy.history.single.effectiveReadingTenths, 10450);
+    expect(legacy.history.single.effectivePreviousReadingTenths, 10400);
+  });
+
   test(
     'odometer vehicle snapshots never persist negative current readings',
     () {
@@ -68,23 +106,26 @@ void main() {
     );
   });
 
-  test('odometer store normalizes unsafe vehicle keys before save and load', () async {
-    final store = OdometerStore.memory();
-    await store.saveSnapshot(
-      OdometerVehicleSnapshot(
-        vehicleId: ' ${'truck' * 80}\n',
-        currentReading: 1200,
-        updatedAt: DateTime.utc(2026, 7, 17, 12),
-        history: const [],
-      ),
-    );
+  test(
+    'odometer store normalizes unsafe vehicle keys before save and load',
+    () async {
+      final store = OdometerStore.memory();
+      await store.saveSnapshot(
+        OdometerVehicleSnapshot(
+          vehicleId: ' ${'truck' * 80}\n',
+          currentReading: 1200,
+          updatedAt: DateTime.utc(2026, 7, 17, 12),
+          history: const [],
+        ),
+      );
 
-    final restored = store.snapshotForVehicle(' ${'truck' * 80}\n');
+      final restored = store.snapshotForVehicle(' ${'truck' * 80}\n');
 
-    expect(restored.vehicleId, hasLength(160));
-    expect(restored.vehicleId, isNot(contains('\n')));
-    expect(restored.currentReading, 1200);
-  });
+      expect(restored.vehicleId, hasLength(160));
+      expect(restored.vehicleId, isNot(contains('\n')));
+      expect(restored.currentReading, 1200);
+    },
+  );
 
   test('switching vehicles keeps odometer histories separate', () async {
     final store = OdometerStore.memory();

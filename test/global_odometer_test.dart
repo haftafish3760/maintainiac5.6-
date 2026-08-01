@@ -7,6 +7,47 @@ import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_live_odometer_projection.dart';
 
 void main() {
+  test('confirmed odometer tenths survive snapshot persistence', () async {
+    OdometerVehicleSnapshot? persisted;
+    final controller = GlobalOdometerController(
+      vehicleId: 'tenths-truck',
+      initialReading: 1000,
+      snapshotWriter: (snapshot) async => persisted = snapshot,
+    );
+
+    final result = controller.updateFromText('1000.7');
+    await Future<void>.delayed(Duration.zero);
+
+    expect(result.ok, isTrue);
+    expect(controller.confirmedReading, 1000);
+    expect(controller.confirmedReadingTenths, 10007);
+    expect(controller.displayValue, '1000.7');
+    expect(controller.history.last.effectiveReadingTenths, 10007);
+    expect(persisted?.effectiveCurrentReadingTenths, 10007);
+    expect(persisted?.toMap()['currentReadingTenths'], 10007);
+
+    final restored = GlobalOdometerController(initialReading: 0);
+    expect(await restored.switchVehicle(persisted!), isTrue);
+    expect(restored.confirmedReadingTenths, 10007);
+    expect(restored.displayValue, '1000.7');
+  });
+
+  test(
+    'lower tenth reading enters correction review without losing precision',
+    () {
+      final controller = GlobalOdometerController(
+        initialReading: 1000,
+        initialReadingTenths: 10009,
+      );
+
+      final review = controller.updateFromText('1000.7');
+
+      expect(review.ok, isFalse);
+      expect(review.message, contains('0.2 miles below'));
+      expect(controller.confirmedReadingTenths, 10009);
+    },
+  );
+
   test('rejects empty and non-numeric odometer input', () {
     final controller = GlobalOdometerController(initialReading: 1000);
 

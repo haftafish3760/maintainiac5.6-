@@ -2,6 +2,7 @@
 // Owns in-memory source-revision selection and period calculations. It does
 // not persist records, classify raw GPS, create expenses, or change odometer
 // history. Trip review and the durable allocation repository consume it.
+// odometerIsGlobalTruth: true; allocation only classifies confirmed mileage.
 
 import 'vehicle_mileage_allocation.dart';
 

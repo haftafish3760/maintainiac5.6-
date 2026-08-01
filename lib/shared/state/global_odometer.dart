@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import '../odometer/odometer_correction_review.dart';
+import '../odometer/odometer_distance_value.dart';
+import '../odometer/odometer_entry_plausibility_policy.dart';
 import '../odometer/live_odometer_display.dart';
 import '../odometer/odometer_mileage_review.dart';
 import '../odometer/odometer_validation.dart';
@@ -12,10 +14,13 @@ class GlobalOdometerController extends ChangeNotifier {
   GlobalOdometerController({
     String vehicleId = defaultVehicleId,
     int initialReading = 298150,
+    int? initialReadingTenths,
     DateTime? initialRecordedAt,
     List<OdometerReadingEvent>? initialHistory,
     OdometerValidationPolicy validationPolicy =
         const OdometerValidationPolicy(),
+    OdometerEntryPlausibilityPolicy plausibilityPolicy =
+        const OdometerEntryPlausibilityPolicy(),
     Future<OdometerVehicleSnapshot> Function(
       String vehicleId, {
       int fallbackReading,
@@ -24,7 +29,12 @@ class GlobalOdometerController extends ChangeNotifier {
     Future<void> Function(OdometerVehicleSnapshot snapshot)? snapshotWriter,
   }) : _vehicleId = safeOdometerVehicleId(vehicleId),
        _reading = _safeOdometerReading(initialReading),
+       _readingTenths = _safeInitialTenths(
+         initialReading,
+         initialReadingTenths,
+       ),
        _validationPolicy = validationPolicy,
+       _plausibilityPolicy = plausibilityPolicy,
        _drivingPatternReviewEnabled =
            validationPolicy.drivingPatternReviewEnabled,
        _snapshotReader = snapshotReader,
@@ -33,6 +43,10 @@ class GlobalOdometerController extends ChangeNotifier {
            ? [
                OdometerReadingEvent(
                  reading: _safeOdometerReading(initialReading),
+                 readingTenths: _safeInitialTenths(
+                   initialReading,
+                   initialReadingTenths,
+                 ),
                  recordedAt: initialRecordedAt ?? DateTime.now(),
                  affectsCurrentReading: true,
                ),
@@ -40,6 +54,7 @@ class GlobalOdometerController extends ChangeNotifier {
            : [...initialHistory];
 
   int _reading;
+  int _readingTenths;
   String _vehicleId;
   String? _liveTripId;
   int? _liveTripEstimatedReading;
@@ -48,6 +63,7 @@ class GlobalOdometerController extends ChangeNotifier {
   var _liveTripProjectionRevision = 0;
   var _eventSequence = 0;
   final OdometerValidationPolicy _validationPolicy;
+  final OdometerEntryPlausibilityPolicy _plausibilityPolicy;
   bool _drivingPatternReviewEnabled;
   final Future<OdometerVehicleSnapshot> Function(
     String vehicleId, {
@@ -62,6 +78,7 @@ class GlobalOdometerController extends ChangeNotifier {
   /// live estimate, while [confirmedReading] remains the audit source of truth.
   int get reading => _liveTripEstimatedReading ?? _reading;
   int get confirmedReading => _reading;
+  int get confirmedReadingTenths => _readingTenths;
   String get vehicleId => _vehicleId;
   int get maxSupportedReading => _validationPolicy.maxSupportedReading;
   bool get hasLiveTripProjection => _liveTripId != null;
@@ -74,8 +91,11 @@ class GlobalOdometerController extends ChangeNotifier {
   LiveOdometerDisplaySnapshot get liveDisplaySnapshot =>
       LiveOdometerDisplaySnapshot(
         confirmedReading: _reading,
+        confirmedReadingTenths: _readingTenths,
         displayReading: reading,
-        displayTenths: _liveTripEstimatedTenths,
+        displayTenths: hasLiveTripProjection
+            ? _liveTripEstimatedTenths
+            : _readingTenths,
         isLive: hasLiveTripProjection,
         liveUpdatedAt: _liveTripUpdatedAt,
         projectionRevision: _liveTripProjectionRevision,
@@ -100,6 +120,7 @@ class GlobalOdometerController extends ChangeNotifier {
   OdometerVehicleSnapshot get snapshot => OdometerVehicleSnapshot(
     vehicleId: _vehicleId,
     currentReading: _reading,
+    currentReadingTenths: _readingTenths,
     updatedAt: DateTime.now(),
     history: history,
     drivingPatternReviewEnabled: _drivingPatternReviewEnabled,
@@ -112,6 +133,7 @@ class GlobalOdometerController extends ChangeNotifier {
     await _persistSnapshot();
     _vehicleId = snapshot.vehicleId;
     _reading = _safeOdometerReading(snapshot.currentReading);
+    _readingTenths = snapshot.effectiveCurrentReadingTenths;
     _drivingPatternReviewEnabled = snapshot.drivingPatternReviewEnabled;
     _history
       ..clear()
@@ -120,6 +142,7 @@ class GlobalOdometerController extends ChangeNotifier {
             ? [
                 OdometerReadingEvent(
                   reading: _safeOdometerReading(snapshot.currentReading),
+                  readingTenths: snapshot.effectiveCurrentReadingTenths,
                   recordedAt: snapshot.updatedAt,
                 ),
               ]
@@ -281,21 +304,41 @@ class GlobalOdometerController extends ChangeNotifier {
     String? workProfileId,
     String? sourceType,
     String? sourceId,
+    OdometerEntryPlausibilityContext? plausibilityContext,
+    OdometerDistanceUnit distanceUnit = OdometerDistanceUnit.miles,
+    OdometerNumberConvention numberConvention =
+        OdometerNumberConvention.decimalPoint,
   }) {
-    final parseError = parseOdometerInputError(rawValue);
-    if (parseError != null) {
-      return OdometerUpdateResult.error(parseError);
-    }
-    final parsed = parseOdometerInput(rawValue);
-    if (parsed == null) {
+    final effectiveUnit = plausibilityContext?.distanceUnit ?? distanceUnit;
+    final exact = OdometerDistanceValue.tryParse(
+      rawValue,
+      unit: effectiveUnit,
+      convention: numberConvention,
+    );
+    if (exact == null) {
+      final legacyWhole = parseOdometerInput(rawValue);
+      if (legacyWhole != null) {
+        final legacyValidation = _validationPolicy.validate(
+          currentReading: _reading,
+          candidateReading: legacyWhole,
+          history: _history,
+          enteredAt: enteredAt ?? DateTime.now(),
+          drivingPatternReviewEnabled: _drivingPatternReviewEnabled,
+        );
+        if (legacyValidation.isBlocked) {
+          return OdometerUpdateResult.error(legacyValidation.message);
+        }
+      }
       return const OdometerUpdateResult.error(
-        'Use numbers only for the odometer reading.',
+        'Enter a whole odometer number or one optional decimal digit.',
       );
     }
+    final parsedTenths = exact.tenths;
+    final parsed = parsedTenths ~/ 10;
     final existingSourceEvent = _eventForSource(sourceType, sourceId);
     if (existingSourceEvent != null) {
       final sourceLabel = _odometerSourceLabel(sourceType);
-      if (existingSourceEvent.reading == parsed) {
+      if (existingSourceEvent.effectiveReadingTenths == parsedTenths) {
         return OdometerUpdateResult.success(
           message:
               'This odometer reading is already recorded for this $sourceLabel.',
@@ -308,9 +351,10 @@ class GlobalOdometerController extends ChangeNotifier {
         'This $sourceLabel already has a different odometer history entry. Use the odometer correction flow before changing it.',
       );
     }
-    if (parsed < _reading) {
+    if (parsedTenths < _readingTenths) {
       return _handleLowerReading(
         parsed,
+        parsedTenths: parsedTenths,
         enteredAt: enteredAt ?? DateTime.now(),
         correctionReview: correctionReview,
         commit: commit,
@@ -331,6 +375,30 @@ class GlobalOdometerController extends ChangeNotifier {
     }
 
     final deltaMiles = parsed - _reading;
+    if (plausibilityContext != null) {
+      final current = OdometerDistanceValue.fromTenths(
+        tenths: _readingTenths,
+        unit: plausibilityContext.distanceUnit,
+      );
+      final candidate = OdometerDistanceValue.fromTenths(
+        tenths: parsedTenths,
+        unit: plausibilityContext.distanceUnit,
+      );
+      if (current != null && candidate != null) {
+        final plausibility = _plausibilityPolicy.evaluate(
+          current: current,
+          candidate: candidate,
+          enteredAt: enteredAt ?? DateTime.now(),
+          context: plausibilityContext,
+        );
+        if (plausibility.requiresReview && !confirmSuspicious) {
+          return OdometerUpdateResult.needsConfirmation(
+            plausibility.explanation,
+            mileageReview: mileageReview,
+          );
+        }
+      }
+    }
     final gpsDifferenceMiles = hasLiveTripProjection
         ? (parsed - reading).abs()
         : 0;
@@ -366,6 +434,7 @@ class GlobalOdometerController extends ChangeNotifier {
 
     return _acceptReading(
       parsed,
+      parsedTenths: parsedTenths,
       enteredAt: enteredAt ?? DateTime.now(),
       message: validation.message,
       wasConfirmed: validation.needsConfirmation,
@@ -379,6 +448,7 @@ class GlobalOdometerController extends ChangeNotifier {
 
   OdometerUpdateResult _handleLowerReading(
     int parsed, {
+    required int parsedTenths,
     required DateTime enteredAt,
     OdometerCorrectionReview? correctionReview,
     required bool commit,
@@ -391,6 +461,8 @@ class GlobalOdometerController extends ChangeNotifier {
         message: odometerCorrectionReviewPrompt(
           currentReading: _reading,
           candidateReading: parsed,
+          currentReadingTenths: _readingTenths,
+          candidateReadingTenths: parsedTenths,
         ),
         currentReading: _reading,
         candidateReading: parsed,
@@ -400,6 +472,8 @@ class GlobalOdometerController extends ChangeNotifier {
     final reviewError = validateOdometerCorrectionReview(
       currentReading: _reading,
       candidateReading: parsed,
+      currentReadingTenths: _readingTenths,
+      candidateReadingTenths: parsedTenths,
       review: correctionReview,
     );
     if (reviewError != null) {
@@ -420,10 +494,12 @@ class GlobalOdometerController extends ChangeNotifier {
         OdometerReadingEvent(
           id: _nextEventId(),
           reading: parsed,
+          readingTenths: parsedTenths,
           recordedAt: enteredAt,
           correctionReview: correctionReview,
           affectsCurrentReading: false,
           previousReading: _reading,
+          previousReadingTenths: _readingTenths,
           workProfileId: workProfileId,
           sourceType: sourceType,
           sourceId: sourceId,
@@ -446,6 +522,7 @@ class GlobalOdometerController extends ChangeNotifier {
 
   OdometerUpdateResult _acceptReading(
     int parsed, {
+    required int parsedTenths,
     required DateTime enteredAt,
     required String message,
     required bool wasConfirmed,
@@ -455,7 +532,7 @@ class GlobalOdometerController extends ChangeNotifier {
     String? sourceType,
     String? sourceId,
   }) {
-    if (parsed == _reading) {
+    if (parsedTenths == _readingTenths) {
       return OdometerUpdateResult.success(message: message);
     }
     if (!commit) {
@@ -466,9 +543,12 @@ class GlobalOdometerController extends ChangeNotifier {
       );
     }
     final previousReading = _reading;
+    final previousReadingTenths = _readingTenths;
     _reading = parsed;
+    _readingTenths = parsedTenths;
     if (hasLiveTripProjection) {
       _liveTripEstimatedReading = parsed;
+      _liveTripEstimatedTenths = parsedTenths;
       _liveTripUpdatedAt = enteredAt;
       _liveTripProjectionRevision += 1;
     }
@@ -476,9 +556,11 @@ class GlobalOdometerController extends ChangeNotifier {
       OdometerReadingEvent(
         id: _nextEventId(),
         reading: parsed,
+        readingTenths: parsedTenths,
         recordedAt: enteredAt,
         mileageReview: mileageReview,
         previousReading: previousReading,
+        previousReadingTenths: previousReadingTenths,
         workProfileId: workProfileId,
         sourceType: sourceType,
         sourceId: sourceId,
@@ -506,15 +588,26 @@ class GlobalOdometerController extends ChangeNotifier {
   Future<void> applyAuditCorrection({
     required String rawValue,
     required OdometerCorrectionReview correctionReview,
+    OdometerDistanceUnit distanceUnit = OdometerDistanceUnit.miles,
+    OdometerNumberConvention numberConvention =
+        OdometerNumberConvention.decimalPoint,
     DateTime? correctedAt,
     String? workProfileId,
     String? sourceType,
     String? sourceId,
   }) async {
-    final parsed = parseOdometerInput(rawValue);
-    if (parsed == null) {
-      throw ArgumentError('Use numbers only for the odometer correction.');
+    final exact = OdometerDistanceValue.tryParse(
+      rawValue,
+      unit: distanceUnit,
+      convention: numberConvention,
+    );
+    if (exact == null) {
+      throw ArgumentError(
+        'Enter a whole odometer number or one optional decimal digit.',
+      );
     }
+    final parsedTenths = exact.tenths;
+    final parsed = parsedTenths ~/ 10;
     if (!correctionReview.requiresDedicatedCorrectionFlow) {
       throw ArgumentError(
         'Audit corrections are only for previous-entry fixes, odometer replacement, rollover, or unit changes.',
@@ -531,9 +624,12 @@ class GlobalOdometerController extends ChangeNotifier {
       throw ArgumentError(validation.message);
     }
     final previousReading = _reading;
+    final previousReadingTenths = _readingTenths;
     _reading = parsed;
+    _readingTenths = parsedTenths;
     if (hasLiveTripProjection) {
       _liveTripEstimatedReading = parsed;
+      _liveTripEstimatedTenths = parsedTenths;
       _liveTripUpdatedAt = correctedAt ?? DateTime.now();
       _liveTripProjectionRevision += 1;
     }
@@ -541,9 +637,11 @@ class GlobalOdometerController extends ChangeNotifier {
       OdometerReadingEvent(
         id: _nextEventId(),
         reading: parsed,
+        readingTenths: parsedTenths,
         recordedAt: correctedAt ?? DateTime.now(),
         correctionReview: correctionReview,
         previousReading: previousReading,
+        previousReadingTenths: previousReadingTenths,
         workProfileId: workProfileId,
         sourceType: sourceType,
         sourceId: sourceId,
@@ -718,6 +816,17 @@ String _odometerSourceLabel(String? sourceType) =>
     sourceType == 'gps_trip_review' ? 'GPS trip' : 'receipt';
 
 int _safeOdometerReading(int value) => value < 0 ? 0 : value;
+
+int _safeInitialTenths(int reading, int? tenths) {
+  final safeReading = _safeOdometerReading(reading);
+  final candidate = tenths ?? safeReading * 10;
+  if (candidate < safeReading * 10 ||
+      candidate > safeReading * 10 + 9 ||
+      candidate > OdometerDistanceValue.maximumTenths) {
+    return safeReading * 10;
+  }
+  return candidate;
+}
 
 DateTime _safeBeginLiveProjectionUpdateTime(DateTime? observedAtUtc) =>
     (observedAtUtc ?? DateTime.now()).toUtc();

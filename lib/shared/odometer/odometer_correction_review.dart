@@ -53,9 +53,13 @@ class OdometerCorrectionReview {
 String? validateOdometerCorrectionReview({
   required int currentReading,
   required int candidateReading,
+  int? currentReadingTenths,
+  int? candidateReadingTenths,
   required OdometerCorrectionReview review,
 }) {
-  if (candidateReading >= currentReading) {
+  final current = currentReadingTenths ?? currentReading * 10;
+  final candidate = candidateReadingTenths ?? candidateReading * 10;
+  if (candidate >= current) {
     return 'This review is only needed when the entered reading is lower than the saved odometer.';
   }
   if (review.reason == OdometerCorrectionReason.unresolved) {
@@ -83,9 +87,20 @@ String? _optionalSafeNote(Object? value) {
 String odometerCorrectionReviewPrompt({
   required int currentReading,
   required int candidateReading,
+  int? currentReadingTenths,
+  int? candidateReadingTenths,
 }) {
-  final difference = currentReading - candidateReading;
-  return 'This reading is ${_comma(difference)} miles below your previous entry of ${_comma(currentReading)} miles.';
+  final current = currentReadingTenths ?? currentReading * 10;
+  final candidate = candidateReadingTenths ?? candidateReading * 10;
+  final difference = current - candidate;
+  return 'This reading is ${_formatTenthsIfNeeded(difference)} miles below your previous entry of ${_formatTenthsIfNeeded(current)} miles.';
+}
+
+String _formatTenthsIfNeeded(int tenths) {
+  final whole = tenths ~/ 10;
+  final grouped = _comma(whole);
+  final fraction = tenths % 10;
+  return fraction == 0 ? grouped : '$grouped.$fraction';
 }
 
 String _comma(int value) {
