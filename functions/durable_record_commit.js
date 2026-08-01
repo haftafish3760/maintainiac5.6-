@@ -153,6 +153,7 @@ async function commitDurableRecordBatch(request) {
             schema: 'maintainiac_durable_audit_event_v1',
             recordKey: incoming.recordKey,
             ownerUid: uid,
+            deviceId,
             ordinal,
             event: appendedAuditEvents[auditIndex],
             previousChainSha256,

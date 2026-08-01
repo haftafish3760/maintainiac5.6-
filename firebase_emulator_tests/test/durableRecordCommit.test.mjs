@@ -107,6 +107,7 @@ describe('server committed durable records', () => {
         schema: 'maintainiac_durable_audit_event_v1',
         recordKey: first.data.recordKey,
         ownerUid: identity.uid,
+        deviceId: durableDeviceId,
         ordinal: 1,
         event: '2026-07-22T00:00:00.000Z created record',
         previousChainSha256: emptyAuditChainSha256(),
@@ -253,6 +254,7 @@ describe('server committed durable records', () => {
     const firstEvents = events.slice(0, 250);
     const first = await callFunction('appendDurableAuditPage', identity.token, {
       attemptId: 'durable-audit-page-attempt',
+      deviceId: durableDeviceId,
       organizationId: 'orgCommit',
       recordKey,
       targetEventCount: events.length,
@@ -263,6 +265,7 @@ describe('server committed durable records', () => {
     });
     const replay = await callFunction('appendDurableAuditPage', identity.token, {
       attemptId: 'durable-audit-page-attempt',
+      deviceId: durableDeviceId,
       organizationId: 'orgCommit',
       recordKey,
       targetEventCount: events.length,
@@ -273,6 +276,7 @@ describe('server committed durable records', () => {
     });
     const second = await callFunction('appendDurableAuditPage', identity.token, {
       attemptId: 'durable-audit-page-attempt',
+      deviceId: durableDeviceId,
       organizationId: 'orgCommit',
       recordKey,
       targetEventCount: events.length,

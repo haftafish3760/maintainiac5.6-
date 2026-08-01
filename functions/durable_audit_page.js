@@ -21,6 +21,18 @@ async function appendDurableAuditPage(request) {
   const uid = request.auth?.uid || '';
   const input = parseInput(request.data);
   if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
+  const db = getFirestore();
+  const registeredDevice = await db.doc(
+    `users/${uid}/devices/${input.deviceId}`,
+  ).get();
+  if (registeredDevice.data()?.uid !== uid ||
+      registeredDevice.data()?.deviceId !== input.deviceId ||
+      registeredDevice.data()?.status !== 'active') {
+    throw new HttpsError(
+      'permission-denied',
+      'An active registered device is required for cloud backup.',
+    );
+  }
   const reservation = await reserveHostedSync({
     auth: request.auth,
     data: {
@@ -29,15 +41,16 @@ async function appendDurableAuditPage(request) {
       batchBytes: Buffer.byteLength(JSON.stringify(input), 'utf8'),
     },
   });
-  const db = getFirestore();
   const stage = await db.runTransaction(async (transaction) => {
     const memberRef = db.doc(`orgs/${input.organizationId}/members/${uid}`);
+    const deviceRef = db.doc(`users/${uid}/devices/${input.deviceId}`);
     const rootRef = db.doc(`orgs/${input.organizationId}/records/${input.recordKey}`);
     const stageRef = db.doc(
       `orgs/${input.organizationId}/durableAuditStages/${input.recordKey}`,
     );
-    const [member, root, existing] = await Promise.all([
+    const [member, device, root, existing] = await Promise.all([
       transaction.get(memberRef),
+      transaction.get(deviceRef),
       transaction.get(rootRef),
       transaction.get(stageRef),
     ]);
@@ -45,6 +58,13 @@ async function appendDurableAuditPage(request) {
       throw new HttpsError(
         'permission-denied',
         'An active organization membership is required.',
+      );
+    }
+    if (device.data()?.uid !== uid || device.data()?.deviceId !== input.deviceId ||
+        device.data()?.status !== 'active') {
+      throw new HttpsError(
+        'permission-denied',
+        'The registered device is no longer active.',
       );
     }
     const prior = stageFrom(root.data(), existing.data(), uid, input.recordKey);
@@ -84,6 +104,7 @@ async function appendDurableAuditPage(request) {
           schema: 'maintainiac_durable_audit_event_v1',
           recordKey: input.recordKey,
           ownerUid: uid,
+          deviceId: input.deviceId,
           ordinal,
           event: input.events[index],
           previousChainSha256,
@@ -105,6 +126,7 @@ async function appendDurableAuditPage(request) {
       schema: STAGE_SCHEMA,
       recordKey: input.recordKey,
       ownerUid: uid,
+      lastDeviceId: input.deviceId,
       archivedEventCount,
       chainSha256,
       targetEventCount: input.targetEventCount,
@@ -120,6 +142,7 @@ async function appendDurableAuditPage(request) {
 function parseInput(data) {
   const input = {
     attemptId: String(data?.attemptId || '').trim(),
+    deviceId: String(data?.deviceId || '').trim(),
     organizationId: String(data?.organizationId || '').trim(),
     recordKey: String(data?.recordKey || '').trim(),
     targetEventCount: Number(data?.targetEventCount),
@@ -128,7 +151,8 @@ function parseInput(data) {
     previousChainSha256: String(data?.previousChainSha256 || '').trim(),
     events: data?.events,
   };
-  if (!TOKEN.test(input.attemptId) || !TOKEN.test(input.organizationId) ||
+  if (!TOKEN.test(input.attemptId) || !SHA256.test(input.deviceId) ||
+      !TOKEN.test(input.organizationId) ||
       !SHA256.test(input.recordKey) || !Number.isInteger(input.targetEventCount) ||
       input.targetEventCount < 1 || input.targetEventCount > MAX_AUDIT_EVENTS ||
       !SHA256.test(input.targetChainSha256) ||
