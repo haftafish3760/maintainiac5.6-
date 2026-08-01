@@ -9,6 +9,7 @@ enum VehicleMileageAllocationIngestStatus {
   accepted,
   replacedOlderRevision,
   duplicateRevision,
+  conflictingRevision,
   staleRevision,
   invalidRecord,
 }
@@ -28,13 +29,34 @@ class VehicleMileageAllocationIngestResult {
 }
 
 class VehicleMileageAllocationLedger {
-  VehicleMileageAllocationLedger(
+  factory VehicleMileageAllocationLedger(
     Iterable<VehicleMileageAllocationRecord> records,
-  ) : _recordsBySource = _recordsBySourceFor(records);
+  ) {
+    final selection = _selectionFor(records);
+    return VehicleMileageAllocationLedger._(
+      selection.recordsBySource,
+      selection.conflictedSourceKeys,
+    );
+  }
 
-  VehicleMileageAllocationLedger.empty() : _recordsBySource = const {};
+  VehicleMileageAllocationLedger.empty()
+    : _recordsBySource = const {},
+      _conflictedSourceKeys = const {};
+
+  VehicleMileageAllocationLedger._(
+    Map<String, VehicleMileageAllocationRecord> recordsBySource,
+    Set<String> conflictedSourceKeys,
+  ) : _recordsBySource = Map.unmodifiable(recordsBySource),
+      _conflictedSourceKeys = Set.unmodifiable(conflictedSourceKeys);
 
   final Map<String, VehicleMileageAllocationRecord> _recordsBySource;
+  final Set<String> _conflictedSourceKeys;
+
+  /// Sources with conflicting payloads at the same highest revision.
+  ///
+  /// Their mileage is intentionally excluded until the owning evidence is
+  /// reconciled. Iteration order must never decide confirmed mileage.
+  Set<String> get conflictedSourceKeys => _conflictedSourceKeys;
 
   List<VehicleMileageAllocationRecord> get records {
     final values = _recordsBySource.values.toList(growable: false)
@@ -57,7 +79,9 @@ class VehicleMileageAllocationLedger {
     final existing = _recordsBySource[record.sourceKey];
     if (existing != null && existing.sourceRevision == record.sourceRevision) {
       return VehicleMileageAllocationIngestResult(
-        status: VehicleMileageAllocationIngestStatus.duplicateRevision,
+        status: _sameRecord(existing, record)
+            ? VehicleMileageAllocationIngestStatus.duplicateRevision
+            : VehicleMileageAllocationIngestStatus.conflictingRevision,
         ledger: this,
       );
     }
@@ -71,11 +95,13 @@ class VehicleMileageAllocationLedger {
       _recordsBySource,
     );
     next[record.sourceKey] = record;
+    final nextConflicts = Set<String>.from(_conflictedSourceKeys)
+      ..remove(record.sourceKey);
     return VehicleMileageAllocationIngestResult(
       status: existing == null
           ? VehicleMileageAllocationIngestStatus.accepted
           : VehicleMileageAllocationIngestStatus.replacedOlderRevision,
-      ledger: VehicleMileageAllocationLedger(next.values),
+      ledger: VehicleMileageAllocationLedger._(next, nextConflicts),
     );
   }
 
@@ -123,20 +149,62 @@ class VehicleMileageAllocationLedger {
     );
   }
 
-  static Map<String, VehicleMileageAllocationRecord> _recordsBySourceFor(
+  static _VehicleMileageAllocationSelection _selectionFor(
     Iterable<VehicleMileageAllocationRecord> records,
   ) {
-    final selected = <String, VehicleMileageAllocationRecord>{};
+    final grouped = <String, List<VehicleMileageAllocationRecord>>{};
     for (final record in records) {
       if (!record.isValid) continue;
-      final existing = selected[record.sourceKey];
-      if (existing == null || record.sourceRevision > existing.sourceRevision) {
-        selected[record.sourceKey] = record;
+      grouped.putIfAbsent(record.sourceKey, () => []).add(record);
+    }
+    final selected = <String, VehicleMileageAllocationRecord>{};
+    final conflicts = <String>{};
+    for (final entry in grouped.entries) {
+      final highestRevision = entry.value.fold<int>(
+        -1,
+        (highest, record) =>
+            record.sourceRevision > highest ? record.sourceRevision : highest,
+      );
+      final candidates = entry.value
+          .where((record) => record.sourceRevision == highestRevision)
+          .toList(growable: false);
+      final first = candidates.first;
+      if (candidates.every((record) => _sameRecord(record, first))) {
+        selected[entry.key] = first;
+      } else {
+        conflicts.add(entry.key);
       }
     }
-    return Map.unmodifiable(selected);
+    return _VehicleMileageAllocationSelection(selected, conflicts);
   }
 }
+
+class _VehicleMileageAllocationSelection {
+  const _VehicleMileageAllocationSelection(
+    this.recordsBySource,
+    this.conflictedSourceKeys,
+  );
+
+  final Map<String, VehicleMileageAllocationRecord> recordsBySource;
+  final Set<String> conflictedSourceKeys;
+}
+
+bool _sameRecord(
+  VehicleMileageAllocationRecord left,
+  VehicleMileageAllocationRecord right,
+) =>
+    left.id == right.id &&
+    left.vehicleId == right.vehicleId &&
+    left.sourceType == right.sourceType &&
+    left.sourceId == right.sourceId &&
+    left.sourceRevision == right.sourceRevision &&
+    left.occurredAt == right.occurredAt &&
+    left.confirmedAt == right.confirmedAt &&
+    left.use == right.use &&
+    left.distanceTenths == right.distanceTenths &&
+    left.businessTenths == right.businessTenths &&
+    left.personalTenths == right.personalTenths &&
+    left.unclassifiedTenths == right.unclassifiedTenths;
 
 bool _safeToken(String value) =>
     value.isNotEmpty &&

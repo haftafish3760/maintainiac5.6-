@@ -190,6 +190,15 @@ class VehicleMileageAllocationSummary {
   bool get isComplete => hasMileage && unclassifiedTenths == 0;
   double? get businessPercentOfClassified =>
       classifiedTenths == 0 ? null : businessTenths / classifiedTenths;
+
+  /// Exact confirmed ratio for downstream money calculations.
+  ///
+  /// Consumers retain these integer tenths instead of multiplying a rounded
+  /// display percentage. Null means the period cannot suggest an expense split.
+  int? get expenseBusinessNumeratorTenths => isComplete ? businessTenths : null;
+  int? get expenseClassifiedDenominatorTenths =>
+      isComplete ? classifiedTenths : null;
+
   double? get expenseSuggestedBusinessPercent =>
       isComplete ? businessPercentOfClassified : null;
 

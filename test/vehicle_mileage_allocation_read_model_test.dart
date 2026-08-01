@@ -91,5 +91,7 @@ void main() {
     expect(model.suggestedBusinessPercent, .7);
     expect(model.toMap()['canChangeExpense'], isFalse);
     expect(model.toMap()['requiresExpenseReview'], isTrue);
+    expect(model.toMap()['expenseBusinessNumeratorTenths'], 70);
+    expect(model.toMap()['expenseClassifiedDenominatorTenths'], 100);
   });
 }

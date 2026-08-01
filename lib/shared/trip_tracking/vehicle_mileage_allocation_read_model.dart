@@ -77,6 +77,9 @@ class VehicleMileageAllocationReadModel {
     'until': summary.until.toUtc().toIso8601String(),
     'availability': availability.name,
     'suggestedBusinessPercent': suggestedBusinessPercent,
+    'expenseBusinessNumeratorTenths': summary.expenseBusinessNumeratorTenths,
+    'expenseClassifiedDenominatorTenths':
+        summary.expenseClassifiedDenominatorTenths,
     'businessTenths': summary.businessTenths,
     'personalTenths': summary.personalTenths,
     'unclassifiedTenths': summary.unclassifiedTenths,
