@@ -44,6 +44,35 @@ void main() {
   });
 
   test(
+    'Bluetooth connection without current movement cannot create a candidate',
+    () {
+      final decision = detector.evaluate(
+        enabled: true,
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        hasActiveOrRecoverableSession: false,
+        evaluatedAt: start.add(const Duration(seconds: 30)),
+        observations: List.generate(
+          3,
+          (index) => TripAutomaticStartObservation(
+            recordedAt: start.add(Duration(seconds: index * 15)),
+            speedMetersPerSecond: 0,
+            displacementMeters: 0,
+            horizontalAccuracyMeters: 8,
+            bluetoothVehicleId: 'vehicle_1',
+          ),
+        ),
+      );
+
+      expect(decision.shouldSuggestStart, isFalse);
+      expect(
+        decision.reasonCode,
+        'insufficient_multi_signal_movement_evidence',
+      );
+      expect(decision.suggestedVehicleId, isNull);
+    },
+  );
+
+  test(
     'time-spaced movement plus independent signal creates suggestion only',
     () {
       final decision = detector.evaluate(
