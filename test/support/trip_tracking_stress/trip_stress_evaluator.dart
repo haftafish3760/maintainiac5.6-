@@ -257,6 +257,7 @@ final class TripStressEvaluator {
       hasActiveOrRecoverableSession:
           scenario.hasActiveSession || scenario.hasUnfinishedSession,
       observations: observations,
+      evaluatedAt: start.add(const Duration(seconds: 30)),
       acceptedFreeUsesInPeriod: scenario.variant % 6,
     );
     final freeAllowanceExhausted =
