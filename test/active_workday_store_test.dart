@@ -1130,6 +1130,68 @@ void main() {
     },
   );
 
+  test(
+    'same-whole lower tenth review preserves exact evidence and stays active',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      await store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: 125000,
+        startOdometerTenths: 1250007,
+        startedAt: DateTime(2026, 6, 12, 8),
+      );
+
+      final reviewed = await store.requestOdometerReview(
+        enteredOdometer: 125000,
+        enteredOdometerTenths: 1250005,
+        reason: OdometerCorrectionReason.typedWrong,
+        createdAt: DateTime(2026, 6, 12, 10),
+      );
+      final repeated = await store.requestOdometerReview(
+        enteredOdometer: 125000,
+        enteredOdometerTenths: 1250005,
+        reason: OdometerCorrectionReason.typedWrong,
+        createdAt: DateTime(2026, 6, 12, 10, 1),
+      );
+
+      expect(reviewed?.status, ActiveWorkdayStatus.active);
+      expect(reviewed?.endOdometer, isNull);
+      expect(repeated?.odometerReviews, hasLength(1));
+      final review = repeated!.odometerReviews.single;
+      expect(review.effectiveStartingOdometerTenths, 1250007);
+      expect(review.effectiveEnteredOdometerTenths, 1250005);
+      expect(review.differenceTenths, 2);
+
+      final recovered = ActiveWorkdaySessionRecord.fromMap(repeated.toMap());
+      expect(recovered.hasValidIdentity, isTrue);
+      expect(recovered.effectiveStartOdometerTenths, 1250007);
+      expect(
+        recovered.currentContextSegment.effectiveStartOdometerTenths,
+        1250007,
+      );
+      expect(recovered.odometerReviews.single.differenceTenths, 2);
+    },
+  );
+
+  test('malformed exact starting tenth evidence fails identity closed', () {
+    final startedAt = DateTime(2026, 6, 12, 8);
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'workday-malformed-tenths',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': startedAt.toIso8601String(),
+      'startOdometer': 125000,
+      'startOdometerTenths': 1250017,
+      'status': 'active',
+      'events': const [],
+    });
+
+    expect(restored.hasValidIdentity, isFalse);
+  });
+
   test('lower End Day review survives local recovery', () async {
     final store = await ActiveWorkdayController.create();
     await store.startDay(

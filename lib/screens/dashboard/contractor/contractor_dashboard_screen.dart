@@ -188,14 +188,16 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
         context,
       ).activeWorkProfile;
       var confirmedStartOdometer = odometer.confirmedReading;
+      var confirmedStartOdometerTenths = odometer.confirmedReadingTenths;
       while (mounted) {
-        final savedReading = await openOdometerEntryResult(
+        final savedReading = await openOdometerExactEntryResult(
           context,
           title: 'Starting Odometer',
           saveLabel: 'Review Start Day',
         );
         if (savedReading == null || !mounted) return;
-        confirmedStartOdometer = savedReading;
+        confirmedStartOdometer = savedReading.wholeReading;
+        confirmedStartOdometerTenths = savedReading.readingTenths;
         final action = await openStartDayConfirmationSheet(
           context,
           vehicleLabel: activeVehicle.nickname,
@@ -212,6 +214,7 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
         vehicleLabel: activeVehicle.nickname,
         workProfileId: activeWorkProfile.id,
         startOdometer: confirmedStartOdometer,
+        startOdometerTenths: confirmedStartOdometerTenths,
       );
       if (!mounted) return;
       _openActiveWorkday();

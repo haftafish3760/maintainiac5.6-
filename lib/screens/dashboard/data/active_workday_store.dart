@@ -116,12 +116,14 @@ class ActiveWorkdaySessionRecord {
     required this.workProfileId,
     required this.startedAt,
     required this.startOdometer,
+    this.startOdometerTenths,
     required this.status,
     required this.events,
     this.contextSegments = const [],
     this.odometerReviews = const [],
     this.endedAt,
     this.endOdometer,
+    this.endOdometerTenths,
     this.hasValidIdentity = true,
   });
 
@@ -131,16 +133,23 @@ class ActiveWorkdaySessionRecord {
   final String workProfileId;
   final DateTime startedAt;
   final int startOdometer;
+  final int? startOdometerTenths;
   final ActiveWorkdayStatus status;
   final List<ActiveWorkdayEvent> events;
   final List<ActiveWorkdayContextSegment> contextSegments;
   final List<ActiveWorkdayOdometerReview> odometerReviews;
   final DateTime? endedAt;
   final int? endOdometer;
+  final int? endOdometerTenths;
   final bool hasValidIdentity;
 
   bool get isActive => status != ActiveWorkdayStatus.ended;
   bool get isPaused => status == ActiveWorkdayStatus.paused;
+  int get effectiveStartOdometerTenths =>
+      startOdometerTenths ?? startOdometer * 10;
+  int? get effectiveEndOdometerTenths => endOdometer == null
+      ? endOdometerTenths
+      : endOdometerTenths ?? endOdometer! * 10;
 
   /// Legacy sessions resolve to one immutable segment until they are saved
   /// again. This preserves their original vehicle/profile attribution.
@@ -154,8 +163,12 @@ class ActiveWorkdaySessionRecord {
         workProfileId: workProfileId,
         startedAt: startedAt,
         startOdometer: startOdometer,
+        startOdometerTenths: startOdometerTenths,
         endedAt: status == ActiveWorkdayStatus.ended ? endedAt : null,
         endOdometer: status == ActiveWorkdayStatus.ended ? endOdometer : null,
+        endOdometerTenths: status == ActiveWorkdayStatus.ended
+            ? endOdometerTenths
+            : null,
       ),
     ]);
   }
@@ -232,14 +245,17 @@ class ActiveWorkdaySessionRecord {
     String? workProfileId,
     DateTime? startedAt,
     int? startOdometer,
+    int? startOdometerTenths,
     ActiveWorkdayStatus? status,
     List<ActiveWorkdayEvent>? events,
     List<ActiveWorkdayContextSegment>? contextSegments,
     List<ActiveWorkdayOdometerReview>? odometerReviews,
     DateTime? endedAt,
     int? endOdometer,
+    int? endOdometerTenths,
     bool clearEndedAt = false,
     bool clearEndOdometer = false,
+    bool clearEndOdometerTenths = false,
   }) {
     return ActiveWorkdaySessionRecord(
       id: _safeText(id ?? this.id, fallback: _newId('workday'), maxLength: 160),
@@ -260,12 +276,16 @@ class ActiveWorkdaySessionRecord {
       ),
       startedAt: startedAt ?? this.startedAt,
       startOdometer: startOdometer ?? this.startOdometer,
+      startOdometerTenths: startOdometerTenths ?? this.startOdometerTenths,
       status: status ?? this.status,
       events: events ?? this.events,
       contextSegments: contextSegments ?? this.contextSegments,
       odometerReviews: odometerReviews ?? this.odometerReviews,
       endedAt: clearEndedAt ? null : endedAt ?? this.endedAt,
       endOdometer: clearEndOdometer ? null : endOdometer ?? this.endOdometer,
+      endOdometerTenths: clearEndOdometerTenths
+          ? null
+          : endOdometerTenths ?? this.endOdometerTenths,
       hasValidIdentity: hasValidIdentity,
     );
   }
@@ -290,6 +310,8 @@ class ActiveWorkdaySessionRecord {
       ),
       'startedAt': startedAt.toIso8601String(),
       'startOdometer': _safeOdometer(startOdometer) ?? 0,
+      if (startOdometerTenths != null)
+        'startOdometerTenths': startOdometerTenths,
       'status': status.name,
       'events': events.map((event) => event.toMap()).toList(),
       'contextSegments': resolvedContextSegments
@@ -300,6 +322,7 @@ class ActiveWorkdaySessionRecord {
           .toList(growable: false),
       'endedAt': endedAt?.toIso8601String(),
       'endOdometer': _safeOdometer(endOdometer),
+      if (endOdometerTenths != null) 'endOdometerTenths': endOdometerTenths,
     };
   }
 
@@ -353,14 +376,20 @@ class ActiveWorkdaySessionRecord {
           }
           final parsed = ActiveWorkdayOdometerReview.fromMap(review);
           if (parsed.id == 'invalid-review' ||
-              parsed.enteredOdometer >= parsed.startingOdometer) {
+              parsed.effectiveEnteredOdometerTenths >=
+                  parsed.effectiveStartingOdometerTenths ||
+              parsed.effectiveStartingOdometerTenths ~/ 10 !=
+                  parsed.startingOdometer ||
+              parsed.effectiveEnteredOdometerTenths ~/ 10 !=
+                  parsed.enteredOdometer) {
             hasInvalidOdometerReview = true;
             continue;
           }
           final duplicate = parsedOdometerReviews.any(
             (existing) =>
                 existing.startingOdometer == parsed.startingOdometer &&
-                existing.enteredOdometer == parsed.enteredOdometer &&
+                existing.effectiveEnteredOdometerTenths ==
+                    parsed.effectiveEnteredOdometerTenths &&
                 existing.reason == parsed.reason,
           );
           // Older interrupted writes may contain the same unresolved review
@@ -375,6 +404,9 @@ class ActiveWorkdaySessionRecord {
         DateTime.tryParse(_stringValue(map['startedAt']) ?? '') ??
         _fallbackWorkdayTimestamp();
     final startOdometer = _safeOdometer(map['startOdometer']) ?? 0;
+    final rawStartOdometerTenths = map['startOdometerTenths'];
+    final startOdometerTenths = _safeOdometerTenths(rawStartOdometerTenths);
+    final effectiveStartTenths = startOdometerTenths ?? startOdometer * 10;
     final events = _coherentWorkdayEvents(
       parsedEvents,
       startedAt: startedAt,
@@ -382,6 +414,11 @@ class ActiveWorkdaySessionRecord {
       contextSegments: parsedContextSegments,
     );
     final endOdometer = _safeOdometer(map['endOdometer']);
+    final rawEndOdometerTenths = map['endOdometerTenths'];
+    final endOdometerTenths = _safeOdometerTenths(rawEndOdometerTenths);
+    final effectiveEndTenths = endOdometer == null
+        ? endOdometerTenths
+        : endOdometerTenths ?? endOdometer * 10;
     final endedAt = DateTime.tryParse(_stringValue(map['endedAt']) ?? '');
     final rawStatus = _stringValue(map['status']);
     final status = _statusFromName(rawStatus);
@@ -393,7 +430,10 @@ class ActiveWorkdaySessionRecord {
         endedAt != null &&
         !endedAt.isBefore(startedAt) &&
         endOdometer != null &&
-        endOdometer >= (_safeOdometer(map['startOdometer']) ?? 0) &&
+        effectiveEndTenths != null &&
+        effectiveStartTenths ~/ 10 == startOdometer &&
+        effectiveEndTenths ~/ 10 == endOdometer &&
+        effectiveEndTenths >= effectiveStartTenths &&
         hasEndedEvent &&
         events.every(
           (event) =>
@@ -413,6 +453,7 @@ class ActiveWorkdaySessionRecord {
         finalContext != null &&
         finalContext.endedAt!.isAtSameMomentAs(endedAt) &&
         finalContext.endOdometer == endOdometer &&
+        finalContext.effectiveEndOdometerTenths == effectiveEndTenths &&
         hasEndedEvent &&
         events.every((event) => !event.occurredAt.isAfter(endedAt));
     final hasCoherentEndedState = parsedContextSegments.isEmpty
@@ -443,12 +484,14 @@ class ActiveWorkdaySessionRecord {
       ),
       startedAt: startedAt,
       startOdometer: startOdometer,
+      startOdometerTenths: startOdometerTenths,
       status: recoveredStatus,
       events: events,
       contextSegments: parsedContextSegments,
       odometerReviews: parsedOdometerReviews,
       endedAt: hasCoherentEndedState ? endedAt : null,
       endOdometer: hasCoherentEndedState ? endOdometer : null,
+      endOdometerTenths: hasCoherentEndedState ? endOdometerTenths : null,
       hasValidIdentity:
           _isSafeActiveWorkdayIdValue(rawId) &&
           _isSafeActiveWorkdayIdValue(rawVehicleId) &&
@@ -456,6 +499,9 @@ class ActiveWorkdaySessionRecord {
           _hasKnownStatusName(rawStatus) &&
           !hasInvalidContextSegment &&
           !hasInvalidOdometerReview &&
+          (rawStartOdometerTenths == null || startOdometerTenths != null) &&
+          (rawEndOdometerTenths == null || endOdometerTenths != null) &&
+          effectiveStartTenths ~/ 10 == startOdometer &&
           _hasCoherentContextSegmentLifecycle(
             parsedContextSegments,
             status: recoveredStatus,
@@ -613,11 +659,15 @@ class ActiveWorkdayController extends ChangeNotifier {
     required String vehicleLabel,
     required String workProfileId,
     required int startOdometer,
+    int? startOdometerTenths,
     DateTime? startedAt,
   }) => _enqueue(() async {
     final existing = activeSession;
     if (existing != null) return existing;
-    if (startOdometer < 0) {
+    final exactStartTenths = startOdometerTenths ?? startOdometer * 10;
+    if (startOdometer < 0 ||
+        exactStartTenths < 0 ||
+        exactStartTenths ~/ 10 != startOdometer) {
       throw ArgumentError.value(
         startOdometer,
         'startOdometer',
@@ -641,6 +691,7 @@ class ActiveWorkdayController extends ChangeNotifier {
       workProfileId: workProfileId,
       startedAt: now,
       startOdometer: startOdometer,
+      startOdometerTenths: exactStartTenths,
     );
     final startedEvent = ActiveWorkdayEvent(
       id: _newId('event'),
@@ -657,6 +708,7 @@ class ActiveWorkdayController extends ChangeNotifier {
       workProfileId: workProfileId,
       startedAt: now,
       startOdometer: startOdometer,
+      startOdometerTenths: exactStartTenths,
       status: ActiveWorkdayStatus.active,
       events: [startedEvent],
       contextSegments: [initialContext],
@@ -768,6 +820,7 @@ class ActiveWorkdayController extends ChangeNotifier {
   /// or changing canonical odometer history.
   Future<ActiveWorkdaySessionRecord?> requestOdometerReview({
     required int enteredOdometer,
+    int? enteredOdometerTenths,
     required OdometerCorrectionReason reason,
     DateTime? createdAt,
   }) => _enqueue(() async {
@@ -775,8 +828,13 @@ class ActiveWorkdayController extends ChangeNotifier {
     if (session == null || session.status == ActiveWorkdayStatus.ended) {
       return null;
     }
-    final startingOdometer = session.currentContextSegment.startOdometer;
-    if (enteredOdometer < 0 || enteredOdometer >= startingOdometer) {
+    final context = session.currentContextSegment;
+    final startingOdometer = context.startOdometer;
+    final startingOdometerTenths = context.effectiveStartOdometerTenths;
+    final exactEnteredTenths = enteredOdometerTenths ?? enteredOdometer * 10;
+    if (enteredOdometer < 0 ||
+        exactEnteredTenths ~/ 10 != enteredOdometer ||
+        exactEnteredTenths >= startingOdometerTenths) {
       throw ArgumentError.value(
         enteredOdometer,
         'enteredOdometer',
@@ -796,7 +854,7 @@ class ActiveWorkdayController extends ChangeNotifier {
     final duplicate = session.odometerReviews.any(
       (review) =>
           review.startingOdometer == startingOdometer &&
-          review.enteredOdometer == enteredOdometer &&
+          review.effectiveEnteredOdometerTenths == exactEnteredTenths &&
           review.reason == reason,
     );
     // Reopening the End Day sheet or receiving a repeated callback must not
@@ -806,7 +864,9 @@ class ActiveWorkdayController extends ChangeNotifier {
       id: _newId('odometer_review'),
       createdAt: created,
       startingOdometer: startingOdometer,
+      startingOdometerTenths: startingOdometerTenths,
       enteredOdometer: enteredOdometer,
+      enteredOdometerTenths: exactEnteredTenths,
       reason: reason,
     );
     final updated = session.copyWith(
@@ -1079,6 +1139,14 @@ int? _safeOdometer(Object? value) {
   if (value is! num || !value.isFinite) return null;
   final rounded = value.round();
   return rounded < 0 ? 0 : rounded;
+}
+
+int? _safeOdometerTenths(Object? value) {
+  if (value is int && value >= 0) return value;
+  if (value is num && value.isFinite && value == value.round() && value >= 0) {
+    return value.toInt();
+  }
+  return null;
 }
 
 bool _isUnreasonablyFutureWorkdayTime(DateTime value) {

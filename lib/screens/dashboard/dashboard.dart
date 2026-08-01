@@ -12,6 +12,7 @@ import 'vehicle_profile_widgets.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/context/operational_context_store.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
+import '../../shared/odometer/odometer_distance_value.dart';
 import '../../shared/odometer/odometer_vehicle_snapshot.dart';
 import '../../shared/state/app_state.dart';
 import '../../shared/state/global_odometer.dart';
@@ -309,18 +310,18 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       );
     }
     if (!mounted) return;
-    int? confirmedStartOdometer;
+    OdometerExactEntryResult? confirmedStartReading;
     var startGpsWhenOpened = false;
     // The first GPS choice is part of Start Day, not an afterthought. Do not
     // create a workday until the user finishes it; Back must return here.
     while (mounted) {
-      confirmedStartOdometer = await openOdometerEntryResult(
+      confirmedStartReading = await openOdometerExactEntryResult(
         context,
         title: 'Enter Current Odometer',
         saveLabel: 'Continue',
         autofocus: false,
       );
-      if (!mounted || confirmedStartOdometer == null) return;
+      if (!mounted || confirmedStartReading == null) return;
       final settingsController = TripTrackingSettingsScope.maybeOf(context);
       final settings = settingsController?.settings;
       if (settingsController == null || settings == null) break;
@@ -339,13 +340,14 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
       }
       break;
     }
-    if (!mounted || confirmedStartOdometer == null) return;
+    if (!mounted || confirmedStartReading == null) return;
     if (!mounted) return;
     await activeWorkday.startDay(
       vehicleId: odometer.vehicleId,
       vehicleLabel: selectedVehicle.nickname,
       workProfileId: selectedWorkProfile.id,
-      startOdometer: confirmedStartOdometer,
+      startOdometer: confirmedStartReading.wholeReading,
+      startOdometerTenths: confirmedStartReading.readingTenths,
     );
     if (!mounted) return;
     _openActiveWorkday(

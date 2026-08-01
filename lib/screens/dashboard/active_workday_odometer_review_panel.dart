@@ -118,6 +118,12 @@ Future<void> showActiveWorkdayOdometerReviews(
   );
 }
 
+String _formatReviewTenths(int tenths) {
+  final whole = tenths ~/ 10;
+  final fraction = tenths % 10;
+  return fraction == 0 ? '$whole' : '$whole.$fraction';
+}
+
 class _ReviewRow extends StatelessWidget {
   const _ReviewRow(this.review);
 
@@ -144,7 +150,7 @@ class _ReviewRow extends StatelessWidget {
         ),
         const SizedBox(height: 3),
         Text(
-          'Entered ${review.enteredOdometer} mi · active start ${review.startingOdometer} mi · ${review.differenceMiles} mi difference',
+          'Entered ${_formatReviewTenths(review.effectiveEnteredOdometerTenths)} mi · active start ${_formatReviewTenths(review.effectiveStartingOdometerTenths)} mi · ${_formatReviewTenths(review.differenceTenths)} mi difference',
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 12,
