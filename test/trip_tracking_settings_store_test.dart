@@ -10,6 +10,7 @@ void main() {
 
       expect(settings.tripTrackingSetupCompleted, isFalse);
       expect(settings.gpsAssistedTrackingEnabled, isFalse);
+      expect(settings.vehicleMileageAllocationEnabled, isFalse);
       expect(
         settings.samplingPreset,
         TripTrackingSamplingPreset.enhancedAccuracy,
@@ -45,6 +46,29 @@ void main() {
     expect(restored.tripTrackingSetupCompleted, isTrue);
     expect(restored.gpsAssistedTrackingEnabled, isFalse);
   });
+
+  test(
+    'vehicle-use allocation requires explicit opt-in and survives a map',
+    () {
+      final enabled = const TripTrackingSettings().copyWith(
+        vehicleMileageAllocationEnabled: true,
+      );
+
+      final restored = TripTrackingSettings.fromMap(enabled.toMap());
+
+      expect(restored.vehicleMileageAllocationEnabled, isTrue);
+      expect(restored.gpsAssistedTrackingEnabled, isFalse);
+      expect(
+        restored.toSafeDashboardMap(),
+        containsPair('vehicleMileageAllocationRequiresExplicitOptIn', true),
+      );
+      expect(
+        restored
+            .toSafeDashboardMap()['vehicleMileageAllocationCanChangeExpenses'],
+        isFalse,
+      );
+    },
+  );
 
   test('automatic start assistance requires GPS opt-in', () {
     const settings = TripTrackingSettings();

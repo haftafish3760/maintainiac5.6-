@@ -96,6 +96,7 @@ void main() {
     expect(find.text('BATTERY PROTECTION'), findsOneWidget);
     expect(find.text('TRACKING BEHAVIOR AND STOPS'), findsOneWidget);
     expect(find.text('ODOMETER REVIEW AND CALIBRATION'), findsOneWidget);
+    expect(find.text('VEHICLE-USE ALLOCATION'), findsOneWidget);
     expect(find.text('Enable GPS-assisted tracking'), findsOneWidget);
     expect(
       find.text('Share reviewed mileage summaries with organization'),
@@ -111,6 +112,11 @@ void main() {
     expect(find.text('Profile-specific stop detection'), findsOneWidget);
     expect(find.text('Odometer anomaly alerts'), findsOneWidget);
     expect(find.text('Odometer calibration assist'), findsOneWidget);
+    expect(find.text('Calculate vehicle-use percentages'), findsOneWidget);
+    expect(
+      find.textContaining('does not enable GPS, track your location'),
+      findsOneWidget,
+    );
     expect(
       find.textContaining('review and accept current local evidence'),
       findsNothing,
@@ -139,6 +145,7 @@ void main() {
     expect(settings.settings.gpsAssistedTrackingEnabled, isFalse);
     expect(settings.settings.mapPreviewEnabled, isFalse);
     expect(settings.settings.mapRouteHistorySavingEnabled, isFalse);
+    expect(settings.settings.vehicleMileageAllocationEnabled, isFalse);
     await tester.ensureVisible(find.text('Show optional maps'));
     await tester.pump();
     final disabledMapRow = find

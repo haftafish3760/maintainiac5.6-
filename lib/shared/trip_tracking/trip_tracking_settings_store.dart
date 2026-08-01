@@ -53,6 +53,7 @@ class TripTrackingSettings {
     this.lowBatteryGpsWarningDismissed = false,
     this.odometerAnomalyAlertsEnabled = false,
     this.gpsOdometerCalibrationAssistEnabled = false,
+    this.vehicleMileageAllocationEnabled = false,
     this.mapPreviewEnabled = false,
     this.mapRouteHistorySavingEnabled = false,
     this.mapRouteHistoryDailyBudgetMb = 0,
@@ -61,7 +62,7 @@ class TripTrackingSettings {
         TripTrackingBackupNetworkPolicy.wifiAndMobileData,
   });
 
-  static const schemaVersion = 2;
+  static const schemaVersion = 3;
 
   final bool tripTrackingSetupCompleted;
   final bool gpsAssistedTrackingEnabled;
@@ -81,6 +82,11 @@ class TripTrackingSettings {
   final bool lowBatteryGpsWarningDismissed;
   final bool odometerAnomalyAlertsEnabled;
   final bool gpsOdometerCalibrationAssistEnabled;
+
+  /// Explicit, local consent to derive vehicle-use percentages from already
+  /// confirmed mileage classifications. This never enables GPS or changes an
+  /// Expense record; the allocation bucket remains the authoritative owner.
+  final bool vehicleMileageAllocationEnabled;
   final bool mapPreviewEnabled;
   final bool mapRouteHistorySavingEnabled;
   final double mapRouteHistoryDailyBudgetMb;
@@ -106,6 +112,7 @@ class TripTrackingSettings {
     bool? lowBatteryGpsWarningDismissed,
     bool? odometerAnomalyAlertsEnabled,
     bool? gpsOdometerCalibrationAssistEnabled,
+    bool? vehicleMileageAllocationEnabled,
     bool? mapPreviewEnabled,
     bool? mapRouteHistorySavingEnabled,
     double? mapRouteHistoryDailyBudgetMb,
@@ -165,6 +172,9 @@ class TripTrackingSettings {
           odometerAlerts &&
           (gpsOdometerCalibrationAssistEnabled ??
               this.gpsOdometerCalibrationAssistEnabled),
+      vehicleMileageAllocationEnabled:
+          vehicleMileageAllocationEnabled ??
+          this.vehicleMileageAllocationEnabled,
       mapPreviewEnabled:
           gpsEnabled && (mapPreviewEnabled ?? this.mapPreviewEnabled),
       mapRouteHistorySavingEnabled:
@@ -207,6 +217,7 @@ class TripTrackingSettings {
     'lowBatteryGpsWarningDismissed': lowBatteryGpsWarningDismissed,
     'odometerAnomalyAlertsEnabled': odometerAnomalyAlertsEnabled,
     'gpsOdometerCalibrationAssistEnabled': gpsOdometerCalibrationAssistEnabled,
+    'vehicleMileageAllocationEnabled': vehicleMileageAllocationEnabled,
     'mapPreviewEnabled': mapPreviewEnabled,
     'mapRouteHistorySavingEnabled': mapRouteHistorySavingEnabled,
     'mapRouteHistoryDailyBudgetMb': _validMapDailyBudgetMb(
@@ -247,6 +258,10 @@ class TripTrackingSettings {
       'odometerAnomalyAlertsEnabled': safe.odometerAnomalyAlertsEnabled,
       'gpsOdometerCalibrationAssistEnabled':
           safe.gpsOdometerCalibrationAssistEnabled,
+      'vehicleMileageAllocationEnabled': safe.vehicleMileageAllocationEnabled,
+      'vehicleMileageAllocationRequiresExplicitOptIn': true,
+      'vehicleMileageAllocationCanChangeExpenses': false,
+      'vehicleMileageAllocationUsesOnlyConfirmedMileage': true,
       'gpsOdometerCalibrationRequiresUserOptIn': true,
       'gpsOdometerCalibrationCanOverwriteConfirmedOdometer': false,
       'odometerIsGlobalTruth': true,
@@ -329,6 +344,8 @@ class TripTrackingSettings {
       odometerAnomalyAlertsEnabled: odometerAlerts,
       gpsOdometerCalibrationAssistEnabled:
           odometerAlerts && map['gpsOdometerCalibrationAssistEnabled'] == true,
+      vehicleMileageAllocationEnabled:
+          map['vehicleMileageAllocationEnabled'] == true,
       mapPreviewEnabled: gpsEnabled && map['mapPreviewEnabled'] == true,
       mapRouteHistorySavingEnabled:
           gpsEnabled &&

@@ -291,6 +291,21 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             const SizedBox(height: 8),
             _CalibrationAcceptancePanel(tripTracking: tripTracking!),
           ],
+          const _SettingsSectionTitle('Vehicle-use allocation'),
+          _switch(
+            title: 'Calculate vehicle-use percentages',
+            detail:
+                'Optional and local. Uses only mileage you have already confirmed as business, personal, or split to prepare a vehicle-use percentage. It does not enable GPS, track your location, change an expense, or send data automatically.',
+            value: settings.vehicleMileageAllocationEnabled,
+            onChanged: (value) => onChanged(
+              settings.copyWith(vehicleMileageAllocationEnabled: value),
+            ),
+          ),
+          _settingsNotice(
+            title: 'You remain in control',
+            detail:
+                'Expense categories may read this percentage later for a suggested split, but you review and confirm every expense. Unclassified mileage is never represented as business or personal.',
+          ),
           const _SettingsSectionTitle('Vehicle recognition'),
           _bluetoothStatus(context),
           _bluetoothLinkPanel(context),
