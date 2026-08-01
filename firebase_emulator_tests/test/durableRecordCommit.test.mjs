@@ -56,6 +56,8 @@ describe('server committed durable records', () => {
     const identity = await createIdentity();
     await seedHostedAccount(identity.uid);
     const first = durableDocument(identity.uid, 'settings-a', 1, 'dark');
+    first.data.auditEvents = ['2026-07-22T00:00:00.000Z created record'];
+    first.data.contentSha256 = contentHash(first.data);
     const input = {attemptId: 'durable-attempt-a', documents: [first]};
 
     const committed = await callFunction(
@@ -88,6 +90,18 @@ describe('server committed durable records', () => {
         Buffer.byteLength(JSON.stringify(first.data), 'utf8'),
       );
       assert.equal(manifest.data()?.manifestRevision, 1);
+      const audit = await getDoc(doc(
+        context.firestore(),
+        `orgs/orgCommit/auditEvents/${first.data.recordKey}_000000000001`,
+      ));
+      assert.deepEqual(audit.data(), {
+        schema: 'maintainiac_durable_audit_event_v1',
+        recordKey: first.data.recordKey,
+        ownerUid: identity.uid,
+        ordinal: 1,
+        event: '2026-07-22T00:00:00.000Z created record',
+        createdAt: '2026-07-22T00:00:00.000Z',
+      });
     });
   });
 

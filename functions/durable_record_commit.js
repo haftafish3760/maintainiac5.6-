@@ -12,6 +12,7 @@ const MAX_DOCUMENT_BYTES = 768 * 1024;
 const MAX_BATCH_BYTES = 2 * 1024 * 1024;
 const MAX_VALUE_DEPTH = 32;
 const MAX_VALUE_COUNT = 100000;
+const MAX_AUDIT_ARCHIVE_WRITES = 250;
 const REQUIRED_KEYS = new Set([
   'schema', 'recordKey', 'module', 'localRecordId', 'accountScopeId',
   'recordSchemaVersion', 'contentSha256', 'privateToOwner', 'orgId',
@@ -80,6 +81,7 @@ async function commitDurableRecordBatch(request) {
     }
     const existing = snapshots.slice(2);
     let writes = 0;
+    let auditArchiveWrites = 0;
     let recordCountDelta = 0;
     let structuredBytesDelta = 0;
     for (let index = 0; index < validated.documents.length; index += 1) {
@@ -98,6 +100,39 @@ async function commitDurableRecordBatch(request) {
       }
       structuredBytesDelta += encodedBytes(incoming);
       transaction.set(references[index], incoming, {merge: false});
+      const priorAuditEvents = current?.auditEvents || [];
+      validateAuditAppendOnly(priorAuditEvents, incoming.auditEvents);
+      const appendedAuditEvents = incoming.auditEvents.slice(
+        priorAuditEvents.length,
+      );
+      auditArchiveWrites += appendedAuditEvents.length;
+      if (auditArchiveWrites > MAX_AUDIT_ARCHIVE_WRITES) {
+        throw new HttpsError(
+          'resource-exhausted',
+          'Audit evidence requires a bounded follow-up sync.',
+        );
+      }
+      for (let auditIndex = 0; auditIndex < appendedAuditEvents.length;
+        auditIndex += 1) {
+        const ordinal = priorAuditEvents.length + auditIndex + 1;
+        transaction.create(
+          db.doc(
+            `orgs/${validated.organizationId}/auditEvents/` +
+            `${incoming.recordKey}_${String(ordinal).padStart(12, '0')}`,
+          ),
+          {
+            schema: 'maintainiac_durable_audit_event_v1',
+            recordKey: incoming.recordKey,
+            ownerUid: uid,
+            ordinal,
+            event: appendedAuditEvents[auditIndex],
+            createdAt: auditOccurredAt(
+              appendedAuditEvents[auditIndex],
+              incoming.updatedAt,
+            ),
+          },
+        );
+      }
       writes += 1;
     }
     if (writes > 0) {
@@ -234,6 +269,22 @@ function validAuditEvents(value) {
   return Array.isArray(value) && value.length <= 2000 &&
     value.every((event) => typeof event === 'string' &&
       event.trim().length >= 1 && event.length <= 512);
+}
+
+function validateAuditAppendOnly(previous, incoming) {
+  if (!Array.isArray(previous) || previous.length > incoming.length ||
+      previous.some((event, index) => event !== incoming[index])) {
+    throw new HttpsError(
+      'failed-precondition',
+      'Durable audit history cannot be rewritten.',
+      {reason: 'audit_history_conflict'},
+    );
+  }
+}
+
+function auditOccurredAt(event, fallback) {
+  const timestamp = String(event).slice(0, 24);
+  return validDate(timestamp) ? timestamp : fallback;
 }
 
 function validPortableValue(root) {
