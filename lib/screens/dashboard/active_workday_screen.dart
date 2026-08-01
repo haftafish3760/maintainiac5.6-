@@ -11,6 +11,7 @@ import '../../shared/context/operational_context_models.dart';
 import '../../shared/context/operational_context_store.dart';
 import '../../shared/navigation/app_page_routes.dart';
 import '../../shared/odometer/open_odometer_entry.dart';
+import '../../shared/odometer/odometer_distance_value.dart';
 import '../../shared/odometer/odometer_correction_review.dart';
 import '../../shared/odometer/odometer_entry_sheet.dart'
     show OdometerMinimumReadingReviewHandler;
@@ -322,6 +323,9 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
           minimumReading: ActiveWorkdayScope.of(
             context,
           ).activeSession?.startOdometer,
+          minimumReadingTenths: ActiveWorkdayScope.of(
+            context,
+          ).activeSession?.currentContextSegment.effectiveStartOdometerTenths,
           minimumReadingMessage:
               'Your workday stays open until this lower reading is reviewed.',
           onMinimumReadingReview: _recordEndDayOdometerReview,
@@ -463,37 +467,43 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     required String saveLabel,
     required ActiveWorkdayEventType type,
     int? minimumReading,
+    int? minimumReadingTenths,
     String? minimumReadingMessage,
     OdometerMinimumReadingReviewHandler? onMinimumReadingReview,
   }) async {
-    final reading = await _recordOdometerReading(
+    final reading = await _recordOdometerExactReading(
       title: title,
       saveLabel: saveLabel,
       minimumReading: minimumReading,
+      minimumReadingTenths: minimumReadingTenths,
       minimumReadingMessage: minimumReadingMessage,
       onMinimumReadingReview: onMinimumReadingReview,
     );
     if (!mounted) return false;
     if (reading != null) {
-      await ActiveWorkdayScope.of(
-        context,
-      ).addEvent(type: type, odometerReading: reading);
+      await ActiveWorkdayScope.of(context).addEvent(
+        type: type,
+        odometerReading: reading.wholeReading,
+        odometerReadingTenths: reading.readingTenths,
+      );
     }
     return reading != null;
   }
 
-  Future<int?> _recordOdometerReading({
+  Future<OdometerExactEntryResult?> _recordOdometerExactReading({
     required String title,
     required String saveLabel,
     int? minimumReading,
+    int? minimumReadingTenths,
     String? minimumReadingMessage,
     OdometerMinimumReadingReviewHandler? onMinimumReadingReview,
   }) {
-    return openOdometerEntryResult(
+    return openOdometerExactEntryResult(
       context,
       title: title,
       saveLabel: saveLabel,
       minimumReading: minimumReading,
+      minimumReadingTenths: minimumReadingTenths,
       minimumReadingMessage: minimumReadingMessage,
       onMinimumReadingReview: onMinimumReadingReview,
     );
@@ -501,10 +511,12 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
 
   Future<bool> _recordEndDayOdometerReview({
     required int enteredOdometer,
+    int? enteredOdometerTenths,
     required OdometerCorrectionReview review,
   }) async {
     final saved = await ActiveWorkdayScope.of(context).requestOdometerReview(
       enteredOdometer: enteredOdometer,
+      enteredOdometerTenths: enteredOdometerTenths,
       reason: review.reason,
     );
     if (saved == null || !mounted) return false;

@@ -1192,6 +1192,48 @@ void main() {
     expect(restored.hasValidIdentity, isFalse);
   });
 
+  test(
+    'same-whole events retain exact ordering across local recovery',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      await store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: 125000,
+        startOdometerTenths: 1250007,
+        startedAt: DateTime(2026, 6, 12, 8),
+      );
+      await store.addEvent(
+        type: ActiveWorkdayEventType.paused,
+        odometerReading: 125000,
+        odometerReadingTenths: 1250009,
+        occurredAt: DateTime(2026, 6, 12, 9),
+      );
+
+      await expectLater(
+        store.addEvent(
+          type: ActiveWorkdayEventType.resumed,
+          odometerReading: 125000,
+          odometerReadingTenths: 1250008,
+          occurredAt: DateTime(2026, 6, 12, 9, 1),
+        ),
+        throwsArgumentError,
+      );
+
+      final recovered = ActiveWorkdaySessionRecord.fromMap(
+        store.activeSession!.toMap(),
+      );
+      expect(recovered.events.last.effectiveOdometerReadingTenths, 1250009);
+      expect(
+        recovered.latestOdometerTenthsForContext(
+          recovered.currentContextSegment.id,
+        ),
+        1250009,
+      );
+    },
+  );
+
   test('lower End Day review survives local recovery', () async {
     final store = await ActiveWorkdayController.create();
     await store.startDay(

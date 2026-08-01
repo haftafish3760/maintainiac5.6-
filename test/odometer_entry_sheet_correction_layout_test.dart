@@ -164,4 +164,65 @@ void main() {
       OdometerCorrectionReason.previousEntryWrong,
     );
   });
+
+  testWidgets('same-whole lower tenth reaches the review handler exactly', (
+    tester,
+  ) async {
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle-1',
+      initialReading: 125000,
+    );
+    int? receivedTenths;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GlobalOdometerScope(
+          controller: odometer,
+          child: Scaffold(
+            body: OdometerEntrySheet(
+              title: 'Ending Odometer',
+              saveLabel: 'End Day',
+              minimumReading: 125000,
+              minimumReadingTenths: 1250007,
+              commitToOdometer: false,
+              onMinimumReadingReview:
+                  ({
+                    required enteredOdometer,
+                    enteredOdometerTenths,
+                    required review,
+                  }) async {
+                    receivedTenths = enteredOdometerTenths;
+                    expect(enteredOdometer, 125000);
+                    expect(
+                      review.reason,
+                      OdometerCorrectionReason.backdatedEntry,
+                    );
+                    return true;
+                  },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.enterText(find.byType(TextField), '125000.5');
+    await tester.tap(find.text('End Day'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('This is a backdated receipt or trip'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('This is a backdated receipt or trip'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Save Review'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Save Review'));
+    await tester.pumpAndSettle();
+
+    expect(receivedTenths, 1250005);
+    expect(odometer.confirmedReadingTenths, 1250000);
+  });
 }

@@ -15,6 +15,7 @@ part 'odometer_entry_audit_correction_actions.dart';
 typedef OdometerMinimumReadingReviewHandler =
     Future<bool> Function({
       required int enteredOdometer,
+      int? enteredOdometerTenths,
       required OdometerCorrectionReview review,
     });
 
@@ -26,6 +27,7 @@ class OdometerEntrySheet extends StatefulWidget {
     this.autofocus = true,
     this.helperText,
     this.minimumReading,
+    this.minimumReadingTenths,
     this.minimumReadingMessage,
     this.onMinimumReadingReview,
     this.onSaved,
@@ -38,6 +40,7 @@ class OdometerEntrySheet extends StatefulWidget {
   final bool autofocus;
   final String? helperText;
   final int? minimumReading;
+  final int? minimumReadingTenths;
   final String? minimumReadingMessage;
   final OdometerMinimumReadingReviewHandler? onMinimumReadingReview;
   final VoidCallback? onSaved;
@@ -309,9 +312,14 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
         ? null
         : exactReading.tenths ~/ 10;
     final minimumReading = widget.minimumReading;
+    final minimumReadingTenths =
+        widget.minimumReadingTenths ??
+        (minimumReading == null ? null : minimumReading * 10);
     if (savedReading != null &&
         minimumReading != null &&
-        savedReading < minimumReading &&
+        minimumReadingTenths != null &&
+        exactReading != null &&
+        exactReading.tenths < minimumReadingTenths &&
         (_pendingCurrentReading != minimumReading ||
             _pendingCandidateReading != savedReading)) {
       setState(() {
@@ -324,7 +332,9 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
     }
     if (savedReading != null &&
         minimumReading != null &&
-        savedReading < minimumReading) {
+        minimumReadingTenths != null &&
+        exactReading != null &&
+        exactReading.tenths < minimumReadingTenths) {
       final review = correctionReview;
       if (review == null) {
         setState(() {
@@ -343,6 +353,7 @@ class _OdometerEntrySheetState extends State<OdometerEntrySheet> {
       final handled =
           await widget.onMinimumReadingReview?.call(
             enteredOdometer: savedReading,
+            enteredOdometerTenths: exactReading.tenths,
             review: review,
           ) ??
           false;

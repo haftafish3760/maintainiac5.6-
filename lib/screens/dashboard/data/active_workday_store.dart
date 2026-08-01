@@ -30,6 +30,7 @@ class ActiveWorkdayEvent {
     required this.type,
     required this.occurredAt,
     required this.odometerReading,
+    this.odometerReadingTenths,
     required this.label,
     this.note,
     this.sourceType,
@@ -42,12 +43,16 @@ class ActiveWorkdayEvent {
   final ActiveWorkdayEventType type;
   final DateTime occurredAt;
   final int odometerReading;
+  final int? odometerReadingTenths;
   final String label;
   final String? note;
   final String? sourceType;
   final String? sourceId;
   final String? contextSegmentId;
   final bool hasValidIdentity;
+
+  int get effectiveOdometerReadingTenths =>
+      odometerReadingTenths ?? odometerReading * 10;
 
   String get timeLabel {
     final hour = occurredAt.hour == 0
@@ -72,6 +77,8 @@ class ActiveWorkdayEvent {
       'type': type.name,
       'occurredAt': occurredAt.toIso8601String(),
       'odometerReading': _safeOdometer(odometerReading) ?? 0,
+      if (odometerReadingTenths != null)
+        'odometerReadingTenths': odometerReadingTenths,
       'label': _safeText(label, fallback: 'Workday event', maxLength: 80),
       'note': _optionalSafeText(note, maxLength: 240),
       'sourceType': _optionalSafeText(sourceType, maxLength: 80),
@@ -83,13 +90,17 @@ class ActiveWorkdayEvent {
   factory ActiveWorkdayEvent.fromMap(Map<dynamic, dynamic> map) {
     final rawId = map['id'];
     final rawType = _stringValue(map['type']);
+    final rawOdometerTenths = map['odometerReadingTenths'];
+    final odometerReading = _safeOdometer(map['odometerReading']) ?? 0;
+    final odometerReadingTenths = _safeOdometerTenths(rawOdometerTenths);
     return ActiveWorkdayEvent(
       id: _safeText(rawId, fallback: _newId('event'), maxLength: 160),
       type: _eventTypeFromName(rawType),
       occurredAt:
           DateTime.tryParse(_stringValue(map['occurredAt']) ?? '') ??
           _fallbackWorkdayTimestamp(),
-      odometerReading: _safeOdometer(map['odometerReading']) ?? 0,
+      odometerReading: odometerReading,
+      odometerReadingTenths: odometerReadingTenths,
       label: _safeText(map['label'], fallback: 'Workday event', maxLength: 80),
       note: _optionalSafeText(map['note'], maxLength: 240),
       sourceType: _optionalSafeText(map['sourceType'], maxLength: 80),
@@ -101,6 +112,9 @@ class ActiveWorkdayEvent {
       hasValidIdentity:
           _isSafeActiveWorkdayIdValue(rawId) &&
           _hasKnownEventTypeName(rawType) &&
+          (rawOdometerTenths == null ||
+              (odometerReadingTenths != null &&
+                  odometerReadingTenths ~/ 10 == odometerReading)) &&
           _isSafeOptionalActiveWorkdayReference(map['sourceType']) &&
           _isSafeOptionalActiveWorkdayReference(map['sourceId']) &&
           _isSafeOptionalActiveWorkdayReference(map['contextSegmentId']),
@@ -198,6 +212,27 @@ class ActiveWorkdaySessionRecord {
           segment.startOdometer,
           (latest, event) =>
               event.odometerReading > latest ? event.odometerReading : latest,
+        );
+  }
+
+  int latestOdometerTenthsForContext(String contextSegmentId) {
+    final initialSegmentId = resolvedContextSegments.first.id;
+    final segment = resolvedContextSegments.firstWhere(
+      (candidate) => candidate.id == contextSegmentId,
+      orElse: () => currentContextSegment,
+    );
+    return events
+        .where(
+          (event) =>
+              event.contextSegmentId == contextSegmentId ||
+              (event.contextSegmentId == null &&
+                  contextSegmentId == initialSegmentId),
+        )
+        .fold<int>(
+          segment.effectiveStartOdometerTenths,
+          (latest, event) => event.effectiveOdometerReadingTenths > latest
+              ? event.effectiveOdometerReadingTenths
+              : latest,
         );
   }
 
@@ -552,7 +587,8 @@ List<ActiveWorkdayEvent> _coherentWorkdayEvents(
       for (final segment in contextSegments) segment.id: segment,
     };
     final latestByContext = {
-      for (final segment in contextSegments) segment.id: segment.startOdometer,
+      for (final segment in contextSegments)
+        segment.id: segment.effectiveStartOdometerTenths,
     };
     final events = <ActiveWorkdayEvent>[];
     final ordered = source.toList(growable: false)
@@ -560,33 +596,34 @@ List<ActiveWorkdayEvent> _coherentWorkdayEvents(
     for (final event in ordered) {
       final contextId = event.contextSegmentId ?? contextSegments.first.id;
       final context = contextsById[contextId];
-      final latestOdometer = latestByContext[contextId];
+      final latestOdometerTenths = latestByContext[contextId];
       if (context == null ||
-          latestOdometer == null ||
+          latestOdometerTenths == null ||
           event.occurredAt.isBefore(context.startedAt) ||
           (context.endedAt != null &&
               event.occurredAt.isAfter(context.endedAt!)) ||
-          event.odometerReading < latestOdometer ||
+          event.effectiveOdometerReadingTenths < latestOdometerTenths ||
           (context.endOdometer != null &&
-              event.odometerReading > context.endOdometer!)) {
+              event.effectiveOdometerReadingTenths >
+                  context.effectiveEndOdometerTenths!)) {
         continue;
       }
       events.add(event);
-      latestByContext[contextId] = event.odometerReading;
+      latestByContext[contextId] = event.effectiveOdometerReadingTenths;
     }
     return List.unmodifiable(events);
   }
   final events = <ActiveWorkdayEvent>[];
-  var latestOdometer = startOdometer;
+  var latestOdometerTenths = startOdometer * 10;
   final ordered = source.toList(growable: false)
     ..sort((left, right) => left.occurredAt.compareTo(right.occurredAt));
   for (final event in ordered) {
     if (event.occurredAt.isBefore(startedAt) ||
-        event.odometerReading < latestOdometer) {
+        event.effectiveOdometerReadingTenths < latestOdometerTenths) {
       continue;
     }
     events.add(event);
-    latestOdometer = event.odometerReading;
+    latestOdometerTenths = event.effectiveOdometerReadingTenths;
   }
   return List.unmodifiable(events);
 }
@@ -698,6 +735,7 @@ class ActiveWorkdayController extends ChangeNotifier {
       type: ActiveWorkdayEventType.started,
       occurredAt: now,
       odometerReading: startOdometer,
+      odometerReadingTenths: exactStartTenths,
       label: 'Workday started',
       contextSegmentId: initialContext.id,
     );
@@ -722,6 +760,7 @@ class ActiveWorkdayController extends ChangeNotifier {
   Future<ActiveWorkdaySessionRecord?> addEvent({
     required ActiveWorkdayEventType type,
     required int odometerReading,
+    int? odometerReadingTenths,
     String? note,
     String? sourceType,
     String? sourceId,
@@ -730,15 +769,20 @@ class ActiveWorkdayController extends ChangeNotifier {
     final session = activeSession;
     if (session == null) return null;
     final contextSegment = session.currentContextSegment;
-    if (odometerReading < contextSegment.startOdometer) {
+    final exactOdometerTenths = odometerReadingTenths ?? odometerReading * 10;
+    if (exactOdometerTenths < 0 ||
+        exactOdometerTenths ~/ 10 != odometerReading ||
+        exactOdometerTenths < contextSegment.effectiveStartOdometerTenths) {
       throw ArgumentError.value(
         odometerReading,
         'odometerReading',
         'Event odometer cannot be below the active context starting odometer.',
       );
     }
-    final latestOdometer = session.latestOdometerForContext(contextSegment.id);
-    if (odometerReading < latestOdometer) {
+    final latestOdometerTenths = session.latestOdometerTenthsForContext(
+      contextSegment.id,
+    );
+    if (exactOdometerTenths < latestOdometerTenths) {
       throw ArgumentError.value(
         odometerReading,
         'odometerReading',
@@ -780,6 +824,7 @@ class ActiveWorkdayController extends ChangeNotifier {
       type: type,
       occurredAt: now,
       odometerReading: odometerReading,
+      odometerReadingTenths: exactOdometerTenths,
       label: _labelForEvent(type),
       note: note,
       sourceType: sourceType,
@@ -800,12 +845,19 @@ class ActiveWorkdayController extends ChangeNotifier {
               ...session.resolvedContextSegments.take(
                 session.resolvedContextSegments.length - 1,
               ),
-              contextSegment.close(endedAt: now, endOdometer: odometerReading),
+              contextSegment.close(
+                endedAt: now,
+                endOdometer: odometerReading,
+                endOdometerTenths: exactOdometerTenths,
+              ),
             ]
           : session.contextSegments,
       endedAt: type == ActiveWorkdayEventType.ended ? now : null,
       endOdometer: type == ActiveWorkdayEventType.ended
           ? odometerReading
+          : null,
+      endOdometerTenths: type == ActiveWorkdayEventType.ended
+          ? exactOdometerTenths
           : null,
     );
     await _saveSession(updated);
