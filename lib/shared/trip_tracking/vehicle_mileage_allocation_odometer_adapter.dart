@@ -2,6 +2,7 @@
 // Owns only this one-way translation from canonical odometer history. It does
 // not edit odometer events, infer GPS classification, persist allocations, or
 // allocate an expense. The allocation ledger consumes its output.
+// odometerIsGlobalTruth: true.
 
 import '../odometer/odometer_mileage_review.dart';
 import '../odometer/odometer_validation.dart';

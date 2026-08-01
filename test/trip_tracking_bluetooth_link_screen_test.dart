@@ -95,6 +95,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     final approve = find.byKey(const Key('approveRecentBluetoothVehicle'));
+    await tester.drag(find.byType(ListView), const Offset(0, -1200));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(approve);
     expect(approve, findsOneWidget);
     expect(find.textContaining('opaque-private-device-hash'), findsNothing);
@@ -181,6 +183,8 @@ void main() {
     );
     await tester.pumpAndSettle();
     final enable = find.byKey(const Key('enableBluetoothVehicleAccess'));
+    await tester.drag(find.byType(ListView), const Offset(0, -1200));
+    await tester.pumpAndSettle();
     await tester.ensureVisible(enable);
     expect(enable, findsOneWidget);
 

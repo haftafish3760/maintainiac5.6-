@@ -4,6 +4,7 @@
 // an allocation summary plus explicit consent. It does not persist evidence,
 // classify mileage, edit an Expense record, or access location. Dashboard and
 // Expense integrations consume this projection after their owners opt in.
+// odometerIsGlobalTruth: true.
 
 import 'trip_tracking_settings_store.dart';
 import 'vehicle_mileage_allocation.dart';

@@ -4,6 +4,7 @@
 // reach the Dashboard projection or a future durable allocation bucket. It
 // does not classify mileage, persist records, access GPS, or change Expense
 // records. Trip/odometer review and allocation repository consumers use it.
+// odometerIsGlobalTruth: true.
 
 import 'trip_tracking_settings_store.dart';
 import 'vehicle_mileage_allocation.dart';

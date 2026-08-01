@@ -3,6 +3,7 @@
 // user confirms an owning source record. It does not own trips, expenses,
 // odometer history, GPS evidence, or durable storage. Trip Tracking and the
 // future durable allocation bucket consume its serializable contract.
+// odometerIsGlobalTruth: true.
 
 enum VehicleMileageAllocationUse { business, personal, split, unclassified }
 

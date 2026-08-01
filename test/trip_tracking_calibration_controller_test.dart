@@ -27,6 +27,7 @@ void main() {
       final controller = TripTrackingController(
         sessionStore: store,
         odometer: odometer,
+        clockNow: () => DateTime.utc(2026, 7, 10, 12),
       );
       addTearDown(controller.dispose);
       addTearDown(odometer.dispose);
@@ -67,6 +68,7 @@ void main() {
       final controller = TripTrackingController(
         sessionStore: store,
         odometer: odometer,
+        clockNow: () => DateTime.utc(2026, 7, 10, 12),
       );
       addTearDown(controller.dispose);
       addTearDown(odometer.dispose);
@@ -118,6 +120,7 @@ void main() {
       final controller = TripTrackingController(
         sessionStore: store,
         odometer: odometer,
+        clockNow: () => DateTime.utc(2026, 7, 10, 12),
       );
       addTearDown(controller.dispose);
       addTearDown(odometer.dispose);
@@ -212,6 +215,7 @@ void main() {
       final controller = TripTrackingController(
         sessionStore: store,
         odometer: odometer,
+        clockNow: () => DateTime.utc(2026, 7, 15, 12),
       );
       addTearDown(controller.dispose);
       addTearDown(odometer.dispose);
