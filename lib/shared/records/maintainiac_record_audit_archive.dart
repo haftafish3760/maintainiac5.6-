@@ -36,7 +36,35 @@ class MaintainiacRecordAuditArchiveEntry {
   final String event;
   final String previousEntrySha256;
 
-  String get recordKey => _sha256('$recordModule\u0000$recordId');
+  factory MaintainiacRecordAuditArchiveEntry.fromMap(
+    Map<dynamic, dynamic> map,
+  ) {
+    if (map['schema'] != 'maintainiac_record_audit_archive_entry_v1' ||
+        map['recordModule'] is! String ||
+        map['recordId'] is! String ||
+        map['ordinal'] is! int ||
+        map['event'] is! String ||
+        map['previousEntrySha256'] is! String) {
+      throw const FormatException('Audit archive entry is corrupt.');
+    }
+    try {
+      final entry = MaintainiacRecordAuditArchiveEntry(
+        recordModule: map['recordModule'] as String,
+        recordId: map['recordId'] as String,
+        ordinal: map['ordinal'] as int,
+        event: map['event'] as String,
+        previousEntrySha256: map['previousEntrySha256'] as String,
+      );
+      if (map['recordKey'] != entry.recordKey) {
+        throw const FormatException('Audit archive identity is corrupt.');
+      }
+      return entry;
+    } on ArgumentError {
+      throw const FormatException('Audit archive entry is corrupt.');
+    }
+  }
+
+  String get recordKey => recordKeyFor(recordModule, recordId);
   String get archiveId => _sha256('$recordKey\u0000$ordinal');
   String get entrySha256 => _sha256(jsonEncode(toMap()));
 
@@ -52,6 +80,12 @@ class MaintainiacRecordAuditArchiveEntry {
 
   static String _sha256(String value) =>
       sha256.convert(utf8.encode(value)).toString();
+
+  static String recordKeyFor(String module, String id) {
+    _token(module, 'module', maximumLength: 80);
+    _token(id, 'id', maximumLength: 160);
+    return _sha256('$module\u0000$id');
+  }
 
   static void _token(String value, String name, {required int maximumLength}) {
     if (!RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(value) ||

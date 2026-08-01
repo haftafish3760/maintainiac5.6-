@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../storage/app_storage_guard.dart';
 import 'maintainiac_durable_payload.dart';
 import 'maintainiac_hive_write_serialization.dart';
+import 'maintainiac_record_audit_archive_store.dart';
 import 'maintainiac_record_lifecycle.dart';
 import 'maintainiac_record_ordering.dart';
 
@@ -19,22 +20,28 @@ class MaintainiacDurableRecordStore {
 
   MaintainiacDurableRecordStore._(
     this._box, {
+    required MaintainiacRecordAuditArchiveStore auditArchive,
     MaintainiacDurableStorageCheck? storageCheck,
     MaintainiacDurableSizedStorageCheck? sizedStorageCheck,
   }) : _storageCheck = storageCheck,
+       _auditArchive = auditArchive,
        _sizedStorageCheck = storageCheck == null
            ? (sizedStorageCheck ?? _defaultSizedStorageCheck)
            : null;
 
   MaintainiacDurableRecordStore.memory({
+    MaintainiacRecordAuditArchiveStore? auditArchive,
     MaintainiacDurableStorageCheck? storageCheck,
     MaintainiacDurableSizedStorageCheck? sizedStorageCheck,
   }) : _box = null,
+       _auditArchive =
+           auditArchive ?? MaintainiacRecordAuditArchiveStore.memory(),
        _storageCheck = storageCheck,
        _sizedStorageCheck = storageCheck == null ? sizedStorageCheck : null;
 
   final Box<dynamic>? _box;
   final MaintainiacDurableStorageCheck? _storageCheck;
+  final MaintainiacRecordAuditArchiveStore _auditArchive;
   final MaintainiacDurableSizedStorageCheck? _sizedStorageCheck;
   final _memory = <String, Map<String, dynamic>>{};
   Future<void> _writeTail = Future<void>.value();
@@ -45,6 +52,9 @@ class MaintainiacDurableRecordStore {
     MaintainiacDurableSizedStorageCheck? sizedStorageCheck,
   }) async => MaintainiacDurableRecordStore._(
     await Hive.openBox<dynamic>(boxName),
+    auditArchive: await MaintainiacRecordAuditArchiveStore.create(
+      '$boxName.audit_archive',
+    ),
     storageCheck: storageCheck,
     sizedStorageCheck: sizedStorageCheck,
   );
@@ -305,6 +315,11 @@ class MaintainiacDurableRecordStore {
   });
 
   Future<void> _put(MaintainiacDurableRecord record) async {
+    await _auditArchive.preserveLifecycle(
+      module: record.module,
+      id: record.id,
+      lifecycle: record.lifecycle,
+    );
     final map = record.toMap();
     if (_box == null) {
       _memory[record.storageKey] = map;
