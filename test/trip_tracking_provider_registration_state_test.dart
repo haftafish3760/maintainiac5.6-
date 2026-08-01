@@ -124,6 +124,52 @@ void main() {
   );
 
   test(
+    'a provider callback after user pause cannot revive native tracking',
+    () async {
+      final now = DateTime.utc(2026, 7, 28, 13);
+      final gateway = _RegistrationGateway();
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: gateway,
+        clockNow: () => now,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(gateway.dispose);
+
+      expect(
+        await controller.start(
+          tripId: 'provider_callback_after_pause',
+          vehicleId: 'vehicle_1',
+          profile: TripTrackingProfile.roadVehicle,
+          startedAt: now,
+        ),
+        isTrue,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: false,
+        ),
+        isTrue,
+      );
+      await controller.stopNativeTracking();
+      gateway.emitStatus('tracking');
+      await _drainEvents();
+
+      expect(controller.nativeTracking, isFalse);
+      expect(controller.nativeProviderRegistered, isFalse);
+      expect(controller.platformStatus, 'stopped');
+      _expectOdometerUntouched(controller, odometer);
+    },
+  );
+
+  test(
     'unregistered native collector cannot refresh heartbeat liveness',
     () async {
       final now = DateTime.utc(2026, 7, 28, 12);

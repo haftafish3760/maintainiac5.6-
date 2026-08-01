@@ -36,21 +36,28 @@ class VehicleMileageAllocationLedger {
     return VehicleMileageAllocationLedger._(
       selection.recordsBySource,
       selection.conflictedSourceKeys,
+      selection.conflictedHighestRevisions,
     );
   }
 
   VehicleMileageAllocationLedger.empty()
     : _recordsBySource = const {},
-      _conflictedSourceKeys = const {};
+      _conflictedSourceKeys = const {},
+      _conflictedHighestRevisions = const {};
 
   VehicleMileageAllocationLedger._(
     Map<String, VehicleMileageAllocationRecord> recordsBySource,
     Set<String> conflictedSourceKeys,
+    Map<String, int> conflictedHighestRevisions,
   ) : _recordsBySource = Map.unmodifiable(recordsBySource),
-      _conflictedSourceKeys = Set.unmodifiable(conflictedSourceKeys);
+      _conflictedSourceKeys = Set.unmodifiable(conflictedSourceKeys),
+      _conflictedHighestRevisions = Map.unmodifiable(
+        conflictedHighestRevisions,
+      );
 
   final Map<String, VehicleMileageAllocationRecord> _recordsBySource;
   final Set<String> _conflictedSourceKeys;
+  final Map<String, int> _conflictedHighestRevisions;
 
   /// Sources with conflicting payloads at the same highest revision.
   ///
@@ -76,6 +83,16 @@ class VehicleMileageAllocationLedger {
         ledger: this,
       );
     }
+    final conflictedRevision = _conflictedHighestRevisions[record.sourceKey];
+    if (conflictedRevision != null &&
+        record.sourceRevision <= conflictedRevision) {
+      return VehicleMileageAllocationIngestResult(
+        status: record.sourceRevision == conflictedRevision
+            ? VehicleMileageAllocationIngestStatus.conflictingRevision
+            : VehicleMileageAllocationIngestStatus.staleRevision,
+        ledger: this,
+      );
+    }
     final existing = _recordsBySource[record.sourceKey];
     if (existing != null && existing.sourceRevision == record.sourceRevision) {
       return VehicleMileageAllocationIngestResult(
@@ -97,11 +114,18 @@ class VehicleMileageAllocationLedger {
     next[record.sourceKey] = record;
     final nextConflicts = Set<String>.from(_conflictedSourceKeys)
       ..remove(record.sourceKey);
+    final nextConflictRevisions = Map<String, int>.from(
+      _conflictedHighestRevisions,
+    )..remove(record.sourceKey);
     return VehicleMileageAllocationIngestResult(
       status: existing == null
           ? VehicleMileageAllocationIngestStatus.accepted
           : VehicleMileageAllocationIngestStatus.replacedOlderRevision,
-      ledger: VehicleMileageAllocationLedger._(next, nextConflicts),
+      ledger: VehicleMileageAllocationLedger._(
+        next,
+        nextConflicts,
+        nextConflictRevisions,
+      ),
     );
   }
 
@@ -159,6 +183,7 @@ class VehicleMileageAllocationLedger {
     }
     final selected = <String, VehicleMileageAllocationRecord>{};
     final conflicts = <String>{};
+    final conflictRevisions = <String, int>{};
     for (final entry in grouped.entries) {
       final highestRevision = entry.value.fold<int>(
         -1,
@@ -173,9 +198,14 @@ class VehicleMileageAllocationLedger {
         selected[entry.key] = first;
       } else {
         conflicts.add(entry.key);
+        conflictRevisions[entry.key] = highestRevision;
       }
     }
-    return _VehicleMileageAllocationSelection(selected, conflicts);
+    return _VehicleMileageAllocationSelection(
+      selected,
+      conflicts,
+      conflictRevisions,
+    );
   }
 }
 
@@ -183,10 +213,12 @@ class _VehicleMileageAllocationSelection {
   const _VehicleMileageAllocationSelection(
     this.recordsBySource,
     this.conflictedSourceKeys,
+    this.conflictedHighestRevisions,
   );
 
   final Map<String, VehicleMileageAllocationRecord> recordsBySource;
   final Set<String> conflictedSourceKeys;
+  final Map<String, int> conflictedHighestRevisions;
 }
 
 bool _sameRecord(

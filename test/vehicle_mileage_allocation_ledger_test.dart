@@ -226,6 +226,26 @@ void main() {
     expect(ledger.records, [corrected]);
   });
 
+  test('an old conflicting revision cannot resolve a restored conflict', () {
+    final business = record(distanceTenths: 100, revision: 3);
+    final personal = record(
+      id: 'conflicting-allocation',
+      revision: 3,
+      use: VehicleMileageAllocationUse.personal,
+      distanceTenths: 100,
+    );
+    final restored = VehicleMileageAllocationLedger([business, personal]);
+
+    final replay = restored.ingest(business);
+
+    expect(
+      replay.status,
+      VehicleMileageAllocationIngestStatus.conflictingRevision,
+    );
+    expect(replay.ledger.records, isEmpty);
+    expect(replay.ledger.conflictedSourceKeys, {'truck-1:trip_review:trip-1'});
+  });
+
   test('allocation records round-trip only when their totals are coherent', () {
     final entry = record(
       use: VehicleMileageAllocationUse.split,
