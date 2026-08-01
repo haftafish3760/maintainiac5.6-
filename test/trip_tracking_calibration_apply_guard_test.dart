@@ -420,8 +420,13 @@ void main() {
     expect(safe['rawGpsIncluded'], isFalse);
     expect(safe['preciseLocationIncluded'], isFalse);
     expect(safe['tokensIncluded'], isFalse);
-    expect(safe['userOptInRequired'], isTrue);
-    expect(safe['reviewAcceptanceRequired'], isTrue);
+    expect(safe['gpsAssistedTrackingConsentRequired'], isTrue);
+    expect(safe['separateCalibrationOptInRequired'], isFalse);
+    expect(safe['reviewAcceptanceRequiredForAdvisoryProjection'], isFalse);
+    expect(
+      safe['automaticLocalAdvisoryCalibrationEnabledByGpsConsent'],
+      isTrue,
+    );
     expect(safe['calibrationCanChangeDisplayedConfirmedMiles'], isFalse);
     expect(safe['calibrationCanMutateTripLog'], isFalse);
     expect(safe['remoteCalibrationCanRewritePastTrips'], isFalse);
