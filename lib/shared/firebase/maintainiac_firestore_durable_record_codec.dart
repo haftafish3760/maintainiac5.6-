@@ -95,6 +95,12 @@ class MaintainiacFirestoreDurableRecordCodec {
     MaintainiacDurableRecord record,
   ) => MaintainiacCloudAuditRoot.fromEvents(record.lifecycle.auditEvents);
 
+  /// A v2 root keeps these three bounded fields; the archive supplies the
+  /// complete event list before this record is restored locally.
+  static Map<String, Object> boundedAuditRootFields(
+    MaintainiacDurableRecord record,
+  ) => boundedAuditRootFor(record).toMap();
+
   static MaintainiacRestoreEnvelope decode({
     required String expectedOrganizationId,
     required String expectedUid,
