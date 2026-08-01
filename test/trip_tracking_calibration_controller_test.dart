@@ -17,7 +17,7 @@ void main() {
       );
 
   test(
-    'controller requires explicit acceptance before applying reviewed calibration',
+    'GPS consent automatically applies trusted local calibration for future assistance',
     () async {
       final store = TripTrackingSessionStore.memory();
       final odometer = GlobalOdometerController(
@@ -44,14 +44,11 @@ void main() {
 
       controller.refreshGpsAssistanceCalibration(enabled: true);
 
-      expect(controller.gpsAssistanceCalibrationMultiplier, 1);
-      expect(controller.calibrationReviewAcceptedForCurrentEvidence, isFalse);
-      expect(controller.acceptGpsAssistanceCalibrationReview(), isTrue);
-
       expect(
         controller.gpsAssistanceCalibrationMultiplier,
         closeTo(.9091, .001),
       );
+      expect(controller.calibrationReviewAcceptedForCurrentEvidence, isFalse);
       controller.refreshGpsAssistanceCalibration(enabled: false);
       expect(controller.gpsAssistanceCalibrationMultiplier, 1);
     },
@@ -197,9 +194,6 @@ void main() {
     );
 
     controller.refreshGpsAssistanceCalibration(enabled: true);
-    expect(controller.gpsAssistanceCalibrationMultiplier, 1);
-    expect(controller.acceptGpsAssistanceCalibrationReview(), isTrue);
-
     expect(controller.gpsAssistanceCalibrationMultiplier, closeTo(.9091, .001));
     expect(controller.odometerCalibrationSignal().eligibleSampleCount, 7);
   });
@@ -244,8 +238,6 @@ void main() {
         );
       }
       controller.refreshGpsAssistanceCalibration(enabled: true);
-      expect(controller.gpsAssistanceCalibrationMultiplier, 1);
-      expect(controller.acceptGpsAssistanceCalibrationReview(), isTrue);
       expect(
         controller.gpsAssistanceCalibrationMultiplier,
         closeTo(.9091, .001),

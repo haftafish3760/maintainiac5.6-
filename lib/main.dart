@@ -277,8 +277,7 @@ Future<void> main() async {
   tripTrackingSettings.addListener(syncActiveTripSettings);
   void syncTripCalibrationAssist() {
     tripTracking.refreshGpsAssistanceCalibration(
-      enabled:
-          tripTrackingSettings.settings.gpsOdometerCalibrationAssistEnabled,
+      enabled: tripTrackingSettings.settings.gpsAssistedTrackingEnabled,
     );
   }
 

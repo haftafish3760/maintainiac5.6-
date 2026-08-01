@@ -62,7 +62,9 @@ extension TripTrackingControllerOdometerReview on TripTrackingController {
     final guard = _calibrationApplyGuard(
       signal: signal,
       userOptedIn: enabled,
-      userAcceptedLatestReview: calibrationReviewAcceptedForCurrentEvidence,
+      // GPS-assisted tracking is the user's consent for local, advisory-only
+      // calibration. It never changes confirmed mileage or business records.
+      userAcceptedLatestReview: enabled,
     );
     final next = _calibrationState.refresh(
       enabled: enabled,
