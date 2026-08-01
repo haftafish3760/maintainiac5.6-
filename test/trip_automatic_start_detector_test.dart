@@ -26,6 +26,7 @@ void main() {
       enabled: true,
       accessLevel: TripAutomaticStartAccessLevel.paid,
       hasActiveOrRecoverableSession: false,
+      evaluatedAt: start.add(const Duration(seconds: 30)),
       observations: [
         observation(0, activity: TripActivity.automotive, confidence: 90),
       ],
@@ -34,6 +35,7 @@ void main() {
       enabled: true,
       accessLevel: TripAutomaticStartAccessLevel.paid,
       hasActiveOrRecoverableSession: false,
+      evaluatedAt: start.add(const Duration(seconds: 30)),
       observations: [observation(0), observation(15), observation(30)],
     );
 
@@ -48,6 +50,7 @@ void main() {
         enabled: true,
         accessLevel: TripAutomaticStartAccessLevel.paid,
         hasActiveOrRecoverableSession: false,
+        evaluatedAt: start.add(const Duration(seconds: 30)),
         observations: [
           observation(0, vehicleId: 'vehicle_1'),
           observation(
@@ -77,6 +80,7 @@ void main() {
       enabled: true,
       accessLevel: TripAutomaticStartAccessLevel.free,
       hasActiveOrRecoverableSession: false,
+      evaluatedAt: start.add(const Duration(seconds: 30)),
       observations: [
         observation(0, vehicleId: 'vehicle_1'),
         observation(15, vehicleId: 'vehicle_1'),
@@ -98,6 +102,7 @@ void main() {
       enabled: true,
       accessLevel: TripAutomaticStartAccessLevel.free,
       hasActiveOrRecoverableSession: false,
+      evaluatedAt: start.add(const Duration(seconds: 30)),
       acceptedFreeUsesInPeriod: 4,
       observations: [
         observation(0, vehicleId: 'vehicle_1'),
@@ -113,5 +118,36 @@ void main() {
     expect(decision.shouldSuggestStart, isFalse);
     expect(decision.requiresPaidEntitlement, isTrue);
     expect(decision.allowanceDecision?.freeUsesRemaining, 0);
+  });
+
+  test('cached or future movement evidence cannot create a proposal', () {
+    final cached = detector.evaluate(
+      enabled: true,
+      accessLevel: TripAutomaticStartAccessLevel.paid,
+      hasActiveOrRecoverableSession: false,
+      evaluatedAt: start.add(const Duration(minutes: 5)),
+      observations: [
+        observation(0, vehicleId: 'vehicle_1'),
+        observation(15, vehicleId: 'vehicle_1'),
+        observation(30, vehicleId: 'vehicle_1'),
+      ],
+    );
+    final future = detector.evaluate(
+      enabled: true,
+      accessLevel: TripAutomaticStartAccessLevel.paid,
+      hasActiveOrRecoverableSession: false,
+      evaluatedAt: start.add(const Duration(seconds: 20)),
+      observations: [
+        observation(0, vehicleId: 'vehicle_1'),
+        observation(15, vehicleId: 'vehicle_1'),
+        observation(30, vehicleId: 'vehicle_1'),
+      ],
+    );
+
+    for (final decision in [cached, future]) {
+      expect(decision.shouldSuggestStart, isFalse);
+      expect(decision.reasonCode, 'stale_or_future_automatic_evidence');
+      expect(decision.canInventStartingOdometer, isFalse);
+    }
   });
 }

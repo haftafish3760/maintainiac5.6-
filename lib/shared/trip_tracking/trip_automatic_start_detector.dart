@@ -88,6 +88,7 @@ class TripAutomaticStartDetector {
   const TripAutomaticStartDetector({
     this.minimumEvidenceSpan = const Duration(seconds: 20),
     this.maximumEvidenceWindow = const Duration(minutes: 2),
+    this.maximumObservationAge = const Duration(minutes: 2),
     this.minimumMovingObservations = 3,
     this.minimumSpeedMetersPerSecond = 3,
     this.minimumDisplacementMeters = 10,
@@ -97,6 +98,7 @@ class TripAutomaticStartDetector {
 
   final Duration minimumEvidenceSpan;
   final Duration maximumEvidenceWindow;
+  final Duration maximumObservationAge;
   final int minimumMovingObservations;
   final double minimumSpeedMetersPerSecond;
   final double minimumDisplacementMeters;
@@ -108,6 +110,7 @@ class TripAutomaticStartDetector {
     required TripAutomaticStartAccessLevel accessLevel,
     required bool hasActiveOrRecoverableSession,
     required Iterable<TripAutomaticStartObservation> observations,
+    required DateTime evaluatedAt,
     int acceptedFreeUsesInPeriod = 0,
     AutomaticEvidenceCaptureAllowancePolicy allowancePolicy =
         const AutomaticEvidenceCaptureAllowancePolicy(),
@@ -122,6 +125,14 @@ class TripAutomaticStartDetector {
       return _decision(TripAutomaticStartDisposition.insufficientEvidence);
     }
     final latestAt = ordered.last.recordedAt.toUtc();
+    final now = evaluatedAt.toUtc();
+    if (latestAt.isAfter(now) ||
+        now.difference(latestAt) > maximumObservationAge) {
+      return _decision(
+        TripAutomaticStartDisposition.insufficientEvidence,
+        reasonCode: 'stale_or_future_automatic_evidence',
+      );
+    }
     final allowance = allowancePolicy.evaluate(
       access: accessLevel == TripAutomaticStartAccessLevel.paid
           ? AutomaticEvidenceCaptureAccess.paid
@@ -198,20 +209,23 @@ class TripAutomaticStartDetector {
     DateTime? startedAt,
     DateTime? endedAt,
     String? vehicleId,
+    String? reasonCode,
     AutomaticEvidenceCaptureAllowanceDecision? allowanceDecision,
   }) => TripAutomaticStartDecision(
     disposition: disposition,
-    reasonCode: switch (disposition) {
-      TripAutomaticStartDisposition.disabled => 'automatic_start_disabled',
-      TripAutomaticStartDisposition.paidEntitlementRequired =>
-        'paid_automatic_tracking_required',
-      TripAutomaticStartDisposition.activeSessionExists =>
-        'active_or_recoverable_session_exists',
-      TripAutomaticStartDisposition.insufficientEvidence =>
-        'insufficient_multi_signal_movement_evidence',
-      TripAutomaticStartDisposition.candidate =>
-        'probable_vehicle_movement_candidate',
-    },
+    reasonCode:
+        reasonCode ??
+        switch (disposition) {
+          TripAutomaticStartDisposition.disabled => 'automatic_start_disabled',
+          TripAutomaticStartDisposition.paidEntitlementRequired =>
+            'paid_automatic_tracking_required',
+          TripAutomaticStartDisposition.activeSessionExists =>
+            'active_or_recoverable_session_exists',
+          TripAutomaticStartDisposition.insufficientEvidence =>
+            'insufficient_multi_signal_movement_evidence',
+          TripAutomaticStartDisposition.candidate =>
+            'probable_vehicle_movement_candidate',
+        },
     confidence: confidence,
     evidenceStartedAt: startedAt?.toUtc(),
     evidenceEndedAt: endedAt?.toUtc(),
