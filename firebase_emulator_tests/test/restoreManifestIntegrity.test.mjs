@@ -12,6 +12,7 @@ import {
 } from 'firebase/firestore';
 
 import {callFunction, callFunctionError} from './callableTestClient.mjs';
+import {auditChainFor, emptyAuditChainSha256} from '../../functions/audit_chain.js';
 import {durableRecord} from './restoreSnapshotFixtures.mjs';
 import {
   assertEmulatorOnly,
@@ -225,6 +226,58 @@ describe('restore manifest integrity', () => {
         requestId: 'corrupt-snapshot-request',
       },
     );
+    assert.equal(result.body?.error?.status, 'DATA_LOSS');
+  });
+
+  test('restore fails closed when immutable audit evidence is changed', async () => {
+    const identity = await createIdentity('audit-corrupt');
+    const organizationId = 'orgManifestAuditCorrupt';
+    const event = '2026-08-01T00:00:00.000Z created record';
+    await seedPrincipal(identity.uid, organizationId);
+    const data = durableRecord(
+      identity.uid,
+      'audit-record',
+      'preserved',
+      organizationId,
+      [event],
+    );
+    const chain = auditChainFor([event]);
+    await seedRecordData(data, organizationId);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      await setDoc(doc(
+        db,
+        `orgs/${organizationId}/auditEvents/` +
+          `${data.recordKey}_000000000001`,
+      ), {
+        schema: 'maintainiac_durable_audit_event_v1',
+        recordKey: data.recordKey,
+        ownerUid: identity.uid,
+        ordinal: 1,
+        event: '2026-08-01T00:00:00.000Z changed evidence',
+        previousChainSha256: emptyAuditChainSha256(),
+        chainSha256: chain.chainSha256,
+        createdAt: '2026-08-01T00:00:00.000Z',
+      });
+    });
+    await seedManifest(
+      identity.uid,
+      organizationId,
+      1,
+      Buffer.byteLength(JSON.stringify(data), 'utf8'),
+    );
+
+    const result = await callFunctionError(
+      'issueRestoreAuthorization',
+      identity.token,
+      {
+        organizationId,
+        deviceId: 'restoreDevice',
+        mode: 'recordsOnly',
+        requestId: 'audit-corrupt-snapshot-request',
+      },
+    );
+
     assert.equal(result.body?.error?.status, 'DATA_LOSS');
   });
 

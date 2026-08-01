@@ -4,6 +4,7 @@ const {
   requireManifestMatchesSnapshot,
 } = require('./durable_manifest');
 const {validateStoredDurableDocument} = require('./durable_record_commit');
+const {verifyDurableAuditArchive} = require('./audit_archive');
 
 const SNAPSHOT_SCHEMA = 'maintainiac_restore_snapshot_v1';
 const MAX_RECORDS = 100000;
@@ -60,6 +61,13 @@ async function createRestoreSnapshot({
           uid,
           documentId: document.id,
           data,
+        });
+        await verifyDurableAuditArchive({
+          db,
+          organizationId,
+          recordKey: document.id,
+          ownerUid: uid,
+          expectedEvents: data.auditEvents,
         });
       } catch (_) {
         throw new HttpsError(

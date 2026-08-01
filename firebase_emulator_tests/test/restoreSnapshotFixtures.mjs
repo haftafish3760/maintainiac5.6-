@@ -47,6 +47,7 @@ export function durableRecord(
   localRecordId,
   value,
   organizationId = 'orgLifecycleA',
+  auditEvents = [],
 ) {
   const data = {
     schema: 'maintainiac_durable_record_v1',
@@ -65,7 +66,7 @@ export function durableRecord(
     createdAt: '2026-07-22T00:00:00.000Z',
     updatedAt: '2026-07-22T00:00:00.000Z',
     deletedAt: null,
-    auditEvents: [],
+    auditEvents,
     recordPayload: {value},
   };
   data.contentSha256 = contentHash(data);
