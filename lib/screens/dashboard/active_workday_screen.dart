@@ -509,6 +509,28 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
     );
   }
 
+  /// Legacy whole-mile bridge for Dashboard-owned actions that do not yet
+  /// persist an exact odometer boundary. The entry sheet still validates an
+  /// optional tenth-mile minimum before this presentation value is returned.
+  Future<int?> _recordOdometerReading({
+    required String title,
+    required String saveLabel,
+    int? minimumReading,
+    int? minimumReadingTenths,
+    String? minimumReadingMessage,
+    OdometerMinimumReadingReviewHandler? onMinimumReadingReview,
+  }) async {
+    final exact = await _recordOdometerExactReading(
+      title: title,
+      saveLabel: saveLabel,
+      minimumReading: minimumReading,
+      minimumReadingTenths: minimumReadingTenths,
+      minimumReadingMessage: minimumReadingMessage,
+      onMinimumReadingReview: onMinimumReadingReview,
+    );
+    return exact?.wholeReading;
+  }
+
   Future<bool> _recordEndDayOdometerReview({
     required int enteredOdometer,
     int? enteredOdometerTenths,
