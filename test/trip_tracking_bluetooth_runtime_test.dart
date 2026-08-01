@@ -50,6 +50,32 @@ void main() {
   });
 
   test(
+    'concurrent access requests show one native permission prompt',
+    () async {
+      var permissionRequests = 0;
+      final permissionResult = Completer<bool>();
+      final fixture = _RuntimeFixture(
+        requestObservationAccess: () {
+          permissionRequests += 1;
+          return permissionResult.future;
+        },
+      );
+      addTearDown(fixture.dispose);
+
+      final requests = [
+        fixture.runtime.requestObservationAccess(),
+        fixture.runtime.requestObservationAccess(),
+        fixture.runtime.requestObservationAccess(),
+      ];
+      expect(permissionRequests, 1);
+
+      permissionResult.complete(true);
+      expect(await Future.wait(requests), everyElement(isTrue));
+      expect(fixture.probe.capabilityReads, 1);
+    },
+  );
+
+  test(
     'unlinked connection requires explicit fresh vehicle approval',
     () async {
       final now = DateTime.utc(2026, 7, 28, 10);

@@ -40,6 +40,7 @@ class TripTrackingBluetoothRuntimeController extends ChangeNotifier {
   BluetoothVehicleMatchDecision? _lastDecision;
   bool _disposed = false;
   Future<bool>? _startFuture;
+  Future<bool>? _observationAccessFuture;
   bool _observationAvailable = false;
 
   bool get observationAvailable => _observationAvailable;
@@ -77,12 +78,23 @@ class TripTrackingBluetoothRuntimeController extends ChangeNotifier {
   Future<bool> requestObservationAccess() async {
     final request = _requestObservationAccess;
     if (_disposed || request == null) return false;
-    final granted = await request();
-    if (!granted || _disposed) {
-      _setAvailability(false);
-      return false;
-    }
-    return start();
+    if (_observationAvailable) return true;
+    final pending = _observationAccessFuture;
+    if (pending != null) return pending;
+    final operation = () async {
+      final granted = await request();
+      if (!granted || _disposed) {
+        _setAvailability(false);
+        return false;
+      }
+      return start();
+    }();
+    _observationAccessFuture = operation;
+    return operation.whenComplete(() {
+      if (identical(_observationAccessFuture, operation)) {
+        _observationAccessFuture = null;
+      }
+    });
   }
 
   Future<bool> approvePendingForVehicle({
@@ -158,6 +170,7 @@ class TripTrackingBluetoothRuntimeController extends ChangeNotifier {
     if (_disposed) return;
     _disposed = true;
     _pendingObservation = null;
+    _observationAccessFuture = null;
     unawaited(_binding.dispose());
     super.dispose();
   }
