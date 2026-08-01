@@ -24,14 +24,27 @@ class VehicleMileageAllocationDashboardProjection {
     required DateTime from,
     required DateTime until,
   }) {
-    final records = store.recordsForVehicle(vehicleId);
+    // Read once so the ledger, duplicate check, and recovery warning describe
+    // one coherent local snapshot.
+    final recovery = store.recover();
+    final start = from.toUtc();
+    final end = until.toUtc();
+    final records = recovery.records
+        .where((record) => record.allocation.vehicleId == vehicleId)
+        .toList(growable: false);
+    final recordsInPeriod = records
+        .where((record) {
+          final occurredAt = record.allocation.occurredAt.toUtc();
+          return !occurredAt.isBefore(start) && occurredAt.isBefore(end);
+        })
+        .toList(growable: false);
     final ledger = VehicleMileageAllocationLedger(
-      records.map((record) => record.allocation),
+      recordsInPeriod.map((record) => record.allocation),
     );
-    final duplicateForVehicle = store.duplicateGroups().any(
-      (group) => group.records.any(
-        (record) => record.allocation.vehicleId == vehicleId,
-      ),
+    final duplicateForPeriod = _hasDuplicateSourceInPeriod(
+      records: recordsInPeriod,
+      from: start,
+      until: end,
     );
     return VehicleMileageAllocationDashboardProjection(
       readModel: VehicleMileageAllocationReadModel.fromSummary(
@@ -42,8 +55,8 @@ class VehicleMileageAllocationDashboardProjection {
           until: until,
         ),
       ),
-      durableRecoveryIssueCount: store.recover().issues.length,
-      duplicateSourceReviewRequired: duplicateForVehicle,
+      durableRecoveryIssueCount: recovery.issues.length,
+      duplicateSourceReviewRequired: duplicateForPeriod,
     );
   }
 
@@ -66,4 +79,21 @@ class VehicleMileageAllocationDashboardProjection {
     }
     return readModel.explanation;
   }
+}
+
+bool _hasDuplicateSourceInPeriod({
+  required Iterable<VehicleMileageAllocationDurableRecord> records,
+  required DateTime from,
+  required DateTime until,
+}) {
+  final sourceCounts = <String, int>{};
+  for (final record in records) {
+    final occurredAt = record.allocation.occurredAt.toUtc();
+    if (occurredAt.isBefore(from) || !occurredAt.isBefore(until)) continue;
+    final sourceKey = record.allocation.sourceKey;
+    final nextCount = (sourceCounts[sourceKey] ?? 0) + 1;
+    if (nextCount > 1) return true;
+    sourceCounts[sourceKey] = nextCount;
+  }
+  return false;
 }

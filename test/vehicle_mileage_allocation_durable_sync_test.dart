@@ -129,4 +129,39 @@ void main() {
       expect(bucket.recover().records, isEmpty);
     },
   );
+
+  test(
+    'malformed durable evidence is preserved instead of overwritten by sync',
+    () async {
+      final records = MaintainiacDurableRecordStore.memory();
+      final bucket = VehicleMileageAllocationDurableStore(records: records);
+      await records.save(
+        module: VehicleMileageAllocationDurableStore.module,
+        id: 'odometer-event-1',
+        payload: const {
+          'schema': 'vehicle_mileage_allocation_durable_record_v1',
+        },
+      );
+
+      final result = await VehicleMileageAllocationDurableSync(store: bucket)
+          .sync(
+            settings: const TripTrackingSettings(
+              vehicleMileageAllocationEnabled: true,
+            ),
+            vehicleId: 'vehicle-1',
+            history: [event()],
+          );
+
+      expect(result.savedCount, 0);
+      expect(result.failures, ['durable-recovery-review-required']);
+      expect(bucket.recover().issues, hasLength(1));
+      expect(
+        records.recordFor(
+          VehicleMileageAllocationDurableStore.module,
+          'odometer-event-1',
+        ),
+        isNotNull,
+      );
+    },
+  );
 }

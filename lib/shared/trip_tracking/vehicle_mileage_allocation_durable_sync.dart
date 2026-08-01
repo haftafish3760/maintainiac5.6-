@@ -76,6 +76,18 @@ class VehicleMileageAllocationDurableSync {
         failures: [],
       );
     }
+    // A malformed durable allocation may be a recoverable historical record.
+    // Do not let a new sync overwrite any allocation bucket while that record
+    // needs review; the durable owner retains the original evidence intact.
+    if (_store.recover().issues.isNotEmpty) {
+      return const VehicleMileageAllocationDurableSyncResult(
+        savedCount: 0,
+        unchangedCount: 0,
+        skippedByOptIn: 0,
+        rejectedCount: 0,
+        failures: ['durable-recovery-review-required'],
+      );
+    }
     var saved = 0;
     var unchanged = 0;
     var rejected = 0;

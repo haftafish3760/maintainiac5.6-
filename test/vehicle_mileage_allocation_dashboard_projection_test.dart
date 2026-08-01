@@ -16,14 +16,17 @@ void main() {
     required String id,
     required String sourceId,
     int revision = 1,
+    DateTime? occurredAt,
   }) => VehicleMileageAllocationRecord.confirmed(
     id: id,
     vehicleId: 'vehicle-1',
     sourceType: 'odometer',
     sourceId: sourceId,
     sourceRevision: revision,
-    occurredAt: DateTime.utc(2026, 8, 1, 12),
-    confirmedAt: DateTime.utc(2026, 8, 1, 12, 1),
+    occurredAt: occurredAt ?? DateTime.utc(2026, 8, 1, 12),
+    confirmedAt: (occurredAt ?? DateTime.utc(2026, 8, 1, 12)).add(
+      const Duration(minutes: 1),
+    ),
     use: VehicleMileageAllocationUse.business,
     distanceTenths: 100,
     businessTenths: 100,
@@ -85,6 +88,28 @@ void main() {
 
       expect(result.duplicateSourceReviewRequired, isTrue);
       expect(result.suggestedBusinessPercent, isNull);
+    },
+  );
+
+  test(
+    'a duplicate outside the reporting period does not suppress it',
+    () async {
+      final store = VehicleMileageAllocationDurableStore(
+        records: MaintainiacDurableRecordStore.memory(),
+      );
+      await store.save(record(id: 'record-1', sourceId: 'source-1'));
+      await store.save(
+        record(
+          id: 'record-2',
+          sourceId: 'source-1',
+          occurredAt: DateTime.utc(2026, 7, 1, 12),
+        ),
+      );
+
+      final result = await projection(store: store);
+
+      expect(result.duplicateSourceReviewRequired, isFalse);
+      expect(result.suggestedBusinessPercent, 1);
     },
   );
 }
