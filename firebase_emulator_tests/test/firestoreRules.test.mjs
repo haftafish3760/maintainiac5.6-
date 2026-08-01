@@ -458,6 +458,14 @@ describe('Firestore rules emulator safety', () => {
     await assertSucceeds(
       setDoc(doc(owner, 'users/ownerUid/dashboardSummaries/today'), personalSummary),
     );
+    await assertFails(
+      setDoc(doc(owner, 'users/ownerUid/dashboardSummaries/freeSyncOverage'), {
+        ...personalSummary,
+        dashboardId: 'freeSyncOverage',
+        freeSyncsRemaining: 5,
+        syncsUsedInWindow: 1,
+      }),
+    );
     await assertSucceeds(
       getDoc(doc(owner, 'users/ownerUid/dashboardSummaries/today')),
     );
@@ -1039,7 +1047,7 @@ function dashboardSummary(overrides = {}) {
     odometerUsageState: 'disabled',
     dashboardWidgetTokens: ['start_day', 'live_odometer', 'stops'],
     quickActionTokens: ['start_trip', 'end_trip', 'add_stop'],
-    freeSyncsRemaining: 5,
+    freeSyncsRemaining: 3,
     syncsUsedInWindow: 1,
     batteryGpsLimited: true,
     reviewRequired: false,

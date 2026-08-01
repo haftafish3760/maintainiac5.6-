@@ -126,12 +126,12 @@ void main() {
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);
   });
 
-  test('free dashboard sync window is capped at six per 24 hours', () {
-    expect(HostedUsageLimits.freeUserSyncsPer24HourWindow, 6);
-    expect(HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: 5), isTrue);
-    expect(HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: 6), isFalse);
-    expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 0), 6);
-    expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 6), 0);
+  test('free dashboard sync window is capped at four per 24 hours', () {
+    expect(HostedUsageLimits.freeUserSyncsPer24HourWindow, 4);
+    expect(HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: 3), isTrue);
+    expect(HostedUsageLimits.canUseFreeSync(syncsUsedInWindow: 4), isFalse);
+    expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 0), 4);
+    expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 4), 0);
     expect(HostedUsageLimits.freeSyncsRemaining(syncsUsedInWindow: 99), 0);
   });
 
@@ -257,12 +257,12 @@ void main() {
           uid: 'firebaseUid-1',
           dashboardId: 'today',
           updatedAtUtc: DateTime.utc(2026, 7, 16, 12),
-          freeSyncsRemaining: 4,
+          freeSyncsRemaining: 2,
           syncsUsedInWindow: 2,
         );
     final poisoned = MaintainiacFirestoreDocumentDraft(
       path: doc.path,
-      data: {...doc.data, 'freeSyncsRemaining': 6},
+      data: {...doc.data, 'freeSyncsRemaining': 4},
     );
 
     MaintainiacFirestoreUploadPolicy.validateDraft(doc);

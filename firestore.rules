@@ -562,7 +562,7 @@ service cloud.firestore {
       return (!request.resource.data.keys().hasAny(['freeSyncsRemaining']) ||
           (request.resource.data.freeSyncsRemaining is int &&
             request.resource.data.freeSyncsRemaining >= 0 &&
-            request.resource.data.freeSyncsRemaining <= 6)) &&
+            request.resource.data.freeSyncsRemaining <= 4)) &&
         (!request.resource.data.keys().hasAny(['syncsUsedInWindow']) ||
           (request.resource.data.syncsUsedInWindow is int &&
             request.resource.data.syncsUsedInWindow >= 0 &&
@@ -572,9 +572,9 @@ service cloud.firestore {
           'syncsUsedInWindow'
         ]) ||
           request.resource.data.freeSyncsRemaining ==
-            (request.resource.data.syncsUsedInWindow >= 6
+            (request.resource.data.syncsUsedInWindow >= 4
               ? 0
-              : 6 - request.resource.data.syncsUsedInWindow));
+              : 4 - request.resource.data.syncsUsedInWindow));
     }
 
     function hasValidDashboardSummaryStrings() {

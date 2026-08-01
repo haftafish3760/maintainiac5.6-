@@ -156,7 +156,7 @@ void main() {
     expect(summary.odometerUsageCurrentMiles, 180.0);
     expect(summary.odometerUsageAverageDailyMiles, 40.0);
     expect(summary.odometerUsageReviewThresholdMiles, 100.0);
-    expect(summary.freeSyncsRemaining, 1);
+    expect(summary.freeSyncsRemaining, 0);
     expect(summary.batteryGpsLimited, isTrue);
     expect(summary.reviewRequired, isTrue);
   });
@@ -216,7 +216,7 @@ void main() {
     );
 
     expect(summary.freeSyncsRemaining, 0);
-    expect(summary.syncsUsedInWindow, 6);
+    expect(summary.syncsUsedInWindow, 4);
     expect(summary.hasVerifiedSyncCounters, isTrue);
   });
 
@@ -266,7 +266,7 @@ void main() {
     expect(summary.recoveryReason, 'trip_recovery_ready');
     expect(summary.recoveryUserActionRequired, isFalse);
     expect(summary.storageState, 'text_record_safe');
-    expect(summary.freeSyncsRemaining, 5);
+    expect(summary.freeSyncsRemaining, 3);
     expect(summary.reviewRequired, isFalse);
   });
 

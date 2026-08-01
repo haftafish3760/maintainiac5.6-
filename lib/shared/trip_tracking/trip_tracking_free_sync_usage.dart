@@ -117,7 +117,7 @@ class TripTrackingFreeSyncUsage {
       'usageVerified': usageVerified,
       'usageFailureFailsClosed': !usageVerified,
       'rollingWindowHours': 24,
-      'freeSyncLimitPerWindow': 6,
+      'freeSyncLimitPerWindow': HostedUsageLimits.freeUserSyncsPer24HourWindow,
       'localAttemptLedgerIsCanonical': true,
       'remoteCountersCanOverrideLocalUsage': false,
       'firebaseAuthDoesNotSupplyUsageCounter': true,
@@ -130,7 +130,7 @@ class TripTrackingFreeSyncUsage {
       'blockedAttemptConsumesFreeSync': false,
       'freeSyncQuotaAppliesToTripBackups': true,
       'freeSyncLimitMatchesHostedPolicy':
-          HostedUsageLimits.freeUserSyncsPer24HourWindow == 6,
+          HostedUsageLimits.freeUserSyncsPer24HourWindow == 4,
       'freeSyncLimitIsLocalRollingWindow': true,
       'freeSyncLimitCannotBeRaisedRemotely': true,
       'syncUsageCannotBeResetByFirestore': true,
@@ -181,7 +181,8 @@ class TripTrackingFreeSyncUsageSummaryValidation {
     final reasons = <String>[];
     if (summary['schemaVersion'] != 1) reasons.add('unsupported_schema');
     if (summary['rollingWindowHours'] != 24 ||
-        summary['freeSyncLimitPerWindow'] != 6 ||
+        summary['freeSyncLimitPerWindow'] !=
+            HostedUsageLimits.freeUserSyncsPer24HourWindow ||
         summary['freeSyncLimitMatchesHostedPolicy'] != true) {
       reasons.add('free_sync_limit_contract_mismatch');
     }

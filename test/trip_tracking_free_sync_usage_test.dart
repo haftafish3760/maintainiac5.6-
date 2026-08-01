@@ -307,7 +307,7 @@ void main() {
   );
 
   test(
-    'reservation refuses the seventh free sync in a rolling window',
+    'reservation refuses the fifth free sync in a rolling window',
     () async {
       final store = CloudBackupSyncAttemptStore.memory();
       final now = DateTime.utc(2026, 7, 17, 12);
@@ -372,7 +372,7 @@ void main() {
 
       expect(
         decisions.where((decision) => decision.mayAttemptSync),
-        hasLength(6),
+        hasLength(HostedUsageLimits.freeUserSyncsPer24HourWindow),
       );
       expect(
         decisions.where(

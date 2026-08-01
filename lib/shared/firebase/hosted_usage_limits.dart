@@ -48,7 +48,10 @@ class HostedUsageLimits {
 
   static const int maxAccountsPerInstallInReviewWindow = 2;
   static const int maxAccountsPerIpInReviewWindow = 2;
-  static const int freeUserSyncsPer24HourWindow = 6;
+
+  /// Conservative local fallback. The authenticated server-issued plan is the
+  /// authority for hosted sync reservations and may only restrict further.
+  static const int freeUserSyncsPer24HourWindow = 4;
 
   static bool canUseFreeSync({required int syncsUsedInWindow}) =>
       syncsUsedInWindow >= 0 &&
