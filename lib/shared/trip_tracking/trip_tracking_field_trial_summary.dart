@@ -182,6 +182,35 @@ class TripTrackingFieldTrialSummary {
     'odometerIsOfficial': true,
     'gpsCanConfirmMileage': false,
   };
+
+  /// Privacy-minimized operational health evidence for opt-in diagnostics.
+  ///
+  /// Owns no upload, identity, route, mileage, customer, or business-record
+  /// data. A diagnostics transport may consume only this allowlisted shape;
+  /// it must remain opt-in and cannot affect trip or odometer decisions.
+  Map<String, Object?> toHealthTelemetry() => {
+    'schema': 'trip_tracking_health_v1',
+    'privacyClass': 'health_only_no_personal_or_location_data',
+    'receivedSamples': receivedSamples,
+    'acceptedSamples': acceptedSamples,
+    'rejectedSamples': rejectedSamples,
+    'acceptedSampleRateBand': _percentBand(acceptedSamplePercent),
+    'signalGapCount': signalGapCount,
+    'probableStopCount': probableStopCount,
+    'confirmedStopCount': confirmedStopCount,
+    'dismissedStopCount': dismissedStopCount,
+    'unresolvedStopCount': unresolvedStopCount,
+    'recoveryCount': recoveryCount,
+    'durationBand': _durationBand(durationMinutes),
+    'initialFixQuality': initialFixQuality,
+    'odometerComparisonAvailable': odometerMiles != null,
+    'gpsOdometerDifferenceBand': _differenceBand(absoluteDifferenceMiles),
+    'coordinatesIncluded': false,
+    'routeGeometryIncluded': false,
+    'identifiersIncluded': false,
+    'rawMileageIncluded': false,
+    'canChangeOdometer': false,
+  };
 }
 
 double _metersToMiles(double meters) {
@@ -190,3 +219,24 @@ double _metersToMiles(double meters) {
 }
 
 double _round(double value) => double.parse(value.toStringAsFixed(3));
+
+String _durationBand(int minutes) => switch (minutes) {
+  < 5 => 'under_5_minutes',
+  < 30 => '5_to_29_minutes',
+  < 120 => '30_to_119_minutes',
+  _ => '120_or_more_minutes',
+};
+
+String _percentBand(double percent) => switch (percent) {
+  < 50 => 'under_50_percent',
+  < 80 => '50_to_79_percent',
+  < 95 => '80_to_94_percent',
+  _ => '95_to_100_percent',
+};
+
+String _differenceBand(double? miles) {
+  if (miles == null) return 'not_available';
+  if (miles <= 0.5) return 'within_half_mile';
+  if (miles <= 2) return 'over_half_to_2_miles';
+  return 'over_2_miles';
+}

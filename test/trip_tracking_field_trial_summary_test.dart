@@ -111,6 +111,29 @@ void main() {
       expect(summary.toPlainText(), isNot(contains('latitude')));
       expect(summary.toPlainText(), isNot(contains('longitude')));
       expect(summary.toPlainText(), isNot(contains('route geometry')));
+      expect(summary.toHealthTelemetry(), {
+        'schema': 'trip_tracking_health_v1',
+        'privacyClass': 'health_only_no_personal_or_location_data',
+        'receivedSamples': 12,
+        'acceptedSamples': 10,
+        'rejectedSamples': 2,
+        'acceptedSampleRateBand': '80_to_94_percent',
+        'signalGapCount': 0,
+        'probableStopCount': 2,
+        'confirmedStopCount': 1,
+        'dismissedStopCount': 0,
+        'unresolvedStopCount': 1,
+        'recoveryCount': 1,
+        'durationBand': '30_to_119_minutes',
+        'initialFixQuality': 'freshPrecise',
+        'odometerComparisonAvailable': true,
+        'gpsOdometerDifferenceBand': 'over_half_to_2_miles',
+        'coordinatesIncluded': false,
+        'routeGeometryIncluded': false,
+        'identifiersIncluded': false,
+        'rawMileageIncluded': false,
+        'canChangeOdometer': false,
+      });
     },
   );
 
