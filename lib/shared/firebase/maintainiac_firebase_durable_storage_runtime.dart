@@ -5,6 +5,9 @@ import 'maintainiac_durable_cloud_revision_store.dart';
 import 'maintainiac_firestore_upload_queue.dart';
 import 'maintainiac_hosted_plan_client.dart';
 
+const _unconfiguredCloudDeviceId =
+    '0000000000000000000000000000000000000000000000000000000000000000';
+
 class MaintainiacHostedFirestoreDocumentSink
     extends FirebaseFirestoreDocumentSink
     implements MaintainiacHostedReservationRequiredSink {
@@ -31,6 +34,7 @@ class MaintainiacFirebaseDurableStorageRuntime {
     MaintainiacCloudIdentityProvider? identity,
     MaintainiacCallableFunctionClient? functions,
     MaintainiacFirestoreDocumentSink? sink,
+    String? deviceId,
     bool uploadEnabled = false,
     bool Function()? uploadNetworkAllowed,
   }) async {
@@ -47,7 +51,13 @@ class MaintainiacFirebaseDurableStorageRuntime {
       identity: resolvedIdentity,
     );
     final resolvedSink =
-        sink ?? MaintainiacCallableDurableRecordSink(resolvedFunctions);
+        sink ??
+        MaintainiacCallableDurableRecordSink(
+          resolvedFunctions,
+          // A missing configuration fails closed at the server: this inert
+          // token cannot match a registered installation identity.
+          deviceId: deviceId ?? _unconfiguredCloudDeviceId,
+        );
     final serverCommitted = resolvedSink is MaintainiacServerCommittedBatchSink;
     final uploads = MaintainiacFirestoreUploadCoordinator(
       queue: resolvedQueue,

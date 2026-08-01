@@ -43,13 +43,24 @@ function buildDurableRecordCommitFunctions({enforceAppCheck}) {
 async function commitDurableRecordBatch(request) {
   const uid = request.auth?.uid || '';
   const attemptId = String(request.data?.attemptId || '').trim();
+  const deviceId = String(request.data?.deviceId || '').trim();
   const documents = request.data?.documents;
   if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
-  if (!TOKEN.test(attemptId) || !Array.isArray(documents) ||
+  if (!TOKEN.test(attemptId) || !SHA256.test(deviceId) || !Array.isArray(documents) ||
       documents.length < 1 || documents.length > MAX_DOCUMENTS) {
     throw new HttpsError('invalid-argument', 'Invalid durable record batch.');
   }
   const validated = validateDocuments(uid, documents);
+  const db = getFirestore();
+  const registeredDevice = await db.doc(`users/${uid}/devices/${deviceId}`).get();
+  if (registeredDevice.data()?.uid !== uid ||
+      registeredDevice.data()?.deviceId !== deviceId ||
+      registeredDevice.data()?.status !== 'active') {
+    throw new HttpsError(
+      'permission-denied',
+      'An active registered device is required for cloud backup.',
+    );
+  }
   const batchSha256 = sha256(canonicalJson(documents));
   const reservation = await reserveHostedSync({
     auth: request.auth,
@@ -59,8 +70,8 @@ async function commitDurableRecordBatch(request) {
       batchBytes: validated.totalBytes,
     },
   });
-  const db = getFirestore();
   const memberRef = db.doc(`orgs/${validated.organizationId}/members/${uid}`);
+  const deviceRef = db.doc(`users/${uid}/devices/${deviceId}`);
   const manifestRef = db.doc(
     `orgs/${validated.organizationId}/syncManifests/${uid}`,
   );
@@ -69,18 +80,27 @@ async function commitDurableRecordBatch(request) {
       db.doc(document.path));
     const snapshots = await Promise.all([
       transaction.get(memberRef),
+      transaction.get(deviceRef),
       transaction.get(manifestRef),
       ...references.map((reference) => transaction.get(reference)),
     ]);
     const member = snapshots[0];
-    const manifest = snapshots[1];
+    const device = snapshots[1];
+    const manifest = snapshots[2];
     if (member.data()?.status !== 'active') {
       throw new HttpsError(
         'permission-denied',
         'An active organization membership is required.',
       );
     }
-    const existing = snapshots.slice(2);
+    if (device.data()?.uid !== uid || device.data()?.deviceId !== deviceId ||
+        device.data()?.status !== 'active') {
+      throw new HttpsError(
+        'permission-denied',
+        'The registered device is no longer active.',
+      );
+    }
+    const existing = snapshots.slice(3);
     let writes = 0;
     let auditArchiveWrites = 0;
     let recordCountDelta = 0;

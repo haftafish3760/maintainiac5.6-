@@ -18,6 +18,7 @@ import {
 } from './emulatorGuard.mjs';
 
 let testEnv;
+const durableDeviceId = 'd'.repeat(64);
 
 before(async () => {
   assertEmulatorOnly();
@@ -62,7 +63,11 @@ describe('server committed durable records', () => {
     const first = durableDocument(identity.uid, 'settings-a', 1, 'dark');
     first.data.auditEvents = ['2026-07-22T00:00:00.000Z created record'];
     first.data.contentSha256 = contentHash(first.data);
-    const input = {attemptId: 'durable-attempt-a', documents: [first]};
+    const input = {
+      attemptId: 'durable-attempt-a',
+      deviceId: durableDeviceId,
+      documents: [first],
+    };
 
     const committed = await callFunction(
       'commitDurableRecordBatch',
@@ -117,13 +122,18 @@ describe('server committed durable records', () => {
     const first = durableDocument(identity.uid, 'settings-b', 1, 'dark');
     await callFunction('commitDurableRecordBatch', identity.token, {
       attemptId: 'durable-attempt-b',
+      deviceId: durableDeviceId,
       documents: [first],
     });
     const changed = durableDocument(identity.uid, 'settings-b', 2, 'light');
     const updated = await callFunction(
       'commitDurableRecordBatch',
       identity.token,
-      {attemptId: 'durable-attempt-b', documents: [changed]},
+      {
+        attemptId: 'durable-attempt-b',
+        deviceId: durableDeviceId,
+        documents: [changed],
+      },
     );
     assert.equal(updated.writtenCount, 1);
     assert.equal(updated.used, 1);
@@ -156,7 +166,11 @@ describe('server committed durable records', () => {
       const rejected = await callFunctionError(
         'commitDurableRecordBatch',
         identity.token,
-        {attemptId: `durable-attempt-c-${index}`, documents: [unsafe]},
+        {
+          attemptId: `durable-attempt-c-${index}`,
+          deviceId: durableDeviceId,
+          documents: [unsafe],
+        },
       );
       assert.equal(rejected.status, 400);
     }
@@ -204,7 +218,11 @@ describe('server committed durable records', () => {
     const result = await callFunction(
       'commitDurableRecordBatch',
       identity.token,
-      {attemptId: 'vehicle-mileage-allocation-a', documents: [allocation]},
+      {
+        attemptId: 'vehicle-mileage-allocation-a',
+        deviceId: durableDeviceId,
+        documents: [allocation],
+      },
     );
 
     assert.equal(result.attemptedCount, 1);
@@ -289,7 +307,11 @@ describe('server committed durable records', () => {
       const rejected = await callFunctionError(
         'commitDurableRecordBatch',
         identity.token,
-        {attemptId: `tamper-${index}`, documents: [document]},
+        {
+          attemptId: `tamper-${index}`,
+          deviceId: durableDeviceId,
+          documents: [document],
+        },
       );
       assert.equal(rejected.status, 400);
     }
@@ -301,6 +323,7 @@ describe('server committed durable records', () => {
     const first = durableDocument(identity.uid, 'schema-upgrade', 1, 'dark');
     await callFunction('commitDurableRecordBatch', identity.token, {
       attemptId: 'schema-migration-attempt',
+      deviceId: durableDeviceId,
       documents: [first],
     });
     const upgraded = durableDocument(
@@ -315,6 +338,7 @@ describe('server committed durable records', () => {
       identity.token,
       {
         attemptId: 'schema-migration-attempt',
+        deviceId: durableDeviceId,
         documents: [upgraded],
       },
     );
@@ -331,6 +355,7 @@ describe('server committed durable records', () => {
       identity.token,
       {
         attemptId: 'schema-migration-attempt',
+        deviceId: durableDeviceId,
         documents: [downgraded],
       },
     );
@@ -416,6 +441,15 @@ async function seedHostedAccount(uid) {
     await setDoc(doc(db, `orgs/orgCommit/members/${uid}`), {
       status: 'active',
       role: 'owner',
+    });
+    await setDoc(doc(db, `users/${uid}/devices/${durableDeviceId}`), {
+      uid,
+      deviceId: durableDeviceId,
+      status: 'active',
+      installationIdHash: durableDeviceId,
+      platform: 'android',
+      appVersion: 'test',
+      registrationRevision: 1,
     });
     await setDoc(doc(db, `users/${uid}/entitlements/current`), {
       uid,

@@ -10,9 +10,13 @@ class MaintainiacCallableDurableRecordSink
         MaintainiacFirestoreBatchDocumentSink,
         MaintainiacHostedReservationRequiredSink,
         MaintainiacServerCommittedBatchSink {
-  const MaintainiacCallableDurableRecordSink(this._functions);
+  const MaintainiacCallableDurableRecordSink(
+    this._functions, {
+    String? deviceId,
+  }) : _deviceId = deviceId;
 
   final MaintainiacCallableFunctionClient _functions;
+  final String? _deviceId;
 
   @override
   Future<void> writeDocument({
@@ -46,11 +50,16 @@ class MaintainiacCallableDurableRecordSink
       }
     }
     final Map<String, Object?> response;
+    final deviceId = _deviceId?.trim() ?? '';
+    if (!RegExp(r'^[a-f0-9]{64}$').hasMatch(deviceId)) {
+      throw StateError('Cloud backup requires a registered device identity.');
+    }
     try {
       response = await _functions.call(
         name: 'commitDurableRecordBatch',
         data: {
           'attemptId': attemptId,
+          'deviceId': deviceId,
           'documents': [
             for (final document in documents)
               {
