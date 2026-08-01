@@ -39,6 +39,17 @@ void main() {
     expect(validation.reasons, isEmpty);
   });
 
+  test('calibration summary rejects a forged consent boundary', () {
+    final validation =
+        TripTrackingCalibrationApplySummaryValidation.fromSummary(
+          summary()
+            ..['automaticLocalAdvisoryCalibrationEnabledByGpsConsent'] = false,
+        );
+
+    expect(validation.isRenderable, isFalse);
+    expect(validation.reasons, contains('calibration_review_boundary_missing'));
+  });
+
   test(
     'calibration summary rejects mutation, remote, and sensitive claims',
     () {

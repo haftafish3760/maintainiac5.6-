@@ -479,10 +479,15 @@ extension TripTrackingControllerReviewActions on TripTrackingController {
     DateTime? finishedTimeZoneContextAt,
   }) {
     final finishedContext = finishedTimeZoneContextAt ?? finishedAt;
-    final estimatedEndingOdometer = projection.updateAcceptedMeters(
+    projection.updateAcceptedMeters(
       engine.totalAcceptedMeters,
       gpsAssistanceCalibrationMultiplier: _activeTripCalibrationMultiplier,
     );
+    // The persisted whole-mile compatibility value must be derived from the
+    // exact tenth-mile projection. Rounding the legacy whole value separately
+    // could make 5001.9 persist as 5002 alongside 50019 tenths, which makes a
+    // recoverable review look corrupted after a crash.
+    final estimatedEndingOdometer = projection.projectedTenths ~/ 10;
     return TripTrackingReviewRecord(
       id: session.id,
       vehicleId: session.vehicleId,

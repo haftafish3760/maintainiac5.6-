@@ -59,6 +59,8 @@ void main() {
       final review = store.reviewForTrip('trip_cancel_crash_window');
       expect(review, isNotNull);
       expect(review!.finishedAt, cancelledAt);
+      expect(review.estimatedEndingOdometerTenths, 50019);
+      expect(review.estimatedEndingOdometer, 5001);
       expect(
         review.transitionAudits.last.toState,
         TripTrackingSessionLifecycleState.cancelled,

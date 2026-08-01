@@ -119,8 +119,10 @@ void _validateReviewBoundaryClaims(
   Map<String, Object?> summary,
   List<String> reasons,
 ) {
-  if (summary['userOptInRequired'] != true ||
-      summary['reviewAcceptanceRequired'] != true ||
+  if (summary['gpsAssistedTrackingConsentRequired'] != true ||
+      summary['separateCalibrationOptInRequired'] != false ||
+      summary['reviewAcceptanceRequiredForAdvisoryProjection'] != false ||
+      summary['automaticLocalAdvisoryCalibrationEnabledByGpsConsent'] != true ||
       summary['requiresMultipleReviewedOdometerDays'] != true ||
       summary['continuousCalibrationAverageRequired'] != true ||
       summary['poorGpsDaysExcludedFromCalibration'] != true ||
