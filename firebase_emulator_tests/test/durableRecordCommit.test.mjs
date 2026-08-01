@@ -6,7 +6,10 @@ import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
 import {doc, getDoc, setDoc} from 'firebase/firestore';
 
 import {callFunction, callFunctionError} from './callableTestClient.mjs';
-import {emptyAuditChainSha256} from '../../functions/audit_chain.js';
+import {
+  auditChainFor,
+  emptyAuditChainSha256,
+} from '../../functions/audit_chain.js';
 import {
   assertEmulatorOnly,
   emulatorProjectId,
@@ -218,6 +221,56 @@ describe('server committed durable records', () => {
         false,
       );
     });
+  });
+
+  test('one sync opportunity archives a long audit history in retry-safe pages', async () => {
+    const identity = await createIdentity();
+    await seedHostedAccount(identity.uid);
+    const recordKey = sha256('settings\\u0000long-audit');
+    const events = Array.from(
+      {length: 251},
+      (_, index) => `2026-08-01T00:00:00.000Z saved ${index + 1}`,
+    );
+    const fullChain = auditChainFor(events);
+    const firstEvents = events.slice(0, 250);
+    const first = await callFunction('appendDurableAuditPage', identity.token, {
+      attemptId: 'durable-audit-page-attempt',
+      organizationId: 'orgCommit',
+      recordKey,
+      targetEventCount: events.length,
+      targetChainSha256: fullChain.chainSha256,
+      firstOrdinal: 1,
+      previousChainSha256: emptyAuditChainSha256(),
+      events: firstEvents,
+    });
+    const replay = await callFunction('appendDurableAuditPage', identity.token, {
+      attemptId: 'durable-audit-page-attempt',
+      organizationId: 'orgCommit',
+      recordKey,
+      targetEventCount: events.length,
+      targetChainSha256: fullChain.chainSha256,
+      firstOrdinal: 1,
+      previousChainSha256: emptyAuditChainSha256(),
+      events: firstEvents,
+    });
+    const second = await callFunction('appendDurableAuditPage', identity.token, {
+      attemptId: 'durable-audit-page-attempt',
+      organizationId: 'orgCommit',
+      recordKey,
+      targetEventCount: events.length,
+      targetChainSha256: fullChain.chainSha256,
+      firstOrdinal: 251,
+      previousChainSha256: first.chainSha256,
+      events: events.slice(250),
+    });
+
+    assert.equal(first.archivedEventCount, 250);
+    assert.equal(replay.replayed, true);
+    assert.equal(second.archivedEventCount, 251);
+    assert.equal(second.completed, true);
+    assert.equal(second.chainSha256, fullChain.chainSha256);
+    assert.equal(second.used, 1);
+    assert.equal(second.batchCount, 2);
   });
 
   test('content, identity, and lifecycle tampering fail before writes', async () => {

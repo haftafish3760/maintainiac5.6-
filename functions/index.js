@@ -15,6 +15,7 @@ const {buildDeviceRegistrationFunctions} = require('./device_registration');
 const {
   buildDurableRecordCommitFunctions,
 } = require('./durable_record_commit');
+const {buildDurableAuditPageFunctions} = require('./durable_audit_page');
 const {
   buildHostedPlanFunctions,
   loadHostedGrantForUid,
@@ -56,6 +57,10 @@ const durableRecordCommitFunctions = buildDurableRecordCommitFunctions({
 });
 exports.commitDurableRecordBatch =
     durableRecordCommitFunctions.commitDurableRecordBatch;
+const durableAuditPageFunctions = buildDurableAuditPageFunctions({
+  enforceAppCheck: enforceCallableAppCheck,
+});
+exports.appendDurableAuditPage = durableAuditPageFunctions.appendDurableAuditPage;
 const hostedPlanFunctions = buildHostedPlanFunctions({
   enforceAppCheck: enforceCallableAppCheck,
 });
