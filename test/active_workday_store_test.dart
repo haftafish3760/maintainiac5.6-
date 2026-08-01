@@ -1152,4 +1152,71 @@ void main() {
     expect(review.reason, OdometerCorrectionReason.odometerReplaced);
     expect(review.enteredOdometer, 124900);
   });
+
+  test(
+    'repeated lower End Day review keeps one durable evidence record',
+    () async {
+      final store = ActiveWorkdayController.memory();
+      await store.startDay(
+        vehicleId: 'truck-1',
+        vehicleLabel: 'Work Truck 1',
+        workProfileId: 'Business',
+        startOdometer: 125000,
+        startedAt: DateTime(2026, 6, 12, 8),
+      );
+
+      await store.requestOdometerReview(
+        enteredOdometer: 124900,
+        reason: OdometerCorrectionReason.backdatedEntry,
+        createdAt: DateTime(2026, 6, 12, 10),
+      );
+      final repeated = await store.requestOdometerReview(
+        enteredOdometer: 124900,
+        reason: OdometerCorrectionReason.backdatedEntry,
+        createdAt: DateTime(2026, 6, 12, 10, 1),
+      );
+
+      expect(repeated?.odometerReviews, hasLength(1));
+      expect(store.activeSession?.odometerReviews, hasLength(1));
+      expect(store.activeSession?.status, ActiveWorkdayStatus.active);
+      expect(store.activeSession?.endOdometer, isNull);
+    },
+  );
+
+  test('recovery collapses duplicate lower End Day review evidence', () {
+    final startedAt = DateTime(2026, 6, 12, 8);
+    final restored = ActiveWorkdaySessionRecord.fromMap({
+      'id': 'workday-odometer-review-recovery',
+      'vehicleId': 'truck-1',
+      'vehicleLabel': 'Work Truck 1',
+      'workProfileId': 'Business',
+      'startedAt': startedAt.toIso8601String(),
+      'startOdometer': 125000,
+      'status': 'active',
+      'odometerReviews': [
+        {
+          'id': 'review-first',
+          'createdAt': startedAt
+              .add(const Duration(hours: 2))
+              .toIso8601String(),
+          'startingOdometer': 125000,
+          'enteredOdometer': 124900,
+          'reason': 'backdatedEntry',
+        },
+        {
+          'id': 'review-repeated',
+          'createdAt': startedAt
+              .add(const Duration(hours: 2, seconds: 1))
+              .toIso8601String(),
+          'startingOdometer': 125000,
+          'enteredOdometer': 124900,
+          'reason': 'backdatedEntry',
+        },
+      ],
+    });
+
+    expect(restored.hasValidIdentity, isTrue);
+    expect(restored.odometerReviews, hasLength(1));
+    expect(restored.odometerReviews.single.id, 'review-first');
+  });
 }

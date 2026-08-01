@@ -357,6 +357,16 @@ class ActiveWorkdaySessionRecord {
             hasInvalidOdometerReview = true;
             continue;
           }
+          final duplicate = parsedOdometerReviews.any(
+            (existing) =>
+                existing.startingOdometer == parsed.startingOdometer &&
+                existing.enteredOdometer == parsed.enteredOdometer &&
+                existing.reason == parsed.reason,
+          );
+          // Older interrupted writes may contain the same unresolved review
+          // more than once. Preserve the first evidence record and recover
+          // the workday without multiplying a user-facing review queue.
+          if (duplicate) continue;
           parsedOdometerReviews.add(parsed);
         }
       }
@@ -783,6 +793,15 @@ class ActiveWorkdayController extends ChangeNotifier {
         'Invalid odometer review time.',
       );
     }
+    final duplicate = session.odometerReviews.any(
+      (review) =>
+          review.startingOdometer == startingOdometer &&
+          review.enteredOdometer == enteredOdometer &&
+          review.reason == reason,
+    );
+    // Reopening the End Day sheet or receiving a repeated callback must not
+    // create more audit evidence for the same unresolved reading.
+    if (duplicate) return session;
     final review = ActiveWorkdayOdometerReview(
       id: _newId('odometer_review'),
       createdAt: created,
