@@ -12,8 +12,9 @@ class AccountCreationGateContract {
   static const aiAbuseSecurityEventsCollection = 'aiAbuseSecurityEvents';
   static const aiEnforcementActionsCollection = 'aiEnforcementActions';
 
-  static const appInstallationIdField = AccountAbusePolicy.installSignalName;
-  static const appInstallationHashField = 'appInstallationHash';
+  static const appInstallationHashField = AccountAbusePolicy.installSignalName;
+  @Deprecated('Use appInstallationHashField.')
+  static const appInstallationIdField = appInstallationHashField;
   static const coarseIpHashField = AccountAbusePolicy.ipSignalName;
   static const providerIdField = 'providerId';
   static const appCheckVerifiedField = 'appCheckVerified';
@@ -21,7 +22,7 @@ class AccountCreationGateContract {
       'additionalVerificationSatisfied';
 
   static const requiredRequestFields = [
-    appInstallationIdField,
+    appInstallationHashField,
     providerIdField,
     appCheckVerifiedField,
   ];

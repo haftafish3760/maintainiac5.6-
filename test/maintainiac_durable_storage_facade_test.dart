@@ -47,4 +47,13 @@ void main() {
       throwsA(isA<MaintainiacFirestoreScopeMismatch>()),
     );
   });
+
+  test('facade exposes privacy-preserving installation abuse controls', () {
+    expect(AppInstallationIdentityStore.identityVersion, 1);
+    expect(
+      AccountCreationGateContract.appInstallationHashField,
+      'appInstallationHash',
+    );
+    expect(AccountAbusePolicy.freeAccountsPerInstall, greaterThan(0));
+  });
 }

@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import 'account_creation_gate_contract.dart';
 
 class AppInstallationIdentity {
   const AppInstallationIdentity({
@@ -13,8 +16,13 @@ class AppInstallationIdentity {
   final String installationId;
   final DateTime createdAt;
 
+  /// The cloud-facing identifier. The raw random installation secret remains
+  /// only in secure local storage and is never added to durable record data.
+  String get installationIdSha256 =>
+      sha256.convert(utf8.encode(installationId)).toString();
+
   Map<String, dynamic> toSignupSignalPayload() => {
-    'appInstallationId': installationId,
+    AccountCreationGateContract.appInstallationHashField: installationIdSha256,
     'installationIdVersion': AppInstallationIdentityStore.identityVersion,
     'createdAt': createdAt.toIso8601String(),
   };

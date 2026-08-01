@@ -48,7 +48,9 @@ class AccountAbusePolicy {
   static const int manualReviewAccountsPerIpWindow = 6;
   static const int ipWindowDays = 30;
 
-  static const String installSignalName = 'appInstallationId';
+  /// A SHA-256 digest of an app-scoped random installation ID. This is not a
+  /// hardware fingerprint and is intentionally reset with app secure storage.
+  static const String installSignalName = 'appInstallationHash';
   static const String ipSignalName = 'coarseIpHash';
 
   static AccountCreationGateResult evaluateCreation(

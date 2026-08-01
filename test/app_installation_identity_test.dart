@@ -23,9 +23,14 @@ void main() {
       expect(
         first.toSignupSignalPayload(),
         containsPair(
-          AccountCreationGateContract.appInstallationIdField,
-          first.installationId,
+          AccountCreationGateContract.appInstallationHashField,
+          first.installationIdSha256,
         ),
+      );
+      expect(first.installationIdSha256, matches(RegExp(r'^[a-f0-9]{64}$')));
+      expect(
+        first.toSignupSignalPayload().values,
+        isNot(contains(first.installationId)),
       );
     });
 
@@ -124,7 +129,7 @@ void main() {
     test('keeps server-only collections and required fields explicit', () {
       expect(
         AccountCreationGateContract.requiredRequestFields,
-        containsAll(['appInstallationId', 'providerId', 'appCheckVerified']),
+        containsAll(['appInstallationHash', 'providerId', 'appCheckVerified']),
       );
       expect(
         AccountCreationGateContract.serverOnlyCollections,

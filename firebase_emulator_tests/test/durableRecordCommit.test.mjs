@@ -142,6 +142,67 @@ describe('server committed durable records', () => {
     }
   });
 
+  test('vehicle mileage allocations use one private versioned durable document', async () => {
+    const identity = await createIdentity();
+    await seedHostedAccount(identity.uid);
+    const allocation = durableDocument(
+      identity.uid,
+      'allocation-1',
+      1,
+      'unused',
+    );
+    allocation.data.module = 'vehicleMileageAllocation';
+    allocation.data.recordKey = sha256(
+      'vehicleMileageAllocation\u0000allocation-1',
+    );
+    allocation.path = `orgs/orgCommit/records/${allocation.data.recordKey}`;
+    allocation.data.recordPayload = {
+      schema: 'vehicle_mileage_allocation_durable_record_v1',
+      schemaVersion: 1,
+      dateRange: {
+        start: '2026-08-01T10:00:00.000Z',
+        end: '2026-08-01T10:00:00.000Z',
+      },
+      reviewStatus: 'split',
+      allocation: {
+        id: 'allocation-1',
+        vehicleId: 'vehicle-1',
+        sourceType: 'trip',
+        sourceId: 'trip-1',
+        sourceRevision: 1,
+        occurredAt: '2026-08-01T10:00:00.000Z',
+        confirmedAt: '2026-08-01T10:01:00.000Z',
+        use: 'split',
+        distanceTenths: 555,
+        businessTenths: 400,
+        personalTenths: 155,
+        unclassifiedTenths: 0,
+      },
+    };
+    allocation.data.contentSha256 = contentHash(allocation.data);
+
+    const result = await callFunction(
+      'commitDurableRecordBatch',
+      identity.token,
+      {attemptId: 'vehicle-mileage-allocation-a', documents: [allocation]},
+    );
+
+    assert.equal(result.attemptedCount, 1);
+    assert.equal(result.writtenCount, 1);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const stored = await getDoc(doc(context.firestore(), allocation.path));
+      assert.equal(stored.data()?.module, 'vehicleMileageAllocation');
+      assert.equal(
+        stored.data()?.recordPayload?.allocation?.businessTenths,
+        allocation.data.recordPayload.allocation.businessTenths,
+      );
+      assert.equal(
+        Object.hasOwn(stored.data().recordPayload, 'deviceId'),
+        false,
+      );
+    });
+  });
+
   test('content, identity, and lifecycle tampering fail before writes', async () => {
     const identity = await createIdentity();
     await seedHostedAccount(identity.uid);
