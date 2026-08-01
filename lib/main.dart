@@ -50,6 +50,8 @@ import 'shared/trip_tracking/trip_tracking_route_point_store.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
 import 'shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'shared/trip_tracking/trip_tracking_trip_log_proposal_store.dart';
+import 'shared/trip_tracking/vehicle_mileage_allocation_durable_sync.dart';
+import 'shared/vehicle_mileage_allocation/vehicle_mileage_allocation_durable_store.dart';
 import 'shared/widgets/receipt_capture/incoming_receipt_share.dart';
 import 'shared/widgets/receipt_capture/receipt_capture_settings_store.dart';
 
@@ -149,6 +151,12 @@ Future<void> main() async {
     initialHistory: odometerSnapshot.history,
     snapshotReader: odometerStore.loadSnapshotForVehicle,
     snapshotWriter: odometerStore.saveSnapshot,
+  );
+  final vehicleMileageAllocationStore = VehicleMileageAllocationDurableStore(
+    records: durableRecordStore,
+  );
+  final vehicleMileageAllocationSync = VehicleMileageAllocationDurableSync(
+    store: vehicleMileageAllocationStore,
   );
   final tripTrackingStore = await TripTrackingSessionStore.create();
   TripTrackingTripLogProposalStore tripLogProposalStore;
@@ -271,6 +279,22 @@ Future<void> main() async {
 
   syncTripCalibrationAssist();
   tripTrackingSettings.addListener(syncTripCalibrationAssist);
+  void syncVehicleMileageAllocation() {
+    unawaited(
+      vehicleMileageAllocationSync.sync(
+        settings: tripTrackingSettings.settings,
+        vehicleId: globalOdometer.vehicleId,
+        history: globalOdometer.history,
+      ),
+    );
+  }
+
+  // A confirmed manual or reviewed-trip odometer event can be classified after
+  // it was first saved, so listen to both evidence and opt-in state. The sync
+  // itself is serialized and never changes the canonical odometer record.
+  syncVehicleMileageAllocation();
+  globalOdometer.addListener(syncVehicleMileageAllocation);
+  tripTrackingSettings.addListener(syncVehicleMileageAllocation);
   TripTrackingBluetoothVehicleLinkStore bluetoothVehicleLinks;
   try {
     bluetoothVehicleLinks =
