@@ -29,7 +29,7 @@ void main() {
       expect(report.failureCount, 0);
       expect(report.invalidScenarioCount, 0);
       expect(report.distributions['family']?.length, 8);
-      expect(report.savedRegressionCount, 8);
+      expect(report.savedRegressionCount, 9);
       expect(report.controllerReplayCount, 4);
       expect(report.retainedFailures, isEmpty);
     },

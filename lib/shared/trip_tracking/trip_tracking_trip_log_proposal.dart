@@ -14,6 +14,7 @@ class TripTrackingTripLogProposal {
   final TripTrackingReviewRecord review;
 
   String get proposalId => review.id;
+  String get evidenceId => 'trip-evidence-$proposalId-$reviewRevision';
   int get reviewRevision => review.revision;
   String get vehicleId => review.vehicleId;
   String get profileId => review.effectiveProfileId;
@@ -43,10 +44,43 @@ class TripTrackingTripLogProposal {
   bool get requiresTripLogConfirmation => true;
   bool get canFinalizeTripLog => false;
   bool get canConfirmMileage => false;
+  String get userDecisionState => 'pendingReview';
+  String get reviewPresentation => 'needsReviewOrange';
+  bool get confidenceScoreShown => false;
+  List<String> get evidenceSources => [
+    if (gpsAssistedDistanceMeters > 0) 'acceptedGpsDistance',
+    if (estimatedGapDistanceMeters > 0) 'estimatedSignalGaps',
+    if (rejectedDistanceMeters > 0) 'rejectedLocationEvidence',
+    if (review.tripEvents.isNotEmpty) 'tripEvents',
+    if (review.manualAdjustments.isNotEmpty) 'manualAdjustments',
+    if (review.permissionHistory.isNotEmpty) 'permissionHistory',
+    if (recoveryCount > 0) 'recoveryEvidence',
+  ];
+  String get evidenceStrength {
+    if (gpsAssistedDistanceMeters <= 0) return 'limited';
+    if (estimatedGapDistanceMeters > 0 || rejectedDistanceMeters > 0) {
+      return 'mixed';
+    }
+    return 'supported';
+  }
+
+  String get explanation {
+    final distance = (gpsAssistedDistanceMeters / 1609.344).toStringAsFixed(1);
+    return 'Maintainiac detected a possible trip lasting '
+        '${duration.inMinutes} minutes with $distance GPS-assisted miles. '
+        'Review the vehicle, odometer, distance, and business purpose before saving.';
+  }
+
+  String get expectedResultIfAccepted =>
+      'Creates an editable TripLog draft. The odometer and business classification remain unchanged until you confirm them.';
+
+  String get resultIfIgnored =>
+      'The evidence remains available for review; no TripLog, odometer, vehicle, or business history is changed.';
 
   Map<String, Object?> toMap() => {
     'schemaVersion': 3,
     'proposalId': proposalId,
+    'evidenceId': evidenceId,
     'sourceReviewSchemaVersion': review.schemaVersion,
     if (review.ancestry != null) 'ancestry': review.ancestry!.toMap(),
     'reviewRevision': reviewRevision,
@@ -87,6 +121,16 @@ class TripTrackingTripLogProposal {
         .toList(),
     'batteryStateSummary': review.batteryStateSummary?.toMap(),
     'recoveryCount': recoveryCount,
+    'evidenceSources': evidenceSources,
+    'evidenceStrength': evidenceStrength,
+    'recommendationConfidence': evidenceStrength,
+    'userDecisionState': userDecisionState,
+    'reviewPresentation': reviewPresentation,
+    'confidenceScoreShown': confidenceScoreShown,
+    'affectedModules': const ['tripLog'],
+    'explanation': explanation,
+    'expectedResultIfAccepted': expectedResultIfAccepted,
+    'resultIfIgnored': resultIfIgnored,
     'requiresTripLogConfirmation': true,
     'canFinalizeTripLog': false,
     'canConfirmMileage': false,

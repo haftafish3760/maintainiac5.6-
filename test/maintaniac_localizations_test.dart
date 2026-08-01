@@ -25,6 +25,11 @@ void main() {
     expect(french.savedProofBlackAndWhite, 'noir et blanc');
     expect(spanish.deviceStorage, 'Almacenamiento del dispositivo');
     expect(french.storageAvailable('1 GB'), '1 GB disponibles');
+    expect(spanish.milesUnit, 'Millas');
+    expect(spanish.tripDistance, 'Distancia del viaje');
+    expect(spanish.reviewDetectedItems, 'Revisar elementos detectados');
+    expect(french.kilometersUnit, 'Kilomètres');
+    expect(french.needsReview, 'À vérifier');
   });
 
   test(

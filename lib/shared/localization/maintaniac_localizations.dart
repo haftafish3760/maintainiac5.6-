@@ -72,7 +72,7 @@ class MaintaniacLocalizations {
   String get cropReceiptPhoto => _text('Crop', 'Recortar', 'Recadrer');
   String get savedProof => _text('Proof', 'Comprobante', 'Preuve');
   String get matchReceiptPhotos =>
-      _text('Match Photos', 'Unir fotos', 'Associer les photos');
+      _text('Align Photos', 'Alinear fotos', 'Aligner les photos');
   String get cropCurrentReceiptPhoto =>
       _text('Crop Current', 'Recortar actual', 'Recadrer la photo actuelle');
   String get receiptPhoto =>
@@ -238,6 +238,22 @@ class MaintaniacLocalizations {
     'Choose which tiles appear on the Expense Recap screen.',
     'Elija qué tarjetas aparecen en la pantalla de resumen de gastos.',
     'Choisissez les tuiles à afficher dans l’écran de récapitulatif des dépenses.',
+  );
+  String get milesUnit => _text('Miles', 'Millas', 'Milles');
+  String get kilometersUnit => _text('Kilometers', 'Kilómetros', 'Kilomètres');
+  String get tripDistance =>
+      _text('Trip distance', 'Distancia del viaje', 'Distance du trajet');
+  String get userConfirmed => _text(
+    'User confirmed',
+    'Confirmado por el usuario',
+    'Confirmé par l’utilisateur',
+  );
+  String get needsReview =>
+      _text('Needs review', 'Necesita revisión', 'À vérifier');
+  String get reviewDetectedItems => _text(
+    'Review detected items',
+    'Revisar elementos detectados',
+    'Vérifier les éléments détectés',
   );
 }
 

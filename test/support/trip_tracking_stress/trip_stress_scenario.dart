@@ -166,6 +166,7 @@ final class TripStressScenario {
 
   TripStressScenario copyWith({
     TripStressBluetoothState? bluetoothState,
+    int? variant,
     bool? hasActiveSession,
     bool? hasUnfinishedSession,
     bool? paidAccess,
@@ -187,7 +188,7 @@ final class TripStressScenario {
     recoveryPath: recoveryPath,
     initialLifecycleIndex: initialLifecycleIndex,
     targetLifecycleIndex: targetLifecycleIndex,
-    variant: variant,
+    variant: variant ?? this.variant,
     vehicleId: vehicleId,
     profileId: profileId,
     hasActiveSession: hasActiveSession ?? this.hasActiveSession,
@@ -253,7 +254,8 @@ String _expectedRule(TripStressFamily family) => switch (family) {
   TripStressFamily.lifecycleRecovery => 'terminal_history_is_immutable',
   TripStressFamily.batteryDevice => 'gps_pause_keeps_triplog_writable',
   TripStressFamily.bluetooth => 'bluetooth_never_reassigns_active_trip',
-  TripStressFamily.automaticStart => 'paid_multi_signal_evidence_required',
+  TripStressFamily.automaticStart =>
+    'entitled_multi_signal_evidence_requires_approval',
   TripStressFamily.distanceOdometer => 'gps_never_becomes_odometer_truth',
 };
 

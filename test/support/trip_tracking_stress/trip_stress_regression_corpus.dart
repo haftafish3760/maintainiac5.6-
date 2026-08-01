@@ -26,7 +26,8 @@ List<TripStressScenario> buildTripStressRegressionCorpus() {
       5,
       'active_trip_vehicle_cannot_be_reassigned',
     ),
-    ('GPS-AS-001-free-access', 6, 'free_access_creates_approval_only_recovery'),
+    ('GPS-AS-001-free-access', 6, 'free_allowance_creates_proposal_only'),
+    ('GPS-AS-002-free-exhausted', 14, 'fifth_free_recovery_is_blocked'),
     (
       'GPS-LOC-001-cached-start',
       9,
@@ -41,8 +42,40 @@ List<TripStressScenario> buildTripStressRegressionCorpus() {
   ];
   return [
     for (final definition in definitions)
-      _named(generator.generate(definition.$2), definition.$1, definition.$3),
+      _named(
+        _automaticStartBoundary(
+          generator.generate(definition.$2),
+          definition.$1,
+        ),
+        definition.$1,
+        definition.$3,
+      ),
   ];
+}
+
+TripStressScenario _automaticStartBoundary(
+  TripStressScenario scenario,
+  String id,
+) {
+  if (id == 'GPS-AS-001-free-access') {
+    return scenario.copyWith(
+      variant: 3,
+      paidAccess: false,
+      hasActiveSession: false,
+      hasUnfinishedSession: false,
+      bluetoothState: TripStressBluetoothState.correct,
+    );
+  }
+  if (id == 'GPS-AS-002-free-exhausted') {
+    return scenario.copyWith(
+      variant: 4,
+      paidAccess: false,
+      hasActiveSession: false,
+      hasUnfinishedSession: false,
+      bluetoothState: TripStressBluetoothState.correct,
+    );
+  }
+  return scenario;
 }
 
 TripStressScenario _named(

@@ -4,6 +4,8 @@
 // persist sessions, access devices, or retain route geometry. The bounded
 // stress runner consumes it for generated and saved regression scenarios.
 
+import 'package:maintaniac/shared/odometer/odometer_mileage_review.dart';
+import 'package:maintaniac/shared/odometer/odometer_validation.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_automatic_start_detector.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_battery_gps_continuation_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_location_sample_intake_guard.dart';
@@ -13,6 +15,7 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_policy.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_state_machine.dart';
+import 'package:maintaniac/shared/trip_tracking/vehicle_mileage_allocation_odometer_adapter.dart';
 
 import 'trip_stress_scenario.dart';
 
@@ -254,8 +257,14 @@ final class TripStressEvaluator {
       hasActiveOrRecoverableSession:
           scenario.hasActiveSession || scenario.hasUnfinishedSession,
       observations: observations,
+      acceptedFreeUsesInPeriod: scenario.variant % 6,
     );
-    final blocked = scenario.hasActiveSession || scenario.hasUnfinishedSession;
+    final freeAllowanceExhausted =
+        !scenario.paidAccess && scenario.variant % 6 >= 4;
+    final blocked =
+        scenario.hasActiveSession ||
+        scenario.hasUnfinishedSession ||
+        freeAllowanceExhausted;
     final passed =
         (!blocked || !decision.shouldSuggestStart) &&
         (trustedBluetooth || decision.suggestedVehicleId == null);
@@ -264,6 +273,8 @@ final class TripStressEvaluator {
       'trustedBluetooth': trustedBluetooth,
       'disposition': decision.disposition.name,
       'shouldSuggestStart': decision.shouldSuggestStart,
+      'acceptedFreeUsesInPeriod': scenario.variant % 6,
+      'freeAllowanceExhausted': freeAllowanceExhausted,
     });
   }
 
@@ -296,12 +307,29 @@ final class TripStressEvaluator {
         break;
     }
     final acceptedMeters = engine.totalAcceptedMeters;
+    final exactDistanceTenths = scenario.variant % 100 + 1;
+    final allocation = vehicleMileageAllocationFromOdometerEvent(
+      OdometerReadingEvent(
+        id: 'stress-odometer-${scenario.index}',
+        reading: (10000 + exactDistanceTenths) ~/ 10,
+        readingTenths: 10000 + exactDistanceTenths,
+        previousReading: 1000,
+        previousReadingTenths: 10000,
+        recordedAt: start,
+        mileageReview: const OdometerMileageReview(
+          use: OdometerMileageUse.business,
+        ),
+      ),
+      vehicleId: scenario.vehicleId,
+    );
     final passed =
         acceptedMeters.isFinite &&
         acceptedMeters >= 0 &&
         engine.odometerIsGlobalTruth &&
         !engine.engineCanConfirmOdometer &&
         !engine.engineCanApplyCalibration &&
+        allocation?.distanceTenths == exactDistanceTenths &&
+        allocation?.businessTenths == exactDistanceTenths &&
         (scenario.distanceClass != TripStressDistanceClass.zero ||
             acceptedMeters == 0);
     return _result(passed, {
@@ -309,6 +337,7 @@ final class TripStressEvaluator {
       'acceptedMeters': acceptedMeters,
       'odometerIsGlobalTruth': engine.odometerIsGlobalTruth,
       'engineCanConfirmOdometer': engine.engineCanConfirmOdometer,
+      'exactAllocationTenths': allocation?.distanceTenths,
     });
   }
 

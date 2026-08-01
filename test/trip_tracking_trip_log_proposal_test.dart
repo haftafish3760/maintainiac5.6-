@@ -96,6 +96,17 @@ void main() {
       expect(proposal.toMap()['transitionAudits'], isNotEmpty);
       expect(proposal.toMap()['permissionHistory'], isA<List<Object?>>());
       expect(proposal.toMap()['recoveryCount'], 0);
+      expect(proposal.evidenceId, contains('trip_log_proposal'));
+      expect(proposal.userDecisionState, 'pendingReview');
+      expect(proposal.reviewPresentation, 'needsReviewOrange');
+      expect(proposal.confidenceScoreShown, isFalse);
+      expect(proposal.toMap()['confidenceScoreShown'], isFalse);
+      expect(proposal.toMap()['affectedModules'], ['tripLog']);
+      expect(proposal.explanation, contains('Review the vehicle'));
+      expect(proposal.expectedResultIfAccepted, contains('editable TripLog'));
+      expect(proposal.resultIfIgnored, contains('no TripLog'));
+      expect(proposal.toMap()['evidenceSources'], isA<List<String>>());
+      expect(proposal.toMap()['evidenceStrength'], isNotEmpty);
       expect(proposal.toMap()['algorithmVersion'], 'gps-v1');
       expect(proposal.toMap()['sampleDiagnostics'], isA<Map>());
       expect(proposal.toMap()['initialFixHistory'], isA<List>());
