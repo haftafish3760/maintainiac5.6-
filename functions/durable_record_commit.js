@@ -3,6 +3,7 @@ const {getFirestore, Timestamp} = require('firebase-admin/firestore');
 const {onCall, HttpsError} = require('firebase-functions/v2/https');
 const {reserveHostedSync} = require('./hosted_plans');
 const {parseDurableManifest} = require('./durable_manifest');
+const {appendAuditChain, auditChainFor} = require('./audit_chain');
 
 const SHA256 = /^[a-f0-9]{64}$/;
 const TOKEN = /^[A-Za-z0-9_.-]{1,160}$/;
@@ -105,6 +106,7 @@ async function commitDurableRecordBatch(request) {
       const appendedAuditEvents = incoming.auditEvents.slice(
         priorAuditEvents.length,
       );
+      let auditChain = auditChainFor(priorAuditEvents);
       auditArchiveWrites += appendedAuditEvents.length;
       if (auditArchiveWrites > MAX_AUDIT_ARCHIVE_WRITES) {
         throw new HttpsError(
@@ -115,6 +117,13 @@ async function commitDurableRecordBatch(request) {
       for (let auditIndex = 0; auditIndex < appendedAuditEvents.length;
         auditIndex += 1) {
         const ordinal = priorAuditEvents.length + auditIndex + 1;
+        const previousChainSha256 = auditChain.chainSha256;
+        const chainSha256 = appendAuditChain({
+          previousSha256: previousChainSha256,
+          ordinal,
+          event: appendedAuditEvents[auditIndex],
+        });
+        auditChain = {eventCount: ordinal, chainSha256};
         transaction.create(
           db.doc(
             `orgs/${validated.organizationId}/auditEvents/` +
@@ -126,6 +135,8 @@ async function commitDurableRecordBatch(request) {
             ownerUid: uid,
             ordinal,
             event: appendedAuditEvents[auditIndex],
+            previousChainSha256,
+            chainSha256,
             createdAt: auditOccurredAt(
               appendedAuditEvents[auditIndex],
               incoming.updatedAt,

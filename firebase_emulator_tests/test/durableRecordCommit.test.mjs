@@ -6,6 +6,7 @@ import {initializeTestEnvironment} from '@firebase/rules-unit-testing';
 import {doc, getDoc, setDoc} from 'firebase/firestore';
 
 import {callFunction, callFunctionError} from './callableTestClient.mjs';
+import {emptyAuditChainSha256} from '../../functions/audit_chain.js';
 import {
   assertEmulatorOnly,
   emulatorProjectId,
@@ -100,6 +101,8 @@ describe('server committed durable records', () => {
         ownerUid: identity.uid,
         ordinal: 1,
         event: '2026-07-22T00:00:00.000Z created record',
+        previousChainSha256: emptyAuditChainSha256(),
+        chainSha256: 'a58c1dfa8040c7f1798e3618b3e55874c65ff36bcd7de2c641aff6f02e030812',
         createdAt: '2026-07-22T00:00:00.000Z',
       });
     });
