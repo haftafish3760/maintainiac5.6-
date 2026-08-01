@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 import '../records/maintainiac_durable_record_store.dart';
+import '../records/maintainiac_cloud_audit_root.dart';
 import '../records/maintainiac_restore_applier.dart';
 import 'maintainiac_firestore_documents.dart';
 import 'maintainiac_firestore_upload_queue.dart';
@@ -87,6 +88,12 @@ class MaintainiacFirestoreDurableRecordCodec {
     MaintainiacFirestoreUploadPolicy.validateDraft(draft);
     return draft;
   }
+
+  /// Shared v2 migration input. The current v1 encoder remains readable while
+  /// the server-side paged archive transition is rolled out.
+  static MaintainiacCloudAuditRoot boundedAuditRootFor(
+    MaintainiacDurableRecord record,
+  ) => MaintainiacCloudAuditRoot.fromEvents(record.lifecycle.auditEvents);
 
   static MaintainiacRestoreEnvelope decode({
     required String expectedOrganizationId,
