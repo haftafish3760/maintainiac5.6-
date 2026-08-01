@@ -76,6 +76,33 @@ void main() {
   );
 
   test(
+    'native access errors fail closed without escaping to the settings UI',
+    () async {
+      final fixture = _RuntimeFixture(
+        requestObservationAccess: () async => throw StateError('unavailable'),
+      );
+      addTearDown(fixture.dispose);
+
+      expect(await fixture.runtime.requestObservationAccess(), isFalse);
+      expect(fixture.runtime.observationAvailable, isFalse);
+      expect(fixture.probe.capabilityReads, 0);
+    },
+  );
+
+  test('a denied access request can be retried later', () async {
+    var attempts = 0;
+    final fixture = _RuntimeFixture(
+      requestObservationAccess: () async => ++attempts > 1,
+    );
+    addTearDown(fixture.dispose);
+
+    expect(await fixture.runtime.requestObservationAccess(), isFalse);
+    expect(await fixture.runtime.requestObservationAccess(), isTrue);
+    expect(attempts, 2);
+    expect(fixture.runtime.observationAvailable, isTrue);
+  });
+
+  test(
     'unlinked connection requires explicit fresh vehicle approval',
     () async {
       final now = DateTime.utc(2026, 7, 28, 10);

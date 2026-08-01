@@ -82,7 +82,13 @@ class TripTrackingBluetoothRuntimeController extends ChangeNotifier {
     final pending = _observationAccessFuture;
     if (pending != null) return pending;
     final operation = () async {
-      final granted = await request();
+      bool granted;
+      try {
+        granted = await request();
+      } catch (_) {
+        _setAvailability(false);
+        return false;
+      }
       if (!granted || _disposed) {
         _setAvailability(false);
         return false;
