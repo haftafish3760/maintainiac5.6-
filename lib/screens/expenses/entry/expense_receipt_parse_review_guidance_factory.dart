@@ -68,7 +68,7 @@ _ReceiptAssistedReviewGuidance _receiptAssistedReviewGuidanceFrom({
       ? const Color(0xFFFFD166)
       : const Color(0xFF8EF6A4);
   final classificationLabel = canClassifyLines
-      ? 'Business/Personal/Mixed ready'
+      ? 'Business/Personal/Split ready'
       : hasSummarySignals
       ? 'Classify receipt total'
       : 'Classify manually';
@@ -225,8 +225,8 @@ _ReceiptAssistedReviewGuidance _receiptAssistedReviewGuidanceFrom({
       : mixedItemFamilyNextStepLabel.isNotEmpty
       ? mixedItemFamilyNextStepLabel
       : hasReview
-      ? 'Next: choose All Business, All Personal, or Mixed, then check highlighted lines.'
-      : 'Next: choose All Business, All Personal, or Mixed, then save when totals look right.';
+      ? 'Next: choose All Business, All Personal, or Split, then check highlighted lines.'
+      : 'Next: choose All Business, All Personal, or Split, then save when totals look right.';
   final primaryNextStepIcon = needsBottomSectionFirst
       ? Icons.add_photo_alternate_rounded
       : needsPhotoQualityAction

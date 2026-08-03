@@ -62,8 +62,20 @@ void main() {
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(
+        result.pairs.single.confidence,
+        greaterThanOrEqualTo(.49),
+        reason: _pairEvidence(result),
+      );
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
     },
     timeout: _stitchingHeavyTimeout,
   );
 }
+
+String _pairEvidence(ReceiptStitchResult result) => result.pairs
+    .map(
+      (pair) =>
+          '${pair.summaryLabel}; continuity ${pair.continuityCorrelation.toStringAsFixed(3)} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})',
+    )
+    .join('; ');

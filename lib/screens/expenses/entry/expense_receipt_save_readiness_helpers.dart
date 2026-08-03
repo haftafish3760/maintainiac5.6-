@@ -38,7 +38,7 @@ extension _ExpenseReceiptSaveReadinessHelpers
             kind: 'receipt_ocr_no_readable_text',
             title: 'No readable receipt text was found',
             detail:
-                'The receipt proof can still be saved, but the app could not fill the receipt from the photo.',
+                'The receipt image can still be saved, but the app could not fill the receipt from the photo.',
           ),
         );
       } else if (ocrDiagnostics.hasBlockingWarnings) {
@@ -59,7 +59,7 @@ extension _ExpenseReceiptSaveReadinessHelpers
             title: 'Only part of the receipt was read',
             detail: _primaryOcrWarningMessage(
               fallback:
-                  'Some receipt proof was saved without being used for app-assisted filling.',
+                  'Some receipt images were saved without being used to help fill the receipt.',
             ),
           ),
         );
@@ -81,21 +81,6 @@ extension _ExpenseReceiptSaveReadinessHelpers
     if (subtotalIssue != null) issues.add(subtotalIssue);
 
     return issues;
-  }
-
-  int get _splitLinesMissingBusinessPercentCount {
-    return _lines
-        .where(
-          (line) =>
-              line.use == _ExpenseLineUse.split &&
-              ((line.splitAllocation == null &&
-                      (line.businessPercent == null ||
-                          !line.businessPercent!.isFinite ||
-                          line.businessPercent! < 0 ||
-                          line.businessPercent! > 1)) ||
-                  !line.hasValidSplitAllocation),
-        )
-        .length;
   }
 
   _ReceiptSaveReadinessIssue? _receiptSubtotalReadinessIssue() {

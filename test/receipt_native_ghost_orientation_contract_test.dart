@@ -17,8 +17,23 @@ void main() {
     expect(android, contains('ExifInterface.ORIENTATION_ROTATE_90'));
     expect(android, contains('ExifInterface.ORIENTATION_TRANSPOSE'));
     expect(android, contains('receiptGhostBitmapWithVisualOrientation(file)'));
+    expect(
+      android,
+      contains(
+        'boundedFraction(previousSectionGhostSourceHeightFraction, 0.34)',
+      ),
+    );
     expect(ios, contains('func normalizedReceiptGhostGuideImage'));
     expect(ios, contains('normalizedReceiptGhostGuideImage(image) ?? image'));
     expect(ios, contains('orientation: .up'));
+    expect(
+      ios,
+      contains(
+        'let sourceHeightFraction = previousSectionGhostSourceHeightFraction.isFinite',
+      ),
+    );
+    expect(ios, contains('      : 0.34'));
+    expect(ios, contains('ceil(height * 0.34)'));
+    expect(ios, contains('nextSectionGuideImageView.alpha = 0.36'));
   });
 }

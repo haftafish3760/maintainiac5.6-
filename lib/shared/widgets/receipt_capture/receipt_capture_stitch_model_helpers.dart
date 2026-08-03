@@ -77,7 +77,8 @@ String _safeStitchFallbackReasonCode(String value) {
     'manual_order_review' ||
     'overlap_confidence_low' ||
     'output_too_large' ||
-    'stitch_exception' => token,
+    'stitch_exception' ||
+    'stitch_timeout' => token,
     _ => 'unknown',
   };
 }

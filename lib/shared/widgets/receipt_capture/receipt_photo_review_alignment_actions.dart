@@ -3,7 +3,8 @@ part of 'receipt_photo_review_screen.dart';
 extension _ReceiptPhotoReviewAlignmentActions
     on _ReceiptPhotoReviewScreenState {
   Future<bool> _showLongReceiptAlignmentGuide(
-    String photoPath, {
+    String? previousSectionGuidePhotoPath, {
+    String? nextSectionGuidePhotoPath,
     required ReceiptPhotoCoverageDecision coverageDecision,
     String? alignmentReasonCode,
     String? alignmentGuidance,
@@ -51,11 +52,26 @@ extension _ReceiptPhotoReviewAlignmentActions
                   ),
                 ),
                 const SizedBox(height: 12),
-                _ReceiptAlignmentGuidePreview(photoPath: photoPath),
+                if (previousSectionGuidePhotoPath != null)
+                  _ReceiptAlignmentGuidePreview(
+                    photoPath: previousSectionGuidePhotoPath,
+                    label: 'Reference: bottom of previous photo',
+                    alignment: Alignment.bottomCenter,
+                    height: nextSectionGuidePhotoPath == null ? 208 : 132,
+                  ),
+                if (nextSectionGuidePhotoPath != null) ...[
+                  const SizedBox(height: 8),
+                  _ReceiptAlignmentGuidePreview(
+                    photoPath: nextSectionGuidePhotoPath,
+                    label: 'Reference: top of next photo',
+                    alignment: Alignment.topCenter,
+                    height: 132,
+                  ),
+                ],
                 const SizedBox(height: 10),
                 _ReceiptAlignmentGuideNote(
-                  missingBottomAndTotals:
-                      coverageDecision.isMissingBottomEdgeAndTotals,
+                  hasPreviousReference: previousSectionGuidePhotoPath != null,
+                  hasNextReference: nextSectionGuidePhotoPath != null,
                 ),
                 const SizedBox(height: 14),
                 Row(
@@ -126,12 +142,12 @@ extension _ReceiptPhotoReviewAlignmentActions
       return 'Use the previous and next receipt sections as context, then retake this middle section without changing its order.';
     }
     if (reasonCode == 'retake_bottom_with_previous_context') {
-      return 'Use the previous receipt section as the top ghost guide, then retake the bottom section in the same slot.';
+      return 'Use the previous receipt section as the top reference, then retake the bottom section in the same slot.';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
-      return '${coverageDecision.completionDialogMessage} Use the bottom of the last photo as the top ghost-slice guide and repeat 3-5 readable lines in the next photo.';
+      return '${coverageDecision.completionDialogMessage} The camera will show the bottom of the last photo at the top. Start the next photo with the same 3-5 readable lines.';
     }
-    return 'Use the bottom of the last photo as the top ghost-slice guide. Start the next photo by repeating 3-5 readable receipt lines so Maintainiac can match the sections.';
+    return 'The camera will show the bottom of the last photo at the top. Start the next photo with the same 3-5 readable receipt lines so Maintainiac can join the sections.';
   }
 
   String _alignmentGuideButtonLabel(

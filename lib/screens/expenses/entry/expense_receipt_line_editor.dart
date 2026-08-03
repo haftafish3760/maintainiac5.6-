@@ -4,10 +4,12 @@ class _ReceiptLineEditorSheet extends StatefulWidget {
   const _ReceiptLineEditorSheet({
     required this.initial,
     required this.lineNumber,
+    this.allowLineClassification = true,
   });
 
   final _ExpenseReceiptLine initial;
   final int lineNumber;
+  final bool allowLineClassification;
 
   @override
   State<_ReceiptLineEditorSheet> createState() =>
@@ -15,6 +17,9 @@ class _ReceiptLineEditorSheet extends StatefulWidget {
 }
 
 class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
+  final _descriptionFocus = FocusNode();
+  final _unitPriceFocus = FocusNode();
+  final _quantityFocus = FocusNode();
   late final _descriptionController = TextEditingController(
     text: widget.initial.description,
   );
@@ -108,176 +113,217 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
     _odometerController.dispose();
     _unitPriceController.dispose();
     _categorySearchController.dispose();
+    _descriptionFocus.dispose();
+    _unitPriceFocus.dispose();
+    _quantityFocus.dispose();
     super.dispose();
   }
 
   void _refreshPreview() => setState(() {});
 
+  void _updateEditorState(VoidCallback update) {
+    if (!mounted) return;
+    setState(update);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 10,
-        right: 10,
-        // A tall bottom sheet can extend behind the status bar on Samsung
-        // devices. Preserve that inset before the editor title.
-        top: MediaQuery.paddingOf(context).top + 12,
-        bottom:
-            math.max(
-              MediaQuery.viewInsetsOf(context).bottom,
-              MediaQuery.paddingOf(context).bottom,
-            ) +
-            16,
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B0D0F),
+      body: SafeArea(
+        child: Column(
+          children: [
+            SizedBox(
+              height: 58,
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    tooltip: 'Back',
+                    icon: const Icon(Icons.arrow_back_rounded),
+                    color: _receiptReferenceText,
+                  ),
+                  const Expanded(
+                    child: Text(
+                      'Add Item',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: _receiptReferenceText,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: _save,
+                    tooltip: 'Save item',
+                    icon: const Icon(Icons.check_rounded),
+                    color: _receiptReferenceText,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 14,
+                  right: 14,
+                  bottom:
+                      math.max(
+                        MediaQuery.viewInsetsOf(context).bottom,
+                        MediaQuery.paddingOf(context).bottom,
+                      ) +
+                      16,
+                ),
+                child: ListView(
+                  children: [
+                    Text(
+                      'Line ${widget.lineNumber}',
+                      style: const TextStyle(
+                        color: _receiptReferenceMuted,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (widget.initial.cameFromAppAssistedReceiptRead &&
+                        widget.initial.parserNeedsReview) ...[
+                      const SizedBox(height: 8),
+                      const _AppFilledLineReviewNotice(),
+                    ],
+                    const SizedBox(height: 10),
+                    _ExpenseCategorySearch(
+                      compact: true,
+                      selectedCategory: _category,
+                      controller: _categorySearchController,
+                      matches: _matchingCategories,
+                      onSelected: _selectCategory,
+                    ),
+                    if (widget.allowLineClassification) ...[
+                      const SizedBox(height: 14),
+                      const Text(
+                        'HOW SHOULD THIS ITEM COUNT?',
+                        style: TextStyle(
+                          color: _receiptReferenceMuted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      _LineUseBanner(use: _use, onChanged: _chooseLineUse),
+                    ],
+                    const SizedBox(height: 14),
+                    RecordTextField(
+                      label: 'Item description',
+                      dark: true,
+                      controller: _descriptionController,
+                      focusNode: _descriptionFocus,
+                      nextFocusNode: _unitPriceFocus,
+                      textInputAction: TextInputAction.next,
+                      hintText: _categoryRule.descriptionHint,
+                    ),
+                    const SizedBox(height: 10),
+                    if (_categoryRule.usesQuantityFields) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: RecordTextField(
+                              label: _unitPriceLabel,
+                              dark: true,
+                              controller: _unitPriceController,
+                              focusNode: _unitPriceFocus,
+                              nextFocusNode: _quantityFocus,
+                              textInputAction: TextInputAction.next,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              hintText: r'$0.00',
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: RecordDropdownField<String>(
+                              label: 'Unit of measure',
+                              dark: true,
+                              value: _stockUnit,
+                              items: _unitChoices,
+                              itemLabel: (value) => value,
+                              labelMaxWidthFactor: .94,
+                              onChanged: (value) =>
+                                  setState(() => _stockUnit = value),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _ReceiptQuantityStepper(
+                              label: _categoryRule.quantityLabel,
+                              controller: _quantityController,
+                              onChanged: _refreshPreview,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _ReceiptItemLineTotal(
+                              total: _resolvedLineSubtotal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                    RecordTextField(
+                      label: 'Printed line total (optional)',
+                      dark: true,
+                      controller: _subtotalController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      hintText: r'$0.00',
+                      helperText:
+                          'Use this only when the receipt shows one line amount.',
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      _lineMathPreview,
+                      style: const TextStyle(
+                        color: Color(0xFFC8D0D3),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
+                      ),
+                    ),
+                    if (_isFuelLine) ...[
+                      const SizedBox(height: 12),
+                      _FuelReceiptFields(
+                        odometerController: _odometerController,
+                        fuelType: _fuelType,
+                        fillType: _fillType,
+                        onFuelTypeChanged: (value) => setState(() {
+                          _fuelType = value;
+                          _stockUnit = value == 'Electric' ? 'kWh' : 'gallon';
+                        }),
+                        onFillTypeChanged: (value) =>
+                            setState(() => _fillType = value),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      child: ListView(
-        shrinkWrap: true,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.receipt_long_rounded,
-                color: Color(0xFF34A9E8),
-                size: 23,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Receipt item ${widget.lineNumber}',
-                  style: const TextStyle(
-                    color: Color(0xFFE8ECEE),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          const Text(
-            'Copy the printed item details. Every field stays editable during review.',
-            style: TextStyle(
-              color: Color(0xFFC8D0D3),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              height: 1.25,
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (widget.initial.hasParserReview) ...[
-            _ParserReviewNotice(line: widget.initial),
-            const SizedBox(height: 12),
-          ],
-          _ExpenseCategorySearch(
-            selectedCategory: _category,
-            controller: _categorySearchController,
-            matches: _matchingCategories,
-            onSelected: _selectCategory,
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Category is optional. Leave it unresolved if you are not sure.',
-            style: TextStyle(
-              color: Color(0xFFC8D0D3),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              height: 1.25,
-            ),
-          ),
-          const SizedBox(height: 14),
-          const Text(
-            'How should this item count?',
-            style: TextStyle(
-              color: Color(0xFFE8ECEE),
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 7),
-          _LineUseBanner(
-            use: _use,
-            onChanged: (use) => setState(() => _use = use),
-          ),
-          if (_use == _ExpenseLineUse.split) ...[
-            const SizedBox(height: 12),
-            _SplitAllocationFields(
-              method: _splitMethod,
-              businessPercentController: _businessPercentController,
-              businessAmountController: _businessAmountController,
-              businessPercent: _enteredBusinessPercent,
-              businessAmount: _enteredBusinessAmount,
-              lineTotal: _resolvedLineSubtotal,
-              onMethodChanged: (method) =>
-                  setState(() => _splitMethod = method),
-            ),
-          ],
-          const SizedBox(height: 14),
-          RecordTextField(
-            label: 'Printed item description',
-            controller: _descriptionController,
-            hintText: 'Example: 2 in. PVC elbow',
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: RecordTextField(
-                  label: 'Quantity',
-                  controller: _quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  hintText: 'Optional',
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: RecordTextField(
-                  label: 'Price each',
-                  controller: _unitPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  hintText: r'$0.00',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          if (_calculatedLineSubtotal == null)
-            RecordTextField(
-              label: 'Printed line total',
-              controller: _subtotalController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              hintText: r'$0.00',
-            ),
-          const SizedBox(height: 6),
-          Text(
-            _lineMathPreview,
-            style: const TextStyle(
-              color: Color(0xFFC8D0D3),
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              height: 1.25,
-            ),
-          ),
-          if (_isFuelLine) ...[
-            const SizedBox(height: 12),
-            _FuelReceiptFields(
-              odometerController: _odometerController,
-              unitPriceController: _unitPriceController,
-              fuelType: _fuelType,
-              fillType: _fillType,
-              onFuelTypeChanged: (value) => setState(() {
-                _fuelType = value;
-                _stockUnit = value == 'Electric' ? 'kWh' : 'gallon';
-              }),
-              onFillTypeChanged: (value) => setState(() => _fillType = value),
-            ),
-          ],
-          const SizedBox(height: 16),
-          Row(
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Container(
+          color: const Color(0xFF0B0D0F),
+          padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
+          child: Row(
             children: [
               Expanded(
                 child: FilledButton(
@@ -305,7 +351,7 @@ class _ReceiptLineEditorSheetState extends State<_ReceiptLineEditorSheet> {
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

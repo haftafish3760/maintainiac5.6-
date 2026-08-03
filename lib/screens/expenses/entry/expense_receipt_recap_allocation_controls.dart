@@ -1,5 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
+// Kept to render drafts produced by the earlier detailed assisted-review UI.
+// ignore: unused_element
 class _ReceiptMixedAllocationReview extends StatelessWidget {
   const _ReceiptMixedAllocationReview({
     required this.lines,
@@ -43,7 +45,7 @@ class _ReceiptMixedAllocationReview extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const Text(
-            'MIXED ALLOCATION REVIEW',
+            'ALLOCATION REVIEW',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Color(0xFF25211A),

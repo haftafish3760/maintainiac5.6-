@@ -17,7 +17,9 @@ void main() {
     expect(edits, contains("updatedDiagnostics['userEditedPhoto'] = true"));
     expect(
       edits,
-      contains("updatedDiagnostics['photoEditReplacedOriginal'] = previousPath != path"),
+      contains(
+        "updatedDiagnostics['photoEditReplacedOriginal'] = previousPath != path",
+      ),
     );
     expect(
       cleanup,
@@ -26,9 +28,9 @@ void main() {
     expect(cleanup, isNot(contains('File(previousPath).delete')));
     expect(
       save,
-      contains('_generatedEditPaths.isEmpty'),
+      contains('ReceiptImageProcessor.prepareForOcrAndBackup('),
       reason:
-          'Only an unedited photo may bypass the persistence/preparation route.',
+          'Every accepted photo, including an edited copy, is prepared before it is saved.',
     );
   });
 }

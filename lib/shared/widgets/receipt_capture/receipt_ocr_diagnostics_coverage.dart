@@ -134,7 +134,7 @@ extension ReceiptOcrDiagnosticsCoverage on ReceiptOcrDiagnostics {
       return 'Check user-confirmed receipt total';
     }
     if (receiptMissingBottomEdgeAndTotals) {
-      return 'Add the bottom receipt section with the top ghost-slice guide';
+      return 'Add the bottom receipt section with the top reference strip';
     }
     if (receiptMayNeedBottomSection) {
       return 'Check bottom section or enter total manually';
@@ -173,7 +173,7 @@ extension ReceiptOcrDiagnosticsCoverage on ReceiptOcrDiagnostics {
       'parsed_receipt_review_user_confirmed_complete' =>
         'Continue to receipt review and check the user-confirmed totals.',
       'add_next_receipt_section' =>
-        'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice.',
+        'Add the bottom receipt section and repeat 3-5 readable lines in the top reference strip.',
       'parsed_receipt_review_check_total' =>
         'Continue to receipt review and check the missing total.',
       'parsed_receipt_review_check_vendor' =>

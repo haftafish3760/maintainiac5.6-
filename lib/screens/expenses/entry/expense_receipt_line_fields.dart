@@ -1,5 +1,165 @@
 part of 'expense_receipt_entry_screen.dart';
 
+class _ReceiptItemLineTotal extends StatelessWidget {
+  const _ReceiptItemLineTotal({required this.total});
+
+  final double? total;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF172126),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF526168)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Line total',
+              style: const TextStyle(
+                color: Color(0xFFC8D0D3),
+                fontSize: 11,
+                fontWeight: FontWeight.w900,
+                height: 1.2,
+              ),
+            ),
+          ),
+          Text(
+            total == null ? '—' : _money(total!),
+            style: const TextStyle(
+              color: Color(0xFFFFD166),
+              fontSize: 15,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AppFilledLineReviewNotice extends StatelessWidget {
+  const _AppFilledLineReviewNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9),
+      decoration: BoxDecoration(
+        color: const Color(0xFF172126),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: const Color(0xFF526168)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.fact_check_outlined,
+            size: 18,
+            color: Color(0xFF8EF6A4),
+          ),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Check this app-filled item. Saving this line marks it reviewed.',
+              style: TextStyle(
+                color: Color(0xFFE8ECEE),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                height: 1.25,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ReceiptQuantityStepper extends StatelessWidget {
+  const _ReceiptQuantityStepper({
+    required this.label,
+    required this.controller,
+    required this.onChanged,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final VoidCallback onChanged;
+
+  void _change(double delta) {
+    final current = double.tryParse(controller.text.trim()) ?? 1;
+    final next = (current + delta).clamp(0.0, 999999.0);
+    controller.text = next == next.roundToDouble()
+        ? next.toInt().toString()
+        : next.toStringAsFixed(2);
+    onChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.fromLTRB(9, 6, 9, 6),
+    decoration: BoxDecoration(
+      color: const Color(0xFF101315),
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: const Color(0xFF40484D)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontSize: 11,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            IconButton(
+              onPressed: () => _change(-1),
+              icon: const Icon(Icons.remove_rounded),
+              color: Colors.white,
+            ),
+            Expanded(
+              child: TextField(
+                controller: controller,
+                textAlign: TextAlign.center,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                ),
+                decoration: const InputDecoration(
+                  filled: true,
+                  fillColor: Color(0xFF101315),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                ),
+                onChanged: (_) => onChanged(),
+              ),
+            ),
+            IconButton(
+              onPressed: () => _change(1),
+              icon: const Icon(Icons.add_rounded),
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
 class _LineUseBanner extends StatelessWidget {
   const _LineUseBanner({required this.use, this.onChanged});
 
@@ -28,190 +188,11 @@ class _LineUseBanner extends StatelessWidget {
   }
 
   Color _colorFor(_ExpenseLineUse option) => switch (option) {
-    _ExpenseLineUse.business => const Color(0xFF2E78B7),
-    _ExpenseLineUse.personal => const Color(0xFF59636A),
-    _ExpenseLineUse.split => const Color(0xFF3B7C73),
+    _ExpenseLineUse.business => const Color(0xFFFF8500),
+    _ExpenseLineUse.personal => const Color(0xFFFF8500),
+    _ExpenseLineUse.split => const Color(0xFFFF8500),
     _ExpenseLineUse.unclassified => const Color(0xFF11181B),
   };
-}
-
-class _ParserReviewNotice extends StatelessWidget {
-  const _ParserReviewNotice({required this.line});
-
-  final _ExpenseReceiptLine line;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = line.parserBadgeColor;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(9, 8, 9, 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF11181B),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            line.parserNeedsReview
-                ? Icons.rule_rounded
-                : Icons.verified_rounded,
-            color: color,
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  line.parserReviewSummary,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0,
-                  ),
-                ),
-                if ((line.parserReviewReason ?? '').trim().isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    line.parserReviewReason!.trim(),
-                    style: const TextStyle(
-                      color: Color(0xFFC8D0D3),
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ],
-                if (line.parserNeedsReview) ...[
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Saving this line marks it reviewed. Change anything that looks wrong before saving.',
-                    style: TextStyle(
-                      color: Color(0xFFFFD166),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SplitAllocationFields extends StatelessWidget {
-  const _SplitAllocationFields({
-    required this.method,
-    required this.businessPercentController,
-    required this.businessAmountController,
-    required this.businessPercent,
-    required this.businessAmount,
-    required this.lineTotal,
-    required this.onMethodChanged,
-  });
-
-  final ExpenseSplitAllocationMethod method;
-  final TextEditingController businessPercentController;
-  final TextEditingController businessAmountController;
-  final double? businessPercent;
-  final double? businessAmount;
-  final double? lineTotal;
-  final ValueChanged<ExpenseSplitAllocationMethod> onMethodChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final enteredBusinessPercent = businessPercent;
-    final enteredBusinessAmount = businessAmount;
-    final usesAmount = method == ExpenseSplitAllocationMethod.amount;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Text(
-          'Business portion of this item',
-          style: TextStyle(
-            color: Color(0xFFE8ECEE),
-            fontSize: 13,
-            fontWeight: FontWeight.w900,
-          ),
-        ),
-        const SizedBox(height: 7),
-        Wrap(
-          spacing: 8,
-          runSpacing: 6,
-          children: [
-            _LineChoiceButton(
-              label: 'Percentage',
-              selected: !usesAmount,
-              selectedColor: const Color(0xFF3B7C73),
-              onPressed: () =>
-                  onMethodChanged(ExpenseSplitAllocationMethod.percentage),
-            ),
-            _LineChoiceButton(
-              label: 'Dollar amount',
-              selected: usesAmount,
-              selectedColor: const Color(0xFF3B7C73),
-              onPressed: () =>
-                  onMethodChanged(ExpenseSplitAllocationMethod.amount),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        RecordTextField(
-          label: usesAmount ? 'Business dollar amount' : 'Business percent',
-          controller: usesAmount
-              ? businessAmountController
-              : businessPercentController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          helperText: usesAmount
-              ? 'The remaining amount is personal.'
-              : 'The remaining percentage is personal.',
-        ),
-        const SizedBox(height: 7),
-        Text(
-          _allocationSummary(
-            usesAmount: usesAmount,
-            amount: enteredBusinessAmount,
-            percent: enteredBusinessPercent,
-            total: lineTotal,
-          ),
-          style: const TextStyle(
-            color: Color(0xFFC8D0D3),
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            height: 1.25,
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _allocationSummary({
-    required bool usesAmount,
-    required double? amount,
-    required double? percent,
-    required double? total,
-  }) {
-    if (usesAmount) {
-      if (amount == null) return 'Enter the business amount before saving.';
-      if (total == null) {
-        return 'Business ${_money(amount)}. Enter the printed line total to calculate personal.';
-      }
-      return 'Business ${_money(amount)} | Personal ${_money(total - amount)}';
-    }
-    if (percent == null) return 'Enter the business percentage before saving.';
-    if (total == null) {
-      return 'Business ${_percent(percent)} | Personal ${_percent(1 - percent)}';
-    }
-    return 'Business ${_money(total * percent)} | Personal ${_money(total * (1 - percent))}';
-  }
 }
 
 class _LineChoiceButton extends StatelessWidget {
@@ -254,7 +235,6 @@ class _LineChoiceButton extends StatelessWidget {
 class _FuelReceiptFields extends StatelessWidget {
   const _FuelReceiptFields({
     required this.odometerController,
-    required this.unitPriceController,
     required this.fuelType,
     required this.fillType,
     required this.onFuelTypeChanged,
@@ -262,7 +242,6 @@ class _FuelReceiptFields extends StatelessWidget {
   });
 
   final TextEditingController odometerController;
-  final TextEditingController unitPriceController;
   final String fuelType;
   final String fillType;
   final ValueChanged<String> onFuelTypeChanged;
@@ -301,13 +280,6 @@ class _FuelReceiptFields extends StatelessWidget {
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 10),
-        RecordTextField(
-          label: fuelType == 'Electric' ? 'Price Per kWh' : 'Price Per Gallon',
-          helperText: 'Optional if the receipt only shows the line total.',
-          controller: unitPriceController,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
         ),
       ],
     );

@@ -24,6 +24,7 @@ part 'expense_receipt_privacy_event_serialization.dart';
 part 'expense_receipt_privacy_event_helpers.dart';
 part 'expense_receipt_parser_logic.dart';
 part 'expense_receipt_parser_ocr_handoff_logic.dart';
+part 'expense_receipt_parser_ocr_recovery_logic.dart';
 part 'expense_receipt_parser_text_entry_logic.dart';
 part 'expense_receipt_parser_merchant_totals_logic.dart';
 part 'expense_receipt_parser_date_time_logic.dart';

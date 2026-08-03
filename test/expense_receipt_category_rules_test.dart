@@ -7,6 +7,8 @@ void main() {
 
     expect(rule.mode, ExpenseReceiptLineInputMode.fuel);
     expect(rule.defaultUnit, 'gallon');
+    expect(rule.quantityLabel, 'Fuel volume');
+    expect(rule.unitChoices, containsAll(['gallon', 'kWh']));
     expect(rule.usesQuantityFields, isTrue);
     expect(rule.isFuel, isTrue);
   });
@@ -27,6 +29,7 @@ void main() {
       expect(rule.mode, ExpenseReceiptLineInputMode.amountOnly);
       expect(rule.usesQuantityFields, isFalse);
       expect(rule.defaultUnit, 'each');
+      expect(rule.unitChoices, ['each']);
     }
   });
 
@@ -43,6 +46,18 @@ void main() {
       expect(rule.mode, ExpenseReceiptLineInputMode.measuredItem);
       expect(rule.usesQuantityFields, isTrue);
       expect(rule.isFuel, isFalse);
+      expect(rule.unitChoices, isNotEmpty);
     }
+  });
+
+  test('maintenance and materials expose their real-world units', () {
+    expect(
+      expenseReceiptRuleForCategory('Maintenance').unitChoices,
+      containsAll(['quart', 'gallon', 'case', 'service']),
+    );
+    expect(
+      expenseReceiptRuleForCategory('Materials').unitChoices,
+      containsAll(['foot', 'inch', 'box', 'bag', 'roll']),
+    );
   });
 }

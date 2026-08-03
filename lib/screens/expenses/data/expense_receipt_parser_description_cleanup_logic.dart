@@ -256,8 +256,13 @@ bool _looksLikeCompactLineMoneyCandidate(
     RegExp(r'(?:^|[\s:])-?\$?\d{3,6}(?:cr|[a-z]|-)?\s*$', caseSensitive: false),
     ' ',
   );
-  return _looksLikeSpecificLineDescription(description, null, context) ||
-      RegExp(r'[a-zA-Z]{3,}').hasMatch(description);
+  // A trailing, unpunctuated number is frequently a store, terminal, loyalty,
+  // or receipt identifier rather than a price.  Do not turn arbitrary words
+  // plus such a number into a monetary line: fuel receipts in particular
+  // contain values such as "Sheetz 754", "Term: 20754", and "Pointz: 2957".
+  // Compact cents are only safe when the description itself has a recognized
+  // line-item signal.
+  return _looksLikeSpecificLineDescription(description, null, context);
 }
 
 bool _isTenderTotalRow(String lower) {

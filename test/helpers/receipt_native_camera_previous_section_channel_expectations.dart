@@ -32,11 +32,11 @@ void expectPreviousSectionGuideChannelArguments(
     'subtotal_total_and_final_lines',
   );
   expect(sentArguments['previousSectionGhostSourceStartFraction'], .80);
-  expect(sentArguments['previousSectionGhostSourceHeightFraction'], .20);
+  expect(sentArguments['previousSectionGhostSourceHeightFraction'], .34);
   expect(sentArguments['previousSectionGhostOverlayTopFraction'], 0);
-  expect(sentArguments['previousSectionGhostOverlayHeightFraction'], .20);
+  expect(sentArguments['previousSectionGhostOverlayHeightFraction'], .34);
   expect(sentArguments['previousSectionGhostOpacity'], .36);
-  expect(sentArguments['previousSectionGhostSlicePercent'], 20);
+  expect(sentArguments['previousSectionGhostSlicePercent'], 34);
   expect(sentArguments['previousSectionMissingBottomAndTotals'], isTrue);
   expect(sentArguments['previousSectionGhostGuideEnabled'], isTrue);
   expect(sentArguments['longReceiptMode'], isTrue);

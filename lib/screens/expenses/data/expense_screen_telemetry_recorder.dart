@@ -153,6 +153,7 @@ class ExpenseScreenTelemetryRecorder {
       null => ExpenseTelemetryStorageMode.normal,
       ReceiptDataSaverLevel.balanced ||
       ReceiptDataSaverLevel.strong => ExpenseTelemetryStorageMode.low,
+      ReceiptDataSaverLevel.economy ||
       ReceiptDataSaverLevel.maximum => ExpenseTelemetryStorageMode.ultraLow,
     };
   }

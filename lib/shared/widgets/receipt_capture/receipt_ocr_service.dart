@@ -11,6 +11,7 @@ import 'receipt_assistance_policy.dart';
 import 'receipt_attachment_duplicate_detector.dart';
 import 'receipt_capture_models.dart';
 import 'receipt_pdf_inspector.dart';
+import 'receipt_stitch_text_evidence.dart';
 
 export '../../receipts/receipt_ocr_contract.dart';
 
@@ -19,6 +20,7 @@ part 'receipt_ocr_service_helpers.dart';
 part 'receipt_ocr_service_text_combiner.dart';
 part 'receipt_ocr_service_layout.dart';
 part 'receipt_ocr_service_pdf_read.dart';
+part 'receipt_ocr_service_stitch_evidence.dart';
 
 const _receiptOcrEngineIdentity = 'google_mlkit_text_recognition_latin';
 const _receiptOcrProcessingVersion = 'maintainiac_receipt_ocr_v1';

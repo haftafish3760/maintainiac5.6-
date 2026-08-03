@@ -14,9 +14,14 @@ void main() {
       'lib/screens/expenses/home/expenses_home_screen.dart',
     ).readAsStringSync();
 
-    expect(header, contains('const _ReceiptHeader({required this.title})'));
+    expect(
+      header,
+      contains('const _ReceiptHeader({required this.title, required this.category})'),
+    );
     expect(header, isNot(contains('required this.subtitle')));
+    expect(header, contains(r'Expense category: $category'));
     expect(scaffold, contains("'Expense Receipt'"));
+    expect(scaffold, contains('category: _receiptCategory'));
     expect(
       scaffold,
       contains("'Select which vehicle this expense belongs to.'"),

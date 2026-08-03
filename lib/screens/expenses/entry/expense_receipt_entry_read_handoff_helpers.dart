@@ -25,7 +25,7 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
               'Keep this screen open while reading and filling finish preparing the receipt review.';
           _receiptReadHandoffStage = 'Receipt details still being filled';
           _receiptReadHandoffRouteResult =
-              'Receipt details are still being prepared from the accepted proof.';
+              'Receipt details are still being prepared from the accepted image.';
         } else if (missingBottomEdgeAndTotals) {
           _receiptReadHandoffDecision = 'Add bottom receipt section';
           _receiptReadHandoffAction =
@@ -54,7 +54,7 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
           _receiptReadAttemptedWithoutText = true;
           _receiptReadHandoffDecision = 'Open manual receipt details';
           _receiptReadHandoffAction =
-              'Receipt reading finished, but safe receipt fields were not found. Keep the proof and fill in the details manually.';
+              'Receipt reading finished, but safe receipt fields were not found. Keep the image and fill in the details manually.';
           _receiptReadHandoffStage = 'Receipt details need manual entry';
           _receiptReadHandoffRouteResult =
               _receiptManualDetailsRouteResultLabel;
@@ -137,7 +137,7 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
   String get _receiptFilledReviewDecisionLabel => 'Open receipt details';
 
   String get _receiptFilledReviewActionLabel =>
-      'Review store, date, tax, total, item prices, and Business/Personal/Mixed';
+      'Review store, date, tax, total, item prices, and Business/Personal/Split';
 
   String _receiptDecisionLabelForParsedReceipt(
     ExpenseReceiptParseResult parsed,

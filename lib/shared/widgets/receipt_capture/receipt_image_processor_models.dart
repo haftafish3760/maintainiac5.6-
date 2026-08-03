@@ -100,7 +100,7 @@ class ReceiptImagePreparationReport {
 class ReceiptImageCleanupSettings {
   const ReceiptImageCleanupSettings({
     this.autoCrop = true,
-    this.autoStraighten = true,
+    this.autoStraighten = false,
     this.grayscale = true,
     this.contrastBoost = true,
     this.sharpening = true,
@@ -124,7 +124,7 @@ class ReceiptImageCleanupSettings {
       autoStraighten: _boolDiagnostic(
         diagnostics,
         'perspectiveCorrectionEnabled',
-        fallback: true,
+        fallback: false,
       ),
       grayscale: _boolDiagnostic(
         diagnostics,

@@ -81,10 +81,10 @@ void main() {
     expect(
       controls,
       contains(
-        'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
+        'add the bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
-    expect(controls, contains("'Use Receipt'"));
+    expect(controls, contains("'Choose Saved Image Size'"));
     expect(commonControls, isNot(contains("Next: Details If Complete")));
     expect(commonControls, isNot(contains("secondary: 'If Complete'")));
     expect(
@@ -102,7 +102,7 @@ void main() {
     expect(
       previewControls,
       contains(
-        'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
+        'Add bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
     expect(previewControls, contains('uiConfig.addPhotoLabel'));
@@ -151,7 +151,7 @@ void main() {
         'Photo captured locally. Use this photo, retake it, or add another photo if the receipt continues.',
       ),
     );
-    expect(controls, contains('Use Receipt'));
+    expect(controls, contains('Choose Saved Image Size'));
     expect(
       models,
       contains('Receipt details open from each section, top to bottom.'),

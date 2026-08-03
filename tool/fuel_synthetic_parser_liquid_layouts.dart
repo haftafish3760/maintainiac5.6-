@@ -160,6 +160,10 @@ String _liquidFuelReceipt({
               exciseTaxTotal -
               (discount ?? 0))
           .toStringAsFixed(2);
+  // Tax-bearing receipts normally print a final total in addition to the card
+  // authorization amount. Keep payment-only footer variants elsewhere, but do
+  // not make this tax accounting case depend on an inferred tender total.
+  final taxTotalFooter = exciseTax == null ? '' : '\nTOTAL $grandTotal';
   final alternatePriceTender = alternatePricePremium == null
       ? ''
       : locale == 'spanish_us'
@@ -302,6 +306,7 @@ $carWash
 $prepayRefund
 $exciseTaxLine
 CARD SALE $grandTotal$cash
+$taxTotalFooter
 $personalConvenience
 $fleetTender
 $privateIdentity

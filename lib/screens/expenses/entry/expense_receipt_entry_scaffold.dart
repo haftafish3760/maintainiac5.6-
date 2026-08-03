@@ -12,12 +12,6 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
     final showAttachmentBeforeReview = !_receiptReviewFlowStarted;
     final receiptAttachmentPanel = _buildReceiptAttachmentPanel(context);
     final showSharedReceiptLines = _lines.isNotEmpty;
-    final showClassificationSuggestion =
-        _receiptClassification != null &&
-        _receiptClassification!.kind !=
-            ExpenseReceiptClassificationKind.expenseReceipt &&
-        _receiptClassification!.kind !=
-            ExpenseReceiptClassificationKind.ambiguous;
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
       body: SafeArea(
@@ -37,6 +31,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                   : _isMaintenanceRepairFlow
                   ? 'Maintenance / Repair Receipt'
                   : 'Expense Receipt',
+              category: _receiptCategory,
             ),
             const SizedBox(height: 8),
             if (showAttachmentBeforeReview && _showReceiptEntryGuide) ...[
@@ -148,31 +143,6 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _ReceiptAppAssistedReviewIntroPanel(
-                      lineCount: _lines.length,
-                      unreviewedLineCount: _unreviewedParsedLineCount,
-                      receiptTotalLabel: _money(_receiptTotal),
-                      detailMode: _detailEntryMode,
-                      ocrDiagnostics: _lastOcrDiagnostics,
-                      parseDiagnostics: _lastParseDiagnostics,
-                      ocrWarnings: _lastOcrWarnings,
-                      onAddMissingBottomSection: _scrollToReceiptPhotoRecovery,
-                    ),
-                    const SizedBox(height: 8),
-                    if (showClassificationSuggestion) ...[
-                      _ReceiptClassificationReviewPanel(
-                        classification: _receiptClassification!,
-                        parseQuality: _lastParseQuality,
-                        parseDiagnostics: _lastParseDiagnostics,
-                        fieldConfidences: _lastFieldConfidences,
-                        ocrDiagnostics: _lastOcrDiagnostics,
-                        ocrWarnings: _lastOcrWarnings,
-                        maintenanceHints: _maintenanceHints,
-                        onApplyCategory: _applySuggestedReceiptCategory,
-                        ocrActionCallbacks: _ocrReviewActionCallbacks,
-                      ),
-                      const SizedBox(height: 8),
-                    ],
                     if (_lines.isEmpty) ...[
                       _buildReceiptNoLineRecoveryPanel(),
                       const SizedBox(height: 8),
@@ -197,50 +167,33 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               ),
               const SizedBox(height: 8),
             ],
+            _ReceiptWholeUseReviewPanel(
+              selectedUse: _receiptUse,
+              onMarkBusiness: () => _setReceiptUse(_ExpenseLineUse.business),
+              onMarkPersonal: () => _setReceiptUse(_ExpenseLineUse.personal),
+              onMarkMixed: () => _setReceiptUse(_ExpenseLineUse.split),
+            ),
+            const SizedBox(height: 8),
             _ReceiptLineActionsPanel(
               nextLineNumber: _lines.length + 1,
               materialMode: _isMaterialsFlow,
               maintenanceRepairMode: _isMaintenanceRepairFlow,
               fuelMode: widget.initialCategory == 'Fuel',
-              basicMode: false,
-              detailedMode: true,
-              onAddBusiness: () => _addReceiptLineForMode(
-                use: _ExpenseLineUse.business,
-                category: _isMaterialsFlow
-                    ? 'Materials'
-                    : _newReceiptLineCategory,
-              ),
-              onAddPersonal: () => _addReceiptLineForMode(
-                use: _ExpenseLineUse.personal,
-                category: _newReceiptLineCategory,
-              ),
-              onAddShared: () => _addReceiptLineForMode(
-                use: _ExpenseLineUse.split,
-                category: _newReceiptLineCategory,
-              ),
-              onAddMaterial: () => _editLine(
-                initial: _ExpenseReceiptLine.blank(category: 'Materials'),
-              ),
-              onAddMaintenanceRepair: () => _editLine(
+              onAddItem: () => _editLine(
                 initial: _ExpenseReceiptLine.blank(
-                  category: widget.initialCategory == 'Maintenance'
-                      ? 'Maintenance'
-                      : 'Repair',
+                  use: _receiptUse,
+                  category: _isMaterialsFlow
+                      ? 'Materials'
+                      : _isMaintenanceRepairFlow
+                      ? widget.initialCategory == 'Maintenance'
+                            ? 'Maintenance'
+                            : 'Repair'
+                      : _newReceiptLineCategory,
                 ),
               ),
-              onSwitchToCategoryLines: () {},
             ),
             const SizedBox(height: 8),
             if (showSharedReceiptLines) ...[
-              _ReceiptWholeUseReviewPanel(
-                lines: _lines,
-                onMarkBusiness: () =>
-                    _markAllReceiptLines(_ExpenseLineUse.business),
-                onMarkPersonal: () =>
-                    _markAllReceiptLines(_ExpenseLineUse.personal),
-                onMarkMixed: () => _markAllReceiptLines(_ExpenseLineUse.split),
-              ),
-              const SizedBox(height: 8),
               _ReceiptRecapPanel(
                 lines: _lines,
                 storeName: _storeController.text.trim(),
@@ -249,28 +202,12 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
                 receiptSubtotal: _enteredReceiptSubtotal,
                 salesTax: _enteredReceiptTax,
                 receiptTotal: _receiptTotal,
-                businessTotal: _businessTotal,
-                personalTotal: _personalTotal,
                 detailMode: _detailEntryMode,
                 onEdit: (index) =>
                     _editLine(index: index, initial: _lines[index]),
                 onSetUse: _setReceiptLineUse,
-                onDelete: (index) {
-                  _setReceiptEntryState(() => _lines.removeAt(index));
-                  _scheduleDraftSave();
-                },
               ),
               const SizedBox(height: 8),
-              if (_lines.any((line) => line.hasParserReview)) ...[
-                _ReceiptLineEvidenceReviewPanel(
-                  lines: _lines,
-                  onConfirm: _confirmParsedLine,
-                  onEdit: (index) =>
-                      _editLine(index: index, initial: _lines[index]),
-                  onMarkExpenseOnly: _markLineExpenseOnly,
-                ),
-                const SizedBox(height: 8),
-              ],
             ],
             _ReceiptTotalsPanel(
               detailMode: _detailEntryMode,
@@ -281,13 +218,9 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
             ),
             const SizedBox(height: 8),
             _ReceiptSavePanel(
-              detailMode: _detailEntryMode,
               lineCount: _lines.length,
-              reviewCount: _lines
-                  .where((line) => line.parserNeedsReview)
-                  .length,
-              splitPercentIssueCount: _splitLinesMissingBusinessPercentCount,
               total: _receiptTotal,
+              splitPercentIssueCount: _splitLinesMissingBusinessPercentCount,
               onSave: _saveReceipt,
             ),
           ],

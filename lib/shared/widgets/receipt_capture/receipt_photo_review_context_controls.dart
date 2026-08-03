@@ -9,6 +9,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
     required this.storagePreview,
     required this.selectedQualityCheck,
     required this.selectedCaptureDiagnostics,
+    required this.stitchPreview,
     required this.bestShotCandidateMode,
     required this.openingCamera,
     required this.canRemove,
@@ -24,6 +25,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
   final ReceiptImageStoragePreview? storagePreview;
   final ReceiptPhotoQualityCheck? selectedQualityCheck;
   final Map<String, Object?>? selectedCaptureDiagnostics;
+  final ReceiptStitchResult? stitchPreview;
   final bool bestShotCandidateMode;
   final bool openingCamera;
   final bool canRemove;
@@ -47,7 +49,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(_statusIcon, color: const Color(0xFFFFD166), size: 18),
+                Icon(_statusIcon, color: _statusColor, size: 18),
                 const SizedBox(width: 7),
                 Expanded(
                   child: Text(
@@ -71,8 +73,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
                 children: [
                   _MiniReceiptActionButton(
                     icon: Icons.add_a_photo_rounded,
-                    label: 'Add Another Photo',
-                    emphasized: true,
+                    label: 'Add Photo',
                     onPressed: openingCamera ? null : onAddPhoto,
                   ),
                   const SizedBox(width: 6),
@@ -100,6 +101,7 @@ class _ReceiptReviewContextRow extends StatelessWidget {
   }
 
   IconData get _statusIcon {
+    if (_isCombinedReceipt) return Icons.check_circle_rounded;
     return switch (reviewMode) {
       _ReceiptReviewMode.preview => Icons.receipt_long_rounded,
       _ReceiptReviewMode.crop => Icons.crop_rounded,
@@ -109,15 +111,25 @@ class _ReceiptReviewContextRow extends StatelessWidget {
     };
   }
 
+  Color get _statusColor =>
+      _isCombinedReceipt ? const Color(0xFF5CE17A) : const Color(0xFFFFD166);
+
+  bool get _isCombinedReceipt =>
+      reviewMode == _ReceiptReviewMode.stitch &&
+      stitchPreview?.didStitch == true;
+
   String get _statusText {
     if (reviewMode == _ReceiptReviewMode.dataSaver) {
       final preview = storagePreview;
-      if (preview == null) return 'Checking saved proof size.';
+      if (preview == null) return 'Checking saved image size.';
       final mode = preview.level.usesGrayscale ? 'black and white' : 'color';
-      return 'Saved proof: ${preview.estimatedLabel}, $mode. The app uses the clear original photo first.';
+      return 'Saved image: ${preview.estimatedLabel}, $mode. The app uses the clear original photo first.';
     }
     if (reviewMode == _ReceiptReviewMode.stitch && photoCount > 1) {
-      return 'Review how the receipt photos connect before the app opens receipt details.';
+      if (_isCombinedReceipt) {
+        return 'Review the combined receipt. Pinch to check the overlap and every printed line before continuing.';
+      }
+      return 'Review the receipt photos before continuing.';
     }
     if (reviewMode == _ReceiptReviewMode.order && photoCount > 1) {
       return _ReceiptPhotoSectionLabels.selectedReviewGuidance(
@@ -210,13 +222,11 @@ class _MiniReceiptActionButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
-    this.emphasized = false,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
-  final bool emphasized;
 
   @override
   Widget build(BuildContext context) {
@@ -226,13 +236,9 @@ class _MiniReceiptActionButton extends StatelessWidget {
       label: Text(label, textAlign: TextAlign.center, softWrap: true),
       style: FilledButton.styleFrom(
         minimumSize: const Size(0, 32),
-        backgroundColor: emphasized
-            ? const Color(0xFFFFD166)
-            : const Color(0xFF172126),
+        backgroundColor: const Color(0xFF172126),
         disabledBackgroundColor: const Color(0xFF11181B),
-        foregroundColor: emphasized
-            ? const Color(0xFF101416)
-            : const Color(0xFFE8ECEE),
+        foregroundColor: const Color(0xFFE8ECEE),
         disabledForegroundColor: const Color(0xFF6F7A80),
         padding: const EdgeInsets.symmetric(horizontal: 9),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,

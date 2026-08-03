@@ -17,7 +17,7 @@ void main() {
     expect(
       guide,
       contains(
-        'Check the filled details, choose Business, Personal, or Mixed, then save',
+        'Check the filled details, choose Business, Personal, or Split, then save',
       ),
     );
     expect(guide, contains('You stay in control'));

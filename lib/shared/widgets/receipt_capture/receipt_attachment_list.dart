@@ -71,7 +71,7 @@ class _ReceiptAttachmentList extends StatelessWidget {
     required ReceiptPhotoQualityCheck? quality,
   }) {
     final parts = [
-      '${dataSaverLevel.label} saved proof${_fileDetail(path)}',
+      '${dataSaverLevel.label} saved receipt image${_fileDetail(path)}',
       if (quality != null)
         quality.needsReview
             ? 'Photo needs review: ${quality.primaryIssueLabel}'

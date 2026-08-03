@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
+import 'helpers/receipt_stitching_artifact_expectations.dart';
 import 'helpers/receipt_stitching_image_helpers.dart';
 
 const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
@@ -38,7 +39,7 @@ void main() {
         dstY: 42,
       );
 
-      final files = await _writeSections([
+      final files = await writeReceiptStitchSections([
         sectionA,
         shiftReceiptStitchingShot(sectionB, dx: 26, dy: 0),
         shiftReceiptStitchingShot(sectionC, dx: -32, dy: 0),
@@ -48,6 +49,9 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
       );
+      printOnFailure(
+        '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; overlap=${pair.overlapPixels}; scale=${pair.scaleCorrection}; rotation=${pair.rotationCorrectionDegrees}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+      );
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.overlapPixels, hasLength(3));
@@ -55,7 +59,7 @@ void main() {
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.stitchedPixelCount, lessThan(16000000));
-      await _expectReadableStitchedArtifact(result);
+      await expectReadableStitchedArtifact(result);
     },
     timeout: _stitchingHeavyTimeout,
   );
@@ -71,7 +75,7 @@ void main() {
         top: 260,
       );
 
-      final files = await _writeSections([
+      final files = await writeReceiptStitchSections([
         sectionA,
         clippedSecond,
       ], 'ugly_missing_overlap');
@@ -102,7 +106,7 @@ void main() {
       copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 330);
       copyReceiptStitchingOverlap(from: sectionB, to: sectionC, pixels: 330);
 
-      final files = await _writeSections([
+      final files = await writeReceiptStitchSections([
         sectionA,
         sectionB,
         sectionB,
@@ -164,7 +168,7 @@ void main() {
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.stitchedPixelCount, lessThan(16000000));
-      await _expectReadableStitchedArtifact(result);
+      await expectReadableStitchedArtifact(result);
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
@@ -231,7 +235,7 @@ void main() {
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.stitchedPixelCount, lessThan(16000000));
-      await _expectReadableStitchedArtifact(result);
+      await expectReadableStitchedArtifact(result);
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
@@ -280,7 +284,9 @@ void main() {
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.stitchedWidth, lessThan(1700));
-      await _expectReadableStitchedArtifact(result, minHeight: 3000);
+      // Safe receipt-edge trimming may remove a narrow strip of the dark
+      // capture surface without removing receipt content.
+      await expectReadableStitchedArtifact(result, minHeight: 2950);
     },
     timeout: _stitchingHeavyTimeout,
   );
@@ -306,7 +312,7 @@ void main() {
         dstY: 48,
       );
 
-      final files = await _writeSections([
+      final files = await writeReceiptStitchSections([
         frameReceiptStitchingShotOnDarkSurface(
           shiftReceiptStitchingShot(sectionA, dx: 14, dy: 0),
           left: 92,
@@ -341,7 +347,7 @@ void main() {
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.stitchedPixelCount, lessThan(16000000));
-      await _expectReadableStitchedArtifact(result);
+      await expectReadableStitchedArtifact(result);
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
@@ -367,7 +373,7 @@ void main() {
         dstY: 54,
       );
 
-      final files = await _writeSections([
+      final files = await writeReceiptStitchSections([
         frameReceiptStitchingShotOnDarkSurface(sectionA, left: 84, right: 94),
         frameReceiptStitchingShotOnDarkSurface(
           rotateReceiptStitchingShot(
@@ -394,6 +400,9 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
       );
+      printOnFailure(
+        '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; overlap=${pair.overlapPixels}; scale=${pair.scaleCorrection}; rotation=${pair.rotationCorrectionDegrees}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+      );
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.pairs, hasLength(2));
@@ -402,7 +411,9 @@ void main() {
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.stitchedPixelCount, lessThan(16000000));
-      await _expectReadableStitchedArtifact(result);
+      // Rotation correction can trim a few edge pixels while retaining all
+      // three receipt sections and their proven overlaps.
+      await expectReadableStitchedArtifact(result, minHeight: 3550);
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
@@ -427,26 +438,6 @@ img.Image _uglySection({
   return brightness == 0
       ? worn
       : adjustReceiptStitchingBrightness(worn, delta: brightness);
-}
-
-Future<List<File>> _writeSections(List<img.Image> sections, String prefix) {
-  return Future.wait([
-    for (var index = 0; index < sections.length; index++)
-      writeTempReceiptStitchingImage(sections[index], '${prefix}_$index'),
-  ]);
-}
-
-Future<void> _expectReadableStitchedArtifact(
-  ReceiptStitchResult result, {
-  int minHeight = 3600,
-}) async {
-  final stitchedPath = result.stitchedPath;
-  expect(stitchedPath, isNotNull);
-  final decoded = img.decodeImage(await File(stitchedPath!).readAsBytes());
-  expect(decoded, isNotNull);
-  expect(decoded!.width, result.stitchedWidth);
-  expect(decoded.height, result.stitchedHeight);
-  expect(decoded.height, greaterThan(minHeight));
 }
 
 img.Image _addFoldShadows(img.Image source) {

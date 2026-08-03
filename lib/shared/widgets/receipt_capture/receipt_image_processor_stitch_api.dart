@@ -2,8 +2,13 @@ part of 'receipt_image_processor.dart';
 
 Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   required List<String> paths,
+  List<List<String>>? textLinesByPath,
+  List<bool>? manualZeroOverlapPairs,
   List<int>? manualOverlapPixels,
   List<double>? manualOverlapFractions,
+  List<double>? manualScaleCorrections,
+  List<double>? manualRotationCorrectionsDegrees,
+  List<double>? manualHorizontalOffsetFractions,
   int maxOutputPixels = 16000000,
   int maxOutputHeight = 20000,
 }) async {
@@ -41,78 +46,26 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     );
   }
 
-  final decoded = <img.Image>[];
-  final decodedBytes = <List<int>>[];
-  final decodedSources = <img.Image>[];
   final confidences = <double>[];
   final pairResults = <ReceiptStitchPairResult>[];
+  // The combined proof has a deliberate width cap. Do the private crop/frame
+  // work close to that cap instead of repeatedly copying an entire 12–50 MP
+  // camera image just to reduce it later. Original user photos remain intact.
+  final targetWidth = _stitchTargetWidth(inputPaths.length);
   var activePairIndex = -1;
   try {
-    for (final path in inputPaths) {
-      final bytes = await ReceiptImageProcessor._readFileBytes(path);
-      final duplicateSourceIndex = bytes == null
-          ? -1
-          : _findDuplicateReceiptImageIndex(decodedBytes, bytes);
-      if (duplicateSourceIndex >= 0) {
-        final pairIndex = decodedBytes.length - 1;
-        return ReceiptStitchResult.fallback(
-          inputPaths: inputPaths,
-          warning:
-              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
-          fallbackReasonCode: 'duplicate_section_image',
-          failedPairIndex: pairIndex,
-          pairs: [
-            ReceiptStitchPairResult(
-              pairIndex: pairIndex,
-              overlapPixels: 0,
-              confidence: 1,
-            ),
-          ],
-        );
-      }
-      final image = bytes == null
-          ? null
-          : ReceiptImageProcessor._decodeImage(bytes);
-      if (image == null) {
-        return ReceiptStitchResult.fallback(
-          inputPaths: inputPaths,
-          warning: 'One receipt photo could not be read.',
-          fallbackReasonCode: 'decode_failed',
-        );
-      }
-      final duplicateDecodedIndex = _findDuplicateReceiptDecodedImageIndex(
-        decodedSources,
-        image,
-      );
-      if (duplicateDecodedIndex >= 0) {
-        final pairIndex = decodedSources.length - 1;
-        return ReceiptStitchResult.fallback(
-          inputPaths: inputPaths,
-          warning:
-              'Two receipt photos appear to show the same section. Receipt details will use the photos separately.',
-          fallbackReasonCode: 'duplicate_section_image',
-          failedPairIndex: pairIndex,
-          pairs: [
-            ReceiptStitchPairResult(
-              pairIndex: pairIndex,
-              overlapPixels: 0,
-              confidence: 1,
-            ),
-          ],
-        );
-      }
-      decodedBytes.add(bytes!);
-      decodedSources.add(image);
-      final receiptFramed = _autoCropReceipt(image);
-      decoded.add(
-        _enhanceReceiptForReading(_autoStraightenReceipt(receiptFramed)),
-      );
-    }
-
-    final targetWidth = _stitchTargetWidth(decoded.length);
-    final prepared = decoded
-        .map((image) => _resizeToWidth(_autoCropReceipt(image), targetWidth))
-        .toList(growable: false);
+    final sourcePreparation = await _prepareReceiptStitchSources(
+      inputPaths: inputPaths,
+      targetWidth: targetWidth,
+    );
+    final preparationFailure = sourcePreparation.failure;
+    if (preparationFailure != null) return preparationFailure;
+    final prepared = sourcePreparation.prepared;
+    final comparisonPrepared = sourcePreparation.comparisonPrepared;
+    final comparisonHasReadableDetail =
+        sourcePreparation.comparisonHasReadableDetail;
+    final comparisonLooksLikeReceiptPhoto =
+        sourcePreparation.comparisonLooksLikeReceiptPhoto;
     if (manualOverlapPixels == null && manualOverlapFractions == null) {
       final minimumAutoHeight = _minimumAutoStitchHeight(prepared);
       final minimumAutoPixels = targetWidth * minimumAutoHeight;
@@ -130,6 +83,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       }
     }
     final normalized = <img.Image>[prepared.first];
+    final normalizedForComparison = <img.Image>[comparisonPrepared.first];
     var expectedHeight = normalized.first.height;
     final overlaps = <int>[];
     final horizontalOffsets = <int>[];
@@ -149,16 +103,79 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       final pairIndex = index - 1;
       activePairIndex = pairIndex;
       final previous = normalized[pairIndex];
+      final manualScale = _manualStitchValue(
+        manualScaleCorrections,
+        pairIndex,
+        fallback: 1,
+        minimum: .75,
+        maximum: 1.25,
+      );
+      final manualRotation = _manualStitchValue(
+        manualRotationCorrectionsDegrees,
+        pairIndex,
+        fallback: 0,
+        minimum: -8,
+        maximum: 8,
+      );
+      final manualHorizontalFraction = _manualStitchValue(
+        manualHorizontalOffsetFractions,
+        pairIndex,
+        fallback: 0,
+        minimum: -.20,
+        maximum: .20,
+      );
+      final manualNext = _transformForStitchComparison(
+        prepared[index],
+        targetWidth: targetWidth,
+        scale: manualScale,
+        rotationDegrees: manualRotation,
+      );
       final manualOverlap = _manualOverlapFor(
         previous: previous,
-        next: prepared[index],
+        next: manualNext,
         pairIndex: pairIndex,
         manualOverlapPixels: manualOverlapPixels,
         manualOverlapFractions: manualOverlapFractions,
       );
+      final manualZeroOverlap =
+          manualZeroOverlapPairs != null &&
+          pairIndex < manualZeroOverlapPairs.length &&
+          manualZeroOverlapPairs[pairIndex];
+      if (manualZeroOverlap) {
+        final manualHorizontalOffset = (targetWidth * manualHorizontalFraction)
+            .round();
+        overlaps.add(0);
+        horizontalOffsets.add(manualHorizontalOffset);
+        confidences.add(.30);
+        pairResults.add(
+          ReceiptStitchPairResult(
+            pairIndex: pairIndex,
+            overlapPixels: 0,
+            confidence: .30,
+            usedManualAdjustment: true,
+            usedZeroOverlapJoin: true,
+            scaleCorrection: manualScale,
+            rotationCorrectionDegrees: manualRotation,
+            horizontalOffsetPixels: manualHorizontalOffset,
+          ),
+        );
+        normalized.add(manualNext);
+        normalizedForComparison.add(
+          _transformForStitchComparison(
+            comparisonPrepared[index],
+            targetWidth: targetWidth,
+            scale: manualScale,
+            rotationDegrees: manualRotation,
+          ),
+        );
+        expectedHeight += manualNext.height;
+        final fallback = oversizedFallback();
+        if (fallback != null) return fallback;
+        continue;
+      }
       if (manualOverlap != null) {
         final maxManualOverlap =
-            math.min(previous.height, prepared[index].height) - 24;
+            math.min(previous.height, manualNext.height) - 24;
         if (manualOverlap < 24 || manualOverlap > maxManualOverlap) {
           return ReceiptStitchResult.fallback(
             inputPaths: inputPaths,
@@ -169,7 +186,9 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           );
         }
         overlaps.add(manualOverlap);
-        horizontalOffsets.add(0);
+        final manualHorizontalOffset = (targetWidth * manualHorizontalFraction)
+            .round();
+        horizontalOffsets.add(manualHorizontalOffset);
         confidences.add(1);
         pairResults.add(
           ReceiptStitchPairResult(
@@ -177,52 +196,187 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             overlapPixels: manualOverlap,
             confidence: 1,
             usedManualAdjustment: true,
+            scaleCorrection: manualScale,
+            rotationCorrectionDegrees: manualRotation,
+            horizontalOffsetPixels: manualHorizontalOffset,
           ),
         );
-        normalized.add(prepared[index]);
-        expectedHeight += prepared[index].height - manualOverlap;
+        normalized.add(manualNext);
+        // Keep the matching sequence aligned with the visible sequence. A
+        // following automatic join in a three-or-more-photo receipt must use
+        // this manually accepted section as its previous comparison image.
+        normalizedForComparison.add(
+          _transformForStitchComparison(
+            comparisonPrepared[index],
+            targetWidth: targetWidth,
+            scale: manualScale,
+            rotationDegrees: manualRotation,
+          ),
+        );
+        expectedHeight += manualNext.height - manualOverlap;
         final fallback = oversizedFallback();
         if (fallback != null) return fallback;
       } else {
-        final match = _bestScaleTolerantVerticalOverlap(
-          previous: previous,
-          next: prepared[index],
+        // Do not let a blank, dark, or nearly uniform photo win a visual
+        // overlap score merely because it has no competing detail. It stays
+        // in the ordered fallback set so the person can retake only that
+        // section; it must never become part of a misleading combined proof.
+        if (!comparisonHasReadableDetail[pairIndex] ||
+            !comparisonHasReadableDetail[index] ||
+            !comparisonLooksLikeReceiptPhoto[pairIndex] ||
+            !comparisonLooksLikeReceiptPhoto[index]) {
+          final failedPair = ReceiptStitchPairResult(
+            pairIndex: pairIndex,
+            overlapPixels: 0,
+            confidence: 0,
+          );
+          return ReceiptStitchResult.fallback(
+            inputPaths: inputPaths,
+            warning:
+                'One receipt photo does not show enough readable detail to combine safely.',
+            fallbackReasonCode: 'overlap_confidence_low',
+            confidence: 0,
+            failedPairIndex: pairIndex,
+            pairs: List.unmodifiable([...pairResults, failedPair]),
+          );
+        }
+        var match = _bestScaleTolerantVerticalOverlap(
+          previous: normalizedForComparison[pairIndex],
+          next: comparisonPrepared[index],
           targetWidth: targetWidth,
         );
-        if (!match.isConfident) {
+        var continuity = _receiptOverlapContinuityEvidence(
+          previous: normalizedForComparison[pairIndex],
+          match: match,
+        );
+        if (!continuity.isProven &&
+            ((match.scaleCorrection - 1).abs() >= .03 ||
+                match.rotationCorrectionDegrees.abs() >= .5 ||
+                match.perspectiveCorrection.abs() >= .03)) {
+          final fixedMatch = _fixedScaleVerticalOverlap(
+            previous: normalizedForComparison[pairIndex],
+            next: comparisonPrepared[index],
+            targetWidth: targetWidth,
+          );
+          final fixedContinuity = _receiptOverlapContinuityEvidence(
+            previous: normalizedForComparison[pairIndex],
+            match: fixedMatch,
+          );
+          if (fixedContinuity.isProven) {
+            match = fixedMatch;
+            continuity = fixedContinuity;
+          }
+        }
+        final textEvidence = _receiptStitchTextEvidenceForPair(
+          inputPaths: inputPaths,
+          textLinesByPath: textLinesByPath,
+          pairIndex: pairIndex,
+        );
+        final textCorroboratesGeometry =
+            textEvidence.isStrong && match.confidence >= .28;
+        final continuityIsCorroborated =
+            continuity.isProven ||
+            textCorroboratesGeometry ||
+            (match.confidence >= .35 &&
+                continuity.detailedBands >= 3 &&
+                continuity.matchingBands >= 3 &&
+                continuity.correlation >= .30) ||
+            (match.confidence >= .44 &&
+                continuity.detailedBands >= 2 &&
+                continuity.matchingBands == continuity.detailedBands &&
+                continuity.correlation >= .55);
+        final continuityConfidence = continuityIsCorroborated
+            ? (.42 + continuity.correlation * .30).clamp(0.0, .72)
+            : 0.0;
+        final textConfidence = textCorroboratesGeometry
+            ? (.46 + textEvidence.confidence * .34).clamp(0.0, .80)
+            : 0.0;
+        final effectiveConfidence = math.max(
+          math.max(match.confidence, continuityConfidence),
+          textConfidence,
+        );
+        final hasExceptionalContinuity =
+            continuity.detailedBands >= 4 &&
+            continuity.matchingBands == continuity.detailedBands &&
+            continuity.correlation >= .72;
+        // A combined receipt is a user-facing proof image. Do not turn a
+        // merely plausible overlap into a green "combined" result: preserve
+        // the original ordered photos and target the failed pair for review.
+        final lowConfidenceTransformIsAggressive =
+            effectiveConfidence < .70 &&
+            !hasExceptionalContinuity &&
+            ((match.scaleCorrection - 1).abs() >= .15 ||
+                match.rotationCorrectionDegrees.abs() >= 3.5 ||
+                match.perspectiveCorrection.abs() >= .085);
+        // A reviewable low-confidence join may still be geometrically stable.
+        // But a weak match that also needs a large scale, rotation, or offset
+        // correction can erase real receipt rows when the next opaque image is
+        // composited. Preserve the ordered clear sections for retake/manual
+        // alignment instead of producing that destructive combined image.
+        if (effectiveConfidence < .49 ||
+            !continuityIsCorroborated ||
+            lowConfidenceTransformIsAggressive) {
+          final reportedConfidence = math.min(effectiveConfidence, .69);
           final failedPair = ReceiptStitchPairResult(
             pairIndex: pairIndex,
             overlapPixels: match.pixels,
-            confidence: match.confidence,
+            confidence: reportedConfidence,
             scaleCorrection: match.scaleCorrection,
             rotationCorrectionDegrees: match.rotationCorrectionDegrees,
+            perspectiveCorrection: match.perspectiveCorrection,
+            horizontalOffsetPixels: match.nextXOffsetPixels,
+            verticalOffsetPixels: match.nextTopOffsetPixels,
+            textOverlapConfidence: textEvidence.confidence,
+            matchedTextLineCount: textEvidence.matchedLineCount,
+            continuityCorrelation: continuity.correlation,
+            continuityDetailedBands: continuity.detailedBands,
+            continuityMatchingBands: continuity.matchingBands,
           );
           return ReceiptStitchResult.fallback(
             inputPaths: inputPaths,
             warning:
                 'Receipt photos did not match clearly enough to stitch safely.',
             fallbackReasonCode: 'overlap_confidence_low',
-            confidence: match.confidence,
+            confidence: reportedConfidence,
             failedPairIndex: pairIndex,
             pairs: List.unmodifiable([...pairResults, failedPair]),
           );
         }
+        // This includes the actual repeated rows and any leading rows before
+        // the overlap. The full continuation image is retained, so both must
+        // affect its placement exactly once.
         overlaps.add(match.nextSkipPixels);
         horizontalOffsets.add(match.nextXOffsetPixels);
-        confidences.add(match.confidence);
-        normalized.add(match.nextImage);
+        confidences.add(effectiveConfidence);
+        final nextImage = _materializeRawStitchImage(
+          prepared[index],
+          match: match,
+          targetWidth: targetWidth,
+        );
+        normalized.add(nextImage);
+        // Match every adjacent pair from its independently normalized source.
+        // Reusing a transformed prior match compounds zoom/rotation across a
+        // three-or-more-photo receipt and makes later pairs drift away from
+        // their real neighboring pixels.
+        normalizedForComparison.add(comparisonPrepared[index]);
         pairResults.add(
           ReceiptStitchPairResult(
             pairIndex: pairIndex,
             overlapPixels: match.pixels,
-            confidence: match.confidence,
+            confidence: effectiveConfidence,
             scaleCorrection: match.scaleCorrection,
             rotationCorrectionDegrees: match.rotationCorrectionDegrees,
+            perspectiveCorrection: match.perspectiveCorrection,
             horizontalOffsetPixels: match.nextXOffsetPixels,
             verticalOffsetPixels: match.nextTopOffsetPixels,
+            textOverlapConfidence: textEvidence.confidence,
+            matchedTextLineCount: textEvidence.matchedLineCount,
+            continuityCorrelation: continuity.correlation,
+            continuityDetailedBands: continuity.detailedBands,
+            continuityMatchingBands: continuity.matchingBands,
           ),
         );
-        expectedHeight += match.nextImage.height - match.nextSkipPixels;
+        expectedHeight += nextImage.height - match.nextSkipPixels;
         final fallback = oversizedFallback();
         if (fallback != null) return fallback;
       }
@@ -264,11 +418,28 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     y += normalized.first.height;
     for (var index = 1; index < normalized.length; index++) {
       y -= overlaps[index - 1];
+      final pair = pairResults[index - 1];
+      final seamCropY = _selectReceiptStitchSeamCropY(
+        previous: normalized[index - 1],
+        next: normalized[index],
+        overlapPixels: pair.overlapPixels,
+        nextTopOffset: pair.verticalOffsetPixels,
+        horizontalOffset: pair.horizontalOffsetPixels,
+      );
+      final continuation = seamCropY <= 0
+          ? normalized[index]
+          : img.copyCrop(
+              normalized[index],
+              x: 0,
+              y: seamCropY,
+              width: normalized[index].width,
+              height: normalized[index].height - seamCropY,
+            );
       img.compositeImage(
         canvas,
-        normalized[index],
+        continuation,
         dstX: horizontalPlacements[index] + placementShiftX,
-        dstY: y,
+        dstY: y + seamCropY,
       );
       y += normalized[index].height;
     }
@@ -300,127 +471,4 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       pairs: pairResults,
     );
   }
-}
-
-List<int> _stitchHorizontalPlacements(List<int> pairOffsets) {
-  final placements = <int>[0];
-  for (final offset in pairOffsets) {
-    placements.add(placements.last - offset);
-  }
-  return placements;
-}
-
-bool _stitchInputPathsAreUnique(List<String> inputPaths) {
-  final seen = <String>{};
-  for (final path in inputPaths) {
-    final normalized = normalizedReceiptPhotoPath(path);
-    if (normalized == null) return false;
-    if (!seen.add(normalized)) return false;
-  }
-  return true;
-}
-
-bool _stitchInputPathsHaveDuplicateAliases(List<String> inputPaths) {
-  final seen = <String>{};
-  for (final inputPath in inputPaths) {
-    final normalized = normalizedReceiptPhotoPath(inputPath);
-    final alias = normalized ?? path.normalize(inputPath);
-    if (alias.isEmpty || alias != inputPath && normalized == null) {
-      if (!inputPath.startsWith('/')) continue;
-    }
-    if (!seen.add(alias)) return true;
-  }
-  return false;
-}
-
-ReceiptStitchResult? _oversizedStitchFallback({
-  required List<String> inputPaths,
-  required int targetWidth,
-  required int expectedHeight,
-  required int maxOutputPixels,
-  required int maxOutputHeight,
-  required List<double> confidences,
-  required List<ReceiptStitchPairResult> pairResults,
-}) {
-  final expectedPixels = targetWidth * expectedHeight;
-  if (expectedHeight <= maxOutputHeight && expectedPixels <= maxOutputPixels) {
-    return null;
-  }
-  return ReceiptStitchResult.fallback(
-    inputPaths: inputPaths,
-    warning:
-        'Receipt is too long to stitch safely on this device. Receipt details will use the photos separately.',
-    fallbackReasonCode: 'output_too_large',
-    confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
-    pairs: pairResults,
-    failedPairIndex: pairResults.isEmpty ? null : pairResults.last.pairIndex,
-    stitchedWidth: targetWidth,
-    stitchedHeight: expectedHeight,
-  );
-}
-
-int _minimumAutoStitchHeight(List<img.Image> prepared) {
-  var height = prepared.first.height;
-  for (var index = 1; index < prepared.length; index++) {
-    height +=
-        prepared[index].height -
-        _maxAutoNextSkipBound(
-          previous: prepared[index - 1],
-          next: prepared[index],
-        );
-  }
-  return math.max(1, height);
-}
-
-int _maxAutoNextSkipBound({
-  required img.Image previous,
-  required img.Image next,
-}) {
-  final shortest = math.min(previous.height, next.height);
-  final maxPixels = math.min(
-    shortest - 1,
-    math.max(48, (shortest * .46).round()),
-  );
-  final maxNextTopOffset = math.min(
-    320,
-    math.max(
-      0,
-      math.min((next.height * .26).round(), next.height - maxPixels - 24),
-    ),
-  );
-  return math.min(next.height - 1, maxPixels + maxNextTopOffset);
-}
-
-int _findDuplicateReceiptImageIndex(
-  List<List<int>> decodedBytes,
-  List<int> candidate,
-) {
-  for (var index = 0; index < decodedBytes.length; index++) {
-    if (_receiptImageBytesMatch(decodedBytes[index], candidate)) {
-      return index;
-    }
-  }
-  return -1;
-}
-
-int _findDuplicateReceiptDecodedImageIndex(
-  List<img.Image> decoded,
-  img.Image candidate,
-) {
-  for (var index = 0; index < decoded.length; index++) {
-    final isImmediateNeighbor = index == decoded.length - 1;
-    final contentMatches = isImmediateNeighbor
-        ? _receiptImageImmediateDuplicateContentMatches(
-            decoded[index],
-            candidate,
-          )
-        : _receiptImageContentMatches(decoded[index], candidate);
-    if (contentMatches ||
-        (!isImmediateNeighbor &&
-            _receiptImageAverageHashDistance(decoded[index], candidate) <=
-                12)) {
-      return index;
-    }
-  }
-  return -1;
 }

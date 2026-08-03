@@ -8,7 +8,6 @@ class _ReceiptPaperLineRow extends StatelessWidget {
     required this.showItemDetails,
     required this.onEdit,
     required this.onSetUse,
-    required this.onDelete,
   });
 
   final int lineNumber;
@@ -17,7 +16,6 @@ class _ReceiptPaperLineRow extends StatelessWidget {
   final bool showItemDetails;
   final VoidCallback onEdit;
   final FutureOr<void> Function(_ExpenseLineUse use) onSetUse;
-  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -26,16 +24,16 @@ class _ReceiptPaperLineRow extends StatelessWidget {
       child: InkWell(
         onTap: onEdit,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
+          padding: const EdgeInsets.fromLTRB(2, 5, 0, 5),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(
-                width: 26,
+                width: 40,
                 child: Text(
-                  '$lineNumber.',
+                  '$lineNumber',
                   style: const TextStyle(
-                    color: Color(0xFF25211A),
+                    color: Color(0xFFFFD166),
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0,
@@ -46,12 +44,19 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (showLineUseControls) ...[
+                      _ReceiptLineUseSegment(
+                        selected: line.use,
+                        onSelected: onSetUse,
+                      ),
+                      const SizedBox(height: 5),
+                    ],
                     Text(
                       showItemDetails
                           ? line.description
                           : 'Receipt line $lineNumber',
                       style: const TextStyle(
-                        color: Color(0xFF25211A),
+                        color: Color(0xFFE8ECEE),
                         fontSize: 12.5,
                         fontWeight: FontWeight.w900,
                         height: 1.1,
@@ -59,38 +64,20 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      showItemDetails
-                          ? '${line.allocationSummary} | ${line.category} | ${line.packageSummary}'
-                          : '${line.allocationSummary} | ${line.category}',
-                      style: const TextStyle(
-                        color: Color(0xFF62584C),
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0,
-                      ),
-                    ),
-                    if (line.hasParserReview) ...[
+                    if (showItemDetails) ...[
+                      _ReceiptPaperLineFacts(line: line),
                       const SizedBox(height: 3),
-                      _ReceiptParserBadge(line: line),
                     ],
-                    if (showLineUseControls) ...[
-                      const SizedBox(height: 6),
-                      _ReceiptLineUseSegment(
-                        selected: line.use,
-                        onSelected: onSetUse,
+                    if (line.category != 'Uncategorized')
+                      Text(
+                        line.category,
+                        style: const TextStyle(
+                          color: Color(0xFFC8D0D3),
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0,
+                        ),
                       ),
-                    ],
-                    const SizedBox(height: 4),
-                    Text(
-                      line.allocationDetail,
-                      style: const TextStyle(
-                        color: Color(0xFF62584C),
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 0,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -101,7 +88,7 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                   Text(
                     _money(line.subtotal),
                     style: const TextStyle(
-                      color: Color(0xFF25211A),
+                      color: Color(0xFFE8ECEE),
                       fontSize: 12.5,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0,
@@ -110,11 +97,10 @@ class _ReceiptPaperLineRow extends StatelessWidget {
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _LineButton(icon: Icons.edit_rounded, onTap: onEdit),
                       _LineButton(
-                        icon: Icons.delete_outline_rounded,
-                        color: Color(0xFFD85B4A),
-                        onTap: onDelete,
+                        label: 'Edit',
+                        icon: Icons.edit_rounded,
+                        onTap: onEdit,
                       ),
                     ],
                   ),
@@ -128,6 +114,61 @@ class _ReceiptPaperLineRow extends StatelessWidget {
   }
 }
 
+class _ReceiptPaperLineFacts extends StatelessWidget {
+  const _ReceiptPaperLineFacts({required this.line});
+
+  final _ExpenseReceiptLine line;
+
+  @override
+  Widget build(BuildContext context) {
+    final price = line.unitPrice;
+    final priceLabel = price == null || !price.isFinite || price <= 0
+        ? 'Not listed'
+        : _money(price);
+    final unitLabel = line.stockUnit.trim().isEmpty ? 'each' : line.stockUnit;
+    return Wrap(
+      spacing: 5,
+      runSpacing: 4,
+      children: [
+        _ReceiptPaperLineFact(label: 'Price', value: priceLabel),
+        _ReceiptPaperLineFact(label: 'Unit', value: unitLabel),
+        _ReceiptPaperLineFact(label: 'Qty', value: line.quantityText),
+      ],
+    );
+  }
+}
+
+class _ReceiptPaperLineFact extends StatelessWidget {
+  const _ReceiptPaperLineFact({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF172126),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+        child: Text(
+          '$label: $value',
+          style: const TextStyle(
+            color: Color(0xFFC8D0D3),
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Kept for the optional parser-diagnostic presentation.
+// ignore: unused_element
 class _ReceiptParserBadge extends StatelessWidget {
   const _ReceiptParserBadge({required this.line});
 
@@ -219,16 +260,16 @@ class _ReceiptLineUseChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(4),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: selected ? color : const Color(0x1A25211A),
+          color: selected ? color : const Color(0xFF172126),
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: selected ? color : const Color(0x66756B5D)),
+          border: Border.all(color: selected ? color : const Color(0xFF526168)),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
           child: Text(
             label,
             style: TextStyle(
-              color: selected ? Colors.white : const Color(0xFF25211A),
+              color: selected ? Colors.white : const Color(0xFFE8ECEE),
               fontSize: 10,
               fontWeight: FontWeight.w900,
               letterSpacing: 0,
@@ -242,24 +283,28 @@ class _ReceiptLineUseChip extends StatelessWidget {
 
 class _LineButton extends StatelessWidget {
   const _LineButton({
+    required this.label,
     required this.icon,
     required this.onTap,
-    this.color = const Color(0xFF34A9E8),
   });
 
+  final String label;
   final IconData icon;
   final VoidCallback onTap;
-  final Color color;
+  static const color = Color(0xFF34A9E8);
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 30,
-      height: 30,
-      child: IconButton(
-        onPressed: onTap,
-        padding: EdgeInsets.zero,
-        icon: Icon(icon, color: color, size: 18),
+    return TextButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, color: color, size: 15),
+      label: Text(label),
+      style: TextButton.styleFrom(
+        foregroundColor: color,
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+        minimumSize: const Size(0, 30),
+        textStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
       ),
     );
   }

@@ -41,6 +41,9 @@ run_flutter_test() {
   fi
   echo "Receipt stitch $label failed. Log tail:" >&2
   perl -pe 's/\r/\n/g' "$tmp" | tail -n 180 >&2
+  local failure_log="${TMPDIR:-/tmp}/maintainiac_receipt_stitch_${label}_failed.log"
+  cp "$tmp" "$failure_log"
+  echo "Receipt stitch $label full failure log: $failure_log" >&2
   rm -f "$tmp"
   return "$exit_code"
 }
@@ -61,6 +64,8 @@ run_edge_cases() {
     test/receipt_stitching_horizontal_drift_test.dart \
     --name 'delayed overlap|stronger handheld rotation|rough handheld rotation|combined scale rotation and drift|mixed handheld transforms|horizontal drift correction|wider handheld horizontal drift|cumulative horizontal drift' \
     --concurrency=1
+  run_flutter_test edge-case-perspective \
+    test/receipt_stitching_perspective_test.dart
   run_flutter_test edge-case-size-placement \
     test/receipt_stitching_size_cap_test.dart \
     test/receipt_stitching_horizontal_placement_test.dart \
@@ -200,6 +205,7 @@ run_uploaded_screenshots() {
 run_section_order() {
   echo "Receipt stitch section-order health"
   run_flutter_test section-order \
+    test/receipt_stitch_text_evidence_test.dart \
     test/receipt_photo_review_retake_order_test.dart \
     test/receipt_photo_review_removal_order_test.dart \
     test/receipt_camera_result_section_order_test.dart \
@@ -264,12 +270,9 @@ run_source_size() {
   echo "Receipt stitch source-size health"
   local max_lines=500
   local files=(
-    lib/shared/widgets/receipt_capture/receipt_capture_stitch_models.dart
-    lib/shared/widgets/receipt_capture/receipt_capture_stitch_pair_models.dart
-    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_api.dart
-    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_helpers.dart
-    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_scoring_helpers.dart
-    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_transform_helpers.dart
+    lib/shared/widgets/receipt_capture/receipt_capture_stitch*.dart
+    lib/shared/widgets/receipt_capture/receipt_image_processor_stitch*.dart
+    lib/shared/widgets/receipt_capture/receipt_photo_review_stitch*.dart
     tool/receipt_synthetic_stitch_dataset_audit.dart
   )
   local file
@@ -282,6 +285,7 @@ run_source_size() {
     fi
   done
   local test_files=(
+    test/helpers/receipt_stitching_artifact_expectations.dart
     test/helpers/receipt_stitching_image_helpers.dart
     test/receipt_stitching_*_test.dart
     test/receipt_synthetic_stitch_dataset_audit_test.dart
@@ -357,6 +361,19 @@ run_core_stitch() {
   run_ghost_handoff
   run_handoff
   echo "Receipt stitch core health: PASS"
+}
+
+run_core_remaining() {
+  run_size_caps
+  run_bad_inputs
+  run_passenger_seat
+  run_manual_overlap
+  run_duplicates
+  run_synthetic_dataset
+  run_section_order
+  run_ghost_handoff
+  run_handoff
+  echo "Receipt stitch remaining core health: PASS"
 }
 
 run_full() {
@@ -437,10 +454,11 @@ case "$mode" in
   source_size) run_source_size; exit 0 ;;
   fast) run_fast; exit 0 ;;
   core) run_core_stitch; exit 0 ;;
+  core_remaining) run_core_remaining; exit 0 ;;
   milestone) run_milestone; exit 0 ;;
   full) run_full; exit 0 ;;
   *)
-    echo "Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|passenger_seat|transformed_phone_windows|long_stack|extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|milestone|full]" >&2
+    echo "Usage: $0 [delayed_overlap|edge_cases|size_caps|phone_windows|phone_windows_fast|passenger_seat|transformed_phone_windows|long_stack|extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|source_size|fast|core|core_remaining|milestone|full]" >&2
     exit 64
     ;;
 esac

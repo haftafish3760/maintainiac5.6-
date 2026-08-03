@@ -100,6 +100,7 @@ extension _ExpenseReceiptEntryOcrActions on _ExpenseReceiptEntryScreenState {
     _updateReceiptState(() {
       _scanningReceiptPhotos = true;
       _receiptReviewFlowStarted = true;
+      _appAssistedReceiptPreviewPresented = false;
       _receiptReadHandoffStage =
           'Reading receipt proof before filling receipt details';
       _lastReceiptParseCompleted = false;

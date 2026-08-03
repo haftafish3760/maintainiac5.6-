@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
@@ -56,6 +58,36 @@ void main() {
     expect(result.ocrSourcePaths, hasLength(1));
   });
 
+  test(
+    'manual alignment applies size straightening and horizontal position',
+    () async {
+      final first = await writeTempReceiptStitchingImage(
+        receiptStitchingSection(seed: 31, topTextOffset: 0),
+        'manual_transform_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        receiptStitchingSection(seed: 32, topTextOffset: 30),
+        'manual_transform_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+        manualOverlapFractions: const [.24],
+        manualScaleCorrections: const [.94],
+        manualRotationCorrectionsDegrees: const [1.5],
+        manualHorizontalOffsetFractions: const [.04],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      final pair = result.pairs.single;
+      expect(pair.usedManualAdjustment, isTrue);
+      expect(pair.scaleCorrection, closeTo(.94, .001));
+      expect(pair.rotationCorrectionDegrees, closeTo(1.5, .001));
+      expect(pair.horizontalOffsetPixels, isNonZero);
+      expect(result.stitchedPath, isNotNull);
+    },
+  );
+
   test('zero manual overlap fraction does not claim manual match', () async {
     final sectionA = receiptStitchingSection(seed: 17, topTextOffset: 0);
     final sectionB = receiptStitchingSection(seed: 18, topTextOffset: 20);
@@ -104,6 +136,37 @@ void main() {
     expect(result.fallbackReasonCode, isEmpty);
     expect(result.ocrSourcePaths, hasLength(1));
   });
+
+  test(
+    'explicit no-overlap recovery preserves both ordered sections',
+    () async {
+      final sectionA = receiptStitchingSection(seed: 221, topTextOffset: 0);
+      final sectionB = receiptStitchingSection(seed: 222, topTextOffset: 20);
+      final first = await writeTempReceiptStitchingImage(
+        sectionA,
+        'manual_no_overlap_a',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        sectionB,
+        'manual_no_overlap_b',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+        manualZeroOverlapPairs: const [true],
+      );
+
+      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.overlapPixels, [0]);
+      expect(result.pairs.single.usedZeroOverlapJoin, isTrue);
+      expect(result.pairs.single.matchEvidenceLabel, 'no-overlap placement');
+      expect(result.pairs.single.diagnosticCode, 'manual_zero_overlap_join');
+      expect(result.confidence, .30);
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(result.ocrSourcePaths, hasLength(1));
+      expect(await File(result.ocrSourcePaths.single).exists(), isTrue);
+    },
+  );
 
   test(
     'manual overlap falls back when the requested overlap is unsafe',

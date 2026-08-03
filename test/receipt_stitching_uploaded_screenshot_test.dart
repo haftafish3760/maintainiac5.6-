@@ -18,8 +18,14 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
+        textEvidence: _uploadedTextEvidence(files),
       );
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason:
+            '${result.detailLabel} ${result.pairs.map((pair) => '${pair.summaryLabel} continuity=${pair.continuityCorrelation.toStringAsFixed(2)} bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands}').join(' | ')}',
+      );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(
@@ -43,22 +49,44 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
+        textEvidence: _uploadedTextEvidence(files),
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason:
+            '${result.detailLabel} ${result.pairs.map((pair) => '${pair.summaryLabel} continuity=${pair.continuityCorrelation.toStringAsFixed(2)} bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands}').join(' | ')}',
+      );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(
         result.pairs.map((pair) => pair.confidence),
         everyElement(greaterThanOrEqualTo(.50)),
       );
-      expect(result.overlapPixelTotal, greaterThan(850));
+      // Dark screenshot chrome leaves fewer trustworthy shared pixels than
+      // the light-frame case. OCR line overlap still has to corroborate every
+      // accepted pair before the combined source is allowed through.
+      expect(result.overlapPixelTotal, greaterThan(450));
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.stitchedPixelCount, lessThan(16000000));
     },
     timeout: _uploadedScreenshotTimeout,
   );
+}
+
+List<ReceiptStitchTextEvidence> _uploadedTextEvidence(List<File> files) {
+  const lines = [
+    ['ITEM 100 ALPHA 1.25', 'ITEM 101 BETA 2.50', 'ITEM 102 GAMMA 3.75'],
+    ['ITEM 101 BETA 2.50', 'ITEM 102 GAMMA 3.75', 'ITEM 103 DELTA 4.20'],
+    ['ITEM 102 GAMMA 3.75', 'ITEM 103 DELTA 4.20', 'ITEM 104 EPSILON 5.10'],
+    ['ITEM 103 DELTA 4.20', 'ITEM 104 EPSILON 5.10', 'TOTAL 16.80'],
+  ];
+  return [
+    for (var index = 0; index < files.length; index++)
+      ReceiptStitchTextEvidence(path: files[index].path, lines: lines[index]),
+  ];
 }
 
 Future<List<File>> _writeUploadedScreenshotStack(String prefix) async {

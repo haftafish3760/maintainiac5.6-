@@ -164,23 +164,23 @@ void main() {
       );
 
       expect(estimate.dataSaverLevel, ReceiptDataSaverLevel.strong);
-      expect(estimate.estimatedBytesPerSavedProof, 550 * 1024);
-      expect(estimate.estimatedProofBytesForCapture, 1650 * 1024);
+      expect(estimate.estimatedBytesPerSavedProof, 250 * 1024);
+      expect(estimate.estimatedProofBytesForCapture, 750 * 1024);
       expect(estimate.estimatedOriginalBytesForCapture, 60 * 1024 * 1024);
       expect(
         estimate.approximatePhotosRemainingLabel,
-        'About 93 more photos at this setting',
+        'About 204 more photos at this setting',
       );
       expect(estimate.toPrivacySafeDiagnostics(), isNot(contains('path')));
     },
   );
 
   test(
-    'allows only the small optional parser pack on strong space saving',
+    'allows only the small optional parser pack on saver space saving',
     () async {
       final settings = await ReceiptCaptureSettingsController.create();
 
-      await settings.setDefaultDataSaverLevel(ReceiptDataSaverLevel.strong);
+      await settings.setDefaultDataSaverLevel(ReceiptDataSaverLevel.economy);
 
       final installChoice = settings.defaultDataSaverParserPackInstallChoice;
       final footprint = settings.defaultDataSaverFootprintSummary;
@@ -234,7 +234,7 @@ void main() {
       );
       expect(
         settings.defaultDataSaverProofTargetSizePolicy.policyCode,
-        'low_storage_proof_450_650kb',
+        'saver_proof_100_175kb',
       );
       expect(
         settings
@@ -244,7 +244,7 @@ void main() {
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,
-        contains('550 KB target'),
+        contains('125 KB target'),
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,
@@ -322,15 +322,15 @@ void main() {
       );
       expect(
         settings.defaultDataSaverProofTargetSizePolicy.policyCode,
-        'normal_proof_800_1000kb',
+        'everyday_proof_450_650kb',
       );
       expect(
         settings.defaultDataSaverProofTargetSizePolicy.targetBytes,
-        900 * 1024,
+        550 * 1024,
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,
-        contains('900 KB target'),
+        contains('550 KB target'),
       );
       expect(
         settings.defaultDataSaverProofTargetSummary,

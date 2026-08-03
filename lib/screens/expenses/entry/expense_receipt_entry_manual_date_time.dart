@@ -15,20 +15,24 @@ class _ManualReceiptDateTimeStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
-        _ManualReceiptDateTimeAction(
-          icon: Icons.calendar_month_rounded,
-          label: 'Date · Required',
-          value: date,
-          onTap: onSelectDate,
+        Expanded(
+          child: _ManualReceiptDateTimeAction(
+            icon: Icons.calendar_month_rounded,
+            label: 'DATE',
+            value: date,
+            onTap: onSelectDate,
+          ),
         ),
-        const SizedBox(height: 8),
-        _ManualReceiptDateTimeAction(
-          icon: Icons.schedule_rounded,
-          label: 'Time · Optional',
-          value: time,
-          onTap: onSelectTime,
+        const SizedBox(width: 8),
+        Expanded(
+          child: _ManualReceiptDateTimeAction(
+            icon: Icons.schedule_rounded,
+            label: 'TIME (OPTIONAL)',
+            value: time,
+            onTap: onSelectTime,
+          ),
         ),
       ],
     );
@@ -54,17 +58,18 @@ class _ManualReceiptDateTimeAction extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         child: Ink(
-          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+          height: 82,
+          padding: const EdgeInsets.fromLTRB(13, 12, 10, 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF283337),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF41545B)),
+            color: _receiptReferenceSurface,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _receiptReferenceBorder),
           ),
           child: Row(
             children: [
-              Icon(icon, size: 20, color: const Color(0xFFFFD166)),
+              Icon(icon, size: 20, color: _receiptReferenceMuted),
               const SizedBox(width: 7),
               Expanded(
                 child: Column(
@@ -73,7 +78,7 @@ class _ManualReceiptDateTimeAction extends StatelessWidget {
                     Text(
                       label,
                       style: const TextStyle(
-                        color: Color(0xFFB7C8CE),
+                        color: _receiptReferenceMuted,
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
                       ),
@@ -82,7 +87,7 @@ class _ManualReceiptDateTimeAction extends StatelessWidget {
                     Text(
                       value,
                       style: const TextStyle(
-                        color: Color(0xFFF2F7F8),
+                        color: _receiptReferenceText,
                         fontSize: 14,
                         fontWeight: FontWeight.w900,
                       ),
@@ -90,7 +95,10 @@ class _ManualReceiptDateTimeAction extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded, color: Color(0xFFFFD166)),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: _receiptReferenceMuted,
+              ),
             ],
           ),
         ),

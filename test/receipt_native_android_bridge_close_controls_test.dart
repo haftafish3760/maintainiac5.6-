@@ -89,31 +89,19 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('receiptFrameGuide.setOnTouchListener(previewTouchListener)'),
+      contains('override fun dispatchTouchEvent(event: MotionEvent): Boolean'),
+      reason:
+          'Pinch events must reach the detector before PreviewView can consume them.',
     );
     expect(cameraActivity, contains('lastZoomStatus = "zoom_changed"'));
     expect(cameraActivity, contains('!zoomState.zoomRatio.isFinite()'));
     expect(cameraActivity, contains('!detector.scaleFactor.isFinite()'));
     expect(cameraActivity, contains('lastZoomStatus = "zoom_invalid_scale"'));
-    expect(cameraActivity, contains('MotionEvent.ACTION_DOWN'));
-    expect(
-      cameraActivity,
-      contains(
-        'MotionEvent.ACTION_DOWN -> {\n'
-        '                // Own the stream from DOWN',
-      ),
-    );
-    expect(
-      cameraActivity,
-      contains('requestDisallowInterceptTouchEvent(false)'),
-    );
-    expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_DOWN'));
-    expect(cameraActivity, contains('MotionEvent.ACTION_MOVE'));
-    expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_UP'));
     expect(
       cameraActivity,
       contains('scaleGestureDetector?.onTouchEvent(event)'),
     );
+    expect(cameraActivity, contains('return super.dispatchTouchEvent(event)'));
     expect(cameraActivity, isNot(contains('view.performClick()')));
     expect(cameraActivity, contains('effectiveMinZoom'));
     expect(cameraActivity, contains('effectiveMaxZoom'));
@@ -132,7 +120,8 @@ void main() {
     expect(cameraActivity, contains('"manual_add_photo"'));
     expect(
       cameraActivity,
-      contains(r'else -> "${receiptCameraText("Done", "Listo")} ($count)"'),
+      contains('text = receiptCameraText("Review Photos", "Revisar fotos")'),
+      reason: 'The capture screen must use a human-readable review action.',
     );
     expect(cameraActivity, contains('bottomBar.addView(addPhotoButton)'));
     expect(cameraActivity, contains('bottomBar.addView(bottomReviewButton)'));
@@ -263,11 +252,19 @@ void main() {
       cameraActivity,
       contains('capturedPhotoPaths.size >= maxSectionCount'),
     );
-    expect(cameraActivity, contains('0 -> receiptCameraText("Done", "Listo")'));
-    expect(cameraActivity, contains('1 -> receiptCameraText("Done", "Listo")'));
     expect(
       cameraActivity,
-      contains(r'else -> "${receiptCameraText("Done", "Listo")} ($count)"'),
+      contains('0 -> receiptCameraText("Review Photos", "Revisar fotos")'),
+    );
+    expect(
+      cameraActivity,
+      contains('1 -> receiptCameraText("Review Photo", "Revisar foto")'),
+    );
+    expect(
+      cameraActivity,
+      contains(
+        r'else -> "${receiptCameraText("Review Photos", "Revisar fotos")} ($count)"',
+      ),
     );
     expect(
       cameraActivity,
@@ -275,11 +272,16 @@ void main() {
         'bottomReviewButton.contentDescription =\n            receiptCameraText(',
       ),
     );
-    expect(cameraActivity, contains('top ghost slice'));
+    expect(
+      cameraActivity,
+      contains(
+        'Top overlap guide showing the bottom of the previous receipt photo',
+      ),
+    );
     expect(cameraActivity, isNot(contains('tap Done')));
     expect(
       cameraActivity,
-      contains('Done: review captured receipt photos in Maintainiac'),
+      contains('Review captured receipt photos in Maintainiac'),
     );
     final requestCloseStart = cameraActivity.indexOf(
       'internal fun ReceiptCameraActivity.requestCloseCamera(backDispatchPath: String = "unknown")',
@@ -350,9 +352,7 @@ void main() {
     expect(cameraActivity, contains('buildImageAnalysis'));
     expect(
       cameraActivity,
-      contains(
-        'val needsLiveAnalysis = edgeDetectionEnabled ||',
-      ),
+      contains('val needsLiveAnalysis = edgeDetectionEnabled ||'),
     );
     expect(
       cameraActivity,

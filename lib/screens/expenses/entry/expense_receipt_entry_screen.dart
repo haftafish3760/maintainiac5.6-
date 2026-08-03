@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
 import '../../../shared/navigation/app_page_routes.dart';
+import '../../../shared/context/operational_context_store.dart';
 import '../../../shared/jobs/maintainiac_job_store.dart';
 import '../../../shared/receipts/receipt_processing_contract.dart';
 import '../../../shared/receipts/receipt_ocr_handoff.dart';
@@ -135,6 +137,10 @@ enum _ReceiptDetailEntryMode { basicReceipt, quickClassify, detailedItems }
 
 enum _ManualReceiptStep { details, items, review }
 
+/// This only controls the first receipt screen.  It makes the user's choice
+/// visible while keeping the saved category contract unchanged.
+enum _ReceiptCategoryEntryChoice { wholeReceipt, mixedItems, notSureYet }
+
 class ExpenseReceiptEntryScreen extends StatefulWidget {
   const ExpenseReceiptEntryScreen({
     super.key,
@@ -196,6 +202,7 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   var _rawReceiptText = '';
   var _scanningReceiptPhotos = false;
   var _receiptReviewFlowStarted = false;
+  var _appAssistedReceiptPreviewPresented = false;
   var _receiptReadAttemptedWithoutText = false;
   var _lastReceiptScanSignature = '';
   var _pendingReceiptScanSignature = '';
@@ -231,8 +238,14 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   int? _expenseOdometerReading;
   var _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;
   var _manualReceiptStep = _ManualReceiptStep.details;
+  // This is the receipt-wide default chosen before the user starts adding
+  // items. Individual items may still be corrected in their editor, which is
+  // especially important for a split receipt.
+  var _receiptUse = _ExpenseLineUse.unclassified;
+  var _receiptClassificationConfirmed = false;
   var _receiptCategory = 'Uncategorized';
   var _receiptCategoryAppliesToAll = false;
+  _ReceiptCategoryEntryChoice? _receiptCategoryEntryChoice;
   var _receiptReviewModeChangedByUser = false;
   var _receiptEntryGuideInitialized = false;
   var _showReceiptEntryGuide = false;
@@ -248,6 +261,25 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   String? _lastParsedTaxValue;
   String? _lastParsedTotalValue;
   final _lines = <_ExpenseReceiptLine>[];
+
+  /// A split line is not ready to save until its business/personal allocation
+  /// has been explicitly confirmed. Keep this close to the receipt state so
+  /// every save surface uses the same guardrail.
+  int get _splitLinesMissingBusinessPercentCount {
+    return _lines
+        .where(
+          (line) =>
+              line.use == _ExpenseLineUse.split &&
+              ((line.splitAllocation == null &&
+                      (line.businessPercent == null ||
+                          !line.businessPercent!.isFinite ||
+                          line.businessPercent! < 0 ||
+                          line.businessPercent! > 1)) ||
+                  !line.hasValidSplitAllocation),
+        )
+        .length;
+  }
+
   late final String _draftId;
   Timer? _draftTimer;
   ExpenseDraftController? _drafts;

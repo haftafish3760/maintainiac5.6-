@@ -14,7 +14,7 @@ class _ReceiptDataSaverStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 66,
+      height: 72,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _cameraReceiptLevels.length,
@@ -23,7 +23,7 @@ class _ReceiptDataSaverStrip extends StatelessWidget {
           final level = _cameraReceiptLevels[index];
           final active = level == selected;
           return SizedBox(
-            width: 126,
+            width: 144,
             child: InkWell(
               onTap: enabled ? () => onSelected(level) : null,
               borderRadius: BorderRadius.circular(6),
@@ -82,8 +82,57 @@ class _ReceiptDataSaverStrip extends StatelessWidget {
     ReceiptDataSaverLevel.light,
     ReceiptDataSaverLevel.balanced,
     ReceiptDataSaverLevel.strong,
+    ReceiptDataSaverLevel.economy,
     ReceiptDataSaverLevel.maximum,
   ];
+}
+
+class _ReceiptSavedProofFrequencyChoice extends StatelessWidget {
+  const _ReceiptSavedProofFrequencyChoice({
+    required this.askEveryReceipt,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final bool askEveryReceipt;
+  final bool enabled;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF11181B),
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(color: const Color(0xFF344047)),
+      ),
+      child: SwitchListTile.adaptive(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+        value: askEveryReceipt,
+        onChanged: enabled ? onChanged : null,
+        activeTrackColor: const Color(0xFF28A745),
+        title: const Text(
+          'Ask me about photo size every receipt',
+          style: TextStyle(
+            color: Color(0xFFE8ECEE),
+            fontSize: 12,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        subtitle: Text(
+          askEveryReceipt
+              ? 'You will preview and choose the saved proof size each time.'
+              : 'This size will be used for future receipts until you change it.',
+          style: const TextStyle(
+            color: Color(0xFFC7D0D4),
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            height: 1.18,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 extension _ReceiptDataSaverReviewCopy on ReceiptDataSaverLevel {
@@ -91,19 +140,17 @@ extension _ReceiptDataSaverReviewCopy on ReceiptDataSaverLevel {
     return switch (this) {
       ReceiptDataSaverLevel.original => 'local source',
       ReceiptDataSaverLevel.light => 'high quality proof',
-      ReceiptDataSaverLevel.balanced => 'normal proof',
-      ReceiptDataSaverLevel.strong => 'low-storage proof',
-      ReceiptDataSaverLevel.maximum => 'tiny proof',
+      ReceiptDataSaverLevel.balanced => 'clear proof',
+      ReceiptDataSaverLevel.strong => 'everyday proof',
+      ReceiptDataSaverLevel.economy => 'saver proof',
+      ReceiptDataSaverLevel.maximum => 'minimum proof',
     };
   }
 
   String get reviewChoiceLabel {
     return switch (this) {
       ReceiptDataSaverLevel.original => 'Full source stays local only.',
-      ReceiptDataSaverLevel.light => 'Best proof for manual review.',
-      ReceiptDataSaverLevel.balanced => 'Black-and-white everyday proof.',
-      ReceiptDataSaverLevel.strong => 'Stronger contrast, less space.',
-      ReceiptDataSaverLevel.maximum => 'Smallest proof; review first.',
+      _ => proofTargetSizePolicy.earlyAccessProofCapacityLabel,
     };
   }
 
@@ -116,7 +163,9 @@ extension _ReceiptDataSaverReviewCopy on ReceiptDataSaverLevel {
       ReceiptDataSaverLevel.balanced =>
         'Cleanup uses a smaller black-and-white proof copy without changing the clear original photo used to read the receipt.',
       ReceiptDataSaverLevel.strong =>
-        'Cleanup uses black-and-white plus stronger contrast for low-storage users while preserving the clear original photo separately.',
+        'Cleanup creates the recommended everyday proof while preserving the clear original photo separately.',
+      ReceiptDataSaverLevel.economy =>
+        'Cleanup creates a small high-contrast proof. Check the saved preview before relying on it.',
       ReceiptDataSaverLevel.maximum =>
         'Cleanup makes the smallest proof copy. Use only after checking the preview is still readable.',
     };
@@ -197,6 +246,17 @@ class _ReceiptOcrProofLaneCard extends StatelessWidget {
                 color: Color(0xFFC7D0D4),
                 fontSize: 10.5,
                 fontWeight: FontWeight.w800,
+                height: 1.14,
+                letterSpacing: 0,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'Planning estimate: ${selected.proofTargetSizePolicy.earlyAccessProofCapacityLabel}. This is not your current backup balance.',
+              style: const TextStyle(
+                color: Color(0xFF9FB0B8),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
                 height: 1.14,
                 letterSpacing: 0,
               ),

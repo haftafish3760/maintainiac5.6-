@@ -29,7 +29,7 @@ class ReceiptPhotoReviewUiConfig {
     this.useReceiptLabel = 'Continue',
     this.cropLabel = 'Crop',
     this.proofLabel = 'Proof',
-    this.matchPhotosLabel = 'Match Photos',
+    this.matchPhotosLabel = 'Align Photos',
     this.orderPhotosLabel = 'Check Photo Order',
     this.actionLabelResolver = _defaultActionLabel,
   });

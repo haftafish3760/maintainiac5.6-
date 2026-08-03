@@ -16,6 +16,38 @@ class _FuelLineDetails {
   final int? odometerReading;
 }
 
+/// Identifies non-purchase data commonly printed beneath a fuel transaction.
+///
+/// These values can look like money after OCR (especially when a decimal is
+/// inserted) but are terminal, loyalty, or card metadata—not an expense line.
+/// Keep reward discounts out of this guard; they are legitimate receipt
+/// adjustments and are handled by the normal line parser.
+bool _isFuelReceiptMetadataRow(String lower) {
+  if (RegExp(
+    r'\b(?:discount|coupon|savings?|disc|descuento)\b',
+  ).hasMatch(lower)) {
+    return false;
+  }
+  return RegExp(
+    r'\b(?:pointz|points|tier|loyalty|member(?:ship)?|'
+    r'reward\s+balance|terminal|term|approval|auth(?:code)?|'
+    r'authorization|arqc|aid|tvr|tsi|issuer|contactless|capture)\b',
+  ).hasMatch(lower);
+}
+
+/// Section headings organize a receipt; they are not a pending item
+/// description. OCR often preserves only the words and dashes/brackets, so
+/// recognize the common fuel-specific headings even after `L`/`1` confusion.
+/// This guard is deliberately fuel-context-only: it cannot change Materials
+/// or general merchandise parsing.
+bool _isFuelReceiptSectionHeading(String lower) {
+  return RegExp(
+    r'^[\s\[\]_-]*(?:store\s+header|dispenser\s+details|'
+    r'fue[l1]\s+purchase|payment\s+summary|receipt\s+header|'
+    r'final\s+total|vehicle\s+reference)[\s\[\]_-]*$',
+  ).hasMatch(lower);
+}
+
 _FuelLineDetails _fuelDetailsFor({
   required String rawRow,
   required String description,
@@ -63,6 +95,15 @@ _FuelLineDetails _fuelDetailsFor({
 bool _receiptHasOnlyFuelType(List<String> receiptRows, String fuelType) {
   final signals = receiptRows
       .map(_normalizeFuelSignalText)
+      // Merchant headers may contain "gasoline", "fuel", or "diesel".
+      // They identify the store, not a second product sold on this receipt.
+      .where(
+        (row) => RegExp(
+          r'\b(?:pump|nozzle|hose|product|prod|grade|fuel\s+sale|'
+          r'volume|vol|qty|gallons?|liters?|price|ppu|ppg|ppl|@)\b|'
+          r'\d+[\.,]\d{2,4}',
+        ).hasMatch(row),
+      )
       .map(_fuelTypeSignalFor)
       .whereType<String>()
       .toSet();

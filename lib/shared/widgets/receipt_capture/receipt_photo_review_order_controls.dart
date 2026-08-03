@@ -93,49 +93,42 @@ class _ReceiptOrderToolControls extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: canMoveEarlier && !interactionLocked
-                        ? onMoveEarlier
-                        : null,
-                    icon: const Icon(Icons.arrow_upward_rounded, size: 17),
-                    label: Text(
-                      _ReceiptPhotoSectionLabels.moveEarlierLabel(
-                        index: selectedIndex,
-                      ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final moveEarlier = OutlinedButton.icon(
+                  onPressed: canMoveEarlier && !interactionLocked
+                      ? onMoveEarlier
+                      : null,
+                  icon: const Icon(Icons.arrow_upward_rounded, size: 17),
+                  label: Text(
+                    _ReceiptPhotoSectionLabels.moveEarlierLabel(
+                      index: selectedIndex,
                     ),
-                    style: _orderButtonStyle(),
                   ),
-                ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: canMoveLater && !interactionLocked
-                        ? onMoveLater
-                        : null,
-                    icon: const Icon(Icons.arrow_downward_rounded, size: 17),
-                    label: Text(
-                      _ReceiptPhotoSectionLabels.moveLaterLabel(
-                        index: selectedIndex,
-                        total: photoPaths.length,
-                      ),
+                  style: _orderButtonStyle(),
+                );
+                final moveLater = OutlinedButton.icon(
+                  onPressed: canMoveLater && !interactionLocked
+                      ? onMoveLater
+                      : null,
+                  icon: const Icon(Icons.arrow_downward_rounded, size: 17),
+                  label: Text(
+                    _ReceiptPhotoSectionLabels.moveLaterLabel(
+                      index: selectedIndex,
+                      total: photoPaths.length,
                     ),
-                    style: _orderButtonStyle(),
                   ),
-                ),
-                const SizedBox(width: 7),
-                _MiniReceiptIconButton(
+                  style: _orderButtonStyle(),
+                );
+                final addPhoto = _MiniReceiptIconButton(
                   icon: Icons.add_a_photo_rounded,
                   label: _ReceiptPhotoSectionLabels.addNextPhotoLabel(
                     index: selectedIndex,
                     total: photoPaths.length,
                   ),
                   onPressed: interactionLocked ? null : onAddPhoto,
-                ),
-                const SizedBox(width: 5),
-                _MiniReceiptIconButton(
+                );
+                final retake = _MiniReceiptIconButton(
                   icon: Icons.camera_alt_rounded,
                   label: _ReceiptPhotoSectionLabels.retakeLabel(
                     index: selectedIndex,
@@ -146,8 +139,40 @@ class _ReceiptOrderToolControls extends StatelessWidget {
                     total: photoPaths.length,
                   ),
                   onPressed: interactionLocked ? null : onRetake,
-                ),
-              ],
+                );
+                final compact =
+                    constraints.maxWidth < 390 ||
+                    MediaQuery.textScalerOf(context).scale(1) > 1.2;
+                final moveRow = Row(
+                  children: [
+                    Expanded(child: moveEarlier),
+                    const SizedBox(width: 7),
+                    Expanded(child: moveLater),
+                  ],
+                );
+                if (compact) {
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      moveRow,
+                      const SizedBox(height: 7),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [addPhoto, const SizedBox(width: 5), retake],
+                      ),
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Expanded(child: moveRow),
+                    const SizedBox(width: 7),
+                    addPhoto,
+                    const SizedBox(width: 5),
+                    retake,
+                  ],
+                );
+              },
             ),
           ],
         ),

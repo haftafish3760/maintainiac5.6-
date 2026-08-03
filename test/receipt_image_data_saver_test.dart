@@ -11,23 +11,22 @@ void main() {
   test('receipt data saver levels are receipt backup choices', () {
     expect(ReceiptDataSaverLevel.values.map((level) => level.label), [
       'Original',
-      'High Quality',
+      'Best readability',
       'Normal',
-      'Low Storage',
-      'Tiny Proof',
+      'Everyday',
+      'Saver',
+      'Minimum',
     ]);
     expect(ReceiptDataSaverLevel.original.usesGrayscale, isFalse);
     expect(ReceiptDataSaverLevel.light.usesGrayscale, isFalse);
     expect(ReceiptDataSaverLevel.balanced.usesGrayscale, isTrue);
     expect(ReceiptDataSaverLevel.strong.usesGrayscale, isTrue);
+    expect(ReceiptDataSaverLevel.economy.usesGrayscale, isTrue);
     expect(ReceiptDataSaverLevel.maximum.usesGrayscale, isTrue);
-    expect(
-      ReceiptDataSaverLevel.balanced.description,
-      contains('saved proof image'),
-    );
+    expect(ReceiptDataSaverLevel.balanced.description, contains('saved image'));
     expect(
       ReceiptDataSaverLevel.maximum.description,
-      contains('Smallest saved proof image'),
+      contains('Smallest saved image'),
     );
   });
 
@@ -69,6 +68,41 @@ void main() {
       );
       expect(preview.level, ReceiptDataSaverLevel.maximum);
       expect(preview.estimatedBytes, lessThan(originalBytes));
+    },
+  );
+
+  test(
+    'every saved proof level respects its selected hard size ceiling',
+    () async {
+      final dir = await Directory.systemTemp.createTemp(
+        'receipt_proof_ceiling_',
+      );
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+      final source = File('${dir.path}/receipt.jpg');
+      await source.writeAsBytes(
+        img.encodeJpg(receiptLikeImage(), quality: 96),
+        flush: true,
+      );
+
+      for (final level in [
+        ReceiptDataSaverLevel.light,
+        ReceiptDataSaverLevel.balanced,
+        ReceiptDataSaverLevel.strong,
+        ReceiptDataSaverLevel.economy,
+        ReceiptDataSaverLevel.maximum,
+      ]) {
+        final proof = await ReceiptImageProcessor.optimizeFile(
+          path: source.path,
+          level: level,
+        );
+        expect(
+          await File(proof).length(),
+          lessThanOrEqualTo(level.proofTargetSizePolicy.maxBytes),
+          reason: level.name,
+        );
+      }
     },
   );
 

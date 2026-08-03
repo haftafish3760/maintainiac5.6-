@@ -48,7 +48,7 @@ class _ReceiptReadReviewStatus extends StatelessWidget {
       _ReceiptReadStatusKind.warning =>
         'Check the highlighted fields and line items before saving.',
       _ReceiptReadStatusKind.failed =>
-        'Use a clearer photo, use Add Receipt Photo for a long receipt, or keep the proof and fill the receipt by hand.',
+        'Use a clearer photo, use Add Receipt Photo for a long receipt, or keep the image and fill the receipt by hand.',
     };
     final recoveryHint = uiConfig.readStatusLabel(
       '${statusKey}RecoveryHint',

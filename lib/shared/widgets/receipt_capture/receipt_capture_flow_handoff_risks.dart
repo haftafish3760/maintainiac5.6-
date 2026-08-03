@@ -5,7 +5,7 @@ List<String> _ocrSourceRiskFlagsFor(
   int index,
 ) {
   final flags = <String>{};
-  if (result.dataSaverLevel == ReceiptDataSaverLevel.strong ||
+  if (result.dataSaverLevel == ReceiptDataSaverLevel.economy ||
       result.dataSaverLevel == ReceiptDataSaverLevel.maximum) {
     flags.add('ocr_source_small_proof_copy_review_required');
     flags.add('ocr_source_proof_data_saver_${result.dataSaverLevel.name}');

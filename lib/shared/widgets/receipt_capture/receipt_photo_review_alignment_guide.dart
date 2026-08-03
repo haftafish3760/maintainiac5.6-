@@ -1,9 +1,17 @@
 part of 'receipt_photo_review_screen.dart';
 
 class _ReceiptAlignmentGuidePreview extends StatelessWidget {
-  const _ReceiptAlignmentGuidePreview({required this.photoPath});
+  const _ReceiptAlignmentGuidePreview({
+    required this.photoPath,
+    required this.label,
+    required this.alignment,
+    required this.height,
+  });
 
   final String photoPath;
+  final String label;
+  final Alignment alignment;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -15,67 +23,76 @@ class _ReceiptAlignmentGuidePreview extends StatelessWidget {
           border: Border.all(color: const Color(0xFF526168)),
         ),
         child: SizedBox(
-          height: 126,
+          height: height,
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Image.file(
-                File(photoPath),
-                fit: BoxFit.cover,
-                alignment: Alignment.bottomCenter,
-                errorBuilder: (context, error, stackTrace) {
-                  return const Center(
-                    child: Text(
-                      'Previous receipt section could not be previewed.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Color(0xFFC7D0D4),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0,
+              ColorFiltered(
+                colorFilter: const ColorFilter.matrix(<double>[
+                  1.35,
+                  0,
+                  0,
+                  0,
+                  -44,
+                  0,
+                  1.35,
+                  0,
+                  0,
+                  -44,
+                  0,
+                  0,
+                  1.35,
+                  0,
+                  -44,
+                  0,
+                  0,
+                  0,
+                  1,
+                  0,
+                ]),
+                child: Image.file(
+                  File(photoPath),
+                  fit: BoxFit.cover,
+                  alignment: alignment,
+                  cacheWidth: 1400,
+                  cacheHeight: 900,
+                  errorBuilder: (context, error, stackTrace) {
+                    return const Center(
+                      child: Text(
+                        'Previous receipt section could not be previewed.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Color(0xFFC7D0D4),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0,
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              const Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Color(0x66050607),
-                        Color(0x11050607),
-                        Color(0xAA050607),
-                      ],
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
               Positioned(
-                left: 10,
-                right: 10,
-                bottom: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 9,
-                    vertical: 7,
-                  ),
+                left: 8,
+                top: 8,
+                child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: const Color(0xDD11181B),
+                    color: const Color(0xEE050607),
                     borderRadius: BorderRadius.circular(5),
-                    border: Border.all(color: const Color(0xFFFFD166)),
                   ),
-                  child: const Text(
-                    'Repeat 3-5 readable lines from this bottom area in the next photo.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Color(0xFFFFD166),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      height: 1.15,
-                      letterSpacing: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 5,
+                    ),
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        color: Color(0xFFFFD166),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0,
+                      ),
                     ),
                   ),
                 ),
@@ -89,9 +106,13 @@ class _ReceiptAlignmentGuidePreview extends StatelessWidget {
 }
 
 class _ReceiptAlignmentGuideNote extends StatelessWidget {
-  const _ReceiptAlignmentGuideNote({required this.missingBottomAndTotals});
+  const _ReceiptAlignmentGuideNote({
+    required this.hasPreviousReference,
+    required this.hasNextReference,
+  });
 
-  final bool missingBottomAndTotals;
+  final bool hasPreviousReference;
+  final bool hasNextReference;
 
   @override
   Widget build(BuildContext context) {
@@ -113,9 +134,7 @@ class _ReceiptAlignmentGuideNote extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              missingBottomAndTotals
-                  ? 'The receipt camera opens next with a bottom-section ghost guide. Put 3-5 repeated readable lines in the top ghost slice so subtotal, total, and final lines can be matched.'
-                  : 'The receipt camera opens next. Put 3-5 repeated readable lines in the top ghost slice so sections can be matched.',
+              _instruction,
               style: const TextStyle(
                 color: Color(0xFFC7D0D4),
                 fontSize: 11.5,
@@ -128,5 +147,15 @@ class _ReceiptAlignmentGuideNote extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String get _instruction {
+    if (hasPreviousReference && hasNextReference) {
+      return 'The camera will show a narrow reference at the top and bottom. Keep the center clear, then match the printed lines at both references.';
+    }
+    if (hasNextReference) {
+      return 'The camera will show a narrow reference at the bottom. Match the printed lines at the bottom of your new photo before reviewing it.';
+    }
+    return 'The camera will show a narrow reference at the top. Start your new photo with the same 3-5 readable printed lines.';
   }
 }

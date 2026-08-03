@@ -1,16 +1,5 @@
 part of 'receipt_image_processor.dart';
 
-img.Image _enhanceReceiptForReading(
-  img.Image source, {
-  ReceiptImageCleanupSettings cleanupSettings =
-      const ReceiptImageCleanupSettings(),
-}) {
-  return _enhanceReceiptForReadingWithDecision(
-    source,
-    cleanupSettings: cleanupSettings,
-  ).image;
-}
-
 _ScannerImageDecision _enhanceReceiptForReadingWithDecision(
   img.Image source, {
   ReceiptImageCleanupSettings cleanupSettings =

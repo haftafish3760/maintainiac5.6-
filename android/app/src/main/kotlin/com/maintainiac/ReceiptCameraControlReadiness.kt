@@ -20,14 +20,21 @@ internal fun ReceiptCameraActivity.visibleControlSet(): String {
     ) {
         controls.add("add_photo")
     }
-    if (
-        hasInitializedReceiptCameraField { previousSectionGuidePanel } &&
-        previousSectionGuidePanel.visibility == View.VISIBLE
-    ) {
+    if (hasVisibleSectionGhostGuide()) {
         controls.add("section_ghost_guide")
     }
     if (edgeDetectionEnabled && edgeOverlayEnabled) controls.add("edge_guide")
     return controls.joinToString("|")
+}
+
+internal fun ReceiptCameraActivity.hasVisibleSectionGhostGuide(): Boolean {
+    val previousVisible =
+        hasInitializedReceiptCameraField { previousSectionGuidePanel } &&
+            previousSectionGuidePanel.visibility == View.VISIBLE
+    val nextVisible =
+        hasInitializedReceiptCameraField { nextSectionGuidePanel } &&
+            nextSectionGuidePanel.visibility == View.VISIBLE
+    return previousVisible || nextVisible
 }
 
 internal fun ReceiptCameraActivity.reviewNextControlReady(): Boolean {

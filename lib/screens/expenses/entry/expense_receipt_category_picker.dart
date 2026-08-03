@@ -6,15 +6,69 @@ class _ExpenseCategorySearch extends StatelessWidget {
     required this.controller,
     required this.matches,
     required this.onSelected,
+    this.compact = false,
   });
 
   final String selectedCategory;
   final TextEditingController controller;
   final List<String> matches;
   final ValueChanged<String> onSelected;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    if (compact) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _openCategoryBrowser(context),
+          borderRadius: BorderRadius.circular(6),
+          child: Ink(
+            padding: const EdgeInsets.fromLTRB(12, 11, 10, 11),
+            decoration: BoxDecoration(
+              color: const Color(0xFF101315),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: const Color(0xFF40484D)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.sell_outlined, color: Color(0xFFB7BEC4)),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'CATEGORY (OPTIONAL)',
+                        style: TextStyle(
+                          color: Color(0xFFB7BEC4),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        selectedCategory == 'Uncategorized'
+                            ? 'Choose a category'
+                            : selectedCategory,
+                        style: const TextStyle(
+                          color: Color(0xFFF5F7F8),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFFB7BEC4),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
@@ -27,8 +81,8 @@ class _ExpenseCategorySearch extends StatelessWidget {
         children: [
           Text(
             selectedCategory == 'Uncategorized'
-                ? 'Optional Expense Category: No category selected'
-                : 'Optional Expense Category: $selectedCategory',
+                ? 'Category (optional)'
+                : 'Category (optional): $selectedCategory',
             style: const TextStyle(
               color: Color(0xFFE8ECEE),
               fontSize: 13,
@@ -45,7 +99,7 @@ class _ExpenseCategorySearch extends StatelessWidget {
             ),
             decoration: InputDecoration(
               isDense: true,
-              hintText: 'Search expense categories',
+              hintText: 'Search categories',
               hintStyle: const TextStyle(
                 color: Color(0xFF9FAAAF),
                 fontWeight: FontWeight.w700,
@@ -74,7 +128,7 @@ class _ExpenseCategorySearch extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () => _openCategoryBrowser(context),
             icon: const Icon(Icons.keyboard_arrow_down_rounded),
-            label: const Text('Browse All Categories'),
+            label: const Text('Choose category'),
             style: OutlinedButton.styleFrom(
               foregroundColor: const Color(0xFFE8ECEE),
               minimumSize: const Size.fromHeight(42),
@@ -106,9 +160,10 @@ class _ExpenseCategorySearch extends StatelessWidget {
     final selected = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF1F2528),
+      backgroundColor: const Color(0xFF101315),
       showDragHandle: true,
       builder: (context) {
+        var pendingCategory = selectedCategory;
         final homeCategories = _homeCategoryNames(context);
         final otherCategories = _availableExpenseCategoryNames(context)
             .where(
@@ -123,39 +178,85 @@ class _ExpenseCategorySearch extends StatelessWidget {
           minChildSize: .42,
           maxChildSize: .92,
           builder: (context, scrollController) {
-            return SafeArea(
-              child: ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 16),
-                children: [
-                  _CategoryBrowserHeader(selectedCategory: selectedCategory),
-                  const SizedBox(height: 10),
-                  _CategoryBrowserTile(
-                    category: 'Uncategorized',
-                    selectedCategory: selectedCategory,
-                    onTap: () => Navigator.of(context).pop('Uncategorized'),
-                  ),
-                  if (homeCategories.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const _CategoryBrowserSectionTitle('Home Categories'),
-                    const SizedBox(height: 6),
-                    for (final category in homeCategories)
-                      _CategoryBrowserTile(
-                        category: category,
-                        selectedCategory: selectedCategory,
-                        onTap: () => Navigator.of(context).pop(category),
+            return StatefulBuilder(
+              builder: (context, setSheetState) => SafeArea(
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                        children: [
+                          _CategoryBrowserHeader(
+                            selectedCategory: pendingCategory,
+                          ),
+                          const SizedBox(height: 10),
+                          _CategoryBrowserTile(
+                            category: 'Uncategorized',
+                            selectedCategory: pendingCategory,
+                            onTap: () => setSheetState(
+                              () => pendingCategory = 'Uncategorized',
+                            ),
+                          ),
+                          if (homeCategories.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            const _CategoryBrowserSectionTitle(
+                              'Home Categories',
+                            ),
+                            const SizedBox(height: 6),
+                            for (final category in homeCategories)
+                              _CategoryBrowserTile(
+                                category: category,
+                                selectedCategory: pendingCategory,
+                                onTap: () => setSheetState(
+                                  () => pendingCategory = category,
+                                ),
+                              ),
+                          ],
+                          const SizedBox(height: 12),
+                          const _CategoryBrowserSectionTitle(
+                            'Other Categories',
+                          ),
+                          const SizedBox(height: 6),
+                          for (final category in otherCategories)
+                            _CategoryBrowserTile(
+                              category: category,
+                              selectedCategory: pendingCategory,
+                              onTap: () => setSheetState(
+                                () => pendingCategory = category,
+                              ),
+                            ),
+                        ],
                       ),
-                  ],
-                  const SizedBox(height: 12),
-                  const _CategoryBrowserSectionTitle('Other Categories'),
-                  const SizedBox(height: 6),
-                  for (final category in otherCategories)
-                    _CategoryBrowserTile(
-                      category: category,
-                      selectedCategory: selectedCategory,
-                      onTap: () => Navigator.of(context).pop(category),
                     ),
-                ],
+                    const Divider(height: 1, color: Color(0xFF40484D)),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 14),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancel'),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: () =>
+                                  Navigator.of(context).pop(pendingCategory),
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF297A2D),
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Next'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },

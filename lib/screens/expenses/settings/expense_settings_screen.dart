@@ -9,6 +9,7 @@ import '../../../shared/localization/maintaniac_localizations.dart';
 import '../../../shared/storage/app_storage_guard.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/industrial_panel_surface.dart';
+import 'expense_receipt_assistance_setup_screen.dart';
 
 part 'expense_top_three_settings.dart';
 part 'expense_category_settings_sections.dart';
@@ -110,6 +111,8 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
           const _ExpenseStorageStatusPanel(),
           const SizedBox(height: 12),
           const _OdometerPromptSettingsPanel(),
+          const SizedBox(height: 12),
+          const ExpenseReceiptAssistanceSettingsPanel(),
           const SizedBox(height: 12),
           _SettingsSwitchPanel(
             title: 'Receipts And Receipt Assist',
@@ -241,35 +244,10 @@ class _CustomCategorySettingsPanel extends StatefulWidget {
 class _CustomCategorySettingsPanelState
     extends State<_CustomCategorySettingsPanel> {
   Future<void> _addCategory() async {
-    final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add Custom Category'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 60,
-          textCapitalization: TextCapitalization.words,
-          decoration: const InputDecoration(
-            labelText: 'Category name',
-            hintText: 'Example: Professional dues',
-          ),
-          onSubmitted: (value) => Navigator.of(context).pop(value),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('Add'),
-          ),
-        ],
-      ),
+      builder: (context) => const _AddCustomCategoryDialog(),
     );
-    controller.dispose();
     if (name == null || !mounted) return;
     final duplicateStandard = widget.standardCategoryNames.any(
       (item) => _sameCategory(item, name),
@@ -325,6 +303,171 @@ class _CustomCategorySettingsPanelState
             onPressed: _addCategory,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddCustomCategoryDialog extends StatefulWidget {
+  const _AddCustomCategoryDialog();
+
+  @override
+  State<_AddCustomCategoryDialog> createState() =>
+      _AddCustomCategoryDialogState();
+}
+
+class _AddCustomCategoryDialogState extends State<_AddCustomCategoryDialog> {
+  static const _surface = Color(0xFF182126);
+  static const _field = Color(0xFF101517);
+  static const _outline = Color(0xFF526069);
+  static const _muted = Color(0xFFB8C2C7);
+  static const _green = Color(0xFF6EF0A0);
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _finish([String? value]) {
+    if (!mounted) return;
+    Navigator.of(context).pop(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 28),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 520),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF5E6B73)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0xA0000000),
+                blurRadius: 24,
+                offset: Offset(0, 12),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'Add custom category',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 7),
+              const Text(
+                'Create a category that will be available whenever you add an expense.',
+                style: TextStyle(
+                  color: _muted,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  TextField(
+                    controller: _controller,
+                    autofocus: true,
+                    maxLength: 60,
+                    textCapitalization: TextCapitalization.words,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Example: Professional dues',
+                      hintStyle: const TextStyle(color: Color(0xFF9BA9B0)),
+                      filled: true,
+                      fillColor: _field,
+                      contentPadding: const EdgeInsets.fromLTRB(16, 21, 16, 15),
+                      counterStyle: const TextStyle(
+                        color: _muted,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: _outline),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: _green, width: 2),
+                      ),
+                    ),
+                    onSubmitted: _finish,
+                  ),
+                  Positioned(
+                    top: -9,
+                    left: 12,
+                    child: Container(
+                      color: _surface,
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: const Text(
+                        'Category name',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _finish,
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: _outline),
+                      ),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => _finish(_controller.text),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(52),
+                        backgroundColor: _green,
+                        foregroundColor: const Color(0xFF112016),
+                      ),
+                      child: const Text('Add category'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

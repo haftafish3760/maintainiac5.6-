@@ -20,12 +20,16 @@ void main() {
     final cropAndProofControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_and_proof_controls.dart',
     ).readAsString();
-    final dataSaverPanel = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
-    ).readAsString();
+    final dataSaverPanel =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_details.dart',
+        ).readAsString();
     final models = await readReceiptCaptureModelsSource();
     expect(controls, contains('Opening receipt details'));
-    expect(controls, contains('Review Photos'));
+    expect(controls, contains("return 'Continue';"));
     expect(
       cropAndProofControls,
       contains('Save device space without losing the original reading source'),
@@ -37,10 +41,12 @@ void main() {
     expect(controls, contains('String get multiPhotoMatchStatusCopy'));
     expect(
       controls,
-      contains('Use Match Photos to check whether one combined receipt image'),
+      contains(
+        'Continue when these receipt sections are in top-to-bottom order',
+      ),
     );
-    expect(controls, contains('Continue will use one combined receipt image.'));
-    expect(controls, contains('ordered sections from top to bottom'));
+    expect(controls, contains('Your receipt is ready as one combined image.'));
+    expect(controls, contains('Keep the photos in order.'));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));
     expect(models, isNot(contains("readIntoForm('Read into form')")));
@@ -48,11 +54,11 @@ void main() {
     expect(dataSaverPanel, contains('Receipt Proof Storage'));
     expect(dataSaverPanel, contains('Uses clear photo first'));
     expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));
-    expect(dataSaverPanel, contains('Proof kept after reading'));
+    expect(dataSaverPanel, contains('Image kept after reading'));
     expect(
       dataSaverPanel,
       contains(
-        'Connect backup in Account settings to see storage and activity.',
+        'This receipt stays on your device until you turn backup on in Receipt settings.',
       ),
     );
     expect(
@@ -74,6 +80,9 @@ void main() {
         'This should continue downward with 3-5 repeated readable lines',
       ),
     );
-    expect(sectionLabels, contains('Confirm bottom section, then match.'));
+    expect(
+      sectionLabels,
+      contains('Confirm the bottom section, then continue.'),
+    );
   });
 }

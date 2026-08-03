@@ -46,7 +46,7 @@ class _ReceiptEntryStartGuide extends StatelessWidget {
           _ReceiptEntryStartGuideStep(
             number: '3',
             title:
-                'Check the filled details, choose Business, Personal, or Mixed, then save',
+                'Check the filled details, choose Business, Personal, or Split, then save',
           ),
         ],
       ),

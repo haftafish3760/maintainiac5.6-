@@ -37,9 +37,9 @@ class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
         ? const Color(0xFFFFD166)
         : const Color(0xFF8EF6A4);
     return ReceiptFormPanel(
-      title: 'Review What The App Filled In',
+      title: 'Check Receipt Details',
       subtitle:
-          'Check the store, date, total, tax, and item prices. Then classify the receipt as Business, Personal, or Mixed before saving.',
+          'Compare the store, date, total, tax, and item prices with your receipt. Edit anything that does not match before saving.',
       icon: Icons.fact_check_rounded,
       accentColor: accent,
       children: [
@@ -108,7 +108,7 @@ class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
         ],
         Text(
           '$lineCount ${lineCount == 1 ? 'line is' : 'lines are'} ready below. '
-          'Edit anything that does not match the receipt, then choose Business, Personal, or Split before saving.',
+          'Edit anything that does not match the receipt. Choose Business, Personal, or Split before saving.',
           style: const TextStyle(
             color: Color(0xFFC8D0D3),
             fontSize: 11.5,
@@ -139,5 +139,4 @@ class _ReceiptAppAssistedReviewIntroPanel extends StatelessWidget {
         ? 'Receipt reading looked good'
         : 'Receipt reading needs review';
   }
-
 }

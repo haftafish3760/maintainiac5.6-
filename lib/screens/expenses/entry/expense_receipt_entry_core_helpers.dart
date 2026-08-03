@@ -166,6 +166,9 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
     );
   }
 
+  // Kept as the shared callback contract for the detailed assisted-review
+  // panel while the compact receipt review is the active presentation.
+  // ignore: unused_element
   Map<String, VoidCallback> get _ocrReviewActionCallbacks {
     void review() => _scrollToReceiptReview();
     void capture() => _scrollToReceiptCapture();
@@ -173,7 +176,7 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
     final useTotal = _useReceiptTotalAsBusinessFromOcrAction;
     return {
       'Review filled fields': review,
-      'Classify Business/Personal/Mixed': review,
+      'Classify Business/Personal/Split': review,
       'Check store name': review,
       'Edit if wrong': review,
       'Check receipt total': review,
@@ -237,9 +240,9 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
     if (!mounted) return;
     final handoffWarnings = <String>[
       if (result.usedSavedProofAsOcrSourceFallback)
-        'Receipt reader is using the saved proof copy because a clearer photo was not available. Review the filled lines carefully before saving.',
+        'Receipt reader is using the saved receipt image because a clearer photo was not available. Review the filled lines carefully before saving.',
       if (result.hasPossiblePartialReceiptPhotos)
-        'One receipt photo may be incomplete. Review the filled lines against the saved proof before saving.',
+        'One receipt photo may be incomplete. Review the filled lines against the saved image before saving.',
     ].join(' ');
     _updateReceiptState(() {
       // Photo review completes before attachments are installed into the

@@ -18,8 +18,6 @@ extension _ExpenseReceiptLineComputedFields on _ExpenseReceiptLine {
         : percent.toStringAsFixed(2);
   }
 
-  double get totalUnits => quantity * unitsPerPackage;
-
   String get displayDescription {
     final clean = description.trim();
     if (clean.isNotEmpty && clean.toLowerCase() != 'receipt item') {

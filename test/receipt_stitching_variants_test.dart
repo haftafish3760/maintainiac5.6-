@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
+import 'helpers/receipt_stitching_artifact_expectations.dart';
 import 'helpers/receipt_stitching_image_helpers.dart';
 
 const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
@@ -33,12 +35,20 @@ void main() {
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+      expect(result.pairs.single.rotationCorrectionDegrees, 0);
       expect(result.overlapPixels.single, greaterThan(340));
-      final normalizedSectionHeight =
-          (sectionA.height * result.stitchedWidth / sectionA.width).round();
+      expect(
+        result.overlapPixels.single,
+        result.pairs.single.overlapPixels +
+            result.pairs.single.verticalOffsetPixels,
+      );
       expect(
         result.stitchedHeight,
-        normalizedSectionHeight * 2 - result.overlapPixels.single,
+        expectedStitchedHeightForUniformSections(
+          sectionWidth: sectionA.width,
+          sectionHeight: sectionA.height,
+          result: result,
+        ),
       );
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
 
@@ -114,12 +124,13 @@ void main() {
       expect(result.overlapPixels, hasLength(2));
       expect(result.overlapPixels.first, greaterThan(320));
       expect(result.overlapPixels.last, greaterThan(360));
-      final normalizedSectionHeight =
-          (sectionA.height * result.stitchedWidth / sectionA.width).round();
       expect(
         result.stitchedHeight,
-        normalizedSectionHeight * 3 -
-            result.overlapPixels.reduce((total, pixels) => total + pixels),
+        expectedStitchedHeightForUniformSections(
+          sectionWidth: sectionA.width,
+          sectionHeight: sectionA.height,
+          result: result,
+        ),
       );
       expect(result.ocrSourcePaths, [result.stitchedPath]);
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
@@ -153,7 +164,12 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason:
+            '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+      );
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
       expect(result.overlapPixels.single, greaterThan(330));
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
@@ -240,7 +256,12 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason:
+            '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+      );
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
       expect(result.overlapPixels.single, greaterThanOrEqualTo(190));
       expect(result.ocrSourcePaths, [result.stitchedPath]);
@@ -423,5 +444,51 @@ void main() {
         containsPair('stitchOcrSourceContractReady', false),
       );
     },
+  );
+
+  test(
+    'does not combine an unrelated app screen with a receipt photo',
+    () async {
+      final appScreen = receiptStitchingSection(seed: 201, topTextOffset: 0);
+      for (var y = 0; y < appScreen.height; y += 210) {
+        img.fillRect(
+          appScreen,
+          x1: 28,
+          y1: y + 24,
+          x2: appScreen.width - 28,
+          y2: (y + 178).clamp(0, appScreen.height - 1),
+          color: img.ColorRgb8(38 + (y ~/ 210) * 8, 52, 64),
+        );
+        for (var x = 52; x < appScreen.width - 80; x += 220) {
+          img.fillRect(
+            appScreen,
+            x1: x,
+            y1: y + 48,
+            x2: (x + 170).clamp(0, appScreen.width - 1),
+            y2: (y + 142).clamp(0, appScreen.height - 1),
+            color: img.ColorRgb8(68, 82 + (x ~/ 220) * 8, 92),
+          );
+        }
+      }
+      final receipt = receiptStitchingSection(seed: 319, topTextOffset: 7);
+      final first = await writeTempReceiptStitchingImage(
+        appScreen,
+        'unrelated_app_screen',
+      );
+      final second = await writeTempReceiptStitchingImage(
+        receipt,
+        'unrelated_receipt',
+      );
+
+      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+        paths: [first.path, second.path],
+      );
+
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
+      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.ocrSourcePaths, [first.path, second.path]);
+      expect(result.failedPairIndex, 0);
+    },
+    timeout: _stitchingHeavyTimeout,
   );
 }

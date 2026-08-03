@@ -1,0 +1,31 @@
+{
+  "schema": "fuel_parser_field_benchmark_v1",
+  "sourcePolicy": "synthetic_or_redacted_only",
+  "minimumCommercialSampleCount": 25,
+  "minimumMerchantFamilies": 8,
+  "cases": [
+    {
+      "id": "sheetz_e15_redacted_2026_07",
+      "fixtureKind": "real_redacted",
+      "usedForRegression": true,
+      "merchantFamily": "Sheetz",
+      "redaction": {
+        "status": "redacted",
+        "sensitiveFieldsRemoved": true,
+        "notes": "Address, card, approval, terminal, and loyalty identifiers removed."
+      },
+      "text": "Sheetz 754\n07/15/2026 09:01 PM\nPump No: 10\nE15 (88 @ $3.049/G\nVolume: 15.743 Gal\nGas Total: $48.00\nTotal $48.00\nApproval: [removed]\nTerm: [removed]\nPointz: [removed]\nTier: FRIEND",
+      "expected": {
+        "merchantName": "Sheetz",
+        "dateIso": "2026-07-15",
+        "total": 48.0,
+        "fuelLineCount": 1,
+        "fuelType": "E15",
+        "quantity": 15.743,
+        "unit": "gallon",
+        "unitPrice": 3.049,
+        "subtotal": 48.0
+      }
+    }
+  ]
+}

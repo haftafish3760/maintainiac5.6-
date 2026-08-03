@@ -1,39 +1,5 @@
 part of 'receipt_photo_review_screen.dart';
 
-class _ReceiptMultiPhotoActionRail extends StatelessWidget {
-  const _ReceiptMultiPhotoActionRail({
-    required this.onOrder,
-    required this.onMatch,
-  });
-
-  final VoidCallback? onOrder;
-  final VoidCallback? onMatch;
-
-  @override
-  Widget build(BuildContext context) {
-    final strings = MaintaniacLocalizations.of(context);
-    return SizedBox(
-      height: 32,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          _ReceiptActionRailButton(
-            icon: Icons.swap_vert_rounded,
-            label: 'Reorder Photos',
-            onPressed: onOrder,
-          ),
-          const SizedBox(width: 6),
-          _ReceiptActionRailButton(
-            icon: Icons.join_full_rounded,
-            label: strings.matchReceiptPhotos,
-            onPressed: onMatch,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _ReceiptPhotoCountBadge extends StatelessWidget {
   const _ReceiptPhotoCountBadge({required this.current, required this.total});
 

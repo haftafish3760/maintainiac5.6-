@@ -134,6 +134,7 @@ prepareGenericExpenseReceiptOcrReviewInWorker(
   // faithful editable text reconstruction first; detailed layout diagnostics
   // remain optional review evidence and must never block the form.
   final textForGenericReview = ocr.appFillText;
+  final itemDraftsForGenericReview = ocr.parserHandoff.itemLineDrafts;
   final warnings = ocr.structuredWarnings;
   return Isolate.run(() {
     final stopwatch = Stopwatch()..start();
@@ -142,16 +143,23 @@ prepareGenericExpenseReceiptOcrReviewInWorker(
       traceId: effectiveTraceId,
       deviceTier: capability?.tier.name,
     );
-    final parsed = parseExpenseReceiptText(
+    final textParsed = parseExpenseReceiptText(
       textForGenericReview,
       fallbackDate: fallbackDate,
       parserDepth: ReceiptParserDepth.lineItems,
       maxCatalogCandidates: 0,
     );
+    final parsed = recoverMissingOcrItemDrafts(
+      textParsed,
+      itemDraftsForGenericReview,
+    );
     traceReceiptPipelineStage(
       'review_worker_parse_ready',
       traceId: effectiveTraceId,
       elapsedMs: stopwatch.elapsedMilliseconds,
+      candidateLineCount: itemDraftsForGenericReview.length,
+      parsedLineCount: textParsed.lines.length,
+      recoveredLineCount: parsed.lines.length - textParsed.lines.length,
     );
     return PreparedExpenseReceiptOcrReview(
       parsed: parsed,

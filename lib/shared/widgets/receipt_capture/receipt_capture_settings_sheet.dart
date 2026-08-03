@@ -100,6 +100,10 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
+    // A gear on Details, Items, or Review is for that receipt step. Camera
+    // behavior belongs on the camera/review surface instead of turning this
+    // screen into an unrelated capture-settings command center.
+    final isReceiptStepSettings = screenContext != null;
     return AnimatedBuilder(
       animation: settings,
       builder: (context, _) {
@@ -155,29 +159,31 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
               const SizedBox(height: 8),
               _ReceiptDataSaverDefaultPicker(settings: settings),
               const SizedBox(height: 8),
-              _ReceiptScannerBehaviorSettings(settings: settings),
-              const SizedBox(height: 8),
-              const _ReceiptPostCaptureWorkflowSettings(),
-              const SizedBox(height: 8),
-              _ReceiptDiagnosticsSettings(settings: settings),
-              const SizedBox(height: 8),
-              const _ReceiptSettingsNote(
-                icon: Icons.light_mode_rounded,
-                text:
-                    'Brightness and light controls stay on the camera viewer, not in Settings, so you can see the receipt while adjusting them.',
-              ),
+              if (!isReceiptStepSettings) ...[
+                _ReceiptScannerBehaviorSettings(settings: settings),
+                const SizedBox(height: 8),
+                const _ReceiptPostCaptureWorkflowSettings(),
+                const SizedBox(height: 8),
+                _ReceiptDiagnosticsSettings(settings: settings),
+                const SizedBox(height: 8),
+                const _ReceiptSettingsNote(
+                  icon: Icons.light_mode_rounded,
+                  text:
+                      'Brightness and light controls stay on the camera viewer, not in Settings, so you can see the receipt while adjusting them.',
+                ),
+              ],
               if (!hasSavedReceiptProof) ...[
                 const SizedBox(height: 8),
                 const _ReceiptSettingsNote(
                   icon: Icons.photo_library_outlined,
                   text:
-                      'Your next receipt review shows the actual saved-proof size and lets you inspect readability before saving.',
+                      'Your next receipt review shows the actual saved image size and lets you inspect readability before saving.',
                 ),
                 const SizedBox(height: 8),
                 const _ReceiptSettingsNote(
                   icon: Icons.check_circle_outline_rounded,
                   text:
-                      'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
+                      'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved image size appears after you capture or attach a receipt first.',
                 ),
               ],
               const SizedBox(height: 8),
@@ -255,7 +261,7 @@ class _ReceiptCaptureSettingsSheet extends StatelessWidget {
             ),
           ),
           content: Text(
-            'This restores the recommended receipt scanner and saved proof settings for ${area.label}.',
+            'This restores the recommended receipt scanner and saved image settings for ${area.label}.',
             style: const TextStyle(
               color: Color(0xFFC7D0D4),
               fontWeight: FontWeight.w700,

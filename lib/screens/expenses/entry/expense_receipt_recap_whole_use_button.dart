@@ -7,6 +7,7 @@ class _ReceiptWholeUseButton extends StatelessWidget {
     required this.icon,
     required this.color,
     required this.onPressed,
+    this.selected = false,
   });
 
   final String label;
@@ -14,6 +15,7 @@ class _ReceiptWholeUseButton extends StatelessWidget {
   final IconData icon;
   final Color color;
   final VoidCallback? onPressed;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +33,14 @@ class _ReceiptWholeUseButton extends StatelessWidget {
         ],
       ),
       style: OutlinedButton.styleFrom(
-        foregroundColor: color,
+        foregroundColor: selected ? Colors.white : color,
+        backgroundColor: selected ? color.withValues(alpha: .78) : null,
         disabledForegroundColor: const Color(0xFF76848A),
         side: BorderSide(
           color: onPressed == null
               ? const Color(0xFF526168)
+              : selected
+              ? color
               : color.withValues(alpha: .72),
         ),
         alignment: Alignment.centerLeft,

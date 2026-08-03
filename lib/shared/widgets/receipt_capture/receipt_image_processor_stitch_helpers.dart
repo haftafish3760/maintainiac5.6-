@@ -5,6 +5,9 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
   required img.Image next,
   required int targetWidth,
 }) {
+  // The comparison copy is smaller than the clear proof, but 320px is the
+  // minimum that still preserves delayed-overlap offsets on worn thermal
+  // receipts. Dropping below this can leave a pre-roll strip in the result.
   const comparisonWidth = 320;
   final sampleWidth = math.min(
     comparisonWidth,
@@ -28,7 +31,7 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
       previous: previousSample,
       next: candidateImage,
     );
-    final scalePenalty = (scale - 1).abs() * .16;
+    final scalePenalty = (scale - 1).abs() * .45;
     candidates.add(
       _ReceiptStitchCandidate(
         pixels: match.pixels,
@@ -42,9 +45,28 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
     );
   }
   candidates.sort((a, b) => b.confidence.compareTo(a.confidence));
-  if (candidates.first.confidence >= .62) {
+  final baseScaleCandidate = candidates.firstWhere(
+    (candidate) => (candidate.scaleCorrection - 1).abs() < .001,
+  );
+  final bestUnrotatedCandidate = candidates.first;
+  final selectedUnrotatedCandidate =
+      (bestUnrotatedCandidate.scaleCorrection - 1).abs() >= .03 &&
+          bestUnrotatedCandidate.confidence <
+              baseScaleCandidate.confidence + .05
+      ? baseScaleCandidate
+      : bestUnrotatedCandidate;
+  // A very strong base match does not need further correction. Borderline
+  // matches continue through the guarded retry path so a delayed overlap is
+  // not mistaken for the start of the next photo.
+  if (selectedUnrotatedCandidate.confidence >= .62 &&
+      _stitchCandidateHasContinuity(
+        candidate: selectedUnrotatedCandidate,
+        previous: previousSample,
+        next: nextSample,
+        targetWidth: sampleWidth,
+      )) {
     return _materializeStitchCandidate(
-      candidate: candidates.first,
+      candidate: selectedUnrotatedCandidate,
       previousHeight: previous.height,
       next: next,
       targetWidth: targetWidth,
@@ -75,7 +97,7 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
         previous: previousSample,
         next: candidateImage,
       );
-      final scalePenalty = (base.scaleCorrection - 1).abs() * .16;
+      final scalePenalty = (base.scaleCorrection - 1).abs() * .45;
       final rotationPenalty = rotationDegrees.abs() * .025;
       candidates.add(
         _ReceiptStitchCandidate(
@@ -95,8 +117,172 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
     }
   }
   candidates.sort((a, b) => b.confidence.compareTo(a.confidence));
+  final bestCandidate = candidates.first;
+  // A tiny score change from resampling is not evidence that an upright
+  // receipt needs rotation. Applying it can crop the derived proof and hide
+  // its leading merchant/date rows. Require a material improvement before
+  // accepting a rotation correction.
+  var selectedCandidate =
+      bestCandidate.rotationCorrectionDegrees.abs() >= .001 &&
+          bestCandidate.confidence <
+              selectedUnrotatedCandidate.confidence + .065
+      ? selectedUnrotatedCandidate
+      : bestCandidate;
+  final perspectiveBaseline = selectedCandidate;
+  final perspectiveBases = candidates.take(3).toList(growable: false);
+  for (final base in perspectiveBases) {
+    for (final correction in const [-.09, -.05, .05, .09]) {
+      final candidateImage = _transformForStitchComparison(
+        nextSample,
+        targetWidth: sampleWidth,
+        scale: base.scaleCorrection,
+        rotationDegrees: base.rotationCorrectionDegrees,
+        perspectiveCorrection: correction,
+      );
+      final match = _bestVerticalOverlap(
+        previous: previousSample,
+        next: candidateImage,
+      );
+      final scalePenalty = (base.scaleCorrection - 1).abs() * .45;
+      final rotationPenalty = base.rotationCorrectionDegrees.abs() * .025;
+      final perspectivePenalty = correction.abs() * .35;
+      candidates.add(
+        _ReceiptStitchCandidate(
+          pixels: match.pixels,
+          nextSkipPixels: match.nextSkipPixels,
+          nextXOffsetPixels: match.nextXOffsetPixels,
+          confidence:
+              (match.confidence -
+                      scalePenalty -
+                      rotationPenalty -
+                      perspectivePenalty)
+                  .clamp(0.0, 1.0),
+          scaleCorrection: base.scaleCorrection,
+          rotationCorrectionDegrees: base.rotationCorrectionDegrees,
+          perspectiveCorrection: correction,
+          sampleHeight: candidateImage.height,
+          sampleWidth: candidateImage.width,
+        ),
+      );
+    }
+  }
+  candidates.sort((a, b) => b.confidence.compareTo(a.confidence));
+  final perspectiveCandidate = candidates.first;
+  if (perspectiveCandidate.perspectiveCorrection.abs() >= .001 &&
+      perspectiveCandidate.confidence >=
+          perspectiveBaseline.confidence + .055) {
+    selectedCandidate = perspectiveCandidate;
+  }
+  if ((selectedCandidate.scaleCorrection - 1).abs() >= .03 &&
+      selectedCandidate.confidence < baseScaleCandidate.confidence + .05) {
+    selectedCandidate = baseScaleCandidate;
+  }
+  selectedCandidate = _preferContinuityBackedStitchCandidate(
+    candidates: candidates,
+    fallback: selectedCandidate,
+    previous: previousSample,
+    next: nextSample,
+    targetWidth: sampleWidth,
+  );
   return _materializeStitchCandidate(
-    candidate: candidates.first,
+    candidate: selectedCandidate,
+    previousHeight: previous.height,
+    next: next,
+    targetWidth: targetWidth,
+  );
+}
+
+bool _stitchCandidateHasContinuity({
+  required _ReceiptStitchCandidate candidate,
+  required img.Image previous,
+  required img.Image next,
+  required int targetWidth,
+}) {
+  final match = _materializeStitchCandidate(
+    candidate: candidate,
+    previousHeight: previous.height,
+    next: next,
+    targetWidth: targetWidth,
+  );
+  return _receiptOverlapContinuityEvidence(
+    previous: previous,
+    match: match,
+  ).isProven;
+}
+
+_ReceiptStitchCandidate _preferContinuityBackedStitchCandidate({
+  required List<_ReceiptStitchCandidate> candidates,
+  required _ReceiptStitchCandidate fallback,
+  required img.Image previous,
+  required img.Image next,
+  required int targetWidth,
+}) {
+  var selected = fallback;
+  var selectedContinuityScore = -1.0;
+  final minimumConfidence = math.max(.44, fallback.confidence - .14);
+  final continuityCandidates = <_ReceiptStitchCandidate>{
+    ...candidates.take(14),
+    ...candidates.where(
+      (candidate) =>
+          candidate.rotationCorrectionDegrees.abs() < .001 &&
+          candidate.perspectiveCorrection.abs() < .001,
+    ),
+  };
+  for (final candidate in continuityCandidates) {
+    if (candidate.confidence < minimumConfidence) continue;
+    final match = _materializeStitchCandidate(
+      candidate: candidate,
+      previousHeight: previous.height,
+      next: next,
+      targetWidth: targetWidth,
+    );
+    final continuity = _receiptOverlapContinuityEvidence(
+      previous: previous,
+      match: match,
+    );
+    if (!continuity.isProven) continue;
+    final score =
+        candidate.confidence +
+        continuity.correlation * .10 +
+        continuity.matchingBands * .006;
+    if (score > selectedContinuityScore) {
+      selected = candidate;
+      selectedContinuityScore = score;
+    }
+  }
+  return selected;
+}
+
+_ReceiptOverlapMatch _fixedScaleVerticalOverlap({
+  required img.Image previous,
+  required img.Image next,
+  required int targetWidth,
+}) {
+  const comparisonWidth = 320;
+  final sampleWidth = math.min(
+    comparisonWidth,
+    math.min(previous.width, next.width),
+  );
+  final previousSample = previous.width == sampleWidth
+      ? previous
+      : img.copyResize(previous, width: sampleWidth);
+  final nextSample = next.width == sampleWidth
+      ? next
+      : img.copyResize(next, width: sampleWidth);
+  final match = _bestVerticalOverlap(
+    previous: previousSample,
+    next: nextSample,
+  );
+  return _materializeStitchCandidate(
+    candidate: _ReceiptStitchCandidate(
+      pixels: match.pixels,
+      nextSkipPixels: match.nextSkipPixels,
+      nextXOffsetPixels: match.nextXOffsetPixels,
+      confidence: match.confidence,
+      scaleCorrection: 1,
+      sampleHeight: nextSample.height,
+      sampleWidth: nextSample.width,
+    ),
     previousHeight: previous.height,
     next: next,
     targetWidth: targetWidth,
@@ -121,13 +307,17 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
     final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
     for (final horizontalOffset in horizontalOffsets) {
       for (final nextYOffset in nextTopOffsets) {
-        final score = _overlapDifference(
+        final visualScore = _overlapDifference(
           previous: previous,
           next: next,
           pixels: pixels,
           horizontalOffset: horizontalOffset,
           nextYOffset: nextYOffset,
         );
+        final score =
+            visualScore +
+            (horizontalOffset.abs() / math.max(1, previous.width) * 80) +
+            (nextYOffset / math.max(1, next.height) * 12);
         if (_stitchCandidateBeatsCurrent(
           score: score,
           pixels: pixels,
@@ -152,13 +342,17 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
     final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
     for (final horizontalOffset in horizontalOffsets) {
       for (final nextYOffset in nextTopOffsets) {
-        final score = _overlapDifference(
+        final visualScore = _overlapDifference(
           previous: previous,
           next: next,
           pixels: pixels,
           horizontalOffset: horizontalOffset,
           nextYOffset: nextYOffset,
         );
+        final score =
+            visualScore +
+            (horizontalOffset.abs() / math.max(1, previous.width) * 80) +
+            (nextYOffset / math.max(1, next.height) * 12);
         if (_stitchCandidateBeatsCurrent(
           score: score,
           pixels: pixels,
@@ -221,9 +415,13 @@ bool _stitchCandidateBeatsCurrent({
   required double bestScore,
   required int bestPixels,
 }) {
-  if (score < bestScore) return true;
   if (!bestScore.isFinite) return true;
-  final closeEnough = score <= bestScore + 1.75;
+  if (score < bestScore) return true;
+  // A shorter slice is a strict subset of a real overlap and can score a
+  // little cleaner simply because it excludes one faded or shadowed row.
+  // Prefer the materially longer candidate when its normalized score remains
+  // close, otherwise valid repeated lines are left duplicated at the join.
+  final closeEnough = score <= bestScore + 6.0;
   final materiallyLonger = pixels >= bestPixels + 48;
   return closeEnough && materiallyLonger;
 }
@@ -273,144 +471,17 @@ int? _manualOverlapFor({
   return null;
 }
 
-bool _receiptImageBytesMatch(List<int> a, List<int> b) {
-  if (a.length != b.length) return false;
-  for (var index = 0; index < a.length; index++) {
-    if (a[index] != b[index]) return false;
-  }
-  return true;
-}
-
-int _receiptImageAverageHashDistance(img.Image a, img.Image b) {
-  return _receiptImageAverageHashHammingDistance(
-    _receiptImageAverageHash(a),
-    _receiptImageAverageHash(b),
-  );
-}
-
-int _receiptImageAverageHashHammingDistance(
-  List<bool> hashA,
-  List<bool> hashB,
-) {
-  var distance = 0;
-  final length = math.min(hashA.length, hashB.length);
-  for (var index = 0; index < length; index++) {
-    if (hashA[index] != hashB[index]) distance++;
-  }
-  return distance + (hashA.length - hashB.length).abs();
-}
-
-List<bool> _receiptImageAverageHash(img.Image source) {
-  final sample = img.copyResize(source, width: 32, height: 32);
-  final values = <double>[];
-  var total = 0.0;
-  for (var y = 0; y < sample.height; y++) {
-    for (var x = 0; x < sample.width; x++) {
-      final value = _luma(sample.getPixel(x, y));
-      values.add(value);
-      total += value;
-    }
-  }
-  final mean = total / math.max(1, values.length);
-  return [for (final value in values) value >= mean];
-}
-
-bool _receiptImageContentMatches(img.Image a, img.Image b) {
-  return _receiptImageContentMatchScore(
-    a,
-    b,
-    maxLumaAverage: 40,
-    maxNormalizedLumaAverage: 20,
-    maxInkProfileAverage: .12,
-    maxBandDifference: 16,
-  );
-}
-
-bool _receiptImageImmediateDuplicateContentMatches(img.Image a, img.Image b) {
-  return _receiptImageContentMatchScore(
-    a,
-    b,
-    maxLumaAverage: 32,
-    maxNormalizedLumaAverage: 8,
-    maxInkProfileAverage: .04,
-    maxBandDifference: 32,
-  );
-}
-
-bool _receiptImageContentMatchScore(
-  img.Image a,
-  img.Image b, {
-  required double maxLumaAverage,
-  required double maxNormalizedLumaAverage,
-  required double maxInkProfileAverage,
-  required double maxBandDifference,
+double _manualStitchValue(
+  List<double>? values,
+  int pairIndex, {
+  required double fallback,
+  required double minimum,
+  required double maximum,
 }) {
-  final aspectA = a.width / math.max(1, a.height);
-  final aspectB = b.width / math.max(1, b.height);
-  if ((aspectA - aspectB).abs() > .03) return false;
-
-  const sampleWidth = 96;
-  final sampleA = img.copyResize(a, width: sampleWidth);
-  final sampleB = img.copyResize(b, width: sampleWidth);
-  final sampleHeight = math.min(sampleA.height, sampleB.height);
-  if (sampleHeight < 96) return false;
-
-  var meanA = 0.0;
-  var meanB = 0.0;
-  var meanSamples = 0;
-  for (var y = 8; y < sampleHeight - 8; y += 8) {
-    for (var x = 8; x < sampleWidth - 8; x += 8) {
-      meanA += _luma(sampleA.getPixel(x, y));
-      meanB += _luma(sampleB.getPixel(x, y));
-      meanSamples++;
-    }
+  if (values == null || pairIndex < 0 || pairIndex >= values.length) {
+    return fallback;
   }
-  if (meanSamples == 0) return false;
-  meanA /= meanSamples;
-  meanB /= meanSamples;
-
-  var lumaTotal = 0.0;
-  var normalizedLumaTotal = 0.0;
-  var inkProfileTotal = 0.0;
-  var samples = 0;
-  for (var y = 8; y < sampleHeight - 8; y += 8) {
-    var inkA = 0;
-    var inkB = 0;
-    var rowSamples = 0;
-    for (var x = 8; x < sampleWidth - 8; x += 8) {
-      final lumaA = _luma(sampleA.getPixel(x, y));
-      final lumaB = _luma(sampleB.getPixel(x, y));
-      lumaTotal += (lumaA - lumaB).abs();
-      normalizedLumaTotal += ((lumaA - meanA) - (lumaB - meanB)).abs();
-      if (lumaA < 165) inkA++;
-      if (lumaB < 165) inkB++;
-      rowSamples++;
-      samples++;
-    }
-    if (rowSamples > 0) {
-      inkProfileTotal += (inkA - inkB).abs() / rowSamples;
-    }
-  }
-  if (samples == 0) return false;
-  final lumaAverage = lumaTotal / samples;
-  final normalizedLumaAverage = normalizedLumaTotal / samples;
-  final rowCount = (sampleHeight / 8).floor().clamp(1, 10000);
-  final inkProfileAverage = inkProfileTotal / rowCount;
-  final topBandDifference = _receiptImageBandDifference(
-    sampleA,
-    sampleB,
-    startFraction: .05,
-    endFraction: .22,
-  );
-  final bottomBandDifference = _receiptImageBandDifference(
-    sampleA,
-    sampleB,
-    startFraction: .78,
-    endFraction: .95,
-  );
-  return lumaAverage <= maxLumaAverage &&
-      normalizedLumaAverage <= maxNormalizedLumaAverage &&
-      inkProfileAverage <= maxInkProfileAverage &&
-      topBandDifference <= maxBandDifference &&
-      bottomBandDifference <= maxBandDifference;
+  final value = values[pairIndex];
+  if (!value.isFinite) return fallback;
+  return value.clamp(minimum, maximum).toDouble();
 }

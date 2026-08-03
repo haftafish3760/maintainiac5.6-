@@ -153,6 +153,9 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
         draft.receiptReadHandoffCoverageWarning;
     _receiptReviewModeChangedByUser = draft.receiptReviewModeChangedByUser;
     _receiptCategoryAppliesToAll = draft.receiptCategoryAppliesToAll;
+    _receiptCategoryEntryChoice = _receiptCategoryAppliesToAll
+        ? _ReceiptCategoryEntryChoice.wholeReceipt
+        : null;
     // Older drafts retain their stored mode for compatibility, but reopen in
     // the unified editable form so no field is hidden by a legacy receipt type.
     _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;

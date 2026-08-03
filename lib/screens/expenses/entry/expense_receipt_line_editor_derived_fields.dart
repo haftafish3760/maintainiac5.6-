@@ -11,8 +11,8 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
         unitPrice != null &&
         calculated != null) {
       final totalNote = printedTotal == null
-          ? ' The receipt total is calculated automatically.'
-          : ' The receipt total is calculated from quantity and price.';
+          ? ' The line total is calculated automatically.'
+          : ' The line total is calculated from quantity and price.';
       return '${_formatNumber(quantity)} × ${_money(unitPrice)} = ${_money(calculated)}.$totalNote';
     }
     return 'Enter a printed total when quantity and price each are not available.';
@@ -32,6 +32,35 @@ extension _ReceiptLineEditorDerivedFields on _ReceiptLineEditorSheetState {
       expenseReceiptRuleForCategory(_category);
 
   bool get _isFuelLine => _categoryRule.isFuel;
+
+  String get _unitPriceLabel {
+    if (_isFuelLine) {
+      return _fuelType == 'Electric' ? 'Price per kWh' : 'Price per gallon';
+    }
+    return _categoryRule.unitPriceLabel;
+  }
+
+  List<String> get _unitChoices {
+    final choices = <String>{
+      ..._categoryRule.unitChoices,
+      'each',
+      'piece',
+      'ounce',
+      'pound',
+      'quart',
+      'gallon',
+      'case',
+      'box',
+      'bag',
+      'pack',
+      'foot',
+      'inch',
+      'service',
+      'kWh',
+      _stockUnit,
+    };
+    return choices.toList(growable: false);
+  }
 
   double? get _enteredBusinessPercent {
     final raw = _businessPercentController.text.trim();

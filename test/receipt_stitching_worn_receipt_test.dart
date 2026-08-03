@@ -405,6 +405,7 @@ void _paintFullWidthContaminatedTopStrip(
 bool _containsFullWidthDarkContamination(img.Image image) {
   final startY = (image.height * .18).round();
   final endY = (image.height * .82).round();
+  var consecutiveDarkRows = 0;
   for (var y = startY; y < endY; y += 4) {
     var darkSamples = 0;
     var samples = 0;
@@ -414,7 +415,15 @@ bool _containsFullWidthDarkContamination(img.Image image) {
       if (luma < 36) darkSamples++;
       samples++;
     }
-    if (samples > 0 && darkSamples / samples > .82) return true;
+    if (samples > 0 && darkSamples / samples > .82) {
+      consecutiveDarkRows += 4;
+      // Receipt rules can be dark and nearly full width. A captured table or
+      // background strip persists across many rows, so only that sustained
+      // band should fail this stitch regression.
+      if (consecutiveDarkRows >= 40) return true;
+    } else {
+      consecutiveDarkRows = 0;
+    }
   }
   return false;
 }

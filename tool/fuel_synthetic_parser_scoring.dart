@@ -5,6 +5,8 @@ _FuelSyntheticReport _scoreFuelReceipts(List<_FuelSyntheticReceipt> cases) {
   final fuelTypeCounts = <String, int>{};
   final unitCounts = <String, int>{};
   final localeCounts = <String, int>{};
+  final sectionStyleCounts = <String, int>{};
+  final ocrDamageVariantCounts = <String, int>{};
   var mixedReceiptCount = 0;
   var cashReceiptCount = 0;
   var evReceiptCount = 0;
@@ -50,6 +52,18 @@ _FuelSyntheticReport _scoreFuelReceipts(List<_FuelSyntheticReceipt> cases) {
       (count) => count + 1,
       ifAbsent: () => 1,
     );
+    sectionStyleCounts.update(
+      'style_${receipt.sectionStyle}',
+      (count) => count + 1,
+      ifAbsent: () => 1,
+    );
+    if (receipt.ocrDamageVariant case final variant?) {
+      ocrDamageVariantCounts.update(
+        'variant_$variant',
+        (count) => count + 1,
+        ifAbsent: () => 1,
+      );
+    }
     if (receipt.expectMixed) mixedReceiptCount += 1;
     if (receipt.expectCashExclusion) cashReceiptCount += 1;
     if (receipt.fuelType == 'Electric') evReceiptCount += 1;
@@ -96,6 +110,18 @@ _FuelSyntheticReport _scoreFuelReceipts(List<_FuelSyntheticReceipt> cases) {
         .where((line) => line.category == 'Fuel')
         .toList();
     final issues = <String>[];
+
+    final leakedSectionLine = parsed.lines.any((line) {
+      return RegExp(
+        r'(?:store\s+header|dispenser\s+details|fuel\s+purchase|'
+        r'payment\s+summary|receipt\s+header|final\s+total|'
+        r'vehicle\s+reference)',
+        caseSensitive: false,
+      ).hasMatch(line.description);
+    });
+    if (leakedSectionLine) {
+      issues.add('receipt_section_marker_leaked_as_expense_line');
+    }
 
     final expectedFuelLineCount = receipt.expectMultiFuel ? 2 : 1;
     if (fuelLines.length != expectedFuelLineCount) {
@@ -295,6 +321,8 @@ _FuelSyntheticReport _scoreFuelReceipts(List<_FuelSyntheticReceipt> cases) {
     fuelTypeCounts: fuelTypeCounts,
     unitCounts: unitCounts,
     localeCounts: localeCounts,
+    sectionStyleCounts: sectionStyleCounts,
+    ocrDamageVariantCounts: ocrDamageVariantCounts,
     mixedReceiptCount: mixedReceiptCount,
     cashReceiptCount: cashReceiptCount,
     evReceiptCount: evReceiptCount,

@@ -171,6 +171,11 @@ void main() {
     expect(lineEditorActions, contains("'Confirmed'"));
     expect(lineEditorActions, contains('parserNeedsReview: false'));
     expect(
+      entryScreen,
+      contains('widget.initial.cameFromAppAssistedReceiptRead'),
+    );
+    expect(entryScreen, contains('widget.initial.parserNeedsReview'));
+    expect(
       lineEditorActions,
       contains('User reviewed and corrected this app-filled receipt line.'),
     );
@@ -248,7 +253,8 @@ void main() {
     expect(stateActions, contains('75% Business'));
     expect(stateActions, contains('Custom Business %'));
     expect(photoControls, contains('_ReceiptPreviewActionTray'));
-    expect(photoControls, contains('Use Receipt'));
+    expect(photoControls, contains('Use combined receipt'));
+    expect(photoControls, contains('Use receipt sections'));
     expect(photoControls, contains('receipt sections are saved locally'));
     expect(photoPreviewControls, contains('Add Bottom Section'));
     expect(photoPreviewControls, contains('minimumSize: const Size(0, 38)'));
@@ -257,7 +263,7 @@ void main() {
     expect(photoPreviewControls, contains('strings.addAnotherReceiptPhoto'));
     expect(photoControls, isNot(contains('Check Photo Match')));
     expect(photoControls, contains('Use this receipt'));
-    expect(photoControls, contains("'Use Receipt'"));
+    expect(photoControls, isNot(contains("'Use Receipt'")));
     expect(entryScreen, contains("'legacyTapFocusSuppressedAfterZoomTotal'"));
     expect(entryScreen, isNot(contains("'tapFocusSuppressedAfterZoomTotal'")));
     expect(entryScreen, contains("'zoomGestureStartTotal'"));

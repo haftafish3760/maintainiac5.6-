@@ -18,13 +18,12 @@ void main() {
     ).readAsStringSync();
 
     expect(android, contains('ScaleGestureDetector('));
-    final chrome = File(
-      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraUiChrome.kt',
+    final androidActivity = File(
+      'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraActivity.kt',
     ).readAsStringSync();
 
-    expect(chrome, contains('setOnTouchListener'));
-    expect(chrome, contains('detector.onTouchEvent(event)'));
-    expect(chrome, contains('event.pointerCount >= 2 || detector.isInProgress'));
+    expect(androidActivity, contains('override fun dispatchTouchEvent'));
+    expect(androidActivity, contains('scaleGestureDetector?.onTouchEvent(event)'));
     expect(
       android,
       isNot(contains('previewView.setOnTouchListener')),

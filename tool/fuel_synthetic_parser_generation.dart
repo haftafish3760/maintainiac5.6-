@@ -17,8 +17,14 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
         product.unit == 'gallon' &&
         locale == 'english_us' &&
         ((index + seed) % 12 == 2);
+    // Keep tax-only accounting cases and mixed-merchandise cases independently
+    // attributable. Each behavior is still generated at scale, without asking
+    // one synthetic receipt to assert an unsupported tax allocation policy.
     final includeMixed =
-        !includeMultiFuel && product.unit != 'kWh' && ((index + seed) % 4 == 1);
+        !includeMultiFuel &&
+        product.unit != 'kWh' &&
+        ((index + seed) % 4 == 1) &&
+        ((index + seed) % 17 != 6);
     final includeCash =
         !includeMultiFuel && product.unit != 'kWh' && ((index + seed) % 6 == 2);
     final includePreauthHold =
@@ -51,11 +57,10 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
     final includeLiquidExciseTax =
         !includeMultiFuel &&
         product.unit != 'kWh' &&
+        layout != 2 &&
         ((index + seed) % 17 == 6);
     final includeHubometer =
-        !includeMultiFuel &&
-        product.unit != 'kWh' &&
-        ((index + seed) % 5 == 0);
+        !includeMultiFuel && product.unit != 'kWh' && ((index + seed) % 5 == 0);
     final includeNonEthanol =
         !includeMultiFuel &&
         product.fuelType == 'Gasoline' &&
@@ -64,7 +69,9 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
         ((index + seed) % 10 == 0);
     final includeDirtyText = ((index + seed) % 7 == 3);
     final useCommaDecimals =
-        locale == 'spanish_us' && ((index + seed) % 9 == 5);
+        locale == 'spanish_us' &&
+        product.fuelType != 'E100' &&
+        ((index + seed) % 9 == 5);
     final includeAlternatePrice =
         !includeMultiFuel &&
         product.unit == 'gallon' &&
@@ -218,7 +225,15 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
             includePrivateIdentity: includePrivateIdentity,
             useDispenserShorthand: includeDispenserShorthand,
           );
-    final text = includeDirtyText ? _dirtyFuelText(cleanText) : cleanText;
+    final sectionStyle = (index + seed) % 3;
+    final ocrDamageVariant = includeDirtyText ? (index + seed) % 4 : null;
+    final sectionedText = _sectionedFuelReceiptText(
+      cleanText,
+      style: sectionStyle,
+    );
+    final text = includeDirtyText
+        ? _dirtyFuelText(sectionedText, variant: ocrDamageVariant!)
+        : sectionedText;
     final localizedText = useCommaDecimals ? _commaDecimalText(text) : text;
     receipts.add(
       _FuelSyntheticReceipt(
@@ -237,6 +252,8 @@ List<_FuelSyntheticReceipt> _generateSyntheticFuelReceipts({
         expectMixed: includeMixed,
         expectCashExclusion: includeCash,
         expectDirtyText: includeDirtyText,
+        sectionStyle: sectionStyle,
+        ocrDamageVariant: ocrDamageVariant,
         expectCommaDecimals: useCommaDecimals,
         expectPreauthHold: includePreauthHold,
         expectFleetTenderExclusion: includeFleetTender,

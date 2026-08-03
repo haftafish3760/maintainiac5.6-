@@ -31,6 +31,8 @@ class _FuelSyntheticReceipt {
     required this.expectMixed,
     required this.expectCashExclusion,
     required this.expectDirtyText,
+    required this.sectionStyle,
+    required this.ocrDamageVariant,
     required this.expectCommaDecimals,
     required this.expectPreauthHold,
     required this.expectFleetTenderExclusion,
@@ -72,6 +74,13 @@ class _FuelSyntheticReceipt {
   final bool expectMixed;
   final bool expectCashExclusion;
   final bool expectDirtyText;
+
+  /// Every synthetic receipt has one fictional section convention. This is
+  /// intentionally tracked separately from OCR damage so coverage is auditable.
+  final int sectionStyle;
+
+  /// Null means clean OCR text; 0-3 map to the deterministic damage families.
+  final int? ocrDamageVariant;
   final bool expectCommaDecimals;
   final bool expectPreauthHold;
   final bool expectFleetTenderExclusion;
@@ -439,20 +448,22 @@ const _products = [
   ),
 ];
 
+// Deliberately fictional merchant headers. These are layout/section stress
+// inputs, not replicas of any station's branded receipt.
 const _merchants = [
-  'SHELL',
-  'EXXON',
-  'PILOT TRVL CTR',
-  'RIVER ROAD MART 418',
-  'SUNOCO',
-  'QUIKTRIP',
-  'WAWA',
-  'RACEWAY',
+  'NORTHSTAR FUEL & MARKET 418',
+  'RED OAK ENERGY STOP',
+  'HIGHWAY LANTERN TRAVEL HUB',
+  'RIVERBEND ROAD MART 418',
+  'PINE RIDGE PETROLEUM',
+  'CROSSROADS QUICK MART',
+  'WAYPOINT FUEL AND GOODS',
+  'SUNSET TURNPIKE MARKET',
   ..._warehouseFuelMerchants,
 ];
 
 const _warehouseFuelMerchants = [
-  'KROGER FUEL CENTER',
-  'COSTCO GASOLINE',
-  'SAMS CLUB FUEL',
+  'HARBOR WHOLESALE FUEL',
+  'VALUE DEPOT GASOLINE',
+  'MEMBER MARKET FUEL',
 ];

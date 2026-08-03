@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -8,13 +9,17 @@ import 'package:path/path.dart' as path;
 
 import 'receipt_capture_models.dart';
 import 'receipt_photo_path_identity.dart';
+import 'receipt_stitch_text_evidence.dart';
 
 part 'receipt_image_processor_models.dart';
 part 'receipt_image_processor_source_prep.dart';
 part 'receipt_image_processor_resize_helpers.dart';
 part 'receipt_image_processor_stitch_helpers.dart';
+part 'receipt_image_processor_stitch_duplicate_helpers.dart';
 part 'receipt_image_processor_stitch_transform_helpers.dart';
 part 'receipt_image_processor_stitch_scoring_helpers.dart';
+part 'receipt_image_processor_stitch_support.dart';
+part 'receipt_image_processor_stitch_sources.dart';
 part 'receipt_image_processor_stitch_api.dart';
 part 'receipt_image_processor_scan_helpers.dart';
 part 'receipt_image_processor_enhancement_helpers.dart';
@@ -247,17 +252,55 @@ class ReceiptImageProcessor {
 
   static Future<ReceiptStitchResult> stitchReceiptPhotosForOcr({
     required List<String> paths,
+    List<ReceiptStitchTextEvidence>? textEvidence,
+    List<bool>? manualZeroOverlapPairs,
     List<int>? manualOverlapPixels,
     List<double>? manualOverlapFractions,
+    List<double>? manualScaleCorrections,
+    List<double>? manualRotationCorrectionsDegrees,
+    List<double>? manualHorizontalOffsetFractions,
     int maxOutputPixels = 16000000,
     int maxOutputHeight = 20000,
-  }) async {
-    return _stitchReceiptPhotosForOcr(
-      paths: paths,
-      manualOverlapPixels: manualOverlapPixels,
-      manualOverlapFractions: manualOverlapFractions,
+  }) {
+    final evidenceByPath = <String, List<String>>{};
+    for (final evidence
+        in textEvidence ?? const <ReceiptStitchTextEvidence>[]) {
+      final normalizedPath = normalizedReceiptPhotoPath(evidence.path);
+      if (normalizedPath == null) continue;
+      evidenceByPath[normalizedPath] = List<String>.of(evidence.lines);
+    }
+    final request = _ReceiptStitchRequest(
+      paths: List<String>.of(paths),
+      textLinesByPath: evidenceByPath.isEmpty
+          ? null
+          : [
+              for (final inputPath in paths)
+                List<String>.of(
+                  evidenceByPath[normalizedReceiptPhotoPath(inputPath)] ??
+                      const <String>[],
+                ),
+            ],
+      manualZeroOverlapPairs: manualZeroOverlapPairs == null
+          ? null
+          : List<bool>.of(manualZeroOverlapPairs),
+      manualOverlapPixels: manualOverlapPixels == null
+          ? null
+          : List<int>.of(manualOverlapPixels),
+      manualOverlapFractions: manualOverlapFractions == null
+          ? null
+          : List<double>.of(manualOverlapFractions),
+      manualScaleCorrections: manualScaleCorrections == null
+          ? null
+          : List<double>.of(manualScaleCorrections),
+      manualRotationCorrectionsDegrees: manualRotationCorrectionsDegrees == null
+          ? null
+          : List<double>.of(manualRotationCorrectionsDegrees),
+      manualHorizontalOffsetFractions: manualHorizontalOffsetFractions == null
+          ? null
+          : List<double>.of(manualHorizontalOffsetFractions),
       maxOutputPixels: maxOutputPixels,
       maxOutputHeight: maxOutputHeight,
     );
+    return Isolate.run(() => _runReceiptStitchInBackground(request));
   }
 }

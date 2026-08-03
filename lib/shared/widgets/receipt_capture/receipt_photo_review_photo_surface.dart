@@ -22,6 +22,7 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
                 File(photoPath),
                 fit: BoxFit.contain,
                 cacheWidth: _reviewPreviewCacheWidth(context),
+                cacheHeight: _reviewPreviewCacheHeight(context),
                 filterQuality: FilterQuality.medium,
                 gaplessPlayback: true,
                 errorBuilder: (context, error, stackTrace) {
@@ -54,7 +55,14 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
     final logicalWidth = MediaQuery.sizeOf(context).width;
     final pixelRatio = MediaQuery.devicePixelRatioOf(context);
     final targetWidth = (logicalWidth * pixelRatio * 1.35).round();
-    return targetWidth.clamp(900, 2600);
+    return targetWidth.clamp(900, 1800);
+  }
+
+  int _reviewPreviewCacheHeight(BuildContext context) {
+    final logicalHeight = MediaQuery.sizeOf(context).height;
+    final pixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final targetHeight = (logicalHeight * pixelRatio * 1.1).round();
+    return targetHeight.clamp(1200, 2800);
   }
 
   void _togglePhotoPreviewZoom() {

@@ -27,19 +27,19 @@ enum ReceiptPdfPreviewStatus {
   String get message {
     return switch (this) {
       ReceiptPdfPreviewStatus.ready =>
-        'This saved PDF proof is available read-only.',
+        'This saved PDF receipt copy is available to view.',
       ReceiptPdfPreviewStatus.missing =>
-        'The saved proof file is no longer on this device. The receipt record is still here, but the PDF copy needs to be reattached.',
+        'The saved PDF receipt copy is no longer on this device. The receipt record is still here, but the PDF needs to be attached again.',
       ReceiptPdfPreviewStatus.unreadable =>
-        'Maintainiac could not read the saved proof file from local storage. The PDF is not editable here; try opening it again after restarting the app.',
+        'Maintainiac could not read the saved PDF receipt copy from this device. The PDF cannot be edited here; try opening it again after restarting the app.',
       ReceiptPdfPreviewStatus.renderFailed =>
-        'The PDF was saved as read-only proof, but this device could not render a page preview.',
+        'The PDF was saved as a view-only receipt copy, but this device could not show a page preview.',
       ReceiptPdfPreviewStatus.tooLargeForPreview =>
-        'The PDF is saved as read-only proof, but it is too large to preview automatically on this phone.',
+        'The PDF is saved as a view-only receipt copy, but it is too large to preview automatically on this phone.',
       ReceiptPdfPreviewStatus.proofOnlyPreviewSkipped =>
-        'The PDF is saved as read-only proof. Maintainiac skipped automatic preview for this file because it is proof-only for app-assisted receipt assistance.',
+        'The PDF is saved as a view-only receipt copy. Maintainiac skipped the automatic preview because it is being kept as an attachment only.',
       ReceiptPdfPreviewStatus.noPreviewPages =>
-        'The PDF was saved as read-only proof, but no page image was available to preview.',
+        'The PDF was saved as a view-only receipt copy, but no page image was available to preview.',
     };
   }
 }

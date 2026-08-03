@@ -26,6 +26,7 @@ void main() {
       );
 
       _expectRealProbeOutcome(result, paths);
+      await _copyRealProbeOutputWhenRequested(result);
     },
     timeout: const Timeout(Duration(minutes: 4)),
   );
@@ -100,6 +101,37 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 8)),
   );
+}
+
+Future<void> _copyRealProbeOutputWhenRequested(
+  ReceiptStitchResult result,
+) async {
+  final outputPath = Platform.environment['RECEIPT_STITCH_REAL_OUTPUT_PATH']
+      ?.trim();
+  final stitchedPath = result.stitchedPath;
+  if (outputPath == null || outputPath.isEmpty) return;
+  if (stitchedPath != null && stitchedPath.isNotEmpty) {
+    await File(stitchedPath).copy(outputPath);
+  }
+  await File('$outputPath.txt').writeAsString('''
+status=${result.status.name}
+fallbackReason=${result.fallbackReasonCode}
+failedPair=${result.failedPairIndex}
+confidence=${result.confidence}
+overlapPixels=${result.overlapPixels.join(',')}
+requiresReview=${result.requiresOcrSourceReviewBeforeAssistedRead}
+${[
+    for (final pair in result.pairs)
+      'pair=${pair.pairIndex + 1} overlap=${pair.overlapPixels} '
+          'confidence=${pair.confidence} scale=${pair.scaleCorrection} '
+          'rotation=${pair.rotationCorrectionDegrees} '
+          'perspective=${pair.perspectiveCorrection} '
+          'x=${pair.horizontalOffsetPixels} y=${pair.verticalOffsetPixels} '
+          'continuity=${pair.continuityCorrelation} '
+          'bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands} '
+          'text=${pair.textOverlapConfidence} lines=${pair.matchedTextLineCount}',
+  ].join('\n')}
+''');
 }
 
 void _expectRealProbeOutcome(ReceiptStitchResult result, List<String> paths) {

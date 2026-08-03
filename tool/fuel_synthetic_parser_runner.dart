@@ -13,7 +13,7 @@ part 'fuel_synthetic_parser_receipt_models.dart';
 
 const _defaultCount = 24;
 const _defaultFailUnder = 1.0;
-const _presetCounts = {'smoke': 24, 'milestone': 500};
+const _presetCounts = {'smoke': 24, 'milestone': 5000};
 
 void main(List<String> args) {
   final config = _FuelSyntheticRunnerConfig.fromArgs(args);

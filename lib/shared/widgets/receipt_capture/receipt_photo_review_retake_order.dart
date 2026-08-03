@@ -19,8 +19,11 @@ class ReceiptPhotoRetakeAlignmentContext {
 
   String? get preferredGuidePhotoPath => previousPhotoPath ?? nextPhotoPath;
   String? get previousSectionGuidePhotoPath => previousPhotoPath;
-  String? get nextSectionGuidePhotoPath =>
-      hasTwoSidedContext ? nextPhotoPath : null;
+
+  /// The next section is an actual bottom guide for both a first-section
+  /// retake and a middle-section retake. It must not be dropped just because
+  /// there is no previous section yet.
+  String? get nextSectionGuidePhotoPath => nextPhotoPath;
 
   String get guidanceCode {
     if (hasTwoSidedContext) return 'retake_middle_with_previous_next_context';
@@ -34,7 +37,7 @@ class ReceiptPhotoRetakeAlignmentContext {
       'retake_middle_with_previous_next_context' =>
         'Retake this middle receipt section using the previous and next sections as alignment context.',
       'retake_bottom_with_previous_context' =>
-        'Retake the bottom receipt section using the previous section as the top ghost guide.',
+        'Retake the bottom receipt section using the previous section as the top reference strip.',
       'retake_top_with_next_context' =>
         'Retake the top receipt section, then check that it still joins cleanly with the next section in review.',
       _ =>

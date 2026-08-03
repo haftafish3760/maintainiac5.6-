@@ -7,12 +7,12 @@ extension _ReceiptOcrReviewReadinessHelpers on _ReceiptOcrReviewRow {
     return switch (diagnostics.parserReadinessStatus) {
       'receipt_ready' => const [
         'Review filled fields',
-        'Classify Business/Personal/Mixed',
+        'Classify Business/Personal/Split',
       ],
       'inventory_ready' => const [
         'Review item lines',
         'Check material matches',
-        'Classify Business/Personal/Mixed',
+        'Classify Business/Personal/Split',
       ],
       'missing_vendor' => const ['Check store name', 'Edit if wrong'],
       'missing_total' => const ['Check receipt total', 'Edit total'],

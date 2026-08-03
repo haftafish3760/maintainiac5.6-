@@ -33,10 +33,10 @@ class _ReceiptAttachmentSummary extends StatelessWidget {
     final photoDetail = hasPhotos
         ? [
             if (photoCount > 1) 'Photos kept in receipt order',
-            'Saved proof size: ${dataSaverLevel.label}',
+            'Saved image size: ${dataSaverLevel.label}',
             appAssistedEnabled
-                ? 'Next checks the clear photo before using the smaller proof'
-                : 'Receipt proof only',
+                ? 'Next checks the clear photo before using the smaller image'
+                : 'Receipt image only',
           ].join(' | ')
         : null;
     final detailParts = [

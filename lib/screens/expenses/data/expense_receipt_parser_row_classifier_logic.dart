@@ -69,9 +69,21 @@ bool _isSubtotalRow(String lower) {
 
 bool _isTaxRow(String lower) {
   final normalized = _normalizeReceiptSummaryKeywordText(lower);
-  return RegExp(
+  if (RegExp(
     r'\b(sales tax|tax|state tax|local tax|county tax|city tax|taxable tax)\b',
-  ).hasMatch(normalized);
+  ).hasMatch(normalized)) {
+    return true;
+  }
+  return _isNumberedTaxComponentRow(normalized);
+}
+
+bool _isNumberedTaxComponentRow(String value) {
+  final normalized = _normalizeReceiptSummaryKeywordText(value);
+  if (!RegExp(r'(?:^|\s)tax\s*#?\s*\d{1,2}(?=\s|:|$)').hasMatch(normalized)) {
+    return false;
+  }
+  return normalized.contains('%') ||
+      RegExp(r'\d+[\.,]\d{2}\s*$').hasMatch(normalized);
 }
 
 bool _isTotalOrTenderLikeRow(String lower) {

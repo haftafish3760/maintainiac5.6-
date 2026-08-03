@@ -6,7 +6,9 @@ import 'helpers/receipt_camera_capture_layout_source_readers.dart';
 
 void main() {
   test('photo review async preview work cleans up after lifecycle changes', () async {
-    final reviewScreen = await readReceiptPhotoReviewScreenSource();
+    final reviewScreen =
+        '${await readReceiptPhotoReviewScreenSource()}\n'
+        '${await File('lib/shared/widgets/receipt_capture/receipt_photo_review_async_work.dart').readAsString()}';
     final editActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart',
     ).readAsString();
@@ -38,7 +40,12 @@ void main() {
       reviewScreen,
       contains('unawaited(_deferQualityCheck(photoPath, generation));'),
     );
-    expect(reviewScreen, contains('_scheduleDataSaverPreviewWork(photoPath);'));
+    expect(
+      reviewScreen,
+      contains(
+        '_scheduleDataSaverPreviewWork(_dataSaverPreviewSource(photoPath));',
+      ),
+    );
     expect(
       reviewScreen,
       contains('void _scheduleDataSaverPreviewWork(String photoPath)'),
@@ -125,13 +132,12 @@ void main() {
       contains('void _releaseStaleStitchPreview(String key)'),
     );
     expect(reviewScreen, contains('void _selectStitchPairIndex(int index)'));
-    expect(reviewScreen, contains('if (!_reviewInteractiveControlsActive) return;'));
     expect(
       reviewScreen,
-      contains(
-        'final selected = maxPairIndex < 0 ? 0 : index.clamp(0, maxPairIndex);',
-      ),
+      contains('if (!_reviewInteractiveControlsActive) return;'),
     );
+    expect(reviewScreen, contains('final selected = maxPairIndex < 0'));
+    expect(reviewScreen, contains('index.clamp(0, maxPairIndex).toInt();'));
     expect(reviewScreen, contains('if (_selectedStitchPairIndex < 0)'));
     expect(
       reviewScreen,
@@ -180,7 +186,8 @@ void main() {
       reviewScreen,
       contains('await _deleteDataSaverPreviewPath(path, keepRetained: false)'),
     );
-    expect(editActions, contains('if (!_reviewInteractiveControlsActive)'));
+    expect(editActions, contains('if (!_reviewInteractiveControlsActive ||'));
+    expect(editActions, contains('!_toolControlsScrollController.hasClients'));
     expect(editActions, contains('await _deleteDataSaverPreviewPath(path);'));
     expect(editActions, contains('if (!_reviewWorkActive) return;'));
     expect(editActions, contains('final replacedGeneratedEdit'));

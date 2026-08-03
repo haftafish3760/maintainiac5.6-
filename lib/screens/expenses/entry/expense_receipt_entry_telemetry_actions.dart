@@ -157,6 +157,8 @@ extension _ExpenseReceiptEntryTelemetryActions
     };
   }
 
+  // Retained for the detailed classification review contract.
+  // ignore: unused_element
   void _applySuggestedReceiptCategory(String category) {
     final cleanCategory = category.trim();
     if (cleanCategory.isEmpty || cleanCategory == 'Uncategorized') return;

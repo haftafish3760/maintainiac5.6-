@@ -138,12 +138,12 @@ extension ReceiptOcrSourceHandoffLongReceipt on ReceiptOcrSourceHandoffSummary {
   String get ghostSliceReviewInstruction {
     if (!hasGhostSliceAlignmentContract) return '';
     if (hasSubtotalTotalFinalLineMatchTarget) {
-      return 'Repeat 3-5 readable lines in the top ghost slice so subtotal, total, and final lines can be matched.';
+      return 'Repeat 3-5 readable lines in the top reference strip so subtotal, total, and final lines can be matched.';
     }
     if (hasNextSectionTopLineMatchTarget) {
-      return 'Repeat 3-5 readable lines in the top ghost slice so the next receipt section can be matched.';
+      return 'Repeat 3-5 readable lines in the top reference strip so the next receipt section can be matched.';
     }
-    return 'Repeat 3-5 readable lines in the top ghost slice so receipt sections can be matched.';
+    return 'Repeat 3-5 readable lines in the top reference strip so receipt sections can be matched.';
   }
 
   bool get hasMissingBottomEdgeAndTotalsEvidence {

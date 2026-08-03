@@ -38,6 +38,12 @@ void main() {
     expect(worker, contains('final textForGenericReview = ocr.appFillText;'));
     expect(
       worker,
+      contains(
+        'final itemDraftsForGenericReview = ocr.parserHandoff.itemLineDrafts;',
+      ),
+    );
+    expect(
+      worker,
       contains('parseExpenseReceiptText(\n      textForGenericReview,'),
     );
     expect(
@@ -45,5 +51,8 @@ void main() {
       isNot(contains('parseExpenseReceiptOcrResult(\n      ocr,')),
     );
     expect(worker, isNot(contains('final diagnostics = ocr.diagnostics;')));
+    expect(worker, contains('recoverMissingOcrItemDrafts('));
+    expect(worker, contains('candidateLineCount:'));
+    expect(worker, contains('recoveredLineCount:'));
   });
 }

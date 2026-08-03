@@ -139,7 +139,8 @@ Map<String, Object?> _sessionArguments(
     'maxCleanupPixels': config.maxCleanupPixels,
     'maxStitchOutputPixels': config.maxStitchOutputPixels,
     'maxStitchOutputHeight': config.maxStitchOutputHeight,
-    if (config.hasPreviousSectionGuide) ..._previousSectionArguments(config),
+    if (config.hasPreviousSectionGuide || config.hasNextSectionGuide)
+      ..._previousSectionArguments(config),
     if (config.hasNextSectionGuide) ..._nextSectionArguments(config),
   };
 }
@@ -163,9 +164,9 @@ Map<String, Object?> _nextSectionArguments(
     'nextSectionGhostGuidePlacement': 'bottom_ghost_slice',
     'nextSectionGhostGuideMatchTarget': 'next_section_top_lines',
     'nextSectionGhostSourceStartFraction': 0.0,
-    'nextSectionGhostSourceHeightFraction': 0.20,
+    'nextSectionGhostSourceHeightFraction': 0.34,
     'nextSectionGhostOverlayTopFraction': 0.80,
-    'nextSectionGhostOverlayHeightFraction': 0.20,
+    'nextSectionGhostOverlayHeightFraction': 0.34,
     'nextSectionGhostOpacity': 0.28,
   };
 }

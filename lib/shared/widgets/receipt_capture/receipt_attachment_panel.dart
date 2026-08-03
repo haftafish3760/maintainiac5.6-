@@ -87,6 +87,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.receiptContinuationGuidance,
     this.showInterruptedCaptureRecovery = true,
     this.openImportOptionsOnFirstBuild = false,
+    this.closeParentWhenImportCanceled = false,
     this.uiConfig = const ReceiptCaptureUiConfig(),
     this.controller,
   });
@@ -114,6 +115,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final String? receiptContinuationGuidance;
   final bool showInterruptedCaptureRecovery;
   final bool openImportOptionsOnFirstBuild;
+  final bool closeParentWhenImportCanceled;
   final ReceiptCaptureUiConfig uiConfig;
   final ReceiptAttachmentPanelController? controller;
 

@@ -330,7 +330,7 @@ void main() {
     expect(stitched.pairs.single.diagnosticCode, 'overlap_matched');
     expect(
       stitched.pairs.single.userCheckLabel,
-      'Photo 1 to 2 matched repeated receipt text.',
+      'Photo 1 to 2 matched the shared receipt image area.',
     );
   });
 

@@ -21,13 +21,13 @@ void main() {
       ),
     );
 
-    expect(estimate.estimatedBytesPerSavedProof, 900 * 1024);
-    expect(estimate.estimatedProofBytesForCapture, 900 * 1024);
+    expect(estimate.estimatedBytesPerSavedProof, 550 * 1024);
+    expect(estimate.estimatedProofBytesForCapture, 550 * 1024);
     expect(estimate.estimatedOriginalBytesForCapture, 24 * 1024 * 1024);
-    expect(estimate.estimatedBytesPerSavedProofLabel, '900 KB');
+    expect(estimate.estimatedBytesPerSavedProofLabel, '550 KB');
     expect(
       estimate.approximatePhotosRemainingLabel,
-      'About 102 more photos at this setting',
+      'About 167 more photos at this setting',
     );
     expect(estimate.asksEveryReceiptRecommended, isFalse);
     expect(
@@ -56,13 +56,13 @@ void main() {
       ),
     );
 
-    expect(estimate.estimatedBytesPerSavedProof, 1350 * 1024);
-    expect(estimate.estimatedProofBytesForCapture, 5400 * 1024);
+    expect(estimate.estimatedBytesPerSavedProof, 875 * 1024);
+    expect(estimate.estimatedProofBytesForCapture, 3500 * 1024);
     expect(estimate.estimatedOriginalBytesForCapture, 72 * 1024 * 1024);
     expect(estimate.estimatedOriginalBytesForCaptureLabel, '72.0 MB');
     expect(
       estimate.approximatePhotosRemainingLabel,
-      'About 625 more photos at this setting',
+      'About 964 more photos at this setting',
     );
   });
 

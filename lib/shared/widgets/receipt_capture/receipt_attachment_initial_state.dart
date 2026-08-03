@@ -45,7 +45,12 @@ extension _ReceiptAttachmentInitialState on _SharedReceiptAttachmentPanelState {
     for (final attachment in attachments) {
       if (!attachment.isPhoto) continue;
       final path = attachment.path.trim();
-      if (path.isEmpty || !seenPaths.add(path)) continue;
+      // Attachment records can outlive a deleted local staging file. Never
+      // revive that dead path into a new receipt screen: it creates a photo
+      // the person cannot actually open, reorder, or save.
+      if (path.isEmpty || !File(path).existsSync() || !seenPaths.add(path)) {
+        continue;
+      }
       normalized.add(attachment.copyWith(path: path));
     }
     return List.unmodifiable(normalized);

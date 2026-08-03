@@ -1,103 +1,107 @@
 part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
+  /// Expenses and fuel receipts use one compact receipt form. Materials and
+  /// maintenance retain their lane-owned forms, including their specialized
+  /// inventory and repair controls.
   bool get _usesRebuiltManualDetailedReceiptFlow =>
-      !_isEditingReceipt &&
-      widget.mode == ExpenseReceiptFlowMode.general &&
-      widget.initialCategory != 'Fuel' &&
-      !_isMaterialsFlow &&
-      !_isMaintenanceRepairFlow;
+      !_isMaterialsFlow && !_isMaintenanceRepairFlow;
+
+  bool get _startsWithAppAssistedReceiptCapture =>
+      ReceiptCaptureSettingsScope.maybeOf(
+        context,
+      )?.appAssistedEnabledFor(_receiptCaptureArea) ==
+      true;
 
   Widget _buildManualDetailedReceiptFlow(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1F2528),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _ManualReceiptHeader(
-              step: _manualReceiptStep,
-              onBack: _handleManualReceiptBack,
-              onStepSelected: _selectManualReceiptStep,
-            ),
-            GlobalOdometerHeader(
-              section: AppSection.expenses,
-              headerLabel: _manualReceiptStep.vehicleHeaderLabel,
-              onSettingsPressed: () => unawaited(
-                _manualReceiptAttachmentController.openSettings(
-                  screenContext: _manualReceiptStep.settingsScreenContext,
+    return PopScope<Object?>(
+      // The classification screen is the entry point for this flow. Android
+      // Back must leave it normally for Expenses; intercept only in-flow Back.
+      canPop:
+          _startsWithAppAssistedReceiptCapture ||
+          (!_receiptClassificationConfirmed &&
+              _manualReceiptStep == _ManualReceiptStep.details),
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _handleManualReceiptBack();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0B0D0F),
+        body: SafeArea(
+          child: Column(
+            children: [
+              _ReferenceReceiptAppBar(
+                entryModeLabel: _startsWithAppAssistedReceiptCapture
+                    ? 'App-assisted'
+                    : 'Manual',
+                onBack: _handleManualReceiptBack,
+                onSettings: () => unawaited(
+                  _manualReceiptAttachmentController.openSettings(
+                    screenContext:
+                        _ManualReceiptStep.details.settingsScreenContext,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: switch (_manualReceiptStep) {
-                  _ManualReceiptStep.details => _buildManualReceiptDetailsStep(
-                    context,
-                  ),
-                  _ManualReceiptStep.items => _buildManualReceiptItemsStep(
-                    context,
-                  ),
-                  _ManualReceiptStep.review => _buildManualReceiptReviewStep(
-                    context,
-                  ),
-                },
+              Expanded(child: _buildManualReceiptDetailsStep(context)),
+              Offstage(
+                offstage: true,
+                child: Column(
+                  children: [
+                    _buildReceiptAttachmentPanel(
+                      context,
+                      controller: _manualReceiptAttachmentController,
+                    ),
+                    _ManualReceiptStoreBinding(
+                      controller: _manualReceiptStoreController,
+                      store: _storeController,
+                      phone: _phoneController,
+                      street: _streetController,
+                      city: _cityController,
+                      state: _stateController,
+                      zip: _zipController,
+                      email: _emailController,
+                      website: _websiteController,
+                      notes: _storeNotesController,
+                      onChanged: () {
+                        _setReceiptEntryState(() {});
+                        _scheduleDraftSave();
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Offstage(
-              offstage: true,
-              child: Column(
-                children: [
-                  _buildReceiptAttachmentPanel(
-                    context,
-                    controller: _manualReceiptAttachmentController,
-                  ),
-                  _ManualReceiptStoreBinding(
-                    controller: _manualReceiptStoreController,
-                    store: _storeController,
-                    phone: _phoneController,
-                    street: _streetController,
-                    city: _cityController,
-                    state: _stateController,
-                    zip: _zipController,
-                    email: _emailController,
-                    website: _websiteController,
-                    notes: _storeNotesController,
-                    onChanged: () {
-                      _setReceiptEntryState(() {});
-                      _scheduleDraftSave();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildManualReceiptDetailsStep(BuildContext context) {
+    if (!_receiptClassificationConfirmed &&
+        !_startsWithAppAssistedReceiptCapture) {
+      return _buildReceiptClassificationStep();
+    }
     final localizations = MaterialLocalizations.of(context);
-    final jobs = MaintainiacJobScope.maybeOf(context);
-    final job = jobs?.jobById(_expenseContext.jobId);
-    final jobLabel = job?.name ?? _expenseContext.jobLabel;
-    final attachmentCount = _receiptAttachments.length;
-    final receiptAttachmentValue = attachmentCount == 0
-        ? 'Optional. Add photos, a PDF, or imported receipt text.'
-        : '$attachmentCount receipt ${attachmentCount == 1 ? 'attachment is' : 'attachments are'} added.';
     return ListView(
       key: const ValueKey('manual-receipt-details'),
       controller: _receiptScrollController,
-      padding: const EdgeInsets.fromLTRB(14, 4, 14, 22),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 26),
       children: [
-        _buildManualReceiptContextActions(
-          context,
-          jobs: jobs,
-          jobLabel: jobLabel,
+        _ReferenceReceiptSelectionContext(
+          classification: _receiptUse.label,
+          category: _receiptCategoryContextLabel,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 14),
+        _ReferenceReceiptContextRow(
+          vehicleLabel:
+              AppStateScope.of(context).activeVehicle?.nickname ?? 'No vehicle',
+          workProfileLabel: ExpenseWorkProfileScope.of(
+            context,
+          ).activeWorkProfile.name,
+          onVehicleTap: _chooseReceiptVehicle,
+          onWorkProfileTap: _chooseReceiptWorkProfile,
+        ),
+        const SizedBox(height: 14),
         _ManualReceiptDateTimeStrip(
           date: localizations.formatMediumDate(_selectedDate),
           time: _selectedTime == null
@@ -106,37 +110,292 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
           onSelectDate: _selectDate,
           onSelectTime: _selectTime,
         ),
-        const SizedBox(height: 8),
-        _ManualReceiptActionTile(
-          icon: Icons.storefront_rounded,
-          label: 'Store information',
-          value: _manualMerchantSummary,
-          actionLabel: _storeController.text.trim().isEmpty ? 'Add' : 'Edit',
-          onTap: () => unawaited(_manualReceiptStoreController.openEditor()),
-          color: const Color(0xFF6FC3FF),
+        const SizedBox(height: 14),
+        _ReferenceReceiptTotalField(
+          controller: _receiptTotalController,
+          onChanged: (_) => _scheduleDraftSave(),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 14),
         _ManualReceiptActionTile(
-          icon: Icons.receipt_long_rounded,
-          label: 'Add receipt',
-          value: _scanningReceiptPhotos
-              ? 'Preparing receipt suggestions.'
-              : receiptAttachmentValue,
-          actionLabel: attachmentCount == 0 ? 'Add' : 'Manage',
-          onTap: () =>
-              unawaited(_manualReceiptAttachmentController.openImportOptions()),
-          color: const Color(0xFF8EF6A4),
+          icon: Icons.storefront_outlined,
+          label: 'Store information',
+          value: _storeController.text.trim().isEmpty
+              ? 'Optional. Add the store name and address.'
+              : _manualMerchantSummary,
+          onTap: () => unawaited(_manualReceiptStoreController.openEditor()),
+          color: const Color(0xFFE8ECEE),
+          referenceChevronOnly: true,
         ),
         const SizedBox(height: 18),
+        const _ReferenceReceiptSectionLabel(
+          label: 'Actions',
+          helper: 'Optional',
+        ),
+        const SizedBox(height: 10),
+        _ManualReceiptActionTile(
+          icon: Icons.format_list_bulleted_rounded,
+          label: _lines.isEmpty ? 'Add items' : 'Edit items',
+          value: _lines.isEmpty
+              ? 'Add receipt line items'
+              : '${_lines.length} ${_lines.length == 1 ? 'item' : 'items'} added',
+          onTap: _addManualReceiptItem,
+          color: const Color(0xFFE8ECEE),
+          referenceChevronOnly: true,
+        ),
+        const SizedBox(height: 18),
+        OutlinedButton.icon(
+          onPressed: _openManualReceiptPreview,
+          icon: const Icon(Icons.preview_outlined),
+          label: const Text('Preview receipt'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFFD9FFE0),
+            minimumSize: const Size.fromHeight(50),
+            side: const BorderSide(color: Color(0xFF2B9947), width: 1.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
         _ManualReceiptPrimaryButton(
-          label: 'Continue to items',
+          label: 'Continue to receipt preview',
           icon: Icons.arrow_forward_rounded,
-          onPressed: _continueFromManualReceiptDetails,
+          onPressed: _openManualReceiptPreview,
         ),
       ],
     );
   }
 
+  Widget _buildReceiptClassificationStep() => ListView(
+    key: const ValueKey('receipt-classification-step'),
+    padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
+    children: [
+      const Text(
+        'Please classify this receipt',
+        style: TextStyle(
+          color: _receiptReferenceText,
+          fontSize: 23,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(height: 8),
+      const Text(
+        'Choose Business, Personal, or Split. You can review and change every detail before saving.',
+        style: TextStyle(
+          color: _receiptReferenceMuted,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
+        ),
+      ),
+      const SizedBox(height: 22),
+      _ReferenceReceiptClassificationRow(
+        selected: _receiptUse,
+        onChanged: _setReceiptUse,
+      ),
+      const SizedBox(height: 30),
+      const Text(
+        'Choose a category for this receipt',
+        style: TextStyle(
+          color: _receiptReferenceText,
+          fontSize: 17,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(height: 4),
+      const Text(
+        'Optional. Pick one category for the whole receipt, or leave it blank.',
+        style: TextStyle(
+          color: _receiptReferenceMuted,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          height: 1.3,
+        ),
+      ),
+      const SizedBox(height: 12),
+      _ReferenceReceiptCategoryTile(
+        category: _receiptCategory,
+        onTap: _openReceiptCategoryPicker,
+      ),
+      const SizedBox(height: 12),
+      _ReceiptCategoryEntryOptions(
+        selected: _receiptCategoryEntryChoice,
+        onChanged: _setReceiptCategoryEntryChoice,
+      ),
+      const SizedBox(height: 24),
+      _ManualReceiptPrimaryButton(
+        label: 'Continue',
+        icon: Icons.arrow_forward_rounded,
+        onPressed: _confirmReceiptClassification,
+      ),
+    ],
+  );
+
+  Future<void> _openReceiptCategoryPicker() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF101315),
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
+          child: _ReceiptWholeCategoryPicker(
+            selectedCategory: _receiptCategory,
+            onCategorySelected: _setManualReceiptCategory,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmReceiptClassification() {
+    if (_receiptUse == _ExpenseLineUse.unclassified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Choose Business, Personal, or Split to continue.'),
+        ),
+      );
+      return;
+    }
+    _setReceiptEntryState(() => _receiptClassificationConfirmed = true);
+    _scheduleDraftSave();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _hasReceipt || _receiptAttachments.isNotEmpty) return;
+      unawaited(_manualReceiptAttachmentController.openImportOptions());
+    });
+  }
+
+  void _setReceiptCategoryEntryChoice(_ReceiptCategoryEntryChoice choice) {
+    _setReceiptEntryState(() {
+      _receiptCategoryEntryChoice = choice;
+      if (choice == _ReceiptCategoryEntryChoice.wholeReceipt) return;
+      _receiptCategory = 'Uncategorized';
+      _receiptCategoryAppliesToAll = false;
+    });
+    _scheduleDraftSave();
+  }
+
+  Future<void> _chooseReceiptVehicle() async {
+    openGlobalVehiclePicker(
+      context,
+      section: AppSection.expenses,
+      onVehicleSelected: (_) => unawaited(_editExpenseOdometerReading()),
+    );
+  }
+
+  Future<void> _chooseReceiptWorkProfile() async {
+    final profiles = ExpenseWorkProfileScope.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF101315),
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
+          children: [
+            const Text(
+              'Choose work profile',
+              style: TextStyle(
+                color: _receiptReferenceText,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            for (final profile in profiles.profiles)
+              ListTile(
+                title: Text(
+                  profile.name,
+                  style: const TextStyle(
+                    color: _receiptReferenceText,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                trailing: profile.id == profiles.activeWorkProfile.id
+                    ? const Icon(Icons.check_rounded, color: Color(0xFF51D26C))
+                    : null,
+                onTap: () async {
+                  await profiles.select(profile.id);
+                  if (!mounted) return;
+                  final operational = OperationalContextScope.maybeOf(context);
+                  await operational?.setActiveWorkProfile(
+                    workProfileId: profile.id,
+                    workProfileName: profile.name,
+                  );
+                  if (sheetContext.mounted) Navigator.of(sheetContext).pop();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _saveManualReceiptFromMain() async {
+    if (_lines.isEmpty) {
+      if (_enteredReceiptTotal == null || _enteredReceiptTotal! <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Enter the receipt total before saving.'),
+          ),
+        );
+        return;
+      }
+      await _addReceiptTotalLine(
+        use: _receiptUse == _ExpenseLineUse.unclassified
+            ? _ExpenseLineUse.business
+            : _receiptUse,
+        category: _newReceiptLineCategory,
+      );
+      if (!mounted || _lines.isEmpty) return;
+    }
+    await _saveReceipt();
+  }
+
+  Future<void> _openManualReceiptPreview() async {
+    if (_lines.isEmpty &&
+        (_enteredReceiptTotal == null || _enteredReceiptTotal! <= 0)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Add a receipt total or at least one item before previewing.',
+          ),
+        ),
+      );
+      return;
+    }
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => _ManualReceiptPreviewScreen(
+          storeName: _storeController.text.trim(),
+          storeAddress: _receiptStoreAddressLabel,
+          dateLabel: MaterialLocalizations.of(
+            context,
+          ).formatMediumDate(_selectedDate),
+          timeLabel: _selectedTime == null
+              ? ''
+              : MaterialLocalizations.of(
+                  context,
+                ).formatTimeOfDay(_selectedTime!),
+          classification: _receiptUse.label,
+          lines: _lines,
+          total: _receiptTotal,
+          tax: _enteredReceiptTax,
+          attachments: _receiptAttachments,
+          onEdit: () => Navigator.of(context).pop(),
+          onSave: () async {
+            Navigator.of(context).pop();
+            await _saveManualReceiptFromMain();
+          },
+        ),
+      ),
+    );
+  }
+
+  // Retained solely to open old locally saved manual drafts without changing
+  // their data contract. New receipts use the Figma-derived single-page form.
+  // ignore: unused_element
   Widget _buildManualReceiptContextActions(
     BuildContext context, {
     required MaintainiacJobController? jobs,
@@ -173,6 +432,7 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     );
   }
 
+  // ignore: unused_element
   Widget _buildManualReceiptItemsStep(BuildContext context) {
     return ListView(
       key: const ValueKey('manual-receipt-items'),
@@ -225,6 +485,7 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     );
   }
 
+  // ignore: unused_element
   Widget _buildManualReceiptReviewStep(BuildContext context) {
     return ListView(
       key: const ValueKey('manual-receipt-review'),
@@ -286,7 +547,22 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     return address.isEmpty ? name : '$name · $address';
   }
 
+  String get _receiptCategoryContextLabel =>
+      switch (_receiptCategoryEntryChoice) {
+        _ReceiptCategoryEntryChoice.mixedItems => 'Mixed categories',
+        _ReceiptCategoryEntryChoice.notSureYet => 'No category yet',
+        _ReceiptCategoryEntryChoice.wholeReceipt => _receiptCategory,
+        null =>
+          _receiptCategory == 'Uncategorized'
+              ? 'No category yet'
+              : _receiptCategory,
+      };
+
   void _handleManualReceiptBack() {
+    if (_receiptClassificationConfirmed) {
+      _setReceiptEntryState(() => _receiptClassificationConfirmed = false);
+      return;
+    }
     switch (_manualReceiptStep) {
       case _ManualReceiptStep.details:
         if (!_hasDraftContentWorthRecovering) {
@@ -359,11 +635,13 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     if (mounted) Navigator.of(context).maybePop();
   }
 
+  // ignore: unused_element
   void _continueFromManualReceiptDetails() {
     _setReceiptEntryState(() => _manualReceiptStep = _ManualReceiptStep.items);
     _scheduleDraftSave();
   }
 
+  // ignore: unused_element
   void _selectManualReceiptStep(_ManualReceiptStep target) {
     _setReceiptEntryState(() => _manualReceiptStep = target);
   }
@@ -382,16 +660,37 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
   Future<void> _addManualReceiptItem() async {
     await _editLine(
       initial: _ExpenseReceiptLine.blank(
-        use: _ExpenseLineUse.business,
+        use: _receiptUse == _ExpenseLineUse.split
+            ? _ExpenseLineUse.unclassified
+            : _receiptUse,
         category: _newReceiptLineCategory,
       ),
+      allowLineClassification:
+          _receiptUse == _ExpenseLineUse.split ||
+          _receiptUse == _ExpenseLineUse.unclassified,
     );
+  }
+
+  void _setManualReceiptCategory(String category) {
+    _setReceiptEntryState(() {
+      _receiptCategory = category;
+      _receiptCategoryAppliesToAll = category != 'Uncategorized';
+      _receiptCategoryEntryChoice = _receiptCategoryAppliesToAll
+          ? _ReceiptCategoryEntryChoice.wholeReceipt
+          : _ReceiptCategoryEntryChoice.notSureYet;
+      if (!_receiptCategoryAppliesToAll) return;
+      for (var index = 0; index < _lines.length; index++) {
+        _lines[index] = _lines[index].copyWith(category: category);
+      }
+    });
+    _scheduleDraftSave();
   }
 }
 
 enum _ManualReceiptExitDecision { saveDraft, discard }
 
 extension _ManualReceiptStepSettings on _ManualReceiptStep {
+  // ignore: unused_element
   String get vehicleHeaderLabel => switch (this) {
     _ManualReceiptStep.details => 'RECEIPT DETAILS',
     _ManualReceiptStep.items => 'RECEIPT ITEMS',
@@ -424,4 +723,238 @@ extension _ManualReceiptStepSettings on _ManualReceiptStep {
           'These choices affect receipt capture and future app-assisted suggestions. They never replace the values shown on Review.',
     ),
   };
+}
+
+class _ManualReceiptPreviewScreen extends StatelessWidget {
+  const _ManualReceiptPreviewScreen({
+    required this.storeName,
+    required this.storeAddress,
+    required this.dateLabel,
+    required this.timeLabel,
+    required this.classification,
+    required this.lines,
+    required this.total,
+    required this.tax,
+    required this.attachments,
+    required this.onEdit,
+    required this.onSave,
+  });
+
+  final String storeName;
+  final String storeAddress;
+  final String dateLabel;
+  final String timeLabel;
+  final String classification;
+  final List<_ExpenseReceiptLine> lines;
+  final double total;
+  final double? tax;
+  final List<ReceiptAttachmentRecord> attachments;
+  final VoidCallback onEdit;
+  final Future<void> Function() onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final firstPhoto = attachments
+        .where((attachment) => attachment.isPhoto)
+        .firstOrNull;
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B0D0F),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0B0D0F),
+        foregroundColor: Colors.white,
+        title: const Text('Receipt preview'),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (firstPhoto != null && File(firstPhoto.path).existsSync()) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.file(File(firstPhoto.path), fit: BoxFit.contain),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '${attachments.length} ${attachments.length == 1 ? 'receipt image' : 'receipt images'} · ${_attachmentSizeLabel(attachments)}',
+              style: const TextStyle(
+                color: _receiptReferenceMuted,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 14),
+          ],
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: const Color(0xFF15191B),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFF3B454A)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  storeName.isEmpty ? 'Store not entered' : storeName,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                if (storeAddress.isNotEmpty)
+                  Text(
+                    storeAddress,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: _receiptReferenceMuted),
+                  ),
+                const SizedBox(height: 6),
+                Text(
+                  [
+                    dateLabel,
+                    timeLabel,
+                  ].where((value) => value.isNotEmpty).join(' · '),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: _receiptReferenceMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const Divider(height: 26, color: Color(0xFF3B454A)),
+                Text(
+                  classification.toUpperCase(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: _receiptReferenceOrange,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const Divider(height: 26, color: Color(0xFF3B454A)),
+                Text(
+                  '${lines.length} ${lines.length == 1 ? 'item' : 'items'}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: _receiptReferenceMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                for (final line in lines) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          line.displayDescription,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        _money(line.subtotal),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${line.quantityText} ${line.stockUnit} · ${line.category}',
+                    style: const TextStyle(
+                      color: _receiptReferenceMuted,
+                      fontSize: 12,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                const Divider(height: 20, color: Color(0xFF3B454A)),
+                if (tax != null) _previewTotalRow('Sales tax', tax!),
+                _previewTotalRow('Receipt total', total, emphasized: true),
+              ],
+            ),
+          ),
+          if (attachments.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            for (final attachment in attachments)
+              Text(
+                '${attachment.label}: ${attachment.kind.name} · ${attachment.dataSaverLevel.label} · ${attachment.byteSize == null ? 'size pending' : _singleAttachmentSizeLabel(attachment.byteSize!)}',
+                style: const TextStyle(
+                  color: _receiptReferenceMuted,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+          ],
+          const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit_outlined),
+            label: const Text('Edit receipt'),
+          ),
+          const SizedBox(height: 8),
+          FilledButton.icon(
+            onPressed: onSave,
+            icon: const Icon(Icons.save_outlined),
+            label: const Text('Save receipt'),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF297A2D),
+              minimumSize: const Size.fromHeight(54),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _previewTotalRow(
+    String label,
+    double value, {
+    bool emphasized = false,
+  }) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: emphasized ? FontWeight.w900 : FontWeight.w700,
+            ),
+          ),
+        ),
+        Text(
+          _money(value),
+          style: TextStyle(
+            color: emphasized ? _receiptReferenceOrange : Colors.white,
+            fontSize: emphasized ? 20 : 15,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ],
+    ),
+  );
+
+  String _attachmentSizeLabel(List<ReceiptAttachmentRecord> records) {
+    final bytes = records.fold<int>(
+      0,
+      (sum, record) => sum + (record.byteSize ?? 0),
+    );
+    if (bytes <= 0) return 'size will be shown after saving';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).round()} KB saved';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB saved';
+  }
+
+  String _singleAttachmentSizeLabel(int bytes) {
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).round()} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
 }

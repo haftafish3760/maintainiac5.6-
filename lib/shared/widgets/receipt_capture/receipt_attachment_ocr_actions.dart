@@ -89,7 +89,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
       updateAttachmentState(() {
         _receiptReadStatus = _ReceiptReadStatusKind.warning;
         _receiptReadStatusMessage =
-            'Receipt proof saved. This file is too large or not suitable for automatic receipt filling on this device.';
+            'Receipt image saved. This file is too large or not suitable for automatic receipt filling on this device.';
       });
       if (showNoTextMessage || showDisabledMessage) {
         showPickerError(warning);
@@ -253,11 +253,11 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
             _receiptReadStatus = _ReceiptReadStatusKind.failed;
             _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
             _receiptReadStatusMessage =
-                'Receipt text was read, but the editable receipt details could not open. Keep the proof and fill the receipt by hand.';
+                'Receipt text was read, but the editable receipt details could not open. Keep the image and fill the receipt by hand.';
           });
           if (showNoTextMessage) {
             showPickerError(
-              'Receipt details could not open. Keep the proof and continue filling the receipt by hand.',
+              'Receipt details could not open. Keep the image and continue filling the receipt by hand.',
             );
           }
         }
@@ -265,7 +265,7 @@ extension _ReceiptAttachmentOcrActions on _SharedReceiptAttachmentPanelState {
         return _ReceiptAttachmentReadResult(
           _ReceiptAttachmentReadOutcome.unreadable,
           warning:
-              'Receipt text was read, but editable receipt details could not open. Keep the proof and continue filling the receipt by hand.',
+              'Receipt text was read, but editable receipt details could not open. Keep the image and continue filling the receipt by hand.',
           ocrDiagnostics: result.diagnostics,
         );
       }

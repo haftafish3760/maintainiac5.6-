@@ -42,7 +42,7 @@ void main() {
     expect(
       panelSource,
       contains(
-        'Use a clearer photo, use Add Receipt Photo for a long receipt, or keep the proof and fill the receipt by hand.',
+        'Use a clearer photo, use Add Receipt Photo for a long receipt, or keep the image and fill the receipt by hand.',
       ),
     );
     expect(panelSource, contains('Receipt Ready For Review'));
@@ -163,7 +163,7 @@ void main() {
     expect(
       stagingSource,
       contains(
-        'use the saved photos to open receipt details from the saved proof',
+        'use the saved photos to open receipt details',
       ),
     );
     expect(panelSource, contains('record.recoveredCountLabel'));

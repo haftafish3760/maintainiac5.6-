@@ -28,6 +28,7 @@ extension _ExpenseReceiptEntryImportedTextParseActions
       _updateReceiptState(() {
         _scanningReceiptPhotos = true;
         _receiptReviewFlowStarted = true;
+        _appAssistedReceiptPreviewPresented = false;
         _receiptReadHandoffStage = 'Filling receipt details';
         _lastReceiptParseCompleted = false;
         _lastReceiptParseHadUsableData = false;
@@ -110,6 +111,7 @@ extension _ExpenseReceiptEntryImportedTextParseActions
       _updateReceiptState(() {
         _scanningReceiptPhotos = true;
         _receiptReviewFlowStarted = true;
+        _appAssistedReceiptPreviewPresented = false;
         _receiptReadHandoffStage = 'Filling receipt details';
         _lastReceiptParseCompleted = false;
         _lastReceiptParseHadUsableData = false;

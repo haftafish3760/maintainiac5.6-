@@ -14,7 +14,7 @@ void main() {
     expect(reviewScreen, contains('Return To Receipt Entry'));
     expect(reviewScreen, isNot(contains('Back To Receipt Form')));
     expect(saveActions, contains('_confirmReceiptReviewExit'));
-    expect(saveActions, contains('final navigator = Navigator.of(context);'));
+    expect(saveActions, contains('Navigator.of(context).pop(result);'));
     expect(
       saveActions,
       contains('_coverageDecisionForPhotoPath(_photoPaths[selected])'),
@@ -32,7 +32,7 @@ void main() {
     expect(
       saveActions,
       contains(
-        r'Tap $nextLabel to add the bottom receipt section with the top ghost-slice guide',
+        r'Tap $nextLabel to add the bottom receipt section with the top reference strip',
       ),
     );
     expect(
@@ -60,7 +60,7 @@ void main() {
       ),
     );
     expect(saveActions, contains('ReceiptPhotoReviewResult.discardedByUser'));
-    expect(saveActions, contains('navigator.pop(reviewResult);'));
+    expect(saveActions, contains('finishReceiptReview(reviewResult);'));
     expect(saveActions, contains('bool beginReceiptReviewClose()'));
     expect(
       saveActions,
@@ -234,7 +234,11 @@ void main() {
     );
     expect(
       saveActions.indexOf('await _confirmReceiptCompleteIfNeeded()'),
-      lessThan(saveActions.indexOf('if (_needsStitchReviewBeforeSave)')),
+      lessThan(
+        saveActions.indexOf(
+          'if (_reviewMode != _ReceiptReviewMode.dataSaver &&',
+        ),
+      ),
     );
     expect(completionActions, contains('decision.shouldPromptForMorePhotos'));
     expect(
@@ -274,12 +278,15 @@ void main() {
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
+    final modeControls = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_mode_controls.dart',
+    ).readAsString();
     final stitchControls =
         await File(
-          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_controls.dart',
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_pair_preview.dart',
         ).readAsString() +
         await File(
-          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_readiness.dart',
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_surface.dart',
         ).readAsString();
     final models = await readReceiptCaptureModelsSource();
 
@@ -299,35 +306,23 @@ void main() {
     expect(models, contains('make sure no middle section is missing'));
     expect(models, contains('Repeat 3-5 readable lines between sections'));
     expect(orderControls, contains('Receipt details open in this order.'));
-    expect(stitchControls, contains("'Photos aligned'"));
-    expect(stitchControls, contains("'Photos will stay separate'"));
     expect(
       stitchControls,
-      contains('Checking photo order and repeated receipt lines.'),
+      contains('Combining \$total receipt sections automatically'),
     );
-    expect(
-      stitchControls,
-      contains('The sections matched and will open as one receipt.'),
-    );
-    expect(stitchControls, contains('the originals remain unchanged'));
+    expect(stitchControls, contains('Keep these photos separate for now'));
+    expect(stitchControls, contains('retake only the section'));
+    expect(modeControls, contains('Align Receipt Photos'));
+    expect(modeControls, isNot(contains('match guide')));
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
-    expect(reviewScreen, contains('Align repeated lines'));
-    expect(reviewScreen, isNot(contains('match guide')));
     expect(reviewScreen, contains('maxScale: 6'));
-    expect(stitchControls, contains('Previous Pair'));
-    expect(stitchControls, contains('Next Pair'));
-    expect(stitchControls, isNot(contains('_ReceiptStitchEvidenceChip')));
-    expect(stitchControls, contains("final duplicatePhoto ="));
-    expect(stitchControls, contains("'Remove Duplicate Photo'"));
-    expect(stitchControls, contains("'Reorder Photos'"));
-    expect(stitchControls, isNot(contains("'Fix \$failedPairLabel'")));
+    expect(stitchControls, isNot(contains('_ReceiptManualStitchControls')));
     expect(commonControls, contains('_ReceiptLocalPhotoLimitStrip'));
     expect(
       commonControls,
       contains('You can still use these photos, but review '),
     );
     expect(commonControls, contains('every line before saving.'));
-    expect(stitchControls, contains('the originals remain unchanged.'));
   });
 
   test('reviewed receipt photos announce app fill handoff safely', () async {

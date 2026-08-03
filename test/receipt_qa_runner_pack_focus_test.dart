@@ -43,10 +43,14 @@ void main() {
     () async {
       await _expectFocusedPack(
         pack: 'fuel',
-        expectedFixtureCount: 2,
+        expectedFixtureCount: 6,
         expectedFixtureNames: const [
           'diesel station baseline',
           'split row fuel with tender rows',
+          'truck stop HVO100 renewable diesel',
+          'renewable natural gas fleet transaction',
+          'E15 station receipt excludes terminal and loyalty identifiers',
+          'multi-product gasoline grades keep line-specific unit prices',
         ],
       );
     },

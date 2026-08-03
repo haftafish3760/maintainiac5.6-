@@ -52,7 +52,9 @@ void main() {
       expect(cameraActivity, contains('capturedPhotoPaths'));
       expect(
         cameraActivity,
-        contains(r'else -> "${receiptCameraText("Done", "Listo")} ($count)"'),
+        contains(
+          r'else -> "${receiptCameraText("Review Photos", "Revisar fotos")} ($count)"',
+        ),
       );
       expect(
         cameraActivity,
@@ -77,22 +79,22 @@ void main() {
       expect(cameraActivity, isNot(contains('setImageURI(Uri.fromFile')));
       expect(
         cameraActivity,
-        contains('Previous receipt section overlap guide'),
+        contains(
+          'Top overlap guide showing the bottom of the previous receipt photo',
+        ),
+      );
+      expect(
+        cameraActivity,
+        contains(
+          'Bottom overlap guide showing the top of the next receipt photo',
+        ),
       );
       expect(cameraActivity, contains('previousSectionGhostGuideTitle'));
       expect(cameraActivity, contains('previousSectionGhostGuideInstruction'));
-      expect(cameraActivity, contains('Match the bottom section'));
+      expect(cameraActivity, contains('Top guide: bottom of previous photo'));
       expect(
         cameraActivity,
-        contains(
-          'Keep the last readable lines in the top ghost slice, then repeat 3-5 readable lines so subtotal, total, and final lines can be matched.',
-        ),
-      );
-      expect(
-        cameraActivity,
-        contains(
-          'Repeat 3-5 readable lines near the top ghost slice of this photo.',
-        ),
+        contains('Line up 3-5 readable lines at the top.'),
       );
       expect(
         cameraActivity,
@@ -190,9 +192,7 @@ void main() {
       expect(cameraActivity, contains('runOnUiThread'));
       expect(
         cameraActivity,
-        contains(
-          'val needsLiveAnalysis = edgeDetectionEnabled ||',
-        ),
+        contains('val needsLiveAnalysis = edgeDetectionEnabled ||'),
       );
       expect(
         cameraActivity,
@@ -211,13 +211,13 @@ void main() {
       expect(
         cameraActivity,
         contains(
-          'val sourceStartFraction = boundedFraction(previousSectionGhostSourceStartFraction, 0.80)',
+          'floor(source.height * boundedFraction(previousSectionGhostSourceStartFraction, 0.80))',
         ),
       );
       expect(
         cameraActivity,
         contains(
-          'val sourceHeightFraction = boundedFraction(previousSectionGhostSourceHeightFraction, 0.20)',
+          'boundedFraction(previousSectionGhostSourceHeightFraction, 0.34)',
         ),
       );
       expect(

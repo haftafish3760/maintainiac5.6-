@@ -160,7 +160,7 @@ extension _ReceiptAttachmentTextDocumentActions
       final result = await _readAttachmentsForReceiptForm(
         [attachment],
         successMessage: attachment.isPdf
-            ? 'PDF receipt proof opened receipt details.'
+            ? 'PDF receipt opened receipt details.'
             : 'Receipt photo opened receipt details.',
         showDisabledMessage: true,
         showNoTextMessage: true,

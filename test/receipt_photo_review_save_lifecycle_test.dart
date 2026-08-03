@@ -11,8 +11,20 @@ void main() {
     final commonControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_common_controls.dart',
     ).readAsString();
+    final exitActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_actions.dart',
+    ).readAsString();
     expect(saveActions, contains('ReceiptPhotoReviewResult.keptForLater('));
-    expect(saveActions, contains('if (!beginReceiptReviewClose()) return;'));
+    expect(exitActions, contains('if (!beginReceiptReviewClose()) return;'));
+    expect(
+      reviewScreen,
+      contains('canPop: _closingReview'),
+    );
+    expect(
+      saveActions,
+      contains('await finishReceiptReview('),
+    );
+    expect(exitActions, contains('await WidgetsBinding.instance.endOfFrame;'));
     expect(
       saveActions,
       isNot(contains('return !widget.initialPhotoPaths.contains(photoPath)')),
@@ -342,7 +354,8 @@ void main() {
         'if (!mounted || _reviewDisposed || _closingReview) return false;',
       ),
     );
-    expect(saveActions, contains('final navigator = Navigator.of(context);'));
+    expect(saveActions, contains('Future<void> finishReceiptReview('));
+    expect(saveActions, contains('Navigator.of(context).pop(result);'));
     expect(saveActions, contains('if (!mounted || _closingReview) return;'));
     expect(saveActions, contains('_stitchPreviewDebounce?.cancel();'));
     expect(saveActions, contains('_previewKeysInFlight.clear();'));

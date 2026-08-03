@@ -22,6 +22,8 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     required this.savingPhotos,
     required this.onPhotoSelected,
     required this.onDataSaverSelected,
+    required this.askSavedProofSizeEachReceipt,
+    required this.onAskSavedProofSizeEachReceiptChanged,
     required this.onModeChanged,
     required this.onStitchPairSelected,
     required this.onManualOverlapChanged,
@@ -61,6 +63,8 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
   final bool savingPhotos;
   final ValueChanged<int> onPhotoSelected;
   final ValueChanged<ReceiptDataSaverLevel> onDataSaverSelected;
+  final bool askSavedProofSizeEachReceipt;
+  final ValueChanged<bool> onAskSavedProofSizeEachReceiptChanged;
   final ValueChanged<_ReceiptReviewMode> onModeChanged;
   final ValueChanged<int> onStitchPairSelected;
   final ValueChanged<double> onManualOverlapChanged;
@@ -84,14 +88,11 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     final hasCapturedPhotos = photoPaths.isNotEmpty;
     final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;
     final continueLabel = _continueLabel;
-    final displayedContinueLabel = uiConfig.labelFor(
-      'continue',
-      continueLabel == 'Use Receipt' ? uiConfig.useReceiptLabel : continueLabel,
-    );
+    final displayedContinueLabel = uiConfig.labelFor('continue', continueLabel);
     final waitingForStitch =
         reviewMode == _ReceiptReviewMode.stitch &&
         photoPaths.length > 1 &&
-        (stitchPreviewInFlight || stitchPreview == null);
+        stitchPreview == null;
     final continueEnabled = !effectiveSavingPhotos && !waitingForStitch;
     if (reviewMode == _ReceiptReviewMode.crop) {
       return Align(
@@ -129,12 +130,17 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
         openingCamera: openingCamera || effectiveSavingPhotos,
         savingPhotos: effectiveSavingPhotos,
         continueLabel: continueLabel,
-        onPhotoSelected: onPhotoSelected,
         onModeChanged: onModeChanged,
         onAddPhoto: onAddPhoto,
         onRetake: onRetake,
         onContinue: continueEnabled ? onContinue : null,
       );
+    }
+    // Data Saver has its own narrow side drawer and a dedicated Continue bar.
+    // Repeating the choices here used to cover too much of the receipt and
+    // made it difficult to judge whether the selected saved image was clear.
+    if (reviewMode == _ReceiptReviewMode.dataSaver) {
+      return const SizedBox.shrink();
     }
     return DecoratedBox(
       decoration: const BoxDecoration(
@@ -158,21 +164,26 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      _ReceiptReviewStepStrip(
-                        selected: reviewMode,
-                        photoCount: photoPaths.length,
-                        enabled: !openingCamera && !savingPhotos,
-                        onSelected: onModeChanged,
-                      ),
-                      const SizedBox(height: 6),
-                      _ReceiptToolModeHeader(
-                        reviewMode: reviewMode,
-                        photoCount: photoPaths.length,
-                        previewEnabled: !openingCamera && !savingPhotos,
-                        onBackToPreview: () =>
-                            onModeChanged(_ReceiptReviewMode.preview),
-                      ),
-                      const SizedBox(height: 6),
+                      if (reviewMode != _ReceiptReviewMode.stitch) ...[
+                        _ReceiptReviewStepStrip(
+                          selected: reviewMode,
+                          photoCount: photoPaths.length,
+                          enabled: !openingCamera && !savingPhotos,
+                          onSelected: onModeChanged,
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                      if (reviewMode != _ReceiptReviewMode.stitch ||
+                          stitchPreview?.usedFallback == true) ...[
+                        _ReceiptToolModeHeader(
+                          reviewMode: reviewMode,
+                          photoCount: photoPaths.length,
+                          previewEnabled: !openingCamera && !savingPhotos,
+                          onBackToPreview: () =>
+                              onModeChanged(_ReceiptReviewMode.preview),
+                        ),
+                        const SizedBox(height: 6),
+                      ],
                       _ReceiptReviewContextRow(
                         selectedIndex: selectedIndex,
                         photoCount: photoPaths.length,
@@ -181,6 +192,7 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                         storagePreview: storagePreview,
                         selectedQualityCheck: selectedQualityCheck,
                         selectedCaptureDiagnostics: selectedCaptureDiagnostics,
+                        stitchPreview: stitchPreview,
                         bestShotCandidateMode: bestShotCandidateMode,
                         openingCamera: openingCamera || effectiveSavingPhotos,
                         canRemove: canRemove,
@@ -203,6 +215,12 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                           enabled: !openingCamera && !savingPhotos,
                           onSelected: onDataSaverSelected,
                         ),
+                        const SizedBox(height: 6),
+                        _ReceiptSavedProofFrequencyChoice(
+                          askEveryReceipt: askSavedProofSizeEachReceipt,
+                          enabled: !openingCamera && !savingPhotos,
+                          onChanged: onAskSavedProofSizeEachReceiptChanged,
+                        ),
                       ],
                       if (reviewMode == _ReceiptReviewMode.order) ...[
                         const SizedBox(height: 6),
@@ -215,23 +233,6 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
                           onMoveLater: onMoveLater,
                           onAddPhoto: onAddPhoto,
                           onRetake: onRetake,
-                        ),
-                      ],
-                      if (reviewMode == _ReceiptReviewMode.stitch &&
-                          photoPaths.length > 1) ...[
-                        const SizedBox(height: 6),
-                        _ReceiptManualStitchControls(
-                          pairIndex: stitchPairIndex,
-                          totalPairs: photoPaths.length - 1,
-                          manualOverlapFraction: manualOverlapFraction,
-                          stitchPreview: stitchPreview,
-                          stitchPreviewInFlight: stitchPreviewInFlight,
-                          disabled: openingCamera || effectiveSavingPhotos,
-                          onPairSelected: onStitchPairSelected,
-                          onOverlapChanged: onManualOverlapChanged,
-                          onClear: onClearManualOverlap,
-                          onOpenOrder: () =>
-                              onModeChanged(_ReceiptReviewMode.order),
                         ),
                       ],
                       if (openingCamera || effectiveSavingPhotos) ...[
@@ -261,19 +262,31 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
   }
 
   String get _continueLabel {
-    if (reviewMode == _ReceiptReviewMode.preview &&
-        selectedQualityCheck?.hasCriticalIssue == true) {
-      return 'Use Receipt';
+    if (reviewMode == _ReceiptReviewMode.dataSaver) {
+      return askSavedProofSizeEachReceipt
+          ? 'Use this size and ask next time'
+          : 'Use this size for future receipts';
+    }
+    if (reviewMode == _ReceiptReviewMode.preview && photoPaths.length == 1) {
+      return 'Choose Saved Image Size';
     }
     if (!bestShotCandidateMode &&
         reviewMode != _ReceiptReviewMode.stitch &&
         photoPaths.length > 1) {
-      return 'Review Photos';
+      return 'Continue';
+    }
+    if (reviewMode == _ReceiptReviewMode.stitch &&
+        stitchPreview?.didStitch == true) {
+      return 'Use combined receipt';
+    }
+    if (reviewMode == _ReceiptReviewMode.stitch &&
+        stitchPreview?.usedFallback == true) {
+      return 'Use receipt sections';
     }
     if (reviewMode == _ReceiptReviewMode.stitch &&
         (stitchPreviewInFlight || stitchPreview == null)) {
-      return 'Checking Photos';
+      return 'Putting receipt together';
     }
-    return 'Use Receipt';
+    return 'Continue';
   }
 }

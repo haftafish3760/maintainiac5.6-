@@ -7,15 +7,19 @@ extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
       final choiceSaved = await _showFirstUseReceiptAssistIntro(settings);
       if (!mounted || !choiceSaved) return;
     }
-    final action = await showModalBottomSheet<_ReceiptImportAction>(
-      context: context,
-      backgroundColor: const Color(0xFF161D20),
-      showDragHandle: true,
-      builder: (context) {
-        return _ReceiptImportSourceSheetBody(showCamera: widget.showCamera);
-      },
+    final action = await Navigator.of(context).push<_ReceiptImportAction>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) =>
+            _ReceiptImportSourceScreen(showCamera: widget.showCamera),
+      ),
     );
-    if (!mounted || action == null) return;
+    if (!mounted || action == null) {
+      if (mounted && widget.closeParentWhenImportCanceled) {
+        Navigator.of(context).maybePop();
+      }
+      return;
+    }
     switch (action) {
       case _ReceiptImportAction.camera:
         await takeReceiptPhoto();
@@ -72,10 +76,31 @@ extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
   }
 }
 
-class _ReceiptImportSourceSheetBody extends StatelessWidget {
-  const _ReceiptImportSourceSheetBody({required this.showCamera});
+class _ReceiptImportSourceScreen extends StatelessWidget {
+  const _ReceiptImportSourceScreen({required this.showCamera});
 
   final bool showCamera;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF161D20),
+      body: _ReceiptImportSourceSheetBody(
+        showCamera: showCamera,
+        fullScreen: true,
+      ),
+    );
+  }
+}
+
+class _ReceiptImportSourceSheetBody extends StatelessWidget {
+  const _ReceiptImportSourceSheetBody({
+    required this.showCamera,
+    this.fullScreen = false,
+  });
+
+  final bool showCamera;
+  final bool fullScreen;
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +144,12 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
           children: [
             Row(
               children: [
+                if (fullScreen)
+                  IconButton(
+                    tooltip: 'Back to receipt',
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.arrow_back_rounded),
+                  ),
                 const Expanded(
                   child: Text(
                     'Add Receipt',
@@ -130,15 +161,17 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                     ),
                   ),
                 ),
-                TextButton(
+                IconButton(
+                  tooltip: 'Receipt settings',
                   onPressed: () =>
                       Navigator.of(context).pop(_ReceiptImportAction.settings),
-                  child: const Text('Settings'),
+                  icon: const Icon(Icons.settings_rounded),
                 ),
-                TextButton(
+                IconButton(
+                  tooltip: 'Receipt help',
                   onPressed: () =>
                       Navigator.of(context).pop(_ReceiptImportAction.shareHelp),
-                  child: const Text('Help'),
+                  icon: const Icon(Icons.help_outline_rounded),
                 ),
               ],
             ),

@@ -3,6 +3,7 @@ package com.maintainiac
 import android.app.Activity
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.widget.Button
@@ -52,6 +53,7 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal lateinit var settingsStatusStrip: TextView
     internal lateinit var previousSectionGuidePanel: LinearLayout
     internal lateinit var previousSectionGuideImage: ImageView
+    internal lateinit var nextSectionGuidePanel: LinearLayout
     internal lateinit var nextSectionGuideImage: ImageView
     internal var imageCapture: ImageCapture? = null
     internal var camera: Camera? = null
@@ -90,9 +92,9 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var previousSectionReasonCode: String = "none"
     internal var previousSectionGuidance: String = ""
     internal var previousSectionGhostSourceStartFraction = 0.80
-    internal var previousSectionGhostSourceHeightFraction = 0.20
+    internal var previousSectionGhostSourceHeightFraction = 0.34
     internal var previousSectionGhostOverlayTopFraction = 0.0
-    internal var previousSectionGhostOverlayHeightFraction = 0.20
+    internal var previousSectionGhostOverlayHeightFraction = 0.34
     internal var previousSectionGhostOpacity = 0.36
     internal var liveAnalysisEnabled = true
     internal var edgeDetectionEnabled = true
@@ -204,6 +206,8 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
     internal var pendingCaptureAfterZoomTrigger: String? = null
     internal var lastZoomStatus = "not_used"
     internal var lastZoomRatio = 1.0
+    internal var previousSectionGuideLoadRequest = 0L
+    internal var nextSectionGuideLoadRequest = 0L
     internal var manualExposureChangeCount = 0
     internal var settingsOpenCount = 0
     internal var settingsResetCount = 0
@@ -298,6 +302,16 @@ class ReceiptCameraActivity : Activity(), LifecycleOwner {
         setContentView(buildContentView())
         applyEdgeToEdgeReceiptInsets()
         startCamera()
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        // Pinch zoom is a basic capture control. Feed the native detector
+        // before child views receive the stream so it is not lost to a
+        // PreviewView implementation detail on any supported phone.
+        if (pinchZoomEnabled) {
+            scaleGestureDetector?.onTouchEvent(event)
+        }
+        return super.dispatchTouchEvent(event)
     }
 
     override fun onStart() {

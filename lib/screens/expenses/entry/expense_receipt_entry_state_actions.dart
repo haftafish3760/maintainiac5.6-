@@ -4,14 +4,18 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
   Future<void> _editLine({
     int? index,
     required _ExpenseReceiptLine initial,
+    bool allowLineClassification = true,
   }) async {
-    final line = await showModalBottomSheet<_ExpenseReceiptLine>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: const Color(0xFF1F2528),
-      builder: (context) => _ReceiptLineEditorSheet(
-        initial: initial,
-        lineNumber: index == null ? _lines.length + 1 : index + 1,
+    final previousItemsTotal = _lineSubtotal;
+    final previousReceiptTotal = _enteredReceiptTotal;
+    final line = await Navigator.of(context).push<_ExpenseReceiptLine>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) => _ReceiptLineEditorSheet(
+          initial: initial,
+          lineNumber: index == null ? _lines.length + 1 : index + 1,
+          allowLineClassification: allowLineClassification,
+        ),
       ),
     );
     if (line == null) return;
@@ -44,6 +48,12 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
         _lines[index] = line;
       }
     });
+    final shouldFollowItems =
+        previousReceiptTotal == null ||
+        (previousReceiptTotal - previousItemsTotal).abs() < .01;
+    if (shouldFollowItems) {
+      _receiptTotalController.text = _lineSubtotal.toStringAsFixed(2);
+    }
     _scheduleDraftSave();
   }
 
@@ -134,6 +144,8 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
     _updateReceiptState(() {});
   }
 
+  // Retained for detailed review drafts saved by earlier builds.
+  // ignore: unused_element
   void _confirmParsedLine(int index) {
     if (index < 0 || index >= _lines.length) return;
     _updateReceiptState(() {
@@ -145,6 +157,8 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
     ).showSnackBar(const SnackBar(content: Text('Receipt line confirmed.')));
   }
 
+  // Retained for detailed review drafts saved by earlier builds.
+  // ignore: unused_element
   void _markLineExpenseOnly(int index) {
     if (index < 0 || index >= _lines.length) return;
     _updateReceiptState(() {
@@ -156,9 +170,9 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
     ).showSnackBar(const SnackBar(content: Text('Line marked expense-only.')));
   }
 
-  void _markAllReceiptLines(_ExpenseLineUse use) {
-    if (_lines.isEmpty) return;
+  void _setReceiptUse(_ExpenseLineUse use) {
     _updateReceiptState(() {
+      _receiptUse = use;
       for (var index = 0; index < _lines.length; index++) {
         final line = _lines[index];
         _lines[index] = line.copyWith(
@@ -183,20 +197,27 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
             _ExpenseLineUse.personal =>
               'User marked the full receipt as personal.',
             _ExpenseLineUse.split =>
-              'Mixed receipt lines require the user to choose each allocation before saving.',
+              'Split receipt lines require the user to choose each allocation before saving.',
           },
         );
       }
     });
     _scheduleDraftSave();
+    if (_usesRebuiltManualDetailedReceiptFlow) return;
     final label = switch (use) {
       _ExpenseLineUse.unclassified => 'unclassified',
       _ExpenseLineUse.business => 'business',
       _ExpenseLineUse.personal => 'personal',
-      _ExpenseLineUse.split => 'mixed',
+      _ExpenseLineUse.split => 'split',
     };
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Marked the full receipt as $label.')),
+      SnackBar(
+        content: Text(
+          _lines.isEmpty
+              ? 'New receipt items will count as $label.'
+              : 'Marked the full receipt as $label.',
+        ),
+      ),
     );
   }
 

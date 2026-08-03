@@ -294,7 +294,7 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_capture_review_result_next_review.dart',
         ).readAsString();
 
-    expect(controls, contains("return 'Use Receipt';"));
+    expect(controls, contains("return 'Continue';"));
     expect(screen, contains('widget.uiConfig.previewControlsHeightFraction'));
     expect(screen, contains('widget.uiConfig.previewControlsMultiPhotoHeight'));
     expect(uiConfig, contains('this.previewControlsHeightFraction = .22'));
@@ -302,7 +302,12 @@ void main() {
     expect(uiConfig, contains('this.previewControlsMultiPhotoHeight = 178'));
     expect(commonControls, contains('_ReceiptNextReviewLabel(label: label)'));
     expect(commonControls, isNot(contains("normalized == 'Next: Details'")));
-    expect(previewControls, contains('Add Another is only for long receipts.'));
+    expect(
+      previewControls,
+      contains(
+        'Choose Saved Image Size next. Then Continue opens the receipt details.',
+      ),
+    );
     expect(previewControls, contains('minimumSize: const Size(0, 48)'));
     expect(controls, contains('open receipt details'));
     expect(
@@ -311,7 +316,7 @@ void main() {
     );
     expect(
       models,
-      contains('Review receipt details and mark Business, Personal, or Mixed.'),
+      contains('Review receipt details and mark Business, Personal, or Split.'),
     );
     expect(
       models,
@@ -401,7 +406,7 @@ void main() {
       contains('ReceiptPhotoCoverageDecision.fromSignals'),
     );
     expect(controls, contains('Add Bottom Section'));
-    expect(controls, contains("'Use Receipt'"));
+    expect(controls, contains("'Continue'"));
     expect(screen, contains('Future<void> addAnotherReceiptPhoto()'));
     expect(screen, contains('Future<void> retakeCurrentReceiptPhoto()'));
     expect(screen, contains('Future<void> continueReceiptPhotoReview()'));

@@ -125,7 +125,10 @@ _ReceiptProofJpegEncoding _encodeProofJpgToPolicy(
           ? output.width
           : output.height;
       final nextLongestSide = (longestSide * .82).round();
-      if (nextLongestSide < 360) break;
+      // The policy maximum is a hard ceiling for a saved proof. OCR already
+      // read the clear source first, so a tiny proof can be rejected by the
+      // readability check rather than silently exceeding its chosen budget.
+      if (nextLongestSide < 160) break;
       output = _resizeToMaxSide(output, nextLongestSide);
       encodedQuality = quality > 60 ? 60 : quality;
     }

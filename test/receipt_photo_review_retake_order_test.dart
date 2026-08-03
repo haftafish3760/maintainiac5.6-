@@ -153,7 +153,7 @@ void main() {
       ]);
       expect(plan.alignmentContext.previousPhotoPath, isNull);
       expect(plan.alignmentContext.nextPhotoPath, 'middle.jpg');
-      expect(plan.alignmentContext.nextSectionGuidePhotoPath, isNull);
+      expect(plan.alignmentContext.nextSectionGuidePhotoPath, 'middle.jpg');
       expect(
         plan.alignmentContext.guidanceCode,
         'retake_top_with_next_context',

@@ -1,7 +1,6 @@
-/// Active Day payment-summary wording and destination regression contract.
-///
-/// Owns the user-visible meaning of the payment metric. Does not test invoice
-/// math or expense storage. Consumed by dashboard UI regression QA.
+// Active Day payment-summary wording and destination regression contract.
+// Owns the user-visible meaning of the payment metric. Does not test invoice
+// math or expense storage. Consumed by dashboard UI regression QA.
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';

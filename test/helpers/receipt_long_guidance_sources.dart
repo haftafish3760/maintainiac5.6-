@@ -81,10 +81,10 @@ Future<ReceiptLongGuidanceSources> readReceiptLongGuidanceSources() async {
     ).readAsString(),
     stitchControls:
         await File(
-          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_controls.dart',
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_pair_preview.dart',
         ).readAsString() +
         await File(
-          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_readiness.dart',
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_surface.dart',
         ).readAsString(),
     reviewTopBar: await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',

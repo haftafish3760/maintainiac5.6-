@@ -54,7 +54,6 @@ extension _ReceiptPhotoReviewExitStitchActions
       _photoPaths,
     );
     final previewCanBeUsed =
-        !_stitchPreviewInFlight &&
         preview != null &&
         _stitchPreviewKey == _currentStitchPreviewKey() &&
         currentPathOrderMatches;
@@ -67,10 +66,7 @@ extension _ReceiptPhotoReviewExitStitchActions
       );
     }
     final stitchedPreviewCanBeCopied =
-        !_stitchPreviewInFlight &&
-        preview?.didStitch == true &&
-        previewPath != null &&
-        previewCanBeUsed;
+        preview?.didStitch == true && previewPath != null && previewCanBeUsed;
     if (stitchedPreviewCanBeCopied && await File(previewPath).exists()) {
       final finalPath = await ReceiptImageProcessor.copyReceiptOcrArtifact(
         path: previewPath,
@@ -89,8 +85,25 @@ extension _ReceiptPhotoReviewExitStitchActions
         : const <double>[];
     return ReceiptImageProcessor.stitchReceiptPhotosForOcr(
       paths: preparedOcrPaths,
+      textEvidence: currentPathOrderMatches
+          ? _stitchEvidenceForPaths(preparedOcrPaths, sourcePaths: _photoPaths)
+          : null,
+      manualZeroOverlapPairs:
+          currentPathOrderMatches &&
+              _manualZeroOverlapPairs.any((value) => value)
+          ? List<bool>.of(_manualZeroOverlapPairs)
+          : null,
       manualOverlapFractions: manualOverlapFractions.any((value) => value > 0)
           ? manualOverlapFractions
+          : null,
+      manualScaleCorrections: currentPathOrderMatches
+          ? List<double>.of(_manualScaleCorrections)
+          : null,
+      manualRotationCorrectionsDegrees: currentPathOrderMatches
+          ? List<double>.of(_manualRotationCorrectionsDegrees)
+          : null,
+      manualHorizontalOffsetFractions: currentPathOrderMatches
+          ? List<double>.of(_manualHorizontalOffsetFractions)
           : null,
       maxOutputPixels: _stitchDeviceLimits.maxOutputPixels,
       maxOutputHeight: _stitchDeviceLimits.maxOutputHeight,

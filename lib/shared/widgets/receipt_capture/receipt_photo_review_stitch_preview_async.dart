@@ -6,9 +6,17 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     final needed = (_photoPaths.length - 1).clamp(0, 1000000);
     while (_manualOverlapFractions.length < needed) {
       _manualOverlapFractions.add(null);
+      _manualScaleCorrections.add(1);
+      _manualRotationCorrectionsDegrees.add(0);
+      _manualHorizontalOffsetFractions.add(0);
+      _manualZeroOverlapPairs.add(false);
     }
     while (_manualOverlapFractions.length > needed) {
       _manualOverlapFractions.removeLast();
+      _manualScaleCorrections.removeLast();
+      _manualRotationCorrectionsDegrees.removeLast();
+      _manualHorizontalOffsetFractions.removeLast();
+      _manualZeroOverlapPairs.removeLast();
     }
     if (needed == 0) {
       _selectedStitchPairIndex = 0;
@@ -23,8 +31,27 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     if (!_reviewInteractiveControlsActive) return;
     _syncManualOverlapSlots();
     final maxPairIndex = _manualOverlapFractions.length - 1;
-    final selected = maxPairIndex < 0 ? 0 : index.clamp(0, maxPairIndex);
-    _updateReviewState(() => _selectedStitchPairIndex = selected);
+    final selected = maxPairIndex < 0
+        ? 0
+        : index.clamp(0, maxPairIndex).toInt();
+    _updateReviewState(() {
+      _selectedStitchPairIndex = selected;
+      // Pair navigation makes the upper section the explicit retake target.
+      _selectedIndex = selected;
+    });
+  }
+
+  void _selectStitchPhoto(int index) {
+    if (!_reviewInteractiveControlsActive || _photoPaths.isEmpty) return;
+    final selected = index.clamp(0, _photoPaths.length - 1).toInt();
+    final currentPair = _selectedStitchPairIndex;
+    final pairForSelected = selected == currentPair + 1
+        ? currentPair
+        : selected.clamp(0, _photoPaths.length - 2).toInt();
+    _updateReviewState(() {
+      _selectedIndex = selected;
+      _selectedStitchPairIndex = pairForSelected;
+    });
   }
 
   void _setManualOverlapFraction(double value) {
@@ -34,6 +61,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     if (_manualOverlapFractions.isEmpty) return;
     _updateReviewState(() {
       _manualOverlapFractions[_selectedStitchPairIndex] = value.clamp(.08, .48);
+      _manualZeroOverlapPairs[_selectedStitchPairIndex] = false;
     });
     _scheduleStitchPreviewRefresh();
   }
@@ -45,6 +73,53 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     _updateReviewState(
       () => _manualOverlapFractions[_selectedStitchPairIndex] = null,
     );
+    _scheduleStitchPreviewRefresh();
+  }
+
+  void _setManualZeroOverlap(bool value) {
+    if (!_reviewInteractiveControlsActive) return;
+    _syncManualOverlapSlots();
+    if (_manualZeroOverlapPairs.isEmpty) return;
+    _updateReviewState(() {
+      _manualZeroOverlapPairs[_selectedStitchPairIndex] = value;
+      if (value) _manualOverlapFractions[_selectedStitchPairIndex] = null;
+    });
+    _scheduleStitchPreviewRefresh();
+  }
+
+  void _setManualScaleCorrection(double value) {
+    if (!_reviewInteractiveControlsActive || !value.isFinite) return;
+    _syncManualOverlapSlots();
+    if (_manualScaleCorrections.isEmpty) return;
+    _updateReviewState(() {
+      _manualScaleCorrections[_selectedStitchPairIndex] = value
+          .clamp(.75, 1.25)
+          .toDouble();
+    });
+    _scheduleStitchPreviewRefresh();
+  }
+
+  void _setManualRotationCorrection(double value) {
+    if (!_reviewInteractiveControlsActive || !value.isFinite) return;
+    _syncManualOverlapSlots();
+    if (_manualRotationCorrectionsDegrees.isEmpty) return;
+    _updateReviewState(() {
+      _manualRotationCorrectionsDegrees[_selectedStitchPairIndex] = value
+          .clamp(-8, 8)
+          .toDouble();
+    });
+    _scheduleStitchPreviewRefresh();
+  }
+
+  void _setManualHorizontalOffsetFraction(double value) {
+    if (!_reviewInteractiveControlsActive || !value.isFinite) return;
+    _syncManualOverlapSlots();
+    if (_manualHorizontalOffsetFractions.isEmpty) return;
+    _updateReviewState(() {
+      _manualHorizontalOffsetFractions[_selectedStitchPairIndex] = value
+          .clamp(-.20, .20)
+          .toDouble();
+    });
     _scheduleStitchPreviewRefresh();
   }
 
@@ -71,6 +146,12 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
   Future<void> _ensureStitchPreview({bool force = false}) async {
     if (!_reviewWorkActive) return;
     if (_photoPaths.length <= 1 || _stitchPreviewInFlight) return;
+    if (await _applyAutomaticStitchOrderIfConfident()) {
+      if (_reviewWorkActive && _reviewMode == _ReceiptReviewMode.stitch) {
+        await _ensureStitchPreview(force: true);
+      }
+      return;
+    }
     final generation = _reviewWorkGeneration;
     final key = _currentStitchPreviewKey();
     if (!force && _stitchPreviewKey == key && _stitchPreviewResult != null) {
@@ -88,13 +169,45 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
       final manualOverlapFractions = _manualOverlapFractions
           .map((value) => value ?? 0)
           .toList(growable: false);
-      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      final stitchFuture = ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: _photoPaths,
+        textEvidence: _stitchEvidenceForPaths(_photoPaths),
+        manualZeroOverlapPairs: _manualZeroOverlapPairs.any((value) => value)
+            ? List<bool>.of(_manualZeroOverlapPairs)
+            : null,
         manualOverlapFractions: manualOverlapFractions.any((value) => value > 0)
             ? manualOverlapFractions
             : null,
+        manualScaleCorrections: List<double>.of(_manualScaleCorrections),
+        manualRotationCorrectionsDegrees: List<double>.of(
+          _manualRotationCorrectionsDegrees,
+        ),
+        manualHorizontalOffsetFractions: List<double>.of(
+          _manualHorizontalOffsetFractions,
+        ),
         maxOutputPixels: _stitchDeviceLimits.maxOutputPixels,
         maxOutputHeight: _stitchDeviceLimits.maxOutputHeight,
+      );
+      final result = await stitchFuture.timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          // Isolate work cannot be canceled safely. If it eventually creates
+          // a preview after the user has been returned to ordered-photo
+          // review, remove that app-created artifact rather than leaving it
+          // behind on the device.
+          unawaited(
+            stitchFuture.then(
+              (lateResult) => _deleteStitchPreviewPath(lateResult.stitchedPath),
+              onError: (Object _) {},
+            ),
+          );
+          return ReceiptStitchResult.fallback(
+            inputPaths: List<String>.of(_photoPaths),
+            warning:
+                'Putting these photos together took too long. They will stay in order as separate photos so you can continue.',
+            fallbackReasonCode: 'stitch_preview_timeout',
+          );
+        },
       );
       if (!_reviewWorkTokenActive(generation) ||
           _currentStitchPreviewKey() != key) {
@@ -146,7 +259,15 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     final overlapKey = _manualOverlapFractions
         .map((value) => value == null ? 'auto' : value.toStringAsFixed(3))
         .join('|');
-    return '${_photoPaths.join('||')}::$overlapKey';
+    final transformKey = List.generate(
+      _manualScaleCorrections.length,
+      (index) =>
+          '${_manualScaleCorrections[index].toStringAsFixed(3)},${_manualRotationCorrectionsDegrees[index].toStringAsFixed(2)},${_manualHorizontalOffsetFractions[index].toStringAsFixed(3)}',
+    ).join('|');
+    final zeroOverlapKey = _manualZeroOverlapPairs
+        .map((value) => value ? 'zero' : 'auto')
+        .join('|');
+    return '${_photoPaths.join('||')}::$overlapKey::$transformKey::$zeroOverlapKey';
   }
 
   Future<void> _deleteGeneratedStitchPreview() async {

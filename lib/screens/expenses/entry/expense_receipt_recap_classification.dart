@@ -1,5 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
+// Kept to render drafts produced by the earlier detailed assisted-review UI.
+// ignore: unused_element
 class _ReceiptClassificationReviewPanel extends StatelessWidget {
   const _ReceiptClassificationReviewPanel({
     required this.classification,
@@ -172,51 +174,23 @@ class _ReceiptClassificationReviewPanel extends StatelessWidget {
 
 class _ReceiptWholeUseReviewPanel extends StatelessWidget {
   const _ReceiptWholeUseReviewPanel({
-    required this.lines,
+    required this.selectedUse,
     required this.onMarkBusiness,
     required this.onMarkPersonal,
     required this.onMarkMixed,
   });
 
-  final List<_ExpenseReceiptLine> lines;
+  final _ExpenseLineUse selectedUse;
   final VoidCallback onMarkBusiness;
   final VoidCallback onMarkPersonal;
   final VoidCallback onMarkMixed;
 
   @override
   Widget build(BuildContext context) {
-    final businessCount = lines
-        .where((line) => line.use == _ExpenseLineUse.business)
-        .length;
-    final personalCount = lines
-        .where((line) => line.use == _ExpenseLineUse.personal)
-        .length;
-    final splitCount = lines
-        .where((line) => line.use == _ExpenseLineUse.split)
-        .length;
-    final appFilledCount = lines
-        .where((line) => line.cameFromAppAssistedReceiptRead)
-        .length;
-    final parserReviewCount = lines
-        .where((line) => line.parserNeedsReview)
-        .length;
-    final splitMissingPercentCount = lines
-        .where(
-          (line) =>
-              line.use == _ExpenseLineUse.split && line.businessPercent == null,
-        )
-        .length;
-    final hasLines = lines.isNotEmpty;
-    final lineGuidance = _ReceiptLineClassificationGuidance.from(
-      hasLines: hasLines,
-      appFilledCount: appFilledCount,
-      parserReviewCount: parserReviewCount,
-      splitCount: splitCount,
-      splitMissingPercentCount: splitMissingPercentCount,
-    );
     return ReceiptFormPanel(
-      title: 'Classify This Receipt',
-      subtitle: lineGuidance.subtitle,
+      title: 'Receipt Use',
+      subtitle:
+          'Choose how this receipt should count. You can change any item later.',
       icon: Icons.rule_folder_rounded,
       accentColor: const Color(0xFFFFD166),
       children: [
@@ -228,7 +202,8 @@ class _ReceiptWholeUseReviewPanel extends StatelessWidget {
                 helper: 'Every parsed line counts for work.',
                 icon: Icons.business_center_rounded,
                 color: const Color(0xFF34A9E8),
-                onPressed: hasLines ? onMarkBusiness : null,
+                onPressed: onMarkBusiness,
+                selected: selectedUse == _ExpenseLineUse.business,
               ),
             ),
             const SizedBox(width: 8),
@@ -238,34 +213,21 @@ class _ReceiptWholeUseReviewPanel extends StatelessWidget {
                 helper: 'Nothing on this receipt counts for work.',
                 icon: Icons.person_rounded,
                 color: const Color(0xFF8F9BA1),
-                onPressed: hasLines ? onMarkPersonal : null,
+                onPressed: onMarkPersonal,
+                selected: selectedUse == _ExpenseLineUse.personal,
               ),
             ),
           ],
         ),
         const SizedBox(height: 8),
         _ReceiptWholeUseButton(
-          label: 'Mixed Receipt',
-          helper:
-              'Review each line below and mark Business, Personal, or Split. Every split requires your allocation.',
+          label: 'Split Receipt',
+          helper: 'Choose the business portion for each item in this receipt.',
           icon: Icons.call_split_rounded,
           color: const Color(0xFF3B7C73),
-          onPressed: hasLines ? onMarkMixed : null,
+          onPressed: onMarkMixed,
+          selected: selectedUse == _ExpenseLineUse.split,
         ),
-        const SizedBox(height: 8),
-        Text(
-          hasLines
-              ? 'Current lines: $businessCount business, $personalCount personal, $splitCount split.'
-              : 'After the receipt is read, the parsed lines will appear here for review.',
-          style: const TextStyle(
-            color: Color(0xFFC8D0D3),
-            fontSize: 11.5,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 0,
-          ),
-        ),
-        const SizedBox(height: 8),
-        _ReceiptLineClassificationChecklist(guidance: lineGuidance),
       ],
     );
   }

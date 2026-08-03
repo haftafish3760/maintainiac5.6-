@@ -1,5 +1,7 @@
 import '../records/maintainiac_durable_record_store.dart';
 import '../records/maintainiac_record_lifecycle.dart';
+import '../firebase/maintainiac_durable_cloud_backup_gateway.dart';
+import '../firebase/maintainiac_firestore_upload_queue.dart';
 import '../trip_tracking/vehicle_mileage_allocation.dart';
 
 /// Durable storage adapter for the Trip Tracking-owned allocation contract.
@@ -108,6 +110,20 @@ class VehicleMileageAllocationDurableStore {
   }) => recover(includeDeleted: includeDeleted).records
       .where((record) => record.allocation.vehicleId == vehicleId)
       .toList(growable: false);
+
+  /// Stages this bucket through the sole shared cloud gateway. It only writes
+  /// to the local retry queue; the user-controlled sync coordinator owns any
+  /// later network attempt and server-authorized Firestore commit.
+  Future<List<MaintainiacFirestoreQueuedDocument>> queueForBackup({
+    required MaintainiacDurableCloudBackupGateway gateway,
+    required String organizationId,
+    DateTime? queuedAtUtc,
+  }) => gateway.queueModule(
+    organizationId: organizationId,
+    module: module,
+    schemaVersion: schemaVersion,
+    queuedAtUtc: queuedAtUtc,
+  );
 
   /// Duplicate candidates are surfaced, never silently merged or deleted.
   /// The Trip Tracking ledger remains responsible for source-revision choice.

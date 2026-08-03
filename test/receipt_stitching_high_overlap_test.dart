@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:maintaniac/shared/widgets/receipt_capture/receipt_image_processor.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
 

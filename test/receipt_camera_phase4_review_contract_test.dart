@@ -24,7 +24,7 @@ void main() {
     expect(
       reviewScreen,
       contains(
-        'Even for long receipts, start on the actual captured photo preview',
+        'The person reviews the\n    // ordered photos first; automatic assembly starts only after Continue.',
       ),
     );
     expect(
@@ -52,7 +52,7 @@ void main() {
         'final effectiveSavingPhotos = savingPhotos && hasCapturedPhotos;',
       ),
     );
-    expect(controls, contains("return 'Use Receipt';"));
+    expect(controls, contains("return 'Choose Saved Image Size';"));
     expect(previewRow, contains('uiConfig.addPhotoLabel'));
     expect(previewTray, isNot(contains("'Add Next Section'")));
     expect(previewRow, contains('retakeLabel'));
@@ -138,7 +138,7 @@ void main() {
     expect(
       previewRow,
       contains(
-        'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
+        'Add bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
     expect(
@@ -150,8 +150,13 @@ void main() {
       previewControls,
       contains('strings.receiptSectionOf(current, total)'),
     );
-    expect(previewRow, contains('maxLines: compact ? 1 : 2'));
-    expect(previewRow, contains('SizedBox(height: compact ? 5 : 7)'));
+    expect(previewRow, contains('maxLines: 2'));
+    expect(
+      await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',
+      ).readAsString(),
+      contains('SizedBox(height: compactControls ? 5 : 7)'),
+    );
     expect(
       contextControls,
       contains(

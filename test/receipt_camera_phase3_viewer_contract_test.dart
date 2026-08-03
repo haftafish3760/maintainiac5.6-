@@ -87,7 +87,7 @@ void main() {
     );
     expect(
       cameraActivity,
-      contains('text = receiptCameraText("Done", "Listo")'),
+      contains('text = receiptCameraText("Review Photos", "Revisar fotos")'),
     );
     expect(
       cameraActivity,

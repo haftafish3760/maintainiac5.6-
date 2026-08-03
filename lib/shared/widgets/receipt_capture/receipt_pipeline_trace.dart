@@ -9,6 +9,9 @@ void traceReceiptPipelineStage(
   int? sourceCount,
   int? textCharacterCount,
   int? layoutLineCount,
+  int? candidateLineCount,
+  int? parsedLineCount,
+  int? recoveredLineCount,
   String? deviceTier,
   String? destination,
 }) {
@@ -20,6 +23,9 @@ void traceReceiptPipelineStage(
     if (sourceCount != null) 'sourceCount=$sourceCount',
     if (textCharacterCount != null) 'textCharacters=$textCharacterCount',
     if (layoutLineCount != null) 'layoutLines=$layoutLineCount',
+    if (candidateLineCount != null) 'candidateLines=$candidateLineCount',
+    if (parsedLineCount != null) 'parsedLines=$parsedLineCount',
+    if (recoveredLineCount != null) 'recoveredLines=$recoveredLineCount',
     if (deviceTier != null) 'deviceTier=${_safeTraceToken(deviceTier)}',
     if (destination != null) 'destination=${_safeTraceToken(destination)}',
   ];

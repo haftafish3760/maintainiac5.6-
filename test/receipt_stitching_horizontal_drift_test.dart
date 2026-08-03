@@ -30,7 +30,11 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: '${result.detailLabel}; ${_pairEvidence(result)}',
+      );
       expect(
         result.pairs.single.confidence,
         greaterThanOrEqualTo(.55),
@@ -118,7 +122,11 @@ void main() {
         paths: [first.path, second.path, third.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: '${result.detailLabel}; ${_pairEvidence(result)}',
+      );
       expect(result.pairs, hasLength(2));
       expect(result.overlapPixels, hasLength(2));
       expect(result.stitchedWidth, greaterThan(900));
@@ -128,6 +136,13 @@ void main() {
     timeout: _stitchingHeavyTimeout,
   );
 }
+
+String _pairEvidence(ReceiptStitchResult result) => result.pairs
+    .map(
+      (pair) =>
+          '${pair.summaryLabel}; scale ${pair.scaleCorrection.toStringAsFixed(3)}; perspective ${pair.perspectiveCorrection.toStringAsFixed(3)}; continuity ${pair.continuityCorrelation.toStringAsFixed(3)} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})',
+    )
+    .join('; ');
 
 Future<void> _expectStitchedImageMatchesReportedSize(
   ReceiptStitchResult result,

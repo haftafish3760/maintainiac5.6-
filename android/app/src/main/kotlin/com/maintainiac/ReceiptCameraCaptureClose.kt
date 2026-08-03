@@ -155,25 +155,18 @@ internal fun ReceiptCameraActivity.performReceiptCapture(
                 if (firstCapturedAt == null) firstCapturedAt = capturedAt
                 capturedPhotoPaths.add(outputFile.absolutePath)
                 totalCapturedByteSize += savedByteSize
-                // Decoding and sampling a high-resolution JPEG can take long
-                // enough to trigger an Android ANR when it runs on the UI
-                // callback. Keep the shutter locked until this lightweight
-                // evidence pass has finished, then return to the main thread.
-                receiptPhotoQualityExecutor.execute {
-                    recordCapturedPhotoQuality(outputFile)
-                    runOnUiThread {
-                        captureInFlight = false
-                        if (!isCameraSurfaceActive() || closeResultDelivered) return@runOnUiThread
-                        autoCaptureCooldownUntilMs =
-                            System.currentTimeMillis() + autoCaptureCooldownMs
-                        if (pendingCloseAfterCapture) {
-                            pendingCloseAfterCapture = false
-                            finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")
-                            return@runOnUiThread
-                        }
-                        finishWithCapturedPhotos(closeReason = "capture_saved_open_review")
-                    }
+                // Capture must return to photo review immediately. Quality
+                // checks, receipt assembly, and text extraction happen only
+                // after the person taps Continue with every section present.
+                captureInFlight = false
+                autoCaptureCooldownUntilMs =
+                    System.currentTimeMillis() + autoCaptureCooldownMs
+                if (pendingCloseAfterCapture) {
+                    pendingCloseAfterCapture = false
+                    finishWithCapturedPhotos(closeReason = "back_returned_captured_sections")
+                    return
                 }
+                finishWithCapturedPhotos(closeReason = "capture_saved_open_review")
             }
 
             override fun onError(exception: ImageCaptureException) {

@@ -35,7 +35,7 @@ void main() {
     expect(
       previewRow,
       contains(
-        'Add bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
+        'Add bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
     expect(alignmentActions, contains('Add Bottom Receipt Section'));
@@ -157,7 +157,7 @@ void main() {
         bottomContinuation.previousSectionGhostGuideMatchTarget,
         'subtotal_total_and_final_lines',
       );
-      expect(bottomContinuation.previousSectionGhostSlicePercent, 20);
+      expect(bottomContinuation.previousSectionGhostSlicePercent, 34);
 
       final topRetake = const ReceiptNativeCameraSettings().sessionFor(
         deviceCapability: const ReceiptDeviceCapability.highCapacity(),
@@ -181,7 +181,7 @@ void main() {
         topRetake.previousSectionGhostGuideMatchTarget,
         'next_section_top_lines',
       );
-      expect(topRetake.previousSectionGhostSlicePercent, 20);
+      expect(topRetake.previousSectionGhostSlicePercent, 24);
     },
   );
 
@@ -231,9 +231,9 @@ void main() {
 
     expect(session.hasPreviousSectionGuide, isTrue);
     expect(session.previousSectionGhostSourceStartFractionOrDefault, .92);
-    expect(session.previousSectionGhostSourceHeightFractionOrDefault, .15);
+    expect(session.previousSectionGhostSourceHeightFractionOrDefault, .24);
     expect(session.previousSectionGhostOverlayTopFractionOrDefault, 0);
-    expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+    expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .24);
     expect(session.previousSectionGhostOpacityOrDefault, .62);
   });
 }

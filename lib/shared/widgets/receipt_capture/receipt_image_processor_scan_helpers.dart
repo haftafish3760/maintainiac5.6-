@@ -1,5 +1,7 @@
 part of 'receipt_image_processor.dart';
 
+// Kept for the isolated stitching contract and source-level regression tests.
+// ignore: unused_element
 img.Image _autoCropReceipt(img.Image source) {
   return _autoCropReceiptWithDecision(source).image;
 }
@@ -274,10 +276,6 @@ _ReceiptImageBounds? _scanReceiptBounds(
     bottom: bottom,
     hitCount: hits,
   );
-}
-
-img.Image _autoStraightenReceipt(img.Image source) {
-  return _autoStraightenReceiptWithDecision(source).image;
 }
 
 _ScannerImageDecision _autoStraightenReceiptWithDecision(img.Image source) {

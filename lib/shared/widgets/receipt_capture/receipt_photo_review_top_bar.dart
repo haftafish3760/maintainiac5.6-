@@ -5,6 +5,9 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     required this.current,
     required this.total,
     required this.reviewMode,
+    required this.isStitchedReceipt,
+    required this.stitchWorking,
+    required this.stitchNeedsAlignment,
     required this.bestShotCandidateMode,
     required this.openingCamera,
     required this.savingPhotos,
@@ -16,6 +19,9 @@ class _ReceiptReviewTopBar extends StatelessWidget {
   final int current;
   final int total;
   final _ReceiptReviewMode reviewMode;
+  final bool isStitchedReceipt;
+  final bool stitchWorking;
+  final bool stitchNeedsAlignment;
   final bool bestShotCandidateMode;
   final bool openingCamera;
   final bool savingPhotos;
@@ -65,43 +71,80 @@ class _ReceiptReviewTopBar extends StatelessWidget {
       index: current - 1,
       total: total,
     );
-    final title = switch (reviewMode) {
-      _ReceiptReviewMode.preview =>
-        bestShotCandidateMode
-            ? total > 1
-                  ? 'Best photo $current/$total'
-                  : 'Review Receipt Photo'
-            : total > 1
-            ? '$sectionLabel $current/$total'
-            : 'Review Receipt Photo',
-      _ReceiptReviewMode.order => 'Check photo order',
-      _ReceiptReviewMode.stitch => 'Match receipt photos',
-      _ReceiptReviewMode.dataSaver => 'Choose saved proof size',
-      _ReceiptReviewMode.crop => 'Crop receipt',
+    final title = isStitchedReceipt
+        ? 'Review Complete Receipt'
+        : stitchWorking
+        ? 'Putting Receipt Together'
+        : stitchNeedsAlignment
+        ? 'Align Receipt Photos'
+        : switch (reviewMode) {
+            _ReceiptReviewMode.preview =>
+              bestShotCandidateMode
+                  ? total > 1
+                        ? 'Best photo $current/$total'
+                        : 'Review Receipt'
+                  : total > 1
+                  ? 'Review Receipt Photos'
+                  : 'Review Receipt',
+            _ReceiptReviewMode.order => 'Arrange Receipt Photos',
+            _ReceiptReviewMode.stitch => 'Review Complete Receipt',
+            _ReceiptReviewMode.dataSaver => 'Choose Saved Image Size',
+            _ReceiptReviewMode.crop => 'Crop Receipt',
+          };
+    final subtitle = switch (reviewMode) {
+      _ReceiptReviewMode.preview when total > 1 =>
+        '$sectionLabel • Photo $current of $total',
+      _ReceiptReviewMode.preview => 'Photo 1 of 1',
+      _ReceiptReviewMode.order => '$total photos',
+      _ReceiptReviewMode.stitch when stitchWorking =>
+        'Checking ${total == 1 ? '1 photo' : '$total photos'}',
+      _ReceiptReviewMode.stitch when stitchNeedsAlignment =>
+        'Automatic alignment needs help',
+      _ReceiptReviewMode.stitch => 'Full receipt preview',
+      _ReceiptReviewMode.dataSaver => 'Preview the copy that will be saved',
+      _ReceiptReviewMode.crop => '',
     };
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 0),
       child: Row(
         children: [
           _OverlayIconButton(
             icon: Icons.arrow_back_rounded,
-            label: 'Leave photo review',
-            foregroundColor: const Color(0xFFFF8A80),
+            label: 'Back',
+            foregroundColor: const Color(0xFFE8ECEE),
             onPressed: onClose,
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: Text(
-                title,
-                maxLines: 2,
-                style: const TextStyle(
-                  color: Color(0xFFE8ECEE),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Color(0xFFF4F6F5),
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -.2,
+                  ),
                 ),
-              ),
+                if (subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Color(0xFF9FB0B8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
             ),
           ),
           _OverlayIconButton(

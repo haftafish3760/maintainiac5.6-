@@ -80,9 +80,13 @@ void main() {
         await File(
           'lib/shared/widgets/receipt_capture/receipt_attachment_publish_signals.dart',
         ).readAsString();
-    final dataSaverPanel = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
-    ).readAsString();
+    final dataSaverPanel =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_details.dart',
+        ).readAsString();
     final uiConfig = await File(
       'lib/shared/widgets/receipt_capture/receipt_capture_ui_config.dart',
     ).readAsString();
@@ -139,7 +143,7 @@ void main() {
     expect(settingsSheet, contains('Show Camera Guidance'));
     expect(settingsSheet, contains('settings.setCameraGuidanceEnabled'));
     expect(settingsSheet, contains('Show Long Receipt Tips'));
-    expect(settingsSheet, contains("title: 'Receipt Details And Saved Proof'"));
+    expect(settingsSheet, contains("title: 'Saved Receipt Image'"));
     expect(settingsSheet, contains('required this.hasSavedReceiptProof'));
     expect(settingsSheet, contains('if (!hasSavedReceiptProof) ...['));
     expect(
@@ -148,24 +152,16 @@ void main() {
     );
     expect(
       settingsSheet,
-      contains('Your next receipt review shows the actual saved-proof size'),
+      contains('Your next receipt review shows the actual saved image size'),
     );
     expect(
       settingsSheet,
-      contains(
-        'The app uses the clearest original photo before creating the smaller saved proof copy.',
-      ),
+      contains('Receipt Assist always reads the clear source first.'),
     );
     expect(settingsSheet, contains('After You Take Photos'));
-    expect(
-      settingsSheet,
-      contains('Extra cloud or offline receipt help must remain optional'),
-    );
-    expect(settingsSheet, contains('hasOptionalCloudAssist'));
-    expect(
-      settingsSheet,
-      contains('defaultDataSaverShouldOfferOptionalLocalParserPacks'),
-    );
+    // Settings may describe optional services, but neither capture nor saved
+    // image review can require them. The concrete opt-in guard is checked
+    // below rather than tying this UI contract to internal planning helpers.
     _expectNoCloudRequiredCopy(settingsSheet);
     _expectNoCloudRequiredCopy(helpSheet);
     _expectNoCloudRequiredCopy(importActions);
@@ -188,20 +184,20 @@ void main() {
     expect(settingsSheet, contains('static String _choiceTooltip'));
     expect(
       settingsSheet,
-      contains('Good balance for review, phone space, and cloud backup.'),
+      contains('Recommended for the 100 MB early-access backup plan'),
     );
     expect(
       settingsSheet,
-      contains('Smallest saved proof. Saves the most space'),
+      contains('Smallest saved image. Use only after confirming'),
     );
-    expect(modeControls, contains('Proof Size'));
+    expect(modeControls, contains('Saved Image Size'));
     expect(
       reviewCropAndProofControls,
       contains('Save device space without losing the original reading source'),
     );
-    expect(reviewControls, contains("return 'Use Receipt';"));
+    expect(reviewControls, contains("return 'Continue';"));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
-    expect(reviewPreviewControls, contains('_ReceiptMultiPhotoActionRail'));
+    expect(reviewPreviewControls, contains('_ReceiptPreviewPrimaryRow'));
     expect(
       reviewPreviewControls,
       isNot(contains('_ReceiptSectionPositionChip')),
@@ -220,11 +216,11 @@ void main() {
     expect(reviewPreviewActionTray, contains('Use this receipt'));
     expect(
       reviewPreviewActionTray,
-      contains('Continue will use one combined receipt image.'),
+      contains('Your receipt is ready as one combined image.'),
     );
     expect(sectionLabels, contains(r'Section ${index + 1} of $total'));
-    expect(reviewPreviewControls, contains("label: 'Reorder Photos'"));
-    expect(contextControls, contains('Saved proof'));
+    expect(reviewPreviewControls, contains("label: 'Check Photo Order'"));
+    expect(contextControls, contains('Saved image'));
     expect(
       contextControls,
       contains('The app uses the clear original photo first'),
@@ -238,10 +234,7 @@ void main() {
     );
     expect(reviewScreen, contains('Widget _buildReviewBottomControls'));
     expect(reviewScreen, contains('return controls;'));
-    expect(
-      reviewScreen,
-      contains('if (!didPop) leaveReceiptReviewWithoutSaving();'),
-    );
+    expect(reviewScreen, contains('if (!didPop) handleReceiptReviewBack();'));
     expect(reviewActions, contains('final navigator = Navigator.of(context);'));
     expect(reviewActions, contains('ReceiptPhotoReviewResult.keptForLater'));
     expect(reviewActions, contains('ReceiptPhotoReviewResult.discardedByUser'));
@@ -261,16 +254,16 @@ void main() {
       isNot(contains('Tap the receipt to hide controls. Pinch to zoom.')),
     );
     expect(reviewScreen, isNot(contains('class _ReceiptImageViewportHint')));
-    expect(dataSaverPanel, contains('Saved proof image'));
+    expect(dataSaverPanel, contains('Saved receipt image'));
     expect(dataSaverPanel, contains("label: 'Receipt assistance'"));
     expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));
     expect(dataSaverPanel, contains('Capture source size'));
     expect(dataSaverPanel, isNot(contains('Original photo')));
-    expect(dataSaverPanel, contains('Proof kept after reading'));
+    expect(dataSaverPanel, contains('Image kept after reading'));
     expect(
       dataSaverPanel,
       contains(
-        'Connect backup in Account settings to see storage and activity.',
+        'Off. This receipt stays on your device until you turn backup on in Receipt settings.',
       ),
     );
     expect(

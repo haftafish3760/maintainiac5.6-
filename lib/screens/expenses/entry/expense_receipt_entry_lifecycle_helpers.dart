@@ -17,6 +17,9 @@ extension _ExpenseReceiptEntryLifecycleHelpers
         : 'Uncategorized';
     _receiptCategoryAppliesToAll =
         widget.initialCategory?.trim().isNotEmpty == true;
+    _receiptCategoryEntryChoice = _receiptCategoryAppliesToAll
+        ? _ReceiptCategoryEntryChoice.wholeReceipt
+        : null;
     _receiptAttachments.addAll(widget.initialAttachments);
     _lastAttachmentCount = _receiptAttachments.length;
     _hasReceipt = _receiptAttachments.isNotEmpty;

@@ -4,12 +4,18 @@ class ExpenseReceiptCategoryRule {
   const ExpenseReceiptCategoryRule({
     required this.mode,
     required this.defaultUnit,
+    required this.unitChoices,
+    required this.quantityLabel,
+    required this.unitPriceLabel,
     required this.guidance,
     required this.descriptionHint,
   });
 
   final ExpenseReceiptLineInputMode mode;
   final String defaultUnit;
+  final List<String> unitChoices;
+  final String quantityLabel;
+  final String unitPriceLabel;
   final String guidance;
   final String descriptionHint;
 
@@ -23,27 +29,35 @@ ExpenseReceiptCategoryRule expenseReceiptRuleForCategory(String category) {
     return const ExpenseReceiptCategoryRule(
       mode: ExpenseReceiptLineInputMode.fuel,
       defaultUnit: 'gallon',
+      unitChoices: ['gallon', 'kWh'],
+      quantityLabel: 'Fuel volume',
+      unitPriceLabel: 'Price per gallon',
       guidance:
           'Fuel needs odometer and fill details so mileage allocation can work later.',
-      descriptionHint: 'Example: diesel fuel, gasoline fuel, EV charge',
+      descriptionHint: 'Example: diesel or EV charge',
     );
   }
   if (_amountOnlyCategories.contains(key)) {
     return const ExpenseReceiptCategoryRule(
       mode: ExpenseReceiptLineInputMode.amountOnly,
       defaultUnit: 'each',
+      unitChoices: ['each'],
+      quantityLabel: 'Quantity',
+      unitPriceLabel: 'Price each',
       guidance:
           'This category records the receipt amount only. Package and unit counts do not apply.',
-      descriptionHint: 'Example: insurance premium, permit fee, phone bill',
+      descriptionHint: 'Example: premium or fee',
     );
   }
   return ExpenseReceiptCategoryRule(
     mode: ExpenseReceiptLineInputMode.measuredItem,
     defaultUnit: _defaultUnitByCategory[key] ?? 'each',
+    unitChoices: _unitChoicesForCategory(key),
+    quantityLabel: 'Quantity',
+    unitPriceLabel: 'Price per unit',
     guidance:
         'This category can use quantity, package size, and unit cost when the receipt shows them.',
-    descriptionHint:
-        'Example: saw blade, T-shirt, oil filter, cleaning supplies',
+    descriptionHint: _descriptionHintForCategory(key),
   );
 }
 
@@ -118,3 +132,48 @@ const _defaultUnitByCategory = {
   'vehicle_parts': 'each',
   'vehicle_supplies': 'each',
 };
+
+List<String> _unitChoicesForCategory(String category) {
+  if ({
+    'maintenance',
+    'repair',
+    'vehicle_parts',
+    'vehicle_supplies',
+  }.contains(category)) {
+    return const ['each', 'quart', 'gallon', 'bottle', 'case', 'service'];
+  }
+  if ({
+    'materials',
+    'tools',
+    'equipment',
+    'cleaning_supplies',
+  }.contains(category)) {
+    return const [
+      'each',
+      'foot',
+      'inch',
+      'square foot',
+      'pound',
+      'bag',
+      'box',
+      'case',
+      'pack',
+      'roll',
+    ];
+  }
+  return const ['each', 'pack', 'box', 'case', 'bag', 'roll', 'set'];
+}
+
+String _descriptionHintForCategory(String category) {
+  if ({
+    'maintenance',
+    'repair',
+    'vehicle_parts',
+    'vehicle_supplies',
+  }.contains(category)) {
+    return 'Example: oil filter or engine oil';
+  }
+  if (category == 'materials') return 'Example: 2 in. PVC elbow';
+  if (category == 'tools') return 'Example: drill bit or saw blade';
+  return 'Example: item as printed';
+}

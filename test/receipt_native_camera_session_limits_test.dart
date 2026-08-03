@@ -143,11 +143,11 @@ void main() {
       'subtotal_total_and_final_lines',
     );
     expect(withGuide.previousSectionGhostSourceStartFractionOrDefault, .80);
-    expect(withGuide.previousSectionGhostSourceHeightFractionOrDefault, .20);
+    expect(withGuide.previousSectionGhostSourceHeightFractionOrDefault, .34);
     expect(withGuide.previousSectionGhostOverlayTopFractionOrDefault, 0);
-    expect(withGuide.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+    expect(withGuide.previousSectionGhostOverlayHeightFractionOrDefault, .34);
     expect(withGuide.previousSectionGhostOpacityOrDefault, .36);
-    expect(withGuide.previousSectionGhostSlicePercent, 20);
+    expect(withGuide.previousSectionGhostSlicePercent, 34);
     expect(
       withGuide.previousSectionGuideGuidance,
       'Add the bottom receipt section.',
@@ -165,7 +165,7 @@ void main() {
     );
     expect(
       bottomGuideWithoutCopy.previousSectionGuideGuidance,
-      contains('top ghost slice'),
+      contains('top reference strip'),
     );
     expect(
       bottomGuideWithoutCopy.previousSectionGuideGuidance,
@@ -222,15 +222,15 @@ void main() {
     expect(topRetakeGuide.previousSectionGhostSourceStartFractionOrDefault, 0);
     expect(
       topRetakeGuide.previousSectionGhostSourceHeightFractionOrDefault,
-      .20,
+      .24,
     );
     expect(topRetakeGuide.previousSectionGhostOverlayTopFractionOrDefault, 0);
     expect(
       topRetakeGuide.previousSectionGhostOverlayHeightFractionOrDefault,
-      .20,
+      .24,
     );
     expect(topRetakeGuide.previousSectionGhostOpacityOrDefault, .32);
-    expect(topRetakeGuide.previousSectionGhostSlicePercent, 20);
+    expect(topRetakeGuide.previousSectionGhostSlicePercent, 24);
 
     final malformedFractionsGuide = const ReceiptNativeCameraSettings()
         .sessionFor(
@@ -250,7 +250,7 @@ void main() {
     );
     expect(
       malformedFractionsGuide.previousSectionGhostSourceHeightFractionOrDefault,
-      .20,
+      .34,
     );
     expect(
       malformedFractionsGuide.previousSectionGhostOverlayTopFractionOrDefault,
@@ -259,10 +259,10 @@ void main() {
     expect(
       malformedFractionsGuide
           .previousSectionGhostOverlayHeightFractionOrDefault,
-      .20,
+      .34,
     );
     expect(malformedFractionsGuide.previousSectionGhostOpacityOrDefault, .62);
-    expect(malformedFractionsGuide.previousSectionGhostSlicePercent, 20);
+    expect(malformedFractionsGuide.previousSectionGhostSlicePercent, 34);
   });
 
   test('session rejects unsafe previous section guide photo paths', () {
@@ -340,18 +340,18 @@ void main() {
       );
 
       expect(tooSmall.previousSectionGhostSourceStartFractionOrDefault, .65);
-      expect(tooSmall.previousSectionGhostSourceHeightFractionOrDefault, .15);
+      expect(tooSmall.previousSectionGhostSourceHeightFractionOrDefault, .24);
       expect(tooSmall.previousSectionGhostOverlayTopFractionOrDefault, 0);
-      expect(tooSmall.previousSectionGhostOverlayHeightFractionOrDefault, .15);
+      expect(tooSmall.previousSectionGhostOverlayHeightFractionOrDefault, .24);
       expect(tooSmall.previousSectionGhostOpacityOrDefault, .18);
-      expect(tooSmall.previousSectionGhostSlicePercent, 15);
+      expect(tooSmall.previousSectionGhostSlicePercent, 24);
 
       expect(tooLarge.previousSectionGhostSourceStartFractionOrDefault, .92);
-      expect(tooLarge.previousSectionGhostSourceHeightFractionOrDefault, .20);
+      expect(tooLarge.previousSectionGhostSourceHeightFractionOrDefault, .34);
       expect(tooLarge.previousSectionGhostOverlayTopFractionOrDefault, .30);
-      expect(tooLarge.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+      expect(tooLarge.previousSectionGhostOverlayHeightFractionOrDefault, .34);
       expect(tooLarge.previousSectionGhostOpacityOrDefault, .62);
-      expect(tooLarge.previousSectionGhostSlicePercent, 20);
+      expect(tooLarge.previousSectionGhostSlicePercent, 34);
     },
   );
 
@@ -381,11 +381,11 @@ void main() {
     expect(config.previousSectionGhostOverlayHeightFraction, isNull);
     expect(config.previousSectionGhostOpacity, isNull);
     expect(config.previousSectionGhostSourceStartFractionOrDefault, .80);
-    expect(config.previousSectionGhostSourceHeightFractionOrDefault, .20);
+    expect(config.previousSectionGhostSourceHeightFractionOrDefault, .34);
     expect(config.previousSectionGhostOverlayTopFractionOrDefault, 0);
-    expect(config.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+    expect(config.previousSectionGhostOverlayHeightFractionOrDefault, .34);
     expect(config.previousSectionGhostOpacityOrDefault, .32);
-    expect(config.previousSectionGhostSlicePercent, 20);
+    expect(config.previousSectionGhostSlicePercent, 34);
   });
 
   test(
@@ -413,11 +413,11 @@ void main() {
       );
 
       expect(config.previousSectionGhostSourceStartFractionOrDefault, .80);
-      expect(config.previousSectionGhostSourceHeightFractionOrDefault, .20);
+      expect(config.previousSectionGhostSourceHeightFractionOrDefault, .34);
       expect(config.previousSectionGhostOverlayTopFractionOrDefault, 0);
-      expect(config.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+      expect(config.previousSectionGhostOverlayHeightFractionOrDefault, .34);
       expect(config.previousSectionGhostOpacityOrDefault, .36);
-      expect(config.previousSectionGhostSlicePercent, 20);
+      expect(config.previousSectionGhostSlicePercent, 34);
     },
   );
 }

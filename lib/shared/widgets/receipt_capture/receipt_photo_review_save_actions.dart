@@ -1,6 +1,12 @@
 part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
+  void _requestStitchPreview() {
+    if (!_reviewInteractiveControlsActive || _photoPaths.length <= 1) return;
+    _updateReviewState(() => _stitchPreviewRequested = true);
+    unawaited(_ensureStitchPreview(force: true));
+  }
+
   Future<void> continueReceiptPhotoReview() async {
     if (_savingPhotos || _closingReview) return;
     if (_photoPaths.isEmpty) return;
@@ -9,21 +15,20 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         !_reviewWorkActive) {
       return;
     }
-    if (_needsStitchReviewBeforeSave) {
+    if (_reviewMode != _ReceiptReviewMode.dataSaver &&
+        _needsStitchReviewBeforeSave) {
       if (_reviewMode != _ReceiptReviewMode.stitch) {
-        _updateReviewState(() {
-          _reviewMode = _ReceiptReviewMode.stitch;
-        });
-        unawaited(_ensureStitchPreview(force: true));
+        _setReviewMode(_ReceiptReviewMode.stitch);
+        _requestStitchPreview();
         return;
       }
       if (_stitchPreviewResult == null) {
         await _ensureStitchPreview(force: true);
         return;
       }
-      if (_stitchPreviewInFlight) {
+      if (_stitchPreviewInFlight && _stitchPreviewResult == null) {
         _showCameraError(
-          'Wait for the photo match check, then choose how receipt details should be filled.',
+          'Your receipt photos are still being combined. This can take a moment.',
         );
         return;
       }
@@ -45,12 +50,23 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         return;
       }
     }
-    // After photo approval, always show the saved-proof choice. OCR still
-    // reads the original, but the user sees the actual compressed proof and
-    // chooses the storage trade-off before it is retained.
+    // Every receipt gets a visible saved-image choice.  Lighting, faded ink,
+    // and fine print differ from one receipt to the next, so a remembered
+    // size is only the starting selection—not permission to skip its preview.
+    if (!mounted || _reviewDisposed || _closingReview) return;
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
     if (_reviewMode != _ReceiptReviewMode.dataSaver) {
-      _updateReviewState(() => _reviewMode = _ReceiptReviewMode.dataSaver);
+      _updateReviewState(() {
+        _reviewMode = _ReceiptReviewMode.dataSaver;
+        _dataSaverOptionsVisible = true;
+      });
       return;
+    }
+    if (_reviewMode == _ReceiptReviewMode.dataSaver && settings != null) {
+      // Retain the last choice as a convenient starting point for the next
+      // preview; it never suppresses the next saved-image step.
+      await settings.setDefaultDataSaverLevel(_dataSaverLevel);
+      if (!_reviewWorkActive || _closingReview) return;
     }
     _updateReviewState(() => _savingPhotos = true);
     final pathsToSave = widget.bestShotCandidateMode
@@ -110,10 +126,31 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
           ...prepared.toStorageContractDiagnostics(),
         };
       }
-      final stitch = await _finalStitchResultForOcr(
+      final stitchFuture = _finalStitchResultForOcr(
         inputPaths: pathsToSave,
         preparedOcrPaths: ocrSourcePaths,
-      ).timeout(const Duration(seconds: 24));
+      );
+      final stitch = await stitchFuture.timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          // A stale preview can force a final assembly attempt. Never trap a
+          // person on this screen because that work is slow: use the already
+          // prepared clear sections in order, and remove a late temporary
+          // composite if the isolate finishes after the fallback is accepted.
+          unawaited(
+            stitchFuture.then(
+              (lateStitch) => _deleteStitchPreviewPath(lateStitch.stitchedPath),
+              onError: (Object _) {},
+            ),
+          );
+          return ReceiptStitchResult.fallback(
+            inputPaths: ocrSourcePaths,
+            warning:
+                'Putting these photos together took too long. Receipt details will use them from top to bottom.',
+            fallbackReasonCode: 'stitch_timeout',
+          );
+        },
+      );
       final finalPreparationDiagnostics =
           _preparationDiagnosticsForFinalOcrSources(
             stitch: stitch,
@@ -149,9 +186,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         if (stitch.stitchedPath != null) stitch.stitchedPath!,
       });
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
-      final navigator = Navigator.of(context);
-      if (!beginReceiptReviewClose()) return;
-      navigator.pop(
+      await finishReceiptReview(
         ReceiptPhotoReviewResult(
           photoPaths: savedPaths,
           ocrSourcePhotoPaths: stitch.ocrSourcePaths,
@@ -183,5 +218,4 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
     if (!_reviewWorkActive) return;
     _updateReviewState(() => _savingPhotos = false);
   }
-
 }

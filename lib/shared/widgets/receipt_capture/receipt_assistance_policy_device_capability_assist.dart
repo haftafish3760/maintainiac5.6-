@@ -29,6 +29,7 @@ extension ReceiptDeviceCapabilityAssist on ReceiptDeviceCapability {
   bool get shouldOfferCloudOcrAssist {
     return usesLeanLocalReceiptReading ||
         recommendedDataSaverLevel == ReceiptDataSaverLevel.strong ||
+        recommendedDataSaverLevel == ReceiptDataSaverLevel.economy ||
         recommendedDataSaverLevel == ReceiptDataSaverLevel.maximum;
   }
 
@@ -75,7 +76,7 @@ extension ReceiptDeviceCapabilityAssist on ReceiptDeviceCapability {
     required ReceiptDataSaverLevel dataSaverLevel,
   }) {
     final storageConstrained =
-        dataSaverLevel == ReceiptDataSaverLevel.strong ||
+        dataSaverLevel == ReceiptDataSaverLevel.economy ||
         dataSaverLevel == ReceiptDataSaverLevel.maximum;
     final leanLocalReceiptReading =
         usesLeanLocalReceiptReading || storageConstrained;
@@ -100,10 +101,11 @@ extension ReceiptDeviceCapabilityAssist on ReceiptDeviceCapability {
   int _localCatalogLimitFor(ReceiptDataSaverLevel dataSaverLevel) {
     final storageLimit = switch (dataSaverLevel) {
       ReceiptDataSaverLevel.maximum => 250,
-      ReceiptDataSaverLevel.strong => 1000,
+      ReceiptDataSaverLevel.economy => 1000,
       ReceiptDataSaverLevel.original ||
       ReceiptDataSaverLevel.light ||
-      ReceiptDataSaverLevel.balanced => maxLocalCatalogMatches,
+      ReceiptDataSaverLevel.balanced ||
+      ReceiptDataSaverLevel.strong => maxLocalCatalogMatches,
     };
     return maxLocalCatalogMatches < storageLimit
         ? maxLocalCatalogMatches
@@ -113,10 +115,11 @@ extension ReceiptDeviceCapabilityAssist on ReceiptDeviceCapability {
   int _localInventoryCacheLimitFor(ReceiptDataSaverLevel dataSaverLevel) {
     final storageLimit = switch (dataSaverLevel) {
       ReceiptDataSaverLevel.maximum => 1000,
-      ReceiptDataSaverLevel.strong => 3000,
+      ReceiptDataSaverLevel.economy => 3000,
       ReceiptDataSaverLevel.original ||
       ReceiptDataSaverLevel.light ||
-      ReceiptDataSaverLevel.balanced => maxLocalInventoryCacheItems,
+      ReceiptDataSaverLevel.balanced ||
+      ReceiptDataSaverLevel.strong => maxLocalInventoryCacheItems,
     };
     return maxLocalInventoryCacheItems < storageLimit
         ? maxLocalInventoryCacheItems

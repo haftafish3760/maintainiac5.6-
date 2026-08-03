@@ -5,17 +5,20 @@ extension _ReceiptAttachmentPublishHelpers
   Future<void> requestClearAttachments() async {
     final count = _photoPaths.length + _documentAttachments.length;
     final confirmed = await confirmProofRemoval(
-      title: 'Clear receipt proof?',
+      title: 'Clear receipt image?',
       message: count == 1
-          ? 'This removes the attached proof from this receipt form. Saved read-only proof files are only deleted if they are still staged.'
-          : 'This removes all $count attached proofs from this receipt form. Saved read-only proof files are only deleted if they are still staged.',
-      confirmLabel: 'Clear Proof',
+          ? 'This removes the attached image from this receipt form. Saved read-only files are deleted only while they are still staged.'
+          : 'This removes all $count attached images from this receipt form. Saved read-only files are deleted only while they are still staged.',
+      confirmLabel: 'Clear Images',
     );
     if (!mounted || !confirmed) return;
     clearAttachments();
   }
 
   void clearAttachments() {
+    for (final photoPath in _photoPaths) {
+      _deleteStagedReceiptPhoto(photoPath);
+    }
     for (final attachment in _documentAttachments) {
       unawaited(
         ReceiptProofStorage.instance.deleteStagedAttachment(attachment),
@@ -49,6 +52,7 @@ extension _ReceiptAttachmentPublishHelpers
     if (!mounted || !confirmed) return;
     updateAttachmentState(() {
       final removed = _photoPaths.removeAt(index);
+      _deleteStagedReceiptPhoto(removed);
       _photoIdByPath.remove(removed);
       _photoQualityByPath.remove(removed);
       _photoCaptureDiagnosticsByPath.remove(removed);
@@ -60,10 +64,10 @@ extension _ReceiptAttachmentPublishHelpers
 
   Future<void> removeDocument(ReceiptAttachmentRecord attachment) async {
     final confirmed = await confirmProofRemoval(
-      title: 'Remove receipt proof?',
+      title: 'Remove receipt image?',
       message:
-          '${attachment.label} will be removed from this receipt form. Saved read-only proof files are only deleted if they are still staged.',
-      confirmLabel: 'Remove Proof',
+          '${attachment.label} will be removed from this receipt form. Saved read-only files are deleted only while they are still staged.',
+      confirmLabel: 'Remove Image',
     );
     if (!mounted || !confirmed) return;
     unawaited(ReceiptProofStorage.instance.deleteStagedAttachment(attachment));
@@ -144,6 +148,26 @@ extension _ReceiptAttachmentPublishHelpers
       () => _dataSaverLevel = settings.defaultDataSaverLevel,
     );
     return result ?? true;
+  }
+
+  void _deleteStagedReceiptPhoto(String photoPath) {
+    final path = photoPath.trim();
+    if (path.isEmpty) return;
+    // The storage cleanup method independently proves this path is inside
+    // Maintainiac's staging directory before deleting it. A gallery original
+    // or permanent receipt proof cannot be deleted through this path.
+    unawaited(
+      ReceiptProofStorage.instance.deleteStagedAttachment(
+        ReceiptAttachmentRecord(
+          id: 'staged-photo-cleanup-$path',
+          path: path,
+          kind: ReceiptAttachmentKind.photo,
+          dataSaverLevel: _dataSaverLevel,
+          createdAt: DateTime.now(),
+          storageState: ReceiptAttachmentStorageState.staged,
+        ),
+      ),
+    );
   }
 
   String get _receiptAttachmentLinkedModule {

@@ -1,5 +1,7 @@
 part of 'expense_receipt_entry_screen.dart';
 
+// Kept to render drafts produced by the earlier detailed assisted-review UI.
+// ignore: unused_element
 class _ReceiptLineEvidenceReviewPanel extends StatelessWidget {
   const _ReceiptLineEvidenceReviewPanel({
     required this.lines,

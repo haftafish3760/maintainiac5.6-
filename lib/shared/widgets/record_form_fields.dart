@@ -47,6 +47,7 @@ class RecordTextField extends StatelessWidget {
     this.onFieldSubmitted,
     this.onChanged,
     this.inputFormatters,
+    this.dark = false,
   });
 
   final String label;
@@ -61,6 +62,7 @@ class RecordTextField extends StatelessWidget {
   final ValueChanged<String>? onFieldSubmitted;
   final ValueChanged<String>? onChanged;
   final List<TextInputFormatter>? inputFormatters;
+  final bool dark;
 
   @override
   Widget build(BuildContext context) {
@@ -98,14 +100,16 @@ class RecordTextField extends StatelessWidget {
                 }
                 onFieldSubmitted?.call(value);
               },
-              style: const TextStyle(
-                color: Color(0xFF101416),
+              style: TextStyle(
+                color: dark ? const Color(0xFFF5F7F8) : const Color(0xFF101416),
                 fontWeight: FontWeight.w800,
               ),
               decoration: InputDecoration(
                 hintText: hintText,
                 filled: true,
-                fillColor: const Color(0xFFAAB4B9),
+                fillColor: dark
+                    ? const Color(0xFF101315)
+                    : const Color(0xFFAAB4B9),
                 contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
                 errorStyle: const TextStyle(
                   color: Color(0xFFFFD4D4),
@@ -113,12 +117,18 @@ class RecordTextField extends StatelessWidget {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(3),
-                  borderSide: const BorderSide(color: Color(0xFF879299)),
+                  borderSide: BorderSide(
+                    color: dark
+                        ? const Color(0xFF40484D)
+                        : const Color(0xFF879299),
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(3),
-                  borderSide: const BorderSide(
-                    color: Color(0xFFE2E8EA),
+                  borderSide: BorderSide(
+                    color: dark
+                        ? const Color(0xFFFF8500)
+                        : const Color(0xFFE2E8EA),
                     width: 2,
                   ),
                 ),
@@ -139,6 +149,11 @@ class RecordTextField extends StatelessWidget {
                     width: 2,
                   ),
                 ),
+                counterStyle: TextStyle(
+                  color: dark
+                      ? const Color(0xFFC8D0D3)
+                      : const Color(0xFF101416),
+                ),
               ),
             ),
             Positioned(
@@ -149,7 +164,9 @@ class RecordTextField extends StatelessWidget {
                 label: label,
                 alignment: Alignment.centerLeft,
                 maxWidthFactor: 0.48,
-                backgroundColor: const Color(0xFF11181B),
+                backgroundColor: dark
+                    ? const Color(0xFF101315)
+                    : const Color(0xFF11181B),
                 textColor: const Color(0xFFF0F4F2),
               ),
             ),
@@ -168,6 +185,8 @@ class RecordDropdownField<T> extends StatelessWidget {
     required this.items,
     required this.itemLabel,
     required this.onChanged,
+    this.labelMaxWidthFactor = .48,
+    this.dark = false,
   });
 
   final String label;
@@ -175,6 +194,8 @@ class RecordDropdownField<T> extends StatelessWidget {
   final List<T> items;
   final String Function(T item) itemLabel;
   final ValueChanged<T> onChanged;
+  final double labelMaxWidthFactor;
+  final bool dark;
 
   @override
   Widget build(BuildContext context) {
@@ -185,22 +206,31 @@ class RecordDropdownField<T> extends StatelessWidget {
           initialValue: value,
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFFAAB4B9),
+            fillColor: dark ? const Color(0xFF101315) : const Color(0xFFAAB4B9),
             contentPadding: const EdgeInsets.fromLTRB(12, 14, 12, 10),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(3),
-              borderSide: const BorderSide(color: Color(0xFF879299)),
+              borderSide: BorderSide(
+                color: dark ? const Color(0xFF40484D) : const Color(0xFF879299),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(3),
-              borderSide: const BorderSide(color: Color(0xFFE2E8EA), width: 2),
+              borderSide: BorderSide(
+                color: dark ? const Color(0xFFFF8500) : const Color(0xFFE2E8EA),
+                width: 2,
+              ),
             ),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(3)),
           ),
-          dropdownColor: const Color(0xFFAAB4B9),
-          iconEnabledColor: const Color(0xFF101416),
-          style: const TextStyle(
-            color: Color(0xFF101416),
+          dropdownColor: dark
+              ? const Color(0xFF101315)
+              : const Color(0xFFAAB4B9),
+          iconEnabledColor: dark
+              ? const Color(0xFFF5F7F8)
+              : const Color(0xFF101416),
+          style: TextStyle(
+            color: dark ? const Color(0xFFF5F7F8) : const Color(0xFF101416),
             fontWeight: FontWeight.w800,
           ),
           items: items
@@ -209,8 +239,10 @@ class RecordDropdownField<T> extends StatelessWidget {
                   value: item,
                   child: Text(
                     itemLabel(item),
-                    style: const TextStyle(
-                      color: Color(0xFF101416),
+                    style: TextStyle(
+                      color: dark
+                          ? const Color(0xFFF5F7F8)
+                          : const Color(0xFF101416),
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -228,8 +260,10 @@ class RecordDropdownField<T> extends StatelessWidget {
           child: StructuralBorderLabel(
             label: label,
             alignment: Alignment.centerLeft,
-            maxWidthFactor: 0.48,
-            backgroundColor: const Color(0xFF11181B),
+            maxWidthFactor: labelMaxWidthFactor,
+            backgroundColor: dark
+                ? const Color(0xFF101315)
+                : const Color(0xFF11181B),
             textColor: const Color(0xFFF0F4F2),
           ),
         ),

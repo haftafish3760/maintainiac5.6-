@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -22,8 +23,10 @@ import 'receipt_picker_status.dart';
 import 'receipt_photo_review_retake_order.dart';
 import 'receipt_photo_path_identity.dart';
 import 'receipt_photo_review_ui_config.dart';
+import 'receipt_ocr_service.dart';
 import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
+import 'receipt_stitch_text_evidence.dart';
 import 'receipt_storage_guard.dart';
 
 part 'receipt_photo_review_controls.dart';
@@ -43,11 +46,9 @@ part 'receipt_photo_review_save_actions.dart';
 part 'receipt_photo_review_completion_actions.dart';
 part 'receipt_photo_review_save_models.dart';
 part 'receipt_photo_review_data_saver_panel.dart';
+part 'receipt_photo_review_data_saver_details.dart';
 part 'receipt_photo_review_crop_and_proof_controls.dart';
 part 'receipt_photo_review_crop_controls.dart';
-part 'receipt_photo_review_stitch_controls.dart';
-part 'receipt_photo_review_stitch_readiness.dart';
-part 'receipt_photo_review_stitch_chips.dart';
 part 'receipt_photo_review_order_controls.dart';
 part 'receipt_photo_review_order_thumbnail.dart';
 part 'receipt_photo_review_context_controls.dart';
@@ -64,8 +65,13 @@ part 'receipt_photo_review_stitch_surface.dart';
 part 'receipt_photo_review_photo_surface.dart';
 part 'receipt_photo_review_async_work.dart';
 part 'receipt_photo_review_stitch_preview_async.dart';
+part 'receipt_photo_review_stitch_order_evidence.dart';
 part 'receipt_photo_review_stitch_preview_widgets.dart';
 part 'receipt_photo_review_stitch_pair_preview.dart';
+part 'receipt_photo_review_stitch_pair_navigator.dart';
+part 'receipt_photo_review_stitch_ghost_preview.dart';
+part 'receipt_photo_review_stitch_photo.dart';
+part 'receipt_photo_review_stitch_actions.dart';
 part 'receipt_photo_review_thumbnail_strip.dart';
 part 'receipt_photo_review_settings.dart';
 
@@ -126,6 +132,9 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   // means keep the local proof at original quality rather than silently
   // downgrading it when the review screen opens.
   late ReceiptDataSaverLevel _dataSaverLevel = widget.initialDataSaverLevel;
+  // The receipt image is the primary decision surface. Keep the choices
+  // available, but let the person slide them away before judging readability.
+  var _dataSaverOptionsVisible = true;
   late var _selectedIndex = _initialSelectedIndex();
   var _openingCamera = false;
   var _showThumbnailStrip = true;
@@ -144,12 +153,25 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   final _generatedEditPaths = <String>{};
   late final _captureDiagnosticsByPath = _initialCaptureDiagnosticsByPath();
   final _manualOverlapFractions = <double?>[];
+  final _manualScaleCorrections = <double>[];
+  final _manualRotationCorrectionsDegrees = <double>[];
+  final _manualHorizontalOffsetFractions = <double>[];
+  final _manualZeroOverlapPairs = <bool>[];
+  final _stitchTextEvidenceByPath = <String, ReceiptStitchTextEvidence>{};
   var _closingReview = false;
   var _confirmingReviewExit = false;
   late final _qualityChecksByPath = _initialQualityChecksByPath();
   ReceiptStitchResult? _stitchPreviewResult;
   String? _stitchPreviewKey;
+  String? _stitchOrderEvidenceKey;
   bool _stitchPreviewInFlight = false;
+  Future<bool>? _stitchOrderWork;
+  var _stitchOrderUserAdjusted = false;
+  var _stitchPreviewRequested = false;
+  // Review photos is an in-flow detour from the combined-receipt screen.
+  // Android Back/iOS swipe-back should return to that screen, not ask whether
+  // to discard the whole receipt flow.
+  var _returnToStitchOnPreviewBack = false;
   Timer? _stitchPreviewDebounce;
   var _reviewDisposed = false;
   var _reviewWorkGeneration = 0;
@@ -162,6 +184,11 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   final _toolControlsScrollController = ScrollController();
   final _photoPreviewTransformController = TransformationController();
   TapDownDetails? _lastPhotoPreviewDoubleTap;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   ReceiptDeviceCapability get _deviceCapability {
     return ReceiptCaptureSettingsScope.maybeOf(context)?.deviceCapability ??
@@ -184,8 +211,8 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   }
 
   _ReceiptReviewMode _initialReviewMode() {
-    // Even for long receipts, start on the actual captured photo preview so
-    // the user can immediately review, retake, add another section, or use it.
+    // Capturing and adding sections must stay instant. The person reviews the
+    // ordered photos first; automatic assembly starts only after Continue.
     return _ReceiptReviewMode.preview;
   }
 
@@ -230,9 +257,15 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
     _syncManualOverlapSlots();
     _schedulePostFrameReviewWork(photoPath);
     if (_reviewMode == _ReceiptReviewMode.dataSaver) {
-      _scheduleDataSaverPreviewWork(photoPath);
+      // A combined long receipt must prepare and display one preview from the
+      // same stitched source. Scheduling the selected original here creates a
+      // cache key the data-saver surface never reads, leaving it permanently
+      // in its "Preparing" state.
+      _scheduleDataSaverPreviewWork(_dataSaverPreviewSource(photoPath));
     }
-    if (_reviewMode == _ReceiptReviewMode.stitch && _photoPaths.length > 1) {
+    if (_reviewMode == _ReceiptReviewMode.stitch &&
+        _photoPaths.length > 1 &&
+        _stitchPreviewRequested) {
       _ensureStitchPreview();
     }
     return _buildPhotoReviewScaffold(context, photoPath);

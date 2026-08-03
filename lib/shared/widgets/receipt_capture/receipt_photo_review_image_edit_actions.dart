@@ -64,12 +64,26 @@ extension _ReceiptPhotoReviewImageEditActions
     _resetPhotoPreviewZoom();
     _updateReviewState(() {
       _reviewMode = mode;
+      _dataSaverOptionsVisible = mode == _ReceiptReviewMode.dataSaver;
+      if (mode == _ReceiptReviewMode.stitch) {
+        // Matching is automatic. Manual overlap is recovery only, after the
+        // user can see the automatic result.
+        _stitchPreviewRequested = true;
+      } else {
+        _stitchPreviewRequested = false;
+      }
     });
+    if (mode == _ReceiptReviewMode.stitch) {
+      unawaited(_ensureStitchPreview(force: true));
+    }
     _resetToolControlsScrollPosition();
   }
 
   void _resetToolControlsScrollPosition() {
-    if (!_reviewInteractiveControlsActive) return;
+    if (!_reviewInteractiveControlsActive ||
+        !_toolControlsScrollController.hasClients) {
+      return;
+    }
     _toolControlsScrollController.jumpTo(
       _toolControlsScrollController.position.minScrollExtent,
     );

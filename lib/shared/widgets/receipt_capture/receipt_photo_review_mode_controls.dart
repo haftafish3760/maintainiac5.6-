@@ -15,55 +15,53 @@ class _ReceiptReviewStepStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 38,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: [
-          _StepStripButton(
-            label: 'Review',
-            icon: Icons.visibility_rounded,
-            selected: selected == _ReceiptReviewMode.preview,
-            onTap: enabled
-                ? () => onSelected(_ReceiptReviewMode.preview)
-                : null,
-          ),
-          const SizedBox(width: 6),
-          _StepStripButton(
-            label: 'Crop',
-            icon: Icons.crop_rounded,
-            selected: selected == _ReceiptReviewMode.crop,
-            onTap: enabled ? () => onSelected(_ReceiptReviewMode.crop) : null,
-          ),
-          const SizedBox(width: 6),
-          _StepStripButton(
-            label: 'Photo Order',
-            icon: Icons.swap_vert_rounded,
-            selected: selected == _ReceiptReviewMode.order,
-            onTap: enabled && photoCount > 1
-                ? () => onSelected(_ReceiptReviewMode.order)
-                : null,
-          ),
-          const SizedBox(width: 6),
-          _StepStripButton(
-            label: 'Match Photos',
-            icon: Icons.join_full_rounded,
-            selected: selected == _ReceiptReviewMode.stitch,
-            onTap: enabled && photoCount > 1
-                ? () => onSelected(_ReceiptReviewMode.stitch)
-                : null,
-          ),
-          const SizedBox(width: 6),
-          _StepStripButton(
-            label: 'Proof Size',
-            icon: Icons.storage_rounded,
-            selected: selected == _ReceiptReviewMode.dataSaver,
-            onTap: enabled
-                ? () => onSelected(_ReceiptReviewMode.dataSaver)
-                : null,
-          ),
-        ],
-      ),
+    // Never leave a partially visible action at the edge of the phone. The
+    // full labels matter more than forcing every review tool onto one row.
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        _StepStripButton(
+          label: 'Review',
+          icon: Icons.visibility_rounded,
+          selected: selected == _ReceiptReviewMode.preview,
+          onTap: enabled ? () => onSelected(_ReceiptReviewMode.preview) : null,
+        ),
+        const SizedBox(width: 6),
+        _StepStripButton(
+          label: 'Crop',
+          icon: Icons.crop_rounded,
+          selected: selected == _ReceiptReviewMode.crop,
+          onTap: enabled ? () => onSelected(_ReceiptReviewMode.crop) : null,
+        ),
+        const SizedBox(width: 6),
+        _StepStripButton(
+          label: 'Photo Order',
+          icon: Icons.swap_vert_rounded,
+          selected: selected == _ReceiptReviewMode.order,
+          onTap: enabled && photoCount > 1
+              ? () => onSelected(_ReceiptReviewMode.order)
+              : null,
+        ),
+        const SizedBox(width: 6),
+        _StepStripButton(
+          label: 'Align Photos',
+          icon: Icons.join_full_rounded,
+          selected: selected == _ReceiptReviewMode.stitch,
+          onTap: enabled && photoCount > 1
+              ? () => onSelected(_ReceiptReviewMode.stitch)
+              : null,
+        ),
+        const SizedBox(width: 6),
+        _StepStripButton(
+          label: 'Save Space',
+          icon: Icons.storage_rounded,
+          selected: selected == _ReceiptReviewMode.dataSaver,
+          onTap: enabled
+              ? () => onSelected(_ReceiptReviewMode.dataSaver)
+              : null,
+        ),
+      ],
     );
   }
 }
@@ -129,15 +127,15 @@ class _ReceiptToolModeHeader extends StatelessWidget {
       ),
       _ReceiptReviewMode.stitch => (
         Icons.join_full_rounded,
-        'Long Receipt Match',
+        'Align Receipt Photos',
         photoCount > 1
-            ? 'Match photos only when safe; otherwise receipt details open top to bottom.'
-            : 'Use Add Another Photo before matching.',
+            ? 'Maintainiac combines the photos automatically. Adjust only if the receipt did not line up.'
+            : 'Add another photo before aligning a long receipt.',
       ),
       _ReceiptReviewMode.dataSaver => (
         Icons.storage_rounded,
-        'Saved Receipt Proof',
-        'Preview the saved proof image. Receipt assistance still uses the clearest source first.',
+        'Choose Saved Image Size',
+        'Preview exactly how the saved image will look. Receipt assistance still uses the clearest source first.',
       ),
       _ReceiptReviewMode.preview => (
         Icons.visibility_rounded,

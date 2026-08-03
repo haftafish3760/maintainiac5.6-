@@ -23,6 +23,22 @@ void main() {
       expect(report['propaneReceiptCount'], greaterThan(0));
       expect(report['hydrogenReceiptCount'], greaterThan(0));
       expect(report['dirtyReceiptCount'], greaterThan(0));
+      expect(
+        report['sectionStyleCounts'],
+        containsPair('style_0', greaterThan(0)),
+      );
+      expect(
+        report['sectionStyleCounts'],
+        containsPair('style_1', greaterThan(0)),
+      );
+      expect(
+        report['sectionStyleCounts'],
+        containsPair('style_2', greaterThan(0)),
+      );
+      expect(
+        report['ocrDamageVariantCounts'],
+        containsPair('variant_0', greaterThan(0)),
+      );
       expect(report['discountReceiptCount'], greaterThan(0));
       expect(report['evFeeReceiptCount'], greaterThan(0));
       expect(report['commaDecimalReceiptCount'], greaterThan(0));
@@ -92,13 +108,13 @@ void main() {
   );
 
   test(
-    'fuel synthetic milestone preset runs a larger compact sweep',
+    'fuel synthetic milestone preset runs a five-thousand receipt sweep',
     () async {
-      final report = runFuelSyntheticParser(count: 500, seed: 0);
+      final report = runFuelSyntheticParser(count: 5000, seed: 0);
 
       expect(report['schema'], 'fuel_synthetic_parser_runner_v1');
-      expect(report['caseCount'], 500);
-      expect(report['passedCaseCount'], 500);
+      expect(report['caseCount'], 5000);
+      expect(report['passedCaseCount'], 5000);
       expect(report['failedCaseCount'], 0);
       expect(report['accuracy'], 1.0);
       expect(report['blockers'], isEmpty);
@@ -110,6 +126,34 @@ void main() {
       expect(report['hydrogenReceiptCount'], greaterThan(0));
       expect(report['evFeeReceiptCount'], greaterThan(0));
       expect(report['dirtyReceiptCount'], greaterThan(0));
+      expect(
+        report['sectionStyleCounts'],
+        containsPair('style_0', greaterThan(0)),
+      );
+      expect(
+        report['sectionStyleCounts'],
+        containsPair('style_1', greaterThan(0)),
+      );
+      expect(
+        report['sectionStyleCounts'],
+        containsPair('style_2', greaterThan(0)),
+      );
+      expect(
+        report['ocrDamageVariantCounts'],
+        containsPair('variant_0', greaterThan(0)),
+      );
+      expect(
+        report['ocrDamageVariantCounts'],
+        containsPair('variant_1', greaterThan(0)),
+      );
+      expect(
+        report['ocrDamageVariantCounts'],
+        containsPair('variant_2', greaterThan(0)),
+      );
+      expect(
+        report['ocrDamageVariantCounts'],
+        containsPair('variant_3', greaterThan(0)),
+      );
       expect(report['discountReceiptCount'], greaterThan(0));
       expect(report['commaDecimalReceiptCount'], greaterThan(0));
       expect(report['preauthHoldReceiptCount'], greaterThan(0));

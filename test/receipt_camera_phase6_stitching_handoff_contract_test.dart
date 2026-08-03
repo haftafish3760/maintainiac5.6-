@@ -27,32 +27,56 @@ void main() {
         contains('Future<void> continueReceiptPhotoReview()'),
       );
       expect(saveActions, contains('_needsStitchReviewBeforeSave'));
-      expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.stitch;'));
+      expect(
+        saveActions,
+        contains('_setReviewMode(_ReceiptReviewMode.stitch)'),
+      );
       expect(saveActions, contains('_ensureStitchPreview(force: true)'));
       expect(
         saveActions,
-        contains("stitchPreview.fallbackReasonCode == 'duplicate_section_image'"),
+        contains(
+          "stitchPreview.fallbackReasonCode == 'duplicate_section_image'",
+        ),
       );
       expect(
         saveActions,
-        contains('Remove or replace the highlighted duplicate before continuing.'),
+        contains(
+          'Remove or replace the highlighted duplicate before continuing.',
+        ),
       );
       expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.order;'));
       expect(
         saveActions,
-        contains('final stitch = await _finalStitchResultForOcr('),
+        contains('final stitchFuture = _finalStitchResultForOcr('),
+      );
+      expect(saveActions, contains("fallbackReasonCode: 'stitch_timeout'"));
+      expect(
+        saveActions,
+        contains('_deleteStitchPreviewPath(lateStitch.stitchedPath)'),
       );
       expect(saveActions, contains('await _deleteGeneratedStitchPreview();'));
       expect(
-        saveActions.indexOf('prepareForOcrAndBackup('),
+          saveActions.indexOf('prepareForOcrAndBackup('),
         lessThan(
-          saveActions.indexOf('final stitch = await _finalStitchResultForOcr('),
+          saveActions.indexOf('final stitchFuture = _finalStitchResultForOcr('),
         ),
       );
 
       expect(
         stitchPreviewAsync,
         contains('ReceiptImageProcessor.stitchReceiptPhotosForOcr('),
+      );
+      expect(stitchPreviewAsync, contains('const Duration(seconds: 15)'));
+      expect(stitchPreviewAsync, contains('stitch_preview_timeout'));
+      expect(
+        stitchPreviewAsync,
+        contains(
+          'They will stay in order as separate photos so you can continue.',
+        ),
+      );
+      expect(
+        stitchPreviewAsync,
+        contains('_deleteStitchPreviewPath(lateResult.stitchedPath)'),
       );
       expect(
         stitchPreviewAsync,

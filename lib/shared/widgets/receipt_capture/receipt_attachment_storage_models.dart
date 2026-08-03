@@ -110,23 +110,24 @@ enum ReceiptDataSaverLevel {
   light(
     'Best readability',
     '750 KB-1 MB',
-    'Largest saved proof. Best when fine print needs a close review.',
+    'Largest saved image. Best when fine print needs a close review.',
   ),
   balanced(
     'Normal',
     '450-650 KB',
-    'Everyday saved proof image with a clear 1 MB ceiling.',
+    'Everyday saved image with a clear 1 MB ceiling.',
   ),
   strong(
-    'Low Storage',
-    '200-350 KB',
-    'Smaller saved proof image with extra contrast.',
+    'Everyday',
+    '200-300 KB',
+    'Recommended for a 100 MB backup plan: about 390 receipts after the text reserve.',
   ),
-  maximum(
-    'Tiny Proof',
-    '75-150 KB',
-    'Smallest saved proof image. Review first.',
-  );
+  economy(
+    'Saver',
+    '100-175 KB',
+    'Smaller saved image. Check the actual preview before keeping it.',
+  ),
+  maximum('Minimum', '50-90 KB', 'Smallest saved image. Review first.');
 
   const ReceiptDataSaverLevel(this.label, this.shortLabel, this.description);
 
@@ -137,6 +138,7 @@ enum ReceiptDataSaverLevel {
   bool get usesGrayscale =>
       this == ReceiptDataSaverLevel.balanced ||
       this == ReceiptDataSaverLevel.strong ||
+      this == ReceiptDataSaverLevel.economy ||
       this == ReceiptDataSaverLevel.maximum;
 
   static ReceiptDataSaverLevel fromName(String? name) {
@@ -149,6 +151,15 @@ enum ReceiptDataSaverLevel {
 }
 
 class ReceiptProofTargetSizePolicy {
+  /// The initial receipt-photo allowance being planned for early users. This
+  /// is deliberately only a planning figure; actual backup availability comes
+  /// from the user's backup status, never from this estimate.
+  static const earlyAccessProofPlanBytes = 100 * 1024 * 1024;
+
+  /// Keep a modest amount of the plan available for receipt details and other
+  /// small data instead of promising every byte to photos.
+  static const earlyAccessTextReserveBytes = 5 * 1024 * 1024;
+
   const ReceiptProofTargetSizePolicy({
     required this.level,
     required this.policyCode,
@@ -201,22 +212,34 @@ class ReceiptProofTargetSizePolicy {
       ),
       ReceiptDataSaverLevel.strong => const ReceiptProofTargetSizePolicy(
         level: ReceiptDataSaverLevel.strong,
-        policyCode: 'compact_proof_200_350kb',
+        policyCode: 'everyday_proof_200_300kb',
         minBytes: 200 * 1024,
-        targetBytes: 275 * 1024,
-        maxBytes: 350 * 1024,
+        targetBytes: 250 * 1024,
+        maxBytes: 300 * 1024,
+        cloudBackupDefaultAllowed: true,
+        keepsOriginalLocalOnly: false,
+        requiresReadabilityReview: false,
+        userFacingSummary:
+            'Everyday proof is the early-access default: it keeps a 100 MB backup plan useful for roughly 390 receipt photos while retaining readable text.',
+      ),
+      ReceiptDataSaverLevel.economy => const ReceiptProofTargetSizePolicy(
+        level: ReceiptDataSaverLevel.economy,
+        policyCode: 'saver_proof_100_175kb',
+        minBytes: 100 * 1024,
+        targetBytes: 125 * 1024,
+        maxBytes: 175 * 1024,
         cloudBackupDefaultAllowed: true,
         keepsOriginalLocalOnly: false,
         requiresReadabilityReview: true,
         userFacingSummary:
-            'Low-storage proof saves more phone and backup space. Review readability before relying on it.',
+            'Saver proof uses less backup space. Inspect the actual preview before keeping it.',
       ),
       ReceiptDataSaverLevel.maximum => const ReceiptProofTargetSizePolicy(
         level: ReceiptDataSaverLevel.maximum,
-        policyCode: 'tiny_proof_75_150kb',
-        minBytes: 75 * 1024,
-        targetBytes: 110 * 1024,
-        maxBytes: 150 * 1024,
+        policyCode: 'minimum_proof_50_90kb',
+        minBytes: 50 * 1024,
+        targetBytes: 75 * 1024,
+        maxBytes: 90 * 1024,
         cloudBackupDefaultAllowed: true,
         keepsOriginalLocalOnly: false,
         requiresReadabilityReview: true,
@@ -245,6 +268,19 @@ class ReceiptProofTargetSizePolicy {
       ? 'Local original only'
       : ReceiptStorageFormatter.formatBytes(targetBytes);
 
+  /// A deliberately conservative comparison aid for the five saved-proof
+  /// choices. It is not an account meter or an entitlement claim.
+  int get earlyAccessProofCapacity {
+    if (keepsOriginalLocalOnly || targetBytes <= 0) return 0;
+    final photoBudget = earlyAccessProofPlanBytes - earlyAccessTextReserveBytes;
+    return photoBudget ~/ targetBytes;
+  }
+
+  String get earlyAccessProofCapacityLabel {
+    if (keepsOriginalLocalOnly) return 'Kept on this device only';
+    return 'About $earlyAccessProofCapacity receipt images per 100 MB plan';
+  }
+
   Map<String, Object?> toPrivacySafeDiagnostics() {
     return {
       'receiptProofTargetLevel': level.name,
@@ -257,6 +293,7 @@ class ReceiptProofTargetSizePolicy {
       'receiptProofReadabilityReviewRequired': requiresReadabilityReview,
       'receiptProofTargetRangeLabel': rangeLabel,
       'receiptProofTargetSummary': userFacingSummary,
+      'receiptProofEarlyAccessCapacity': earlyAccessProofCapacity,
     };
   }
 }

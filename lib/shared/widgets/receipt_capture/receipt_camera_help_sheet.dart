@@ -50,7 +50,7 @@ class _ReceiptCameraHelpSheet extends StatelessWidget {
                         icon: Icons.receipt_long_rounded,
                         title: 'Long Receipts',
                         text:
-                            'Use Add Another Photo for the next part of a long receipt. Repeat 3-5 readable lines in the top ghost slice so the app can match sections without duplicating lines.',
+                            'Use Add Another Photo for the next part of a long receipt. Repeat 3-5 readable lines in the top reference strip so the app can join sections without duplicating lines.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.burst_mode_rounded,
@@ -68,7 +68,7 @@ class _ReceiptCameraHelpSheet extends StatelessWidget {
                         icon: Icons.swap_horiz_rounded,
                         title: 'Business, Personal, Or Split',
                         text:
-                            'For a mixed receipt, mark each line as business, personal, or split so totals and tax can be separated correctly.',
+                            'For a split receipt, mark each line as business, personal, or split so totals and tax can be separated correctly.',
                       ),
                       _ReceiptHelpRow(
                         icon: Icons.cloud_upload_outlined,

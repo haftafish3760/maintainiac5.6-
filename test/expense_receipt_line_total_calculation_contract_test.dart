@@ -16,7 +16,11 @@ void main() {
 
     expect(
       editor.indexOf('_ExpenseCategorySearch('),
-      lessThan(editor.indexOf('Printed item description')),
+      lessThan(editor.indexOf('Item description')),
+    );
+    expect(
+      editor.indexOf('_LineUseBanner('),
+      lessThan(editor.indexOf('Item description')),
     );
     expect(derived, contains('double? get _calculatedLineSubtotal'));
     expect(derived, contains('quantity * unitPrice'));

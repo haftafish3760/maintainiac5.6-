@@ -44,14 +44,22 @@ void main() {
     expect(scaffold, isNot(contains('_ReceiptDetailLevelPanel(')));
     expect(scaffold, isNot(contains('_ReceiptSummaryUsePanel(')));
     expect(settings, isNot(contains('_ReceiptReviewStyleSettingsPanel(')));
-    expect(attachmentPanel, isNot(contains('receipt_expense_review_default_picker.dart')));
-    expect(captureSettings, isNot(contains('_ExpenseReceiptReviewDefaultPicker(')));
+    expect(
+      attachmentPanel,
+      isNot(contains('receipt_expense_review_default_picker.dart')),
+    );
+    expect(
+      captureSettings,
+      isNot(contains('_ExpenseReceiptReviewDefaultPicker(')),
+    );
     expect(actions, contains('initial: _ExpenseReceiptLine.blank'));
     expect(actions, isNot(contains('_showQuickClassifyLineSheet')));
     expect(
       lineEditor,
-      contains('Category is optional. Leave it unresolved if you are not sure.'),
+      isNot(contains('_ReceiptItemCategoryContext(rule: _categoryRule)')),
     );
+    expect(lineEditor, contains("label: 'Item description'"));
+    expect(lineEditor, contains('TextInputAction.next'));
     expect(lineEditor, contains('ExpenseSplitAllocationMethod.amount'));
     expect(recap, contains('showItemDetails'));
   });

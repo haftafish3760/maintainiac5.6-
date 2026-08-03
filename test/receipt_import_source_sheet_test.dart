@@ -6,7 +6,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_attachment_pan
 
 void main() {
   test(
-    'new expense keeps receipt source choices behind an explicit Add Receipt tap',
+    'manual receipt keeps source choices behind its confirmed setup while app-assisted starts with the source choice',
     () async {
       final panel = await File(
         'lib/shared/widgets/receipt_capture/receipt_attachment_panel.dart',
@@ -23,10 +23,11 @@ void main() {
         ),
       );
       expect(panel, contains('unawaited(openReceiptImportOptions())'));
-      expect(expenseAttachment, contains('openImportOptionsOnFirstBuild: false'));
+      expect(expenseAttachment, contains('final startsWithAssistedCapture ='));
+      expect(expenseAttachment, contains('(startsWithAssistedCapture ||'));
       expect(
         expenseAttachment,
-        contains('camera and upload choices belong behind the explicit'),
+        contains('closeParentWhenImportCanceled: startsWithAssistedCapture'),
       );
     },
   );
@@ -54,8 +55,9 @@ void main() {
       find.text('Choose how you want to add this receipt.'),
       findsOneWidget,
     );
-    expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
-    expect(find.text('Help'), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back_rounded), findsOneWidget);
+    expect(find.byTooltip('Receipt settings'), findsOneWidget);
+    expect(find.byTooltip('Receipt help'), findsOneWidget);
     expect(find.text('Capture Photo'), findsOneWidget);
     expect(find.text('Upload Photos'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
@@ -63,7 +65,7 @@ void main() {
     expect(find.text('Text File'), findsNothing);
     expect(find.text('Share Help'), findsNothing);
 
-    await tester.tap(find.text('Help'));
+    await tester.tap(find.byTooltip('Receipt help'));
     await tester.pumpAndSettle();
 
     expect(find.text('Receipt Import Help'), findsOneWidget);
@@ -116,7 +118,7 @@ void main() {
     expect(find.text('Capture Photo'), findsOneWidget);
     expect(find.text('Upload PDF/File'), findsOneWidget);
 
-    await tester.tap(find.text('Help'));
+    await tester.tap(find.byTooltip('Receipt help'));
     await tester.pumpAndSettle();
 
     expect(find.text('Receipt Import Help'), findsOneWidget);
@@ -162,41 +164,44 @@ void main() {
     expect(find.text('Text File'), findsOneWidget);
   });
 
-  test('receipt import chooser keeps original compact sheet grid', () async {
-    final source = await File(
-      'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
-    ).readAsString();
-    final tile = await File(
-      'lib/shared/widgets/receipt_capture/receipt_import_source_tile.dart',
-    ).readAsString();
+  test(
+    'receipt import chooser uses a full-screen, labeled source picker',
+    () async {
+      final source = await File(
+        'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
+      ).readAsString();
+      final tile = await File(
+        'lib/shared/widgets/receipt_capture/receipt_import_source_tile.dart',
+      ).readAsString();
 
-    final openStart = source.indexOf('Future<void> openReceiptImportOptions');
-    final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
-    final openBlock = source.substring(openStart, openEnd);
+      final openStart = source.indexOf('Future<void> openReceiptImportOptions');
+      final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
+      final openBlock = source.substring(openStart, openEnd);
 
-    expect(openBlock, contains('showModalBottomSheet'));
-    expect(openBlock, isNot(contains('Navigator.of(context).push')));
-    expect(openBlock, isNot(contains('MaterialPageRoute')));
-    expect(openBlock, isNot(contains('fullscreenDialog: true')));
-    expect(source, isNot(contains('return Scaffold(')));
-    expect(source, contains('SafeArea('));
-    expect(source, contains('SingleChildScrollView('));
-    expect(
-      source,
-      contains('final columns = constraints.maxWidth >= 340 ? 2 : 1'),
-    );
-    expect(source, contains('return Wrap('));
-    expect(source, contains("label: 'Capture Photo'"));
-    expect(source, contains("label: 'Upload Photos'"));
-    expect(source, contains("label: 'Upload PDF/File'"));
-    expect(source, contains("label: 'Paste/Text'"));
-    expect(source, isNot(contains("label: 'Text File'")));
-    expect(source, isNot(contains("label: 'Share Help'")));
-    expect(source, isNot(contains('_ReceiptPrimaryImportTile')));
-    expect(tile, isNot(contains('class _ReceiptPrimaryImportTile')));
-    expect(tile, isNot(contains('width: 58')));
-    expect(tile, isNot(contains('height: 58')));
-  });
+      expect(openBlock, contains('Navigator.of(context).push'));
+      expect(openBlock, contains('MaterialPageRoute'));
+      expect(openBlock, contains('fullscreenDialog: true'));
+      expect(source, contains('return Scaffold('));
+      expect(source, contains("tooltip: 'Back to receipt'"));
+      expect(source, contains('SafeArea('));
+      expect(source, contains('SingleChildScrollView('));
+      expect(
+        source,
+        contains('final columns = constraints.maxWidth >= 340 ? 2 : 1'),
+      );
+      expect(source, contains('return Wrap('));
+      expect(source, contains("label: 'Capture Photo'"));
+      expect(source, contains("label: 'Upload Photos'"));
+      expect(source, contains("label: 'Upload PDF/File'"));
+      expect(source, contains("label: 'Paste/Text'"));
+      expect(source, isNot(contains("label: 'Text File'")));
+      expect(source, isNot(contains("label: 'Share Help'")));
+      expect(source, isNot(contains('_ReceiptPrimaryImportTile')));
+      expect(tile, isNot(contains('class _ReceiptPrimaryImportTile')));
+      expect(tile, isNot(contains('width: 58')));
+      expect(tile, isNot(contains('height: 58')));
+    },
+  );
 
   test('receipt source chooser asks for Receipt Assist once first', () async {
     final source = await File(
@@ -216,7 +221,7 @@ void main() {
     final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
     final openBlock = source.substring(openStart, openEnd);
     final introIndex = openBlock.indexOf('_showFirstUseReceiptAssistIntro');
-    final chooserIndex = openBlock.indexOf('showModalBottomSheet');
+    final chooserIndex = openBlock.indexOf('Navigator.of(context).push');
     expect(introIndex, greaterThanOrEqualTo(0));
     expect(chooserIndex, greaterThan(introIndex));
     expect(
@@ -252,6 +257,8 @@ void main() {
     expect(takeBlock, isNot(contains('parserPackInstallChoice')));
 
     expect(intro, contains('uiConfig.firstUsePrompt'));
+    expect(intro, contains('SingleChildScrollView('));
+    expect(intro, contains('MediaQuery.viewInsetsOf(context).bottom'));
     expect(
       uiConfig,
       contains('Would you like Maintainiac to help fill out receipt details?'),

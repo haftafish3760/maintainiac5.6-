@@ -26,10 +26,10 @@ extension _ExpenseReceiptEntryReadHandoffNoLineLabels
     }
     final warning = _primaryNoLineOcrWarning;
     if (warning != null && !_receiptNoLineHasOcrText) {
-      return '${warning.label}. The proof image is still saved; retake, add another clearer section, or enter the receipt manually.';
+      return '${warning.label}. The receipt image is still saved; retake it, add a clearer section, or enter the receipt manually.';
     }
     if (_receiptReadAttemptedWithoutText && !_receiptNoLineHasOcrText) {
-      return 'Maintainiac could not find usable receipt text in that photo. The proof image is still saved; retake, add another clearer section, or enter the receipt manually.';
+      return 'Maintainiac could not find usable receipt text in that photo. The receipt image is still saved; retake it, add a clearer section, or enter the receipt manually.';
     }
     if (_receiptNoLineHasOcrText) {
       return 'Receipt text was found, but item lines still need review. Use the receipt total if that is enough, or add lines manually.';
@@ -62,7 +62,7 @@ extension _ExpenseReceiptEntryReadHandoffNoLineLabels
     if (_rawReceiptText.trim().isNotEmpty) {
       return 'Use the total buttons if that is enough, or add receipt lines manually.';
     }
-    return 'Attach a clear receipt proof or enter the receipt manually.';
+    return 'Attach a clear receipt image or enter the receipt manually.';
   }
 
   String get _receiptNoLineOcrOutcomeLabel {

@@ -43,9 +43,9 @@ internal fun ReceiptCameraActivity.finishWithCapturedPhotos(closeReason: String 
 internal fun ReceiptCameraActivity.updateDoneButton() {
     val count = capturedPhotoPaths.size
     val title = when (count) {
-        0 -> receiptCameraText("Done", "Listo")
-        1 -> receiptCameraText("Done", "Listo")
-        else -> "${receiptCameraText("Done", "Listo")} ($count)"
+        0 -> receiptCameraText("Review Photos", "Revisar fotos")
+        1 -> receiptCameraText("Review Photo", "Revisar foto")
+        else -> "${receiptCameraText("Review Photos", "Revisar fotos")} ($count)"
     }
     if (hasInitializedReceiptCameraField { addPhotoButton }) {
         addPhotoButton.visibility = if (
@@ -74,8 +74,8 @@ internal fun ReceiptCameraActivity.updateDoneButton() {
         bottomReviewButton.text = title
         bottomReviewButton.contentDescription =
             receiptCameraText(
-                "Done: review captured receipt photos in Maintainiac",
-                "Listo: revisar las fotos del recibo en Maintainiac",
+                "Review captured receipt photos in Maintainiac",
+                "Revisar las fotos del recibo en Maintainiac",
             )
     }
     updateSettingsStatusStrip()

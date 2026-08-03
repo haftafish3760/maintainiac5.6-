@@ -27,11 +27,13 @@ void main() {
       );
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.ocrSourcePaths, [result.stitchedPath]);
-      final normalizedSectionHeight = (1500 * result.stitchedWidth / 900)
-          .round();
       expect(
         result.stitchedHeight,
-        normalizedSectionHeight * files.length - result.overlapPixelTotal,
+        _expectedStitchedHeightForUniformSections(
+          sectionWidth: 900,
+          sectionHeight: 1500,
+          result: result,
+        ),
       );
 
       final decoded = img.decodeImage(
@@ -173,7 +175,12 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason:
+            '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}, continuity ${pair.continuityCorrelation.toStringAsFixed(3)} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+      );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(
@@ -236,6 +243,26 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
+}
+
+int _expectedStitchedHeightForUniformSections({
+  required int sectionWidth,
+  required int sectionHeight,
+  required ReceiptStitchResult result,
+}) {
+  final firstHeight = (sectionHeight * result.stitchedWidth / sectionWidth)
+      .round();
+  var expectedHeight = firstHeight;
+  for (var index = 0; index < result.pairs.length; index++) {
+    final pair = result.pairs[index];
+    final transformedWidth = (result.stitchedWidth * pair.scaleCorrection)
+        .round()
+        .clamp(320, 3200);
+    final transformedHeight = (sectionHeight * transformedWidth / sectionWidth)
+        .round();
+    expectedHeight += transformedHeight - result.overlapPixels[index];
+  }
+  return expectedHeight;
 }
 
 void expectOutputTooLargeFallback(

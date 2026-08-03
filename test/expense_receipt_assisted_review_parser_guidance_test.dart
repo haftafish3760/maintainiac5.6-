@@ -112,7 +112,7 @@ void main() {
       parseReview,
       contains('parseDiagnostics.ocrLineIdentitySummaryLabel'),
     );
-    expect(parseReview, contains('Icons.format_list_numbered_rtl_rounded'));
+    expect(parseReview, contains('Icons.format_list_numbered_rounded'));
     expect(parseReview, contains('diagnostics.parserTaskCounts'));
     expect(parseReview, contains('_diagnosticCount'));
     expect(parseReview, contains('_readyCount'));
@@ -281,7 +281,7 @@ void main() {
     expect(
       importActions,
       contains(
-        'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice so subtotal, total, and final lines can be matched.',
+        'Add the bottom receipt section and repeat 3-5 readable lines in the top reference strip so subtotal, total, and final lines can be matched.',
       ),
     );
     expect(importActions, contains('options: continuationGuide.applyTo'));
@@ -299,7 +299,7 @@ void main() {
     expect(parseReview, contains('actionCallbacks[action]'));
     expect(parseReview, contains('OutlinedButton.icon'));
     expect(parseReview, contains('Review filled fields'));
-    expect(parseReview, contains('Classify Business/Personal/Mixed'));
+    expect(parseReview, contains('Classify Business/Personal/Split'));
     expect(parseReview, contains('_ocrParserTaskActionLabelsFor'));
     expect(parseReview, contains("tasks['vendor_missing']"));
     expect(parseReview, contains('Check receipt date'));

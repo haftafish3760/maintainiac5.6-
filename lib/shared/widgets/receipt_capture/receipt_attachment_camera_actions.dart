@@ -158,7 +158,7 @@ extension _ReceiptAttachmentCameraActions
 
   String? _nextReceiptContinuationGuidance() {
     if (_needsBottomReceiptSection) {
-      return 'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice so subtotal, total, and final lines can be matched.';
+      return 'Add the bottom receipt section and repeat 3-5 readable lines in the top reference strip so subtotal, total, and final lines can be matched.';
     }
     return widget.receiptContinuationGuidance;
   }

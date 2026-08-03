@@ -1,6 +1,50 @@
 part of 'expense_receipt_entry_screen.dart';
 
 extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
+  Future<void> _chooseLineUse(_ExpenseLineUse use) async {
+    if (use != _ExpenseLineUse.split) {
+      _updateEditorState(() => _use = use);
+      return;
+    }
+
+    final previewLine = _ExpenseReceiptLine(
+      id: widget.initial.id,
+      description: _descriptionController.text.trim().isEmpty
+          ? 'Receipt item'
+          : _descriptionController.text.trim(),
+      category: _category,
+      use: _ExpenseLineUse.split,
+      quantity: _quantityForSave,
+      unitsPerPackage: _unitsPerPackageForSave,
+      stockUnit: _stockUnit,
+      subtotal: _resolvedLineSubtotal ?? widget.initial.subtotal,
+      splitAllocation: widget.initial.splitAllocation,
+      unitPrice: _unitPriceForSave,
+    );
+    final allocation = await Navigator.of(context).push<ExpenseSplitAllocation>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) =>
+            _SplitDetailsScreen(line: previewLine, allowQuantity: false),
+      ),
+    );
+    if (!mounted || allocation == null) return;
+    _updateEditorState(() {
+      _use = _ExpenseLineUse.split;
+      _splitMethod = allocation.method;
+      if (allocation.method == ExpenseSplitAllocationMethod.amount) {
+        _businessAmountController.text = allocation.businessValue
+            .abs()
+            .toStringAsFixed(2);
+        _businessPercentController.clear();
+      } else {
+        _businessPercentController.text = (allocation.businessValue * 100)
+            .toStringAsFixed(0);
+        _businessAmountController.clear();
+      }
+    });
+  }
+
   Future<void> _save() async {
     final typedCategory = _categorySearchController.text.trim();
     final category =

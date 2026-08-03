@@ -146,12 +146,11 @@ void main() {
     expect(flow, contains('staged.captureDiagnosticsByPhotoPath'));
     expect(importSheet, contains('Capture Photo'));
     expect(importSheet, isNot(contains('Scan Receipt')));
-    expect(scanner, contains('return Platform.isIOS;'));
+    expect(scanner, contains('return Platform.isAndroid || Platform.isIOS;'));
     expect(
       scanner,
-      contains('Do not make receipt capture wait on a Play Services'),
+      contains('available as an explicit recovery path'),
     );
-    expect(scanner, isNot(contains('Platform.isAndroid')));
     expect(
       imagePicker,
       contains('Backup receipt capture uses the phone camera'),

@@ -1,6 +1,37 @@
 part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
+  /// Back moves one in-flow surface at a time. The save-draft/exit decision is
+  /// reserved for leaving receipt review itself, not for leaving matching,
+  /// crop, or saved-proof inspection.
+  Future<void> handleReceiptReviewBack() async {
+    switch (_reviewMode) {
+      case _ReceiptReviewMode.crop:
+        _cancelCropReview();
+        return;
+      case _ReceiptReviewMode.dataSaver:
+        _setReviewMode(
+          _photoPaths.length > 1
+              ? _ReceiptReviewMode.stitch
+              : _ReceiptReviewMode.preview,
+        );
+        return;
+      case _ReceiptReviewMode.order:
+      case _ReceiptReviewMode.stitch:
+        _setReviewMode(_ReceiptReviewMode.preview);
+        return;
+      case _ReceiptReviewMode.preview:
+        if (_returnToStitchOnPreviewBack &&
+            _photoPaths.length > 1 &&
+            _stitchPreviewResult != null) {
+          _returnToStitchOnPreviewBack = false;
+          _setReviewMode(_ReceiptReviewMode.stitch);
+          return;
+        }
+        await leaveReceiptReviewWithoutSaving();
+    }
+  }
+
   Future<void> _cleanupFailedReceiptPrepArtifacts(Set<String> paths) async {
     for (final path in paths) {
       if (path.isEmpty || receiptPhotoPathSetContains(_photoPaths, path)) {
@@ -38,7 +69,6 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
       _showCameraError('Finish or cancel crop before leaving this review.');
       return;
     }
-    final navigator = Navigator.of(context);
     _confirmingReviewExit = true;
     final _ReceiptReviewExitAction action;
     try {
@@ -70,8 +100,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
         : ReceiptPhotoReviewResult.discardedByUser(
             dataSaverLevel: _dataSaverLevel,
           );
-    if (!beginReceiptReviewClose()) return;
-    navigator.pop(reviewResult);
+    await finishReceiptReview(reviewResult);
   }
 
   bool beginReceiptReviewClose() {
@@ -86,6 +115,18 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
       _cropProcessing = false;
       _confirmingReviewExit = false;
     });
+  }
+
+  /// Lets PopScope rebuild with its controlled-close allowance before returning
+  /// a successful review result. Calling Navigator.pop in the same turn as
+  /// setting [_closingReview] leaves the old `canPop: false` disposition in
+  /// place on Android and can route a saved-proof confirmation back to stitch
+  /// review instead of the OCR handoff.
+  Future<void> finishReceiptReview(ReceiptPhotoReviewResult result) async {
+    if (!beginReceiptReviewClose()) return;
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || _reviewDisposed) return;
+    Navigator.of(context).pop(result);
   }
 
   Future<_ReceiptReviewExitAction> _confirmReceiptReviewExit() async {
@@ -220,7 +261,7 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
         ? 'Save Photos Without Filling keeps these photos recoverable on this phone, but Maintainiac will not fill this expense from them yet.'
         : 'Save Photo Without Filling keeps this photo recoverable on this phone, but Maintainiac will not fill this expense from it yet.';
     if (coverageDecision.isMissingBottomEdgeAndTotals) {
-      return 'Tap $nextLabel to add the bottom receipt section with the top ghost-slice guide, or continue only if this already shows the full receipt. $saveWithoutFilling';
+      return 'Tap $nextLabel to add the bottom receipt section with the top reference strip, or continue only if this already shows the full receipt. $saveWithoutFilling';
     }
     if (coverageDecision.shouldPromptForMorePhotos) {
       return 'Tap $nextLabel only if this already shows the full receipt; otherwise add the next receipt section before opening receipt details. $saveWithoutFilling';

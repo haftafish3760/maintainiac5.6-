@@ -135,8 +135,9 @@ void main() {
         'final Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath',
       ),
     );
-    expect(reviewScreen, contains('previewPreparedBackupFile'));
-    expect(reviewScreen, contains('optimizePreparedBackupFile'));
+    expect(reviewScreen, contains('ReceiptImageProcessor.previewFile'));
+    expect(reviewScreen, isNot(contains('previewPreparedBackupFile')));
+    expect(reviewActions, contains('prepareForOcrAndBackup'));
     expect(reviewCropAndProofControls, contains('_ReceiptOcrProofLaneCard'));
     expect(reviewCropAndProofControls, contains('_ReceiptDataSaverReviewCopy'));
     expect(
@@ -197,7 +198,7 @@ void main() {
     expect(
       receiptEntryScreen,
       contains(
-        'Receipt reader is using the saved proof copy because a clearer photo was not available.',
+        'Receipt reader is using the saved receipt image because a clearer photo was not available. Review the filled lines carefully before saving.',
       ),
     );
     expect(

@@ -10,13 +10,22 @@ double? _fuelUnitPriceFor({
   final direct = _fuelUnitPriceIn(text, quantity: quantity, amount: amount);
   if (direct != null) {
     final directEffective = _effectiveFuelUnitPriceFor(
-      text:
-          '$text \${fallbackText ?? '
-          '}',
+      text: [text, ?fallbackText].join(' '),
       unitPrice: direct,
       quantity: quantity,
       amount: amount,
     );
+    if (_fuelUnitPriceMatchesAmount(
+      unitPrice: directEffective,
+      quantity: quantity.quantity,
+      amount: amount,
+    )) {
+      return directEffective;
+    }
+    // A direct price that does not reconcile can be a cash price while an
+    // adjacent credit-price row is the actual transaction. Only accept that
+    // receipt-wide alternative when it reconciles; otherwise preserve the
+    // local price so a different pump's rate cannot silently replace it.
     if (fallbackText != null && fallbackText.trim().isNotEmpty) {
       final fallback = _fuelUnitPriceIn(
         fallbackText,
@@ -24,17 +33,19 @@ double? _fuelUnitPriceFor({
         amount: amount,
       );
       if (fallback != null) {
-        final fallbackEffective = _effectiveFuelUnitPriceFor(
+        final effectiveFallback = _effectiveFuelUnitPriceFor(
           text: fallbackText,
           unitPrice: fallback,
           quantity: quantity,
           amount: amount,
         );
-        final directDifference =
-            ((directEffective * quantity.quantity) - amount).abs();
-        final fallbackDifference =
-            ((fallbackEffective * quantity.quantity) - amount).abs();
-        if (fallbackDifference < directDifference) return fallbackEffective;
+        if (_fuelUnitPriceMatchesAmount(
+          unitPrice: effectiveFallback,
+          quantity: quantity.quantity,
+          amount: amount,
+        )) {
+          return effectiveFallback;
+        }
       }
     }
     return directEffective;
@@ -56,16 +67,40 @@ double? _fuelUnitPriceFor({
       amount: amount,
     );
     if (fallback != null) {
-      return _effectiveFuelUnitPriceFor(
+      final effectiveFallback = _effectiveFuelUnitPriceFor(
         text: fallbackText,
         unitPrice: fallback,
         quantity: quantity,
         amount: amount,
       );
+      // A receipt-wide fallback can belong to a different grade or product.
+      // When this row already gives us its own measured quantity, only retain
+      // the fallback if its math reconciles to this row's amount. Otherwise
+      // derive the per-unit amount from the current row instead of borrowing
+      // another pump's price.
+      if (lineQuantity == null ||
+          lineQuantity.quantity <= 1 ||
+          _fuelUnitPriceMatchesAmount(
+            unitPrice: effectiveFallback,
+            quantity: lineQuantity.quantity,
+            amount: amount,
+          )) {
+        return effectiveFallback;
+      }
     }
   }
   if (quantity.quantity > 1) return amount / quantity.quantity;
   return null;
+}
+
+bool _fuelUnitPriceMatchesAmount({
+  required double unitPrice,
+  required double quantity,
+  required double amount,
+}) {
+  var tolerance = amount.abs() * .02;
+  if (tolerance < .05) tolerance = .05;
+  return ((unitPrice * quantity) - amount).abs() <= tolerance;
 }
 
 bool _shouldPreferLineComputedUnitPrice(String fuelType) {

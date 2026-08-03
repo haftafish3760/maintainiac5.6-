@@ -89,14 +89,14 @@ String _receiptAssistedReviewDetailText({
   if (hasMixedItemFamilies) {
     return mixedItemFamilyActionLabel.isNotEmpty
         ? mixedItemFamilyActionLabel
-        : 'The receipt has more than one local item family. Use Mixed if any lines belong to different business or personal purposes.';
+        : 'The receipt has more than one local item family. Use Split if any lines belong to different business or personal purposes.';
   }
   if (effectiveItemFamilyReviewLabel.isNotEmpty) {
-    return '$effectiveItemFamilyReviewLabel. Review whether the whole receipt is Business, Personal, or Mixed before saving.';
+    return '$effectiveItemFamilyReviewLabel. Review whether the whole receipt is Business, Personal, or Split before saving.';
   }
   return detailMode == _ReceiptDetailEntryMode.basicReceipt
       ? 'Simple review keeps the receipt proof, optional category, and one final total without item lines.'
       : detailMode == _ReceiptDetailEntryMode.quickClassify
       ? 'Basic review keeps one price and optional category for each receipt line without quantity or unit-price details. Switch to detailed review when item wording matters.'
-      : 'Detailed review keeps descriptions, prices, tax, and totals visible so each line can be checked before Business, Personal, or Mixed classification.';
+      : 'Detailed review keeps descriptions, prices, tax, and totals visible so each line can be checked before Business, Personal, or Split classification.';
 }

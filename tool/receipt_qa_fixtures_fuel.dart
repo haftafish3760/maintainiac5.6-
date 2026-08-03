@@ -166,6 +166,90 @@ ODOMETER 74480
 ''',
   ),
   _ReceiptQaFixture(
+    pack: 'fuel',
+    name: 'E15 station receipt excludes terminal and loyalty identifiers',
+    merchantNeedle: 'sheetz',
+    expectedMerchantName: 'Sheetz',
+    expectFuel: true,
+    expectedDateIso: '2026-07-15',
+    expectedTotal: 48,
+    expectedLineCount: 1,
+    expectedLineSubtotals: [48],
+    expectedLineDescriptionNeedles: ['e15'],
+    expectedLineCategories: ['Fuel'],
+    expectedLineFamilies: ['fuel'],
+    expectedLineUses: ['business'],
+    expectedFuelQuantity: 15.743,
+    expectedFuelUnitPrice: 3.049,
+    expectedFuelType: 'E15',
+    expectedFuelUnit: 'gallon',
+    expectedBusinessTotal: 48,
+    expectedPersonalTotal: 0,
+    expectedReviewLineCount: 0,
+    expectedDownstreamReadinessStatus: 'vehicle_cost_ready',
+    expectedDownstreamReadinessSummary: 'Fuel receipt review ready',
+    expectedDownstreamReadinessCounts: {
+      'parser_downstream_vehicle_cost_ready': 1,
+      'line_ready': 1,
+      'priced_line_ready': 1,
+      'category_family_fuel_ready': 1,
+    },
+    text: '''
+Sheetz 754
+07/15/2026 09:01 PM
+12871 Richmond Highway
+Concord VA 24538
+Pump No: 10
+E15 (88 @ \$3.049/G
+Volume: 15.743 Gal
+Gas Total: \$48.00
+Total \$48.00
+Approval: 030597
+Term: 20754
+Pointz: 2957
+Tier: FRIEND
+Pointz value: 29.57
+Tier credit: 7.54
+''',
+  ),
+  _ReceiptQaFixture(
+    pack: 'fuel',
+    name: 'multi-product gasoline grades keep line-specific unit prices',
+    merchantNeedle: 'shell',
+    expectedMerchantName: 'Shell',
+    expectFuel: true,
+    expectedDateIso: '2026-07-18',
+    expectedTotal: 55,
+    expectedLineCount: 2,
+    expectedLineSubtotals: [20, 35],
+    expectedLineDescriptionNeedles: ['premium', 'regular'],
+    expectedLineCategories: ['Fuel', 'Fuel'],
+    expectedLineFamilies: ['fuel', 'fuel'],
+    expectedLineUses: ['business', 'business'],
+    expectedFuelQuantity: 5,
+    expectedFuelUnitPrice: 4,
+    expectedFuelType: 'Gasoline',
+    expectedFuelUnit: 'gallon',
+    expectedBusinessTotal: 55,
+    expectedPersonalTotal: 0,
+    expectedReviewLineCount: 0,
+    expectedDownstreamReadinessStatus: 'vehicle_cost_ready',
+    expectedDownstreamReadinessSummary: 'Fuel receipt review ready',
+    expectedDownstreamReadinessCounts: {
+      'parser_downstream_vehicle_cost_ready': 1,
+      'line_ready': 2,
+      'priced_line_ready': 2,
+      'category_family_fuel_ready': 2,
+    },
+    text: '''
+SHELL
+07/18/2026
+PUMP 04 PREMIUM 5.000 GAL 20.00
+PUMP 05 REGULAR 10.000 GAL @ 3.500 35.00
+TOTAL 55.00
+''',
+  ),
+  _ReceiptQaFixture(
     pack: 'noisy',
     name: 'swapped total and date characters',
     merchantNeedle: 'sheetz',

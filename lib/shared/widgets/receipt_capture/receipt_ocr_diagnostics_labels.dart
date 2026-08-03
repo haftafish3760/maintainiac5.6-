@@ -15,7 +15,7 @@ extension ReceiptOcrDiagnosticsLabels on ReceiptOcrDiagnostics {
       ReceiptProcessingSource.photo => 'Receipt photo',
       ReceiptProcessingSource.pdf => 'Receipt PDF',
       ReceiptProcessingSource.importedText => 'Imported text',
-      ReceiptProcessingSource.mixed => 'Mixed receipt sources',
+      ReceiptProcessingSource.mixed => 'Multiple receipt sources',
     };
   }
 

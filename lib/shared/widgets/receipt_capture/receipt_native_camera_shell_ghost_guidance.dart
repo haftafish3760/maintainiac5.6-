@@ -58,8 +58,8 @@ class _ReceiptPreviousSectionGhost extends StatelessWidget {
   String get _semanticLabel {
     final message = guidance?.trim();
     return message == null || message.isEmpty
-        ? 'Long receipt top ghost-slice guide. Repeat 3-5 readable lines from the prior photo.'
-        : 'Long receipt top ghost-slice guide. $message';
+        ? 'Long receipt top reference strip. Repeat 3-5 readable lines from the prior photo.'
+        : 'Long receipt top reference strip. $message';
   }
 }
 

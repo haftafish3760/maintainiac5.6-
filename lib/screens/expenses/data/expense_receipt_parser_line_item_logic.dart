@@ -14,7 +14,24 @@ List<_ParsedReceiptLine> _readLineItems(
   for (var rowIndex = 0; rowIndex < rows.length; rowIndex++) {
     final row = rows[rowIndex];
     final lower = row.toLowerCase();
-    if (_isAdministrativeRow(lower) ||
+    // A fuel receipt commonly begins with a store header plus a location or
+    // store number (for example, "Market 418"). OCR can make that number look
+    // like compact cents, so never treat an unpriced first header as fuel.
+    final unpricedFuelHeader =
+        context.looksLikeFuelReceipt &&
+        rowIndex == 0 &&
+        !RegExp(
+          r'(?:\$?\d+[\.,]\d{2,4}|\b(?:gal(?:lon)?s?|lit(?:er|re)s?|kwh|kg|gge|dge)\b|@)',
+        ).hasMatch(lower);
+    // Ignore a visual section divider without discarding preceding dispenser
+    // detail. The next fuel-sale amount needs that context for quantity and
+    // price, but the heading itself must never become part of its description.
+    if (context.looksLikeFuelReceipt && _isFuelReceiptSectionHeading(lower)) {
+      continue;
+    }
+    if (unpricedFuelHeader ||
+        _isAdministrativeRow(lower) ||
+        (context.looksLikeFuelReceipt && _isFuelReceiptMetadataRow(lower)) ||
         _datePattern.hasMatch(row) ||
         (_hasReceiptTimeCandidateRow(row) &&
             !_looksLikeFuelMeasuredLine(lower) &&

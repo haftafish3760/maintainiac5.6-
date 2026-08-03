@@ -74,9 +74,9 @@ final class ReceiptCameraViewController: UIViewController, AVCapturePhotoCapture
   var previousSectionReasonCode = "none"
   var previousSectionGuidance = ""
   var previousSectionGhostSourceStartFraction: CGFloat = 0.80
-  var previousSectionGhostSourceHeightFraction: CGFloat = 0.20
+  var previousSectionGhostSourceHeightFraction: CGFloat = 0.34
   var previousSectionGhostOverlayTopFraction: CGFloat = 0.0
-  var previousSectionGhostOverlayHeightFraction: CGFloat = 0.20
+  var previousSectionGhostOverlayHeightFraction: CGFloat = 0.34
   var previousSectionGhostOpacity: CGFloat = 0.36
   var liveAnalysisEnabled = true
   var edgeDetectionEnabled = true

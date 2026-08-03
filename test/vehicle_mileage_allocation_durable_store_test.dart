@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/durable_storage/maintainiac_durable_storage.dart';
 import 'package:maintaniac/shared/trip_tracking/vehicle_mileage_allocation.dart';
 
@@ -90,6 +93,44 @@ void main() {
   });
 
   test(
+    'queues one versioned record through the shared cloud gateway',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'vehicle_mileage_allocation_queue_',
+      );
+      Hive.init(directory.path);
+      try {
+        final records = MaintainiacDurableRecordStore.memory();
+        final bucket = VehicleMileageAllocationDurableStore(records: records);
+        await bucket.save(allocation(id: 'allocation-1'));
+        final queue = await MaintainiacFirestoreUploadQueueStore.create();
+        final gateway = MaintainiacDurableCloudBackupGateway(
+          records: records,
+          queue: queue,
+          identityProvider: const _Identity('user-a'),
+        );
+
+        final queued = await bucket.queueForBackup(
+          gateway: gateway,
+          organizationId: 'org-a',
+          queuedAtUtc: DateTime.utc(2026, 8, 1, 12),
+        );
+
+        expect(queued, hasLength(1));
+        expect(queue.pendingRecords, hasLength(1));
+        expect(
+          queued.single.data['module'],
+          VehicleMileageAllocationDurableStore.module,
+        );
+        expect(queued.single.data['recordSchemaVersion'], 1);
+      } finally {
+        await Hive.close();
+        await directory.delete(recursive: true);
+      }
+    },
+  );
+
+  test(
     'reports malformed and duplicate records without deleting either',
     () async {
       final records = MaintainiacDurableRecordStore.memory();
@@ -148,4 +189,11 @@ void main() {
       expect(bucket.recover().records, isEmpty);
     },
   );
+}
+
+class _Identity implements MaintainiacCloudIdentityProvider {
+  const _Identity(this.currentUid);
+
+  @override
+  final String? currentUid;
 }

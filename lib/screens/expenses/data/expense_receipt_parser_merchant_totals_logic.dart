@@ -174,6 +174,8 @@ _ReceiptTotals _readTotals(List<String> rows) {
   double? total;
   final paymentStyleTotalCandidates = <double>[];
   final tenderTotals = <double>[];
+  final numberedTaxComponents = <double>[];
+  var hasAggregateTaxRow = false;
   var hasExplicitSubtotal = false;
   var hasExplicitTax = false;
   var hasExplicitTotal = false;
@@ -190,7 +192,13 @@ _ReceiptTotals _readTotals(List<String> rows) {
       subtotal = _roundMoney(amount);
       hasExplicitSubtotal = true;
     } else if (_isTaxRow(lower)) {
-      tax = _roundMoney(amount);
+      final rounded = _roundMoney(amount);
+      if (_isNumberedTaxComponentRow(lower)) {
+        numberedTaxComponents.add(rounded);
+      } else {
+        tax = rounded;
+        hasAggregateTaxRow = true;
+      }
       hasExplicitTax = true;
     } else if (_isExplicitReceiptTotalRow(lower) &&
         !_isSubtotalRow(lower) &&
@@ -211,6 +219,11 @@ _ReceiptTotals _readTotals(List<String> rows) {
   }
   final fallbackTotal = _singleUniqueReceiptAmount(paymentStyleTotalCandidates);
   final fallbackTenderTotal = _singleUniqueReceiptAmount(tenderTotals);
+  if (!hasAggregateTaxRow && numberedTaxComponents.isNotEmpty) {
+    tax = _roundMoney(
+      numberedTaxComponents.fold<double>(0, (sum, amount) => sum + amount),
+    );
+  }
   if (total == null && fallbackTotal != null) {
     total = fallbackTotal;
     hasExplicitTotal = true;

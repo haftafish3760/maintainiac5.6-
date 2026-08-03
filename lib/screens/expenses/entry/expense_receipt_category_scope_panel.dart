@@ -1,162 +1,140 @@
 part of 'expense_receipt_entry_screen.dart';
 
-class _ReceiptCategoryScopePanel extends StatefulWidget {
-  const _ReceiptCategoryScopePanel({
-    required this.categoryAppliesToAll,
+/// Category selection for the first receipt screen.  This intentionally does
+/// not ask about per-line rules: choosing a category here means it applies to
+/// the whole receipt; leaving it blank keeps category optional later.
+class _ReceiptWholeCategoryPicker extends StatefulWidget {
+  const _ReceiptWholeCategoryPicker({
     required this.selectedCategory,
-    required this.onScopeSelected,
     required this.onCategorySelected,
   });
 
-  final bool categoryAppliesToAll;
   final String selectedCategory;
-  final ValueChanged<bool> onScopeSelected;
   final ValueChanged<String> onCategorySelected;
 
   @override
-  State<_ReceiptCategoryScopePanel> createState() =>
-      _ReceiptCategoryScopePanelState();
+  State<_ReceiptWholeCategoryPicker> createState() =>
+      _ReceiptWholeCategoryPickerState();
 }
 
-class _ReceiptCategoryScopePanelState
-    extends State<_ReceiptCategoryScopePanel> {
-  late final TextEditingController _categorySearchController;
+class _ReceiptWholeCategoryPickerState
+    extends State<_ReceiptWholeCategoryPicker> {
+  late String _pendingCategory;
 
   @override
   void initState() {
     super.initState();
-    _categorySearchController = TextEditingController(
-      text: widget.selectedCategory == 'Uncategorized'
-          ? ''
-          : widget.selectedCategory,
-    )..addListener(_refresh);
+    _pendingCategory = widget.selectedCategory;
   }
-
-  @override
-  void didUpdateWidget(covariant _ReceiptCategoryScopePanel oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.selectedCategory == widget.selectedCategory) return;
-    final category = widget.selectedCategory == 'Uncategorized'
-        ? ''
-        : widget.selectedCategory;
-    if (_categorySearchController.text != category) {
-      _categorySearchController.text = category;
-    }
-  }
-
-  @override
-  void dispose() {
-    _categorySearchController
-      ..removeListener(_refresh)
-      ..dispose();
-    super.dispose();
-  }
-
-  void _refresh() => setState(() {});
 
   @override
   Widget build(BuildContext context) {
-    final query = _categorySearchController.text.trim().toLowerCase();
-    final matches = _availableExpenseCategoryNames(context)
+    final homeCategories = _homeCategoryNames(context);
+    final otherCategories = _availableExpenseCategoryNames(context)
         .where(
-          (category) => query.isEmpty || category.toLowerCase().contains(query),
+          (category) =>
+              category != 'Uncategorized' &&
+              !homeCategories.any((home) => _sameCategory(home, category)),
         )
-        .take(8)
         .toList(growable: false);
-    return ReceiptFormPanel(
-      title: 'Receipt Category Setup',
-      subtitle:
-          'Does one category apply to the whole receipt? Categories stay optional either way.',
-      icon: Icons.account_tree_rounded,
-      accentColor: const Color(0xFF34A9E8),
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: .72,
+      minChildSize: .42,
+      maxChildSize: .92,
+      builder: (context, scrollController) => SafeArea(
+        child: Column(
           children: [
-            _ReceiptCategoryScopeButton(
-              selected: widget.categoryAppliesToAll,
-              label: 'One Category',
-              helper: 'Apply one optional category to every line.',
-              icon: Icons.playlist_add_check_rounded,
-              onPressed: () => widget.onScopeSelected(true),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Choose a category',
+                    style: TextStyle(
+                      color: _receiptReferenceText,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Optional. This choice will apply to the whole receipt.',
+                    style: TextStyle(
+                      color: _receiptReferenceMuted,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            _ReceiptCategoryScopeButton(
-              selected: !widget.categoryAppliesToAll,
-              label: 'Category Per Line',
-              helper: 'Choose an optional category as each line is entered.',
-              icon: Icons.format_list_bulleted_rounded,
-              onPressed: () => widget.onScopeSelected(false),
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                children: [
+                  _CategoryBrowserTile(
+                    category: 'Uncategorized',
+                    selectedCategory: _pendingCategory,
+                    onTap: () =>
+                        setState(() => _pendingCategory = 'Uncategorized'),
+                  ),
+                  if (homeCategories.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const _CategoryBrowserSectionTitle('Common categories'),
+                    const SizedBox(height: 6),
+                    for (final category in homeCategories)
+                      _CategoryBrowserTile(
+                        category: category,
+                        selectedCategory: _pendingCategory,
+                        onTap: () =>
+                            setState(() => _pendingCategory = category),
+                      ),
+                  ],
+                  const SizedBox(height: 12),
+                  const _CategoryBrowserSectionTitle('All categories'),
+                  const SizedBox(height: 6),
+                  for (final category in otherCategories)
+                    _CategoryBrowserTile(
+                      category: category,
+                      selectedCategory: _pendingCategory,
+                      onTap: () => setState(() => _pendingCategory = category),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: _receiptReferenceBorder),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 10, 14, 18),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () {
+                        widget.onCategorySelected(_pendingCategory);
+                        Navigator.of(context).pop();
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF297A2D),
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Done'),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        if (widget.categoryAppliesToAll) ...[
-          const SizedBox(height: 10),
-          _ExpenseCategorySearch(
-            selectedCategory: widget.selectedCategory,
-            controller: _categorySearchController,
-            matches: matches,
-            onSelected: (category) {
-              _categorySearchController.text = category == 'Uncategorized'
-                  ? ''
-                  : category;
-              widget.onCategorySelected(category);
-            },
-          ),
-        ],
-      ],
-    );
-  }
-}
-
-class _ReceiptCategoryScopeButton extends StatelessWidget {
-  const _ReceiptCategoryScopeButton({
-    required this.selected,
-    required this.label,
-    required this.helper,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  final bool selected;
-  final String label;
-  final String helper;
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = selected ? const Color(0xFF34A9E8) : const Color(0xFF11181B);
-    return OutlinedButton(
-      onPressed: onPressed,
-      style: OutlinedButton.styleFrom(
-        foregroundColor: const Color(0xFFE8ECEE),
-        backgroundColor: color,
-        padding: const EdgeInsets.all(10),
-        side: BorderSide(
-          color: selected ? const Color(0xFFFFD166) : const Color(0xFF56666E),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 3),
-                Text(helper, style: const TextStyle(fontSize: 11, height: 1.2)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

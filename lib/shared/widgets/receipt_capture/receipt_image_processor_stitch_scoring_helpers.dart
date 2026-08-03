@@ -1,5 +1,56 @@
 part of 'receipt_image_processor.dart';
 
+bool _receiptImageHasReadableDetail(img.Image image) {
+  final stepX = math.max(4, (image.width / 72).round());
+  final stepY = math.max(4, (image.height / 96).round());
+  var samples = 0;
+  var total = 0.0;
+  var totalSquares = 0.0;
+  for (var y = 0; y < image.height; y += stepY) {
+    for (var x = 0; x < image.width; x += stepX) {
+      final value = _luma(image.getPixel(x, y));
+      total += value;
+      totalSquares += value * value;
+      samples++;
+    }
+  }
+  if (samples < 64) return false;
+  final mean = total / samples;
+  final variance = (totalSquares / samples) - (mean * mean);
+  // A uniform frame cannot prove an overlap. This deliberately makes a
+  // person retake a black, white, or lens-covered section instead of
+  // combining it with a real receipt section.
+  return variance >= 24;
+}
+
+bool _receiptImageLooksLikeReceiptPhoto(img.Image image) {
+  if (image.width < 48 || image.height < 80) return false;
+  final stepX = math.max(4, (image.width / 80).round());
+  final stepY = math.max(3, (image.height / 120).round());
+  var sampledRows = 0;
+  var paperRows = 0;
+  for (var y = 0; y < image.height; y += stepY) {
+    var samples = 0;
+    var paperLike = 0;
+    for (var x = 0; x < image.width; x += stepX) {
+      final pixel = image.getPixel(x, y);
+      final maximum = math.max(pixel.r, math.max(pixel.g, pixel.b));
+      final minimum = math.min(pixel.r, math.min(pixel.g, pixel.b));
+      final luma = _luma(pixel);
+      if (luma >= 105 && maximum - minimum <= 52) paperLike++;
+      samples++;
+    }
+    if (samples == 0) continue;
+    sampledRows++;
+    // A receipt can be narrow and surrounded by a desk or vehicle interior,
+    // but its paper should still form a sustained vertical document. App
+    // screens and unrelated photos may contain bright cards; they do not
+    // supply paper-like coverage through most rows of the frame.
+    if (paperLike / samples >= .22) paperRows++;
+  }
+  return sampledRows >= 20 && paperRows / sampledRows >= .62;
+}
+
 double _overlapDifference({
   required img.Image previous,
   required img.Image next,
@@ -98,10 +149,50 @@ double _overlapDifference({
                 .abs() /
             sampleWidth *
             150;
+  final leadingPreRollPenalty = _leadingContinuationPreRollPenalty(
+    next: next,
+    nextYOffset: nextYOffset,
+  );
   return (effectiveLumaAverage * .50) +
       (rowProfileAverage * .22) +
       (columnProfileAverage * .20) +
-      (centerPenalty * .08);
+      (centerPenalty * .08) +
+      leadingPreRollPenalty;
+}
+
+double _leadingContinuationPreRollPenalty({
+  required img.Image next,
+  required int nextYOffset,
+}) {
+  // A black or near-uniform strip at the very top is usually table/background
+  // captured before the receipt continuation. It must not be treated as part
+  // of an overlap: otherwise a long, weak join can preserve that strip in the
+  // middle of the combined receipt. A true receipt top is normally light and
+  // detailed, so this is intentionally a conservative safety signal.
+  if (nextYOffset != 0 || next.height < 48 || next.width < 48) return 0;
+  final bandHeight = math.min(96, math.max(18, (next.height * .08).round()));
+  final stepX = math.max(4, (next.width / 56).round());
+  final stepY = math.max(2, (bandHeight / 18).round());
+  var samples = 0;
+  var darkSamples = 0;
+  var lumaTotal = 0.0;
+  var lumaSquares = 0.0;
+  for (var y = 0; y < bandHeight; y += stepY) {
+    for (var x = next.width ~/ 20; x < next.width * 19 ~/ 20; x += stepX) {
+      final luma = _luma(next.getPixel(x, y));
+      lumaTotal += luma;
+      lumaSquares += luma * luma;
+      if (luma < 36) darkSamples++;
+      samples++;
+    }
+  }
+  if (samples < 24) return 0;
+  final mean = lumaTotal / samples;
+  final variance = (lumaSquares / samples) - (mean * mean);
+  if (darkSamples / samples >= .84 && mean < 42 && variance < 70) {
+    return 44;
+  }
+  return 0;
 }
 
 double _overlapExposureTolerantDifference(
@@ -261,4 +352,145 @@ double _receiptImageBandDifference(
     }
   }
   return samples == 0 ? double.infinity : total / samples;
+}
+
+({bool isProven, double correlation, int detailedBands, int matchingBands})
+_receiptOverlapContinuityEvidence({
+  required img.Image previous,
+  required _ReceiptOverlapMatch match,
+}) {
+  final next = match.nextImage;
+  final overlap = math.min(
+    match.pixels,
+    math.min(previous.height, next.height - match.nextTopOffsetPixels),
+  );
+  if (overlap < 72) {
+    return (
+      isProven: false,
+      correlation: 0,
+      detailedBands: 0,
+      matchingBands: 0,
+    );
+  }
+
+  const bandCount = 7;
+  var detailedBands = 0;
+  var matchingBands = 0;
+  var correlationTotal = 0.0;
+  for (var band = 0; band < bandCount; band++) {
+    final start = (overlap * band / bandCount).round();
+    final end = (overlap * (band + 1) / bandCount).round();
+    final evidence = _receiptOverlapBandCorrelation(
+      previous: previous,
+      next: next,
+      previousStartY: previous.height - overlap + start,
+      nextStartY: match.nextTopOffsetPixels + start,
+      height: math.max(1, end - start),
+      horizontalOffset: match.nextXOffsetPixels,
+    );
+    if (!evidence.hasDetail) continue;
+    detailedBands++;
+    correlationTotal += evidence.correlation;
+    if (evidence.correlation >= .24) matchingBands++;
+  }
+  final averageCorrelation = detailedBands == 0
+      ? 0.0
+      : correlationTotal / detailedBands;
+  final requiredMatchingBands = math.max(2, (detailedBands * .50).ceil());
+  return (
+    isProven:
+        detailedBands >= 3 &&
+        matchingBands >= requiredMatchingBands &&
+        averageCorrelation >= .20,
+    correlation: averageCorrelation.clamp(-1.0, 1.0),
+    detailedBands: detailedBands,
+    matchingBands: matchingBands,
+  );
+}
+
+({bool hasDetail, double correlation}) _receiptOverlapBandCorrelation({
+  required img.Image previous,
+  required img.Image next,
+  required int previousStartY,
+  required int nextStartY,
+  required int height,
+  required int horizontalOffset,
+}) {
+  final sampleWidth = math.min(previous.width, next.width);
+  final stepX = math.max(6, sampleWidth ~/ 96);
+  final stepY = math.max(2, height ~/ 28);
+  final previousRows = <double>[];
+  final nextRows = <double>[];
+  for (var dy = 0; dy < height; dy += stepY) {
+    final previousY = (previousStartY + dy).clamp(0, previous.height - 1);
+    final nextY = (nextStartY + dy).clamp(0, next.height - 1);
+    var previousLuma = 0.0;
+    var nextLuma = 0.0;
+    var rowSamples = 0;
+    for (var x = sampleWidth ~/ 12; x < sampleWidth * 11 ~/ 12; x += stepX) {
+      final nextX = x + horizontalOffset;
+      if (nextX < 0 || nextX >= next.width) continue;
+      final a = _luma(previous.getPixel(x, previousY));
+      final b = _luma(next.getPixel(nextX, nextY));
+      previousLuma += a;
+      nextLuma += b;
+      rowSamples++;
+    }
+    if (rowSamples == 0) continue;
+    previousRows.add(previousLuma / rowSamples);
+    nextRows.add(nextLuma / rowSamples);
+  }
+  if (previousRows.length < 12 || nextRows.length < 12) {
+    return (hasDetail: false, correlation: 0);
+  }
+  final previousStats = _overlapValueStats(previousRows);
+  final nextStats = _overlapValueStats(nextRows);
+  if (previousStats.variance < 4 || nextStats.variance < 4) {
+    return (hasDetail: false, correlation: 0);
+  }
+  var bestCorrelation = -1.0;
+  for (var shift = -4; shift <= 4; shift++) {
+    final correlation = _receiptProfileCorrelation(
+      previousRows,
+      nextRows,
+      shift: shift,
+    );
+    if (correlation > bestCorrelation) bestCorrelation = correlation;
+  }
+  return (hasDetail: true, correlation: bestCorrelation);
+}
+
+double _receiptProfileCorrelation(
+  List<double> previous,
+  List<double> next, {
+  required int shift,
+}) {
+  final previousStart = math.max(0, -shift);
+  final nextStart = math.max(0, shift);
+  final length = math.min(
+    previous.length - previousStart,
+    next.length - nextStart,
+  );
+  if (length < 8) return -1;
+  var previousTotal = 0.0;
+  var nextTotal = 0.0;
+  for (var index = 0; index < length; index++) {
+    previousTotal += previous[previousStart + index];
+    nextTotal += next[nextStart + index];
+  }
+  final previousMean = previousTotal / length;
+  final nextMean = nextTotal / length;
+  var covariance = 0.0;
+  var previousVariance = 0.0;
+  var nextVariance = 0.0;
+  for (var index = 0; index < length; index++) {
+    final a = previous[previousStart + index] - previousMean;
+    final b = next[nextStart + index] - nextMean;
+    covariance += a * b;
+    previousVariance += a * a;
+    nextVariance += b * b;
+  }
+  final denominator = math.sqrt(previousVariance * nextVariance);
+  if (!denominator.isFinite || denominator <= 0) return -1;
+  return (covariance / denominator).clamp(-1.0, 1.0);
 }

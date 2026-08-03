@@ -1,6 +1,139 @@
 part of 'expense_receipt_parser_fuel_formats_test.dart';
 
 void _registerFuelFormatEdgeCaseTests() {
+  test(
+    'does not promote fuel station and terminal identifiers to fuel lines',
+    () {
+      final parsed = parseExpenseReceiptText('''
+Sheetz 754
+07/15/2026 09:01 PM
+12871 Richmond Highway
+Concord VA 24538
+Pump No: 10
+E15 (88 @ \$3.049/G
+Volume: 15.743 Gal
+Gas Total: \$48.00
+Total \$48.00
+Approval: 030597
+Term: 20754
+Pointz: 2957
+Tier: FRIEND
+Pointz value: 29.57
+Tier credit: 7.54
+''', targetCategory: 'Fuel');
+
+      expect(parsed.merchantName, 'Sheetz');
+      expect(parsed.enteredTotal, 48);
+      expect(parsed.lines, hasLength(1));
+      final fuel = parsed.lines.single;
+      expect(fuel.category, 'Fuel');
+      expect(fuel.description, contains('E15'));
+      expect(fuel.quantity, 15.743);
+      expect(fuel.unit, 'gallon');
+      expect(fuel.unitPrice, 3.049);
+      expect(fuel.subtotal, 48);
+      expect(
+        parsed.lines.map((line) => line.description).join(' '),
+        allOf(isNot(contains('Term')), isNot(contains('Pointz'))),
+      );
+    },
+  );
+
+  test(
+    'rejects monetary-looking fuel terminal and loyalty metadata variants',
+    () {
+      const receipt = '''
+SHEETZ 754
+07/15/2026 09:01 PM
+PUMP 10
+E15 15.743 GAL @ 3.049 48.00
+TOTAL 48.00
+''';
+      const metadataRows = [
+        'Pointz value: 29.57',
+        'Points: 29.57',
+        'Tier credit: 7.54',
+        'Loyalty value: 48.00',
+        'Member number: 48.00',
+        'Reward balance: 12.34',
+        'Terminal code: 12.34',
+        'Term: 207.54',
+        'AID: 12.34',
+        'TVR: 7.54',
+        'TSI: 1.23',
+        'ARQC: 45.67',
+        'Issuer value: 3.04',
+        'Contactless value: 48.00',
+        'Capture amount: 48.00',
+      ];
+
+      for (final metadata in metadataRows) {
+        final parsed = parseExpenseReceiptText(
+          '$receipt$metadata',
+          targetCategory: 'Fuel',
+        );
+        expect(parsed.lines, hasLength(1), reason: metadata);
+        final fuel = parsed.lines.single;
+        expect(fuel.category, 'Fuel', reason: metadata);
+        expect(fuel.fuelType, 'E15', reason: metadata);
+        expect(fuel.quantity, 15.743, reason: metadata);
+        expect(fuel.unitPrice, 3.049, reason: metadata);
+        expect(fuel.subtotal, 48, reason: metadata);
+      }
+    },
+  );
+
+  test(
+    'does not borrow another grade price on a multi-product fuel receipt',
+    () {
+      final parsed = parseExpenseReceiptText('''
+SHELL
+07/18/2026
+PUMP 04 PREMIUM 5.000 GAL 20.00
+PUMP 05 REGULAR 10.000 GAL @ 3.500 35.00
+TOTAL 55.00
+''');
+
+      final fuel = parsed.lines
+          .where((line) => line.category == 'Fuel')
+          .toList();
+      expect(fuel, hasLength(2));
+      final premium = fuel.singleWhere(
+        (line) => line.description.toLowerCase().contains('premium'),
+      );
+      final regular = fuel.singleWhere(
+        (line) => line.description.toLowerCase().contains('regular'),
+      );
+      expect(premium.quantity, 5);
+      expect(premium.subtotal, 20);
+      expect(premium.unitPrice, 4);
+      expect(regular.quantity, 10);
+      expect(regular.subtotal, 35);
+      expect(regular.unitPrice, 3.5);
+    },
+  );
+
+  test('keeps an explicit grade price when its row needs math review', () {
+    final parsed = parseExpenseReceiptText('''
+SHELL
+07/18/2026
+PUMP 04 PREMIUM 5.000 GAL @ 4.000 18.00
+PUMP 05 REGULAR 5.000 GAL @ 3.500 17.50
+TOTAL 35.50
+''');
+
+    final premium = parsed.lines.singleWhere(
+      (line) => line.description.toLowerCase().contains('premium'),
+    );
+    expect(premium.quantity, 5);
+    expect(premium.subtotal, 18);
+    expect(premium.unitPrice, 4);
+    expect(
+      parsed.diagnostics.parserTaskCount('fuel_amount_math_needs_review'),
+      1,
+    );
+  });
+
   test('keeps super and Spanish supreme octane grades out of fuel volume', () {
     final english = parseExpenseReceiptText('''
 EXPRESS FUEL

@@ -149,5 +149,5 @@ String _unsupportedSharedMediaMessage(SharedMediaFile media) {
   final typeLabel = mime == null || mime.isEmpty
       ? media.type.name
       : '$mime ${media.type.name}';
-  return '$label could not be imported as receipt proof. Share a PDF, receipt photo, or receipt text instead. File type: $typeLabel.';
+  return '$label could not be imported as a receipt image. Share a PDF, receipt photo, or receipt text instead. File type: $typeLabel.';
 }

@@ -10,7 +10,7 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
     return ReceiptFormPanel(
       title: 'Attach A Receipt',
       subtitle:
-          'Add receipt proof from the camera, gallery, device files, or another app.',
+          'Add a receipt image from the camera, gallery, device files, or another app.',
       icon: Icons.receipt_long_rounded,
       children: [
         Row(
@@ -82,7 +82,7 @@ extension _ReceiptAttachmentPanelBuild on _SharedReceiptAttachmentPanelState {
                     _receiptReadStatus = _ReceiptReadStatusKind.warning;
                     _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
                     _receiptReadStatusMessage =
-                        'Receipt proof kept. Continue filling the receipt details by hand.';
+                        'Receipt image kept. Continue filling the receipt details by hand.';
                   })
                 : null,
           ),

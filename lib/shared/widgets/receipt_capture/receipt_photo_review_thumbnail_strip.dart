@@ -14,7 +14,7 @@ class _ReceiptReviewThumbnailStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 72,
+      height: 82,
       child: ColoredBox(
         color: const Color(0xF20D1316),
         child: ListView.separated(
@@ -32,7 +32,7 @@ class _ReceiptReviewThumbnailStrip extends StatelessWidget {
                 onTap: () => onPhotoSelected(index),
                 borderRadius: BorderRadius.circular(5),
                 child: Ink(
-                  width: 44,
+                  width: 58,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
                     border: Border.all(
@@ -42,17 +42,53 @@ class _ReceiptReviewThumbnailStrip extends StatelessWidget {
                       width: selected ? 2 : 1,
                     ),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: Image.file(
-                      File(photoPaths[index]),
-                      fit: BoxFit.cover,
-                      filterQuality: FilterQuality.low,
-                      errorBuilder: (_, _, _) => const ColoredBox(
-                        color: Color(0xFF172126),
-                        child: Icon(Icons.broken_image_outlined),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: ColoredBox(
+                          color: const Color(0xFF050607),
+                          child: Image.file(
+                            File(photoPaths[index]),
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.low,
+                            errorBuilder: (_, _, _) => const ColoredBox(
+                              color: Color(0xFF172126),
+                              child: Icon(Icons.broken_image_outlined),
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        top: 3,
+                        left: 3,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? const Color(0xFFFFD166)
+                                : const Color(0xE6000000),
+                            shape: BoxShape.circle,
+                          ),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: Center(
+                              child: Text(
+                                '${index + 1}',
+                                style: TextStyle(
+                                  color: selected
+                                      ? const Color(0xFF171005)
+                                      : Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

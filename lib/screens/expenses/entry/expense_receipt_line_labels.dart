@@ -57,21 +57,4 @@ extension _ExpenseReceiptLineLabels on _ExpenseReceiptLine {
     if (label == 'poor') return const Color(0xFFA33A2C);
     return const Color(0xFF1E7A3D);
   }
-
-  String get packageSummary {
-    if (category == 'Fuel') {
-      final unitLabel = stockUnit == 'kWh' ? 'kWh' : 'gal';
-      final odometer = odometerReading == null ? '' : ' | odo $odometerReading';
-      final fill = fillType == null ? '' : ' | $fillType';
-      return '${fuelType ?? 'Fuel'} | ${_formatNumber(quantity)} $unitLabel$fill$odometer';
-    }
-    if (!expenseCategoryUsesQuantityFields(category)) {
-      return 'Receipt amount only';
-    }
-    if (unitsPerPackage <= 1) {
-      return 'Qty ${_formatNumber(quantity)} $stockUnit';
-    }
-    final eachCost = totalUnits <= 0 ? 0.0 : subtotal / totalUnits;
-    return '${_formatNumber(quantity)} pkg x ${_formatNumber(unitsPerPackage)} $stockUnit | ${_money(eachCost)} each';
-  }
 }

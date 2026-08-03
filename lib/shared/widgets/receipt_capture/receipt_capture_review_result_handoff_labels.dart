@@ -45,7 +45,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
         'saved_photo_dimmer_than_preview' =>
           'Check readability, then add light or retake if needed.',
         _ =>
-          'Check readability, then review receipt details and mark Business, Personal, or Mixed.',
+          'Check readability, then review receipt details and mark Business, Personal, or Split.',
       };
     }
     if (receiptSectionOrderNeedsReview) {
@@ -67,10 +67,10 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       'stitch_fallback_sections' =>
         'Review ordered receipt sections from top to bottom.',
       'needs_review_before_ocr' =>
-        'Check readability, then review receipt details and mark Business, Personal, or Mixed.',
+        'Check readability, then review receipt details and mark Business, Personal, or Split.',
       'accepted_no_quality_signal' =>
-        'Check the photo, then review receipt details and mark Business, Personal, or Mixed.',
-      _ => 'Review receipt details and mark Business, Personal, or Mixed.',
+        'Check the photo, then review receipt details and mark Business, Personal, or Split.',
+      _ => 'Review receipt details and mark Business, Personal, or Split.',
     };
   }
 
@@ -163,7 +163,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : ocrSourceReviewRequirement ==
             'manual_review_required_before_saving_receipt'
       ? 'Review the clear-photo handoff before opening receipt details.'
-      : 'Receipt details open with store, date, total, tax, item prices, and Business/Personal/Mixed choices.';
+      : 'Receipt details open with store, date, total, tax, item prices, and Business/Personal/Split choices.';
 
   String get acceptedPhotoHandoffProcessingLabel => keptForLater
       ? 'Receipt details stay closed until saved photo review is resumed.'

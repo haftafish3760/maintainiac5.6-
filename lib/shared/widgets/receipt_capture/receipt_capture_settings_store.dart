@@ -19,6 +19,29 @@ enum ReceiptCaptureArea {
   final String label;
 }
 
+/// The receipt-help preference selected from the Expense setup screen.
+///
+/// This stores a user's preferred entry experience only.  It never sends a
+/// receipt to an online service by itself; every receipt still has to be
+/// reviewed and an online service must ask at the time it is used.
+enum ExpenseReceiptAssistanceChoice {
+  manual('manual'),
+  onDevice('on_device'),
+  maintainiacAi('maintainiac_ai'),
+  chatGptAccount('chatgpt_account');
+
+  const ExpenseReceiptAssistanceChoice(this.storageValue);
+
+  final String storageValue;
+
+  static ExpenseReceiptAssistanceChoice fromStorage(String? value) {
+    return ExpenseReceiptAssistanceChoice.values.firstWhere(
+      (choice) => choice.storageValue == value?.trim(),
+      orElse: () => ExpenseReceiptAssistanceChoice.manual,
+    );
+  }
+}
+
 class ReceiptCaptureSettingsController extends ChangeNotifier {
   ReceiptCaptureSettingsController._(
     this._box, {
@@ -86,6 +109,27 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
   bool get appAssistedMaterials => _readBool(_Keys.appAssistedMaterials, false);
   bool get appAssistedMaintenance =>
       _readBool(_Keys.appAssistedMaintenance, false);
+
+  /// Explicitly tracks the Expense-only first-use flow.  Older installations
+  /// that already made an Expense Receipt Assist choice are treated as
+  /// complete, so an update does not interrupt them with onboarding again.
+  bool get hasCompletedExpenseReceiptSetup {
+    return _readBool(
+      _Keys.expenseReceiptSetupComplete,
+      hasReceiptAssistChoiceFor(ReceiptCaptureArea.expenses),
+    );
+  }
+
+  ExpenseReceiptAssistanceChoice get expenseReceiptAssistanceChoice {
+    final saved = _box.get(_Keys.expenseReceiptAssistanceChoice) as String?;
+    if (saved != null && saved.trim().isNotEmpty) {
+      return ExpenseReceiptAssistanceChoice.fromStorage(saved);
+    }
+    return appAssistedEnabledFor(ReceiptCaptureArea.expenses)
+        ? ExpenseReceiptAssistanceChoice.onDevice
+        : ExpenseReceiptAssistanceChoice.manual;
+  }
+
   bool get cameraSetupComplete => _readBool(_Keys.cameraSetupComplete, false);
   bool hasReceiptAssistChoiceFor(ReceiptCaptureArea area) {
     if (_readBool(_receiptAssistChoiceKey(area), false)) return true;
@@ -149,6 +193,25 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     ReceiptCaptureArea area,
     bool value,
   ) => _writeBool(_receiptAssistChoiceKey(area), value);
+
+  /// Saves the first-time Expense setup as one atomic preference choice.
+  /// Remote choices are consent preferences, not permission to upload a
+  /// receipt.  The capture flow remains local unless a later, explicit
+  /// service request is approved by the user.
+  Future<void> setExpenseReceiptAssistanceChoice(
+    ExpenseReceiptAssistanceChoice choice,
+  ) async {
+    final useReceiptAssist = choice != ExpenseReceiptAssistanceChoice.manual;
+    await _box.put(_Keys.expenseReceiptAssistanceChoice, choice.storageValue);
+    await _box.put(_Keys.expenseReceiptSetupComplete, true);
+    await _box.put(_Keys.receiptAssistChoiceExpenses, true);
+    if (useReceiptAssist) {
+      await _box.put(_Keys.appAssistedReceiptFill, true);
+    }
+    await _box.put(_Keys.appAssistedExpenses, useReceiptAssist);
+    notifyListeners();
+  }
+
   Future<void> setCameraSetupComplete(bool value) =>
       _writeBool(_Keys.cameraSetupComplete, value);
   Future<void> setCameraGuidanceEnabled(bool value) =>
@@ -199,6 +262,8 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     switch (area) {
       case ReceiptCaptureArea.expenses:
         await _box.put(_Keys.appAssistedExpenses, false);
+        await _box.delete(_Keys.expenseReceiptSetupComplete);
+        await _box.delete(_Keys.expenseReceiptAssistanceChoice);
       case ReceiptCaptureArea.materialsInventory:
         await _box.put(_Keys.appAssistedMaterials, false);
       case ReceiptCaptureArea.maintenanceRepair:
@@ -266,10 +331,11 @@ ReceiptDeviceStorageClass storageClassForDataSaverLevel(
 ) {
   return switch (level) {
     ReceiptDataSaverLevel.maximum => ReceiptDeviceStorageClass.critical,
-    ReceiptDataSaverLevel.strong => ReceiptDeviceStorageClass.low,
+    ReceiptDataSaverLevel.economy => ReceiptDeviceStorageClass.low,
     ReceiptDataSaverLevel.original ||
     ReceiptDataSaverLevel.light ||
-    ReceiptDataSaverLevel.balanced => ReceiptDeviceStorageClass.comfortable,
+    ReceiptDataSaverLevel.balanced ||
+    ReceiptDataSaverLevel.strong => ReceiptDeviceStorageClass.comfortable,
   };
 }
 
@@ -312,6 +378,9 @@ class _Keys {
   static const appAssistedExpenses = 'app_assisted_expenses';
   static const appAssistedMaterials = 'app_assisted_materials';
   static const appAssistedMaintenance = 'app_assisted_maintenance';
+  static const expenseReceiptSetupComplete = 'expense_receipt_setup_complete';
+  static const expenseReceiptAssistanceChoice =
+      'expense_receipt_assistance_choice';
   static const receiptAssistChoiceExpenses = 'receipt_assist_choice_expenses';
   static const receiptAssistChoiceMaterials = 'receipt_assist_choice_materials';
   static const receiptAssistChoiceMaintenance =

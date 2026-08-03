@@ -23,7 +23,7 @@ extension ReceiptCameraViewController {
     previousSectionGuidePanel.addArrangedSubview(previousSectionGuideImageView)
 
     nextSectionGuideImageView.contentMode = .scaleAspectFill
-    nextSectionGuideImageView.alpha = 0.28
+    nextSectionGuideImageView.alpha = 0.36
     nextSectionGuideImageView.clipsToBounds = true
     nextSectionGuideImageView.accessibilityLabel = "Next receipt section overlap guide"
     nextSectionGuideImageView.isHidden = true
@@ -125,7 +125,7 @@ extension ReceiptCameraViewController {
       : 0.80
     let sourceHeightFraction = previousSectionGhostSourceHeightFraction.isFinite
       ? min(max(previousSectionGhostSourceHeightFraction, 0), 1)
-      : 0.20
+      : 0.34
     let startY = min(max(floor(height * sourceStartFraction), 0), height - 1)
     let requestedHeight = max(ceil(height * sourceHeightFraction), 1)
     let sliceHeight = min(requestedHeight, height - startY)
@@ -140,7 +140,7 @@ extension ReceiptCameraViewController {
     let height = CGFloat(cgImage.height)
     let width = CGFloat(cgImage.width)
     guard width > 0, height > 0 else { return image }
-    let sliceHeight = min(max(ceil(height * 0.20), 1), height)
+    let sliceHeight = min(max(ceil(height * 0.34), 1), height)
     let rect = CGRect(x: 0, y: 0, width: width, height: sliceHeight)
     guard let cropped = cgImage.cropping(to: rect) else { return nil }
     return UIImage(cgImage: cropped, scale: normalizedImage.scale, orientation: .up)

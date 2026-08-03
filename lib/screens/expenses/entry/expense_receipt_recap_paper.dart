@@ -9,13 +9,10 @@ class _ReceiptPaperRecap extends StatelessWidget {
     required this.receiptSubtotal,
     required this.salesTax,
     required this.receiptTotal,
-    required this.businessTotal,
-    required this.personalTotal,
     required this.showLineUseControls,
     required this.showItemDetails,
     required this.onEdit,
     required this.onSetUse,
-    required this.onDelete,
   });
 
   final List<_ExpenseReceiptLine> lines;
@@ -25,22 +22,19 @@ class _ReceiptPaperRecap extends StatelessWidget {
   final double? receiptSubtotal;
   final double? salesTax;
   final double receiptTotal;
-  final double businessTotal;
-  final double personalTotal;
   final bool showLineUseControls;
   final bool showItemDetails;
   final ValueChanged<int> onEdit;
   final FutureOr<void> Function(int index, _ExpenseLineUse use) onSetUse;
-  final ValueChanged<int> onDelete;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFE7E0D3),
+        color: const Color(0xFF101719),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFB8AD9B)),
+        border: Border.all(color: const Color(0xFF445159)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -49,7 +43,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
             'RECEIPT DETAILS',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Color(0xFF25211A),
+              color: Color(0xFFE8ECEE),
               fontSize: 13,
               fontWeight: FontWeight.w900,
               letterSpacing: 0,
@@ -60,7 +54,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
             storeName.trim().isEmpty ? 'STORE NOT FILLED YET' : storeName,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFF25211A),
+              color: Color(0xFFE8ECEE),
               fontSize: 12,
               fontWeight: FontWeight.w900,
               letterSpacing: 0,
@@ -72,7 +66,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
               storeAddress,
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFF62584C),
+                color: Color(0xFFC8D0D3),
                 fontSize: 10.5,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0,
@@ -84,7 +78,7 @@ class _ReceiptPaperRecap extends StatelessWidget {
             receiptDateLabel,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              color: Color(0xFF62584C),
+              color: Color(0xFFC8D0D3),
               fontSize: 10.5,
               fontWeight: FontWeight.w900,
               letterSpacing: 0,
@@ -99,12 +93,11 @@ class _ReceiptPaperRecap extends StatelessWidget {
               showItemDetails: showItemDetails,
               onEdit: () => onEdit(index),
               onSetUse: (use) => onSetUse(index, use),
-              onDelete: () => onDelete(index),
             ),
             if (index != lines.length - 1)
-              const Divider(height: 9, color: Color(0x66756B5D)),
+              const Divider(height: 14, color: Color(0xFF445159)),
           ],
-          const Divider(height: 16, color: Color(0x99756B5D), thickness: 1.1),
+          const Divider(height: 18, color: Color(0xFF69767D), thickness: 1.1),
           if (receiptSubtotal != null)
             _ReceiptPaperTotalLine(
               label: 'Subtotal',
@@ -112,40 +105,12 @@ class _ReceiptPaperRecap extends StatelessWidget {
             ),
           if (salesTax != null)
             _ReceiptPaperTotalLine(label: 'Tax', value: _money(salesTax!)),
-          _ReceiptPaperTotalLine(
-            label: 'Business',
-            value: _money(businessTotal),
-          ),
-          _ReceiptPaperTotalLine(
-            label: 'Personal',
-            value: _money(personalTotal),
-          ),
-          const Divider(height: 12, color: Color(0x66756B5D)),
+          const Divider(height: 12, color: Color(0xFF445159)),
           _ReceiptPaperTotalLine(
             label: 'Receipt Total',
             value: _money(receiptTotal),
             strong: true,
           ),
-          if (showLineUseControls) ...[
-            const Divider(height: 14, color: Color(0x66756B5D)),
-            _ReceiptMixedAllocationReview(
-              lines: lines,
-              businessTotal: businessTotal,
-              personalTotal: personalTotal,
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Mixed totals include each line share plus allocated sales tax, fees, discounts, or receipt adjustments. Returns reduce their side but do not receive extra tax allocation.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Color(0xFF62584C),
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                height: 1.2,
-                letterSpacing: 0,
-              ),
-            ),
-          ],
         ],
       ),
     );

@@ -12,7 +12,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     required this.openingCamera,
     required this.savingPhotos,
     required this.continueLabel,
-    required this.onPhotoSelected,
     required this.onModeChanged,
     required this.onAddPhoto,
     required this.onRetake,
@@ -29,7 +28,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
   final bool openingCamera;
   final bool savingPhotos;
   final String continueLabel;
-  final ValueChanged<int> onPhotoSelected;
   final ValueChanged<_ReceiptReviewMode> onModeChanged;
   final VoidCallback onAddPhoto;
   final VoidCallback onRetake;
@@ -70,8 +68,14 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(8, 6, 8, 7),
         child: LayoutBuilder(
           builder: (context, constraints) {
+            // The multi-photo preview tray is intentionally capped so the
+            // receipt stays visible. Its normal three-action, arrange, and
+            // continue layout needs more than that cap, which previously
+            // overflowed below the system navigation bar and made taps hit
+            // the wrong action. Use the compact two-row arrangement whenever
+            // the available tray height cannot accommodate the full layout.
             final compactControls =
-                constraints.maxHeight.isFinite && constraints.maxHeight < 104;
+                constraints.maxHeight.isFinite && constraints.maxHeight < 210;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -100,6 +104,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   onCrop: interactionLocked
                       ? null
                       : () => onModeChanged(_ReceiptReviewMode.crop),
+                  onArrange: !hasMultiplePhotos || interactionLocked
+                      ? null
+                      : () => onModeChanged(_ReceiptReviewMode.order),
                   onContinue: onContinue,
                 ),
                 Flexible(
@@ -115,42 +122,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                           _ReceiptLocalPhotoLimitStrip(
                             photoCount: photoCount,
                             deviceCapability: deviceCapability,
-                          ),
-                        ],
-                        if (hasMultiplePhotos &&
-                            uiConfig.showSecondaryTools) ...[
-                          const SizedBox(height: 5),
-                          _ReceiptMultiPhotoActionRail(
-                            onOrder: interactionLocked
-                                ? null
-                                : () => onModeChanged(_ReceiptReviewMode.order),
-                            onMatch: interactionLocked
-                                ? null
-                                : () =>
-                                      onModeChanged(_ReceiptReviewMode.stitch),
-                          ),
-                          const SizedBox(height: 5),
-                          SizedBox(
-                            height: compactControls
-                                ? 42
-                                : uiConfig.photoThumbnailHeight,
-                            child: ListView.separated(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: photoPaths.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(width: 6),
-                              itemBuilder: (context, index) {
-                                return _ReceiptOrderThumbnail(
-                                  path: photoPaths[index],
-                                  index: index,
-                                  total: photoPaths.length,
-                                  selected: index == effectiveSelectedIndex,
-                                  onTap: interactionLocked
-                                      ? null
-                                      : () => onPhotoSelected(index),
-                                );
-                              },
-                            ),
                           ),
                         ],
                         if (!hasMultiplePhotos && hasQualityWarning) ...[

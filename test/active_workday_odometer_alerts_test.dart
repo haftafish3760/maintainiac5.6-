@@ -184,13 +184,13 @@ void main() {
       ),
     );
 
-    await tester.scrollUntilVisible(
-      find.textContaining('Repeated GPS/odometer drift'),
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
+      await tester.scrollUntilVisible(
+        find.textContaining('Repeated GPS/odometer drift'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
 
-    expect(find.textContaining('Repeated GPS/odometer drift'), findsOneWidget);
+      expect(find.textContaining('Repeated GPS/odometer drift'), findsOneWidget);
     expect(find.textContaining('odometer stays official'), findsOneWidget);
     expect(odometer.confirmedReading, 1000);
     await tester.pumpWidget(const SizedBox.shrink());

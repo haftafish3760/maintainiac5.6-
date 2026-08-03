@@ -23,6 +23,7 @@ class _ReceiptLineClassificationGuidance {
   final int splitCount;
   final int splitMissingPercentCount;
 
+  // ignore: unused_element
   factory _ReceiptLineClassificationGuidance.from({
     required bool hasLines,
     required int appFilledCount,
@@ -33,7 +34,7 @@ class _ReceiptLineClassificationGuidance {
     if (!hasLines) {
       return const _ReceiptLineClassificationGuidance(
         subtitle:
-            'Add or review receipt lines before choosing Business, Personal, or Mixed.',
+            'Add or review receipt lines before choosing Business, Personal, or Split.',
         statusLabel: 'Waiting for lines',
         actionLabel: 'Add or review receipt lines first.',
         accentColor: Color(0xFFFFD166),
@@ -47,7 +48,7 @@ class _ReceiptLineClassificationGuidance {
     if (parserReviewCount > 0) {
       return _ReceiptLineClassificationGuidance(
         subtitle:
-            'Choose Business, Personal, or Mixed, then check the receipt-filled lines that need review.',
+            'Choose Business, Personal, or Split, then check the receipt-filled lines that need review.',
         statusLabel:
             '$parserReviewCount ${parserReviewCount == 1 ? 'line needs' : 'lines need'} review',
         actionLabel:
@@ -63,7 +64,7 @@ class _ReceiptLineClassificationGuidance {
     if (splitMissingPercentCount > 0) {
       return _ReceiptLineClassificationGuidance(
         subtitle:
-            'Mixed receipt: set the business percent for every split line before saving.',
+            'Split receipt: set the business percent for every split line before saving.',
         statusLabel:
             '$splitMissingPercentCount split ${splitMissingPercentCount == 1 ? 'line needs' : 'lines need'} a percent',
         actionLabel: 'Tap each split line and choose the business share.',
@@ -78,7 +79,7 @@ class _ReceiptLineClassificationGuidance {
     if (splitCount > 0) {
       return _ReceiptLineClassificationGuidance(
         subtitle:
-            'Mixed receipt: review each line so business and personal totals are correct.',
+            'Split receipt: review each line so business and personal totals are correct.',
         statusLabel:
             '$splitCount split ${splitCount == 1 ? 'line' : 'lines'} allocated',
         actionLabel: 'Review split percentages and final totals before saving.',
@@ -92,12 +93,12 @@ class _ReceiptLineClassificationGuidance {
     }
     return _ReceiptLineClassificationGuidance(
       subtitle:
-          'Choose Business, Personal, or Mixed. If it is Mixed, review each line below.',
+          'Choose Business, Personal, or Split. If it is Split, review each line below.',
       statusLabel: appFilledCount > 0
           ? '$appFilledCount receipt-filled ${appFilledCount == 1 ? 'line' : 'lines'} ready'
           : 'Lines ready',
       actionLabel:
-          'Use All Business or All Personal for one-purpose receipts, or Mixed for line-by-line classification.',
+          'Use All Business or All Personal for one-purpose receipts, or Split for line-by-line classification.',
       accentColor: const Color(0xFF8EF6A4),
       icon: Icons.verified_rounded,
       appFilledCount: appFilledCount,
@@ -108,6 +109,7 @@ class _ReceiptLineClassificationGuidance {
   }
 }
 
+// ignore: unused_element
 class _ReceiptLineClassificationChecklist extends StatelessWidget {
   const _ReceiptLineClassificationChecklist({required this.guidance});
 

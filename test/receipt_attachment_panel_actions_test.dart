@@ -5,29 +5,30 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_pdf_inspector.dart';
 
 void main() {
-  testWidgets('empty receipt panel stays focused on Add Receipt before capture', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: SingleChildScrollView(
-            child: SharedReceiptAttachmentPanel(
-              hasReceipt: false,
-              onChanged: (_) {},
+  testWidgets(
+    'empty receipt panel stays focused on Add Receipt before capture',
+    (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: SharedReceiptAttachmentPanel(
+                hasReceipt: false,
+                onChanged: (_) {},
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
 
-    expect(find.text('Add Receipt'), findsOneWidget);
-    expect(find.text('Long receipt? Scan top to bottom.'), findsNothing);
-    expect(find.text('Need another receipt section?'), findsNothing);
-    expect(find.byTooltip('Receipt photo settings'), findsNothing);
-  });
+      expect(find.text('Add Receipt'), findsOneWidget);
+      expect(find.text('Long receipt? Scan top to bottom.'), findsNothing);
+      expect(find.text('Need another receipt section?'), findsNothing);
+      expect(find.byTooltip('Receipt photo settings'), findsNothing);
+    },
+  );
 
-  testWidgets('removing an imported proof asks before deleting it', (
+  testWidgets('removing an imported receipt image asks before deleting it', (
     tester,
   ) async {
     var hasAttachment = true;
@@ -52,8 +53,8 @@ void main() {
     await tester.tap(find.text('Remove'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Remove receipt proof?'), findsOneWidget);
-    expect(find.text('Remove Proof'), findsOneWidget);
+    expect(find.text('Remove receipt image?'), findsOneWidget);
+    expect(find.text('Remove Image'), findsOneWidget);
 
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
@@ -65,14 +66,14 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Remove'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Remove Proof'));
+    await tester.tap(find.text('Remove Image'));
     await tester.pumpAndSettle();
 
     expect(find.text('receipt.pdf'), findsNothing);
     expect(hasAttachment, isFalse);
   });
 
-  testWidgets('clearing all proofs asks before removing attachments', (
+  testWidgets('clearing all receipt images asks before removing attachments', (
     tester,
   ) async {
     var hasAttachment = true;
@@ -93,7 +94,7 @@ void main() {
     await tester.tap(find.text('Clear'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Clear receipt proof?'), findsOneWidget);
+    expect(find.text('Clear receipt image?'), findsOneWidget);
 
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
@@ -102,7 +103,7 @@ void main() {
 
     await tester.tap(find.text('Clear'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Clear Proof'));
+    await tester.tap(find.text('Clear Images'));
     await tester.pumpAndSettle();
 
     expect(find.text('receipt.pdf'), findsNothing);
@@ -185,7 +186,7 @@ void main() {
       find.textContaining('Next checks the clear photo first'),
       findsWidgets,
     );
-    expect(find.textContaining('saved proof'), findsWidgets);
+    expect(find.textContaining('saved receipt image'), findsWidgets);
     expect(find.text('Receipt photo 1'), findsOneWidget);
     expect(find.text('Receipt photo 2'), findsOneWidget);
     expect(find.text('Receipt photo 3'), findsOneWidget);

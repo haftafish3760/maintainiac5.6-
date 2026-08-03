@@ -64,7 +64,7 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
       final matchStatus = multiPhotoMatchStatusCopy;
       if (coverageDecision.shouldPromptForMorePhotos) {
         final addPhotoAction = coverageDecision.isMissingBottomEdgeAndTotals
-            ? 'add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice'
+            ? 'add the bottom receipt section and repeat 3-5 readable lines in the top reference strip'
             : 'add the next receipt section now';
         return '$recoveryPrefix$photoCount receipt sections are saved locally. '
             '$sectionGuidance $sectionAction $matchStatus '
@@ -160,19 +160,19 @@ extension _ReceiptPreviewActionTrayStatus on _ReceiptPreviewActionTray {
 
   String get multiPhotoMatchStatusCopy {
     if (stitchPreviewInFlight) {
-      return 'Photo match check is running.';
+      return 'Putting your receipt photos together.';
     }
     final preview = stitchPreview;
     if (preview == null) {
-      return 'Use Match Photos to check whether one combined receipt image can be made.';
+      return 'Continue when these receipt sections are in top-to-bottom order.';
     }
     if (preview.didStitch) {
-      return 'Photo match is ready. Continue will use one combined receipt image.';
+      return 'Your receipt is ready as one combined image.';
     }
     if (preview.usedFallback) {
-      return 'Photo match will use ordered sections from top to bottom because stitching was not safe enough.';
+      return 'Keep the photos in order. You can adjust them or retake one before continuing.';
     }
-    return 'Photo match needs review before one combined receipt image is used.';
+    return 'Review the receipt sections before continuing.';
   }
 
   ReceiptPhotoCoverageDecision get coverageDecisionForSelectedPhoto {

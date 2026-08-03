@@ -81,13 +81,33 @@ void main() {
 
     final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
       paths: [first.path, second.path],
+      textEvidence: [
+        ReceiptStitchTextEvidence(
+          path: first.path,
+          lines: const [
+            'Unknown hardware item 18.49',
+            'Galvanized coupling 5.20',
+            'Exterior screws 12.99',
+          ],
+        ),
+        ReceiptStitchTextEvidence(
+          path: second.path,
+          lines: const [
+            'Galvanized coupling 5.20',
+            'Exterior screws 12.99',
+            'Total 39.91',
+          ],
+        ),
+      ],
     );
 
-    expect(result.didStitch, isTrue, reason: 'confidence ${result.confidence}');
+    expect(result.didStitch, isTrue, reason: _stitchResultDiagnostics(result));
     expect(result.ocrSourcePaths, hasLength(1));
     expect(result.overlapPixels.single, greaterThan(100));
     expect(result.pairs.single.pairIndex, 0);
     expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+    expect(result.pairs.single.hasTextOverlapEvidence, isTrue);
+    expect(result.pairs.single.matchedTextLineCount, 2);
     expect(result.stitchedWidth, greaterThan(0));
     expect(result.stitchedHeight, greaterThan(0));
     expect(result.stitchedPixelCount, greaterThan(0));
@@ -121,7 +141,11 @@ void main() {
         paths: [first.path, second.path, third.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: _stitchResultDiagnostics(result),
+      );
       expect(result.pairs, hasLength(2));
       expect(result.overlapPixels, hasLength(2));
       expect(result.matchedPairCount, 2);
@@ -199,6 +223,7 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [bottom.path, top.path],
       );
+      printOnFailure(_stitchResultDiagnostics(result));
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.hasValidOcrSourceContract, isTrue);
@@ -229,16 +254,25 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [top.path, bottom.path],
       );
+      printOnFailure(_stitchResultDiagnostics(result));
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
       expect(result.pairs, hasLength(1));
-      expect(result.pairs.single.hasTrustedOverlapEvidence, isTrue);
-      expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
-      expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
-      expect(
-        result.privacySafeOcrHandoffSafety,
-        containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', true),
-      );
+      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.ocrSourcePaths, [top.path, bottom.path]);
+      expect(result.assistedReadinessCode, 'stitch_contract_review_required');
     },
   );
+}
+
+String _stitchResultDiagnostics(ReceiptStitchResult result) {
+  return '${result.detailLabel}; '
+      '${[for (final pair in result.pairs) 'pair ${pair.pairIndex + 1}: confidence=${pair.confidence}, '
+            'overlap=${pair.overlapPixels}, '
+            'scale=${pair.scaleCorrection}, '
+            'rotation=${pair.rotationCorrectionDegrees}, '
+            'x=${pair.horizontalOffsetPixels}, '
+            'y=${pair.verticalOffsetPixels}, '
+            'continuity=${pair.continuityCorrelation} '
+            '(${pair.continuityMatchingBands}/${pair.continuityDetailedBands})'].join('; ')}';
 }

@@ -79,7 +79,8 @@ int _nativeCameraDataSaverRank(ReceiptDataSaverLevel level) {
     ReceiptDataSaverLevel.light => 1,
     ReceiptDataSaverLevel.balanced => 2,
     ReceiptDataSaverLevel.strong => 3,
-    ReceiptDataSaverLevel.maximum => 4,
+    ReceiptDataSaverLevel.economy => 4,
+    ReceiptDataSaverLevel.maximum => 5,
   };
 }
 
@@ -88,7 +89,8 @@ ReceiptDeviceStorageClass _nativeCameraInstallStorageClassFor(
 ) {
   return switch (storageSafetyLevel) {
     ReceiptDataSaverLevel.maximum => ReceiptDeviceStorageClass.critical,
-    ReceiptDataSaverLevel.strong => ReceiptDeviceStorageClass.low,
+    ReceiptDataSaverLevel.strong ||
+    ReceiptDataSaverLevel.economy => ReceiptDeviceStorageClass.low,
     ReceiptDataSaverLevel.original ||
     ReceiptDataSaverLevel.light ||
     ReceiptDataSaverLevel.balanced => ReceiptDeviceStorageClass.comfortable,
@@ -102,10 +104,11 @@ int _nativeCameraSectionLimitForStorage(
   final safeDeviceLimit = deviceSectionLimit <= 0 ? 1 : deviceSectionLimit;
   final storageLimit = switch (storageSafetyLevel) {
     ReceiptDataSaverLevel.maximum => 4,
-    ReceiptDataSaverLevel.strong => 6,
+    ReceiptDataSaverLevel.economy => 6,
     ReceiptDataSaverLevel.original ||
     ReceiptDataSaverLevel.light ||
-    ReceiptDataSaverLevel.balanced => safeDeviceLimit,
+    ReceiptDataSaverLevel.balanced ||
+    ReceiptDataSaverLevel.strong => safeDeviceLimit,
   };
   return safeDeviceLimit < storageLimit ? safeDeviceLimit : storageLimit;
 }

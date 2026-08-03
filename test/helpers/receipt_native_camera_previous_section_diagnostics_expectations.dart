@@ -157,9 +157,9 @@ void expectPreviousSectionGuideCaptureDiagnostics(
   );
   expect(
     result.captureDiagnostics['previousSectionGhostSourceHeightFraction'],
-    .20,
+    .34,
   );
-  expect(result.captureDiagnostics['previousSectionGhostSlicePercent'], 20);
+  expect(result.captureDiagnostics['previousSectionGhostSlicePercent'], 34);
   expect(result.captureDiagnostics['previousSectionGuidanceAvailable'], isTrue);
   expect(result.captureDiagnostics['cloudAssistPlan'], 'local_ocr_only');
   expect(result.captureDiagnostics['ocrDecisionPolicy'], 'local_default_only');

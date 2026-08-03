@@ -71,7 +71,7 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       targetPhotoPath: targetPhotoPath,
     );
     final picked = await _pickReceiptPhotos(
-      alignmentGuidePhotoPath: retakeContext?.preferredGuidePhotoPath,
+      alignmentGuidePhotoPath: retakeContext?.previousSectionGuidePhotoPath,
       nextSectionGuidePhotoPath: retakeContext?.nextSectionGuidePhotoPath,
       alignmentReasonCode: retakeContext?.guidanceCode,
       alignmentGuidance: retakeContext?.guidanceText,
@@ -127,10 +127,15 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
     ReceiptPhotoCoverageDecision? coverageDecision;
     try {
       final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-      if (alignmentGuidePhotoPath != null && showAlignmentGuide) {
-        coverageDecision = _coverageDecisionForPhoto(alignmentGuidePhotoPath);
+      if ((alignmentGuidePhotoPath != null ||
+              nextSectionGuidePhotoPath != null) &&
+          showAlignmentGuide) {
+        final coverageGuidePath =
+            alignmentGuidePhotoPath ?? nextSectionGuidePhotoPath!;
+        coverageDecision = _coverageDecisionForPhoto(coverageGuidePath);
         final shouldContinue = await _showLongReceiptAlignmentGuide(
           alignmentGuidePhotoPath,
+          nextSectionGuidePhotoPath: nextSectionGuidePhotoPath,
           coverageDecision: coverageDecision,
           alignmentReasonCode: alignmentReasonCode,
           alignmentGuidance: alignmentGuidance,
@@ -172,7 +177,9 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
       if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
       return _stagePhoneCameraBackupPhotos(
         picked,
-        hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
+        hadPreviousSectionGuide:
+            alignmentGuidePhotoPath != null ||
+            nextSectionGuidePhotoPath != null,
         previousSectionReasonCode: alignmentReasonCode,
         previousSectionGuidance: alignmentGuidance,
         previousSectionCoverageDecision: coverageDecision,
@@ -196,7 +203,9 @@ extension _ReceiptPhotoReviewCaptureActions on _ReceiptPhotoReviewScreenState {
         if (picked.isEmpty) return const _PickedReceiptPhotos.empty();
         return _stagePhoneCameraBackupPhotos(
           picked,
-          hadPreviousSectionGuide: alignmentGuidePhotoPath != null,
+          hadPreviousSectionGuide:
+              alignmentGuidePhotoPath != null ||
+              nextSectionGuidePhotoPath != null,
           previousSectionReasonCode: alignmentReasonCode,
           previousSectionGuidance: alignmentGuidance,
           previousSectionCoverageDecision: coverageDecision,

@@ -142,7 +142,7 @@ void main() {
   });
 
   test(
-    'invalid saved proof size falls back to device recommendation',
+    'invalid saved proof size falls back to the early-access storage plan',
     () async {
       final box = await Hive.openBox<dynamic>(
         ReceiptCaptureSettingsController.boxName,
@@ -152,10 +152,7 @@ void main() {
       final settings = await ReceiptCaptureSettingsController.create();
 
       expect(settings.defaultDataSaverUsesDeviceRecommendation, isTrue);
-      expect(
-        settings.defaultDataSaverLevel,
-        settings.deviceCapability.recommendedDataSaverLevel,
-      );
+      expect(settings.defaultDataSaverLevel, ReceiptDataSaverLevel.strong);
     },
   );
 
@@ -220,6 +217,47 @@ void main() {
   });
 
   test(
+    'Expense receipt setup is conditional and preserves its saved choice',
+    () async {
+      final settings = await ReceiptCaptureSettingsController.create();
+
+      expect(settings.hasCompletedExpenseReceiptSetup, isFalse);
+      expect(
+        settings.expenseReceiptAssistanceChoice,
+        ExpenseReceiptAssistanceChoice.manual,
+      );
+
+      await settings.setExpenseReceiptAssistanceChoice(
+        ExpenseReceiptAssistanceChoice.onDevice,
+      );
+
+      expect(settings.hasCompletedExpenseReceiptSetup, isTrue);
+      expect(
+        settings.expenseReceiptAssistanceChoice,
+        ExpenseReceiptAssistanceChoice.onDevice,
+      );
+      expect(
+        settings.appAssistedEnabledFor(ReceiptCaptureArea.expenses),
+        isTrue,
+      );
+
+      await settings.setExpenseReceiptAssistanceChoice(
+        ExpenseReceiptAssistanceChoice.manual,
+      );
+
+      expect(settings.hasCompletedExpenseReceiptSetup, isTrue);
+      expect(
+        settings.expenseReceiptAssistanceChoice,
+        ExpenseReceiptAssistanceChoice.manual,
+      );
+      expect(
+        settings.appAssistedEnabledFor(ReceiptCaptureArea.expenses),
+        isFalse,
+      );
+    },
+  );
+
+  test(
     'exposes effective camera runtime profile from capability and settings',
     () async {
       final settings = await ReceiptCaptureSettingsController.create();
@@ -249,9 +287,13 @@ void main() {
     () async {
       final source = await _readReceiptCaptureSettingsSource();
       final displaySource = await _readReceiptCaptureSettingsDisplaySource();
-      final dataSaverSource = await File(
-        'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
-      ).readAsString();
+      final dataSaverSource =
+          await File(
+            'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_panel.dart',
+          ).readAsString() +
+          await File(
+            'lib/shared/widgets/receipt_capture/receipt_photo_review_data_saver_details.dart',
+          ).readAsString();
 
       expect(source, contains('_ReceiptCameraRuntimeSummary'));
       expect(source, contains('defaultDataSaverInstallFootprintSummary'));
@@ -280,9 +322,7 @@ void main() {
       expect(displaySource, isNot(contains('Photo Backup On')));
       expect(
         dataSaverSource,
-        contains(
-          'Connect backup in Account settings to see storage and activity.',
-        ),
+        contains('This receipt stays on your device until you turn backup on'),
       );
       expect(
         dataSaverSource,
@@ -366,6 +406,7 @@ void main() {
 Future<String> _readReceiptCaptureSettingsSource() async {
   final paths = [
     ..._receiptCaptureSettingsDisplayPaths,
+    'lib/shared/widgets/receipt_capture/receipt_capture_settings_data_saver.dart',
     'lib/shared/widgets/receipt_capture/receipt_capture_diagnostics_policy.dart',
   ];
   final contents = <String>[];

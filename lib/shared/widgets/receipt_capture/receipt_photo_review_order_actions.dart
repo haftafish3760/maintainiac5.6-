@@ -134,6 +134,8 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
         ...?_captureDiagnosticsByPath[selectedPhotoPath],
         ...moveDiagnostics,
       };
+      _stitchOrderUserAdjusted = true;
+      _stitchOrderEvidenceKey = null;
     });
     _recoverReviewAfterPhotoSetChanged();
   }
@@ -153,7 +155,11 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
       } else if (_selectedStitchPairIndex > maxPairIndex) {
         _selectedStitchPairIndex = maxPairIndex;
       }
+      // Adding or retaking a section must return immediately to clear photo
+      // review. Automatic assembly begins only after Continue, so a person
+      // can finish the whole long receipt without waiting between captures.
       _reviewMode = _ReceiptReviewMode.preview;
+      _stitchPreviewRequested = false;
       _savingPhotos = false;
       _cropProcessing = false;
       _cropSourcePath = null;

@@ -1,12 +1,13 @@
 part of 'app_screen_shell.dart';
 
-void openGlobalVehiclePicker(
+Future<void> openGlobalVehiclePicker(
   BuildContext context, {
   required AppSection section,
-}) {
+  ValueChanged<VehicleProfile>? onVehicleSelected,
+}) async {
   final state = AppStateScope.of(context);
   final operationalContext = OperationalContextScope.maybeOf(context);
-  showDialog<void>(
+  await showDialog<void>(
     context: context,
     builder: (context) => Dialog(
       backgroundColor: const Color(0xFF1F2528),
@@ -69,6 +70,7 @@ void openGlobalVehiclePicker(
                   }
                   if (!context.mounted) return;
                   Navigator.of(context).pop();
+                  onVehicleSelected?.call(vehicle);
                 },
               ),
               const SizedBox(height: 8),

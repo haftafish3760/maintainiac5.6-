@@ -50,9 +50,9 @@ extension ReceiptNativeCameraSessionGhostGuide
   double get previousSectionGhostSourceHeightFractionOrDefault {
     return _boundedGhostGuideValue(
       previousSectionGhostSourceHeightFraction,
-      fallback: .20,
-      min: .15,
-      max: .20,
+      fallback: .34,
+      min: .24,
+      max: .34,
     );
   }
 
@@ -68,8 +68,8 @@ extension ReceiptNativeCameraSessionGhostGuide
       _boundedGhostGuideValue(
         previousSectionGhostOverlayHeightFraction,
         fallback: previousSectionGhostSourceHeightFractionOrDefault,
-        min: .15,
-        max: .20,
+        min: .24,
+        max: .34,
       );
 
   double get previousSectionGhostOpacityOrDefault {
@@ -104,9 +104,9 @@ extension ReceiptNativeCameraSessionGhostGuide
       return 'Use the top of the next receipt section as context, then confirm the retake still joins cleanly in photo review.';
     }
     if (previousSectionGuideMissingBottomAndTotals) {
-      return 'Keep the last readable lines in the top ghost slice, then repeat 3-5 readable lines near the top of the next photo so subtotal, total, and final lines can be matched.';
+      return 'Keep the last readable lines in the top reference strip, then repeat 3-5 readable lines near the top of the next photo so subtotal, total, and final lines can be matched.';
     }
-    return 'Line up the previous receipt section in the top ghost slice and repeat 3-5 readable lines.';
+    return 'Line up the previous receipt section in the top reference strip and repeat 3-5 readable lines.';
   }
 }
 

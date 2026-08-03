@@ -48,11 +48,12 @@ class NativeReceiptScannerService extends ReceiptScannerService {
   const NativeReceiptScannerService();
 
   static bool get documentScannerAllowedOnThisPlatform {
-    // Android's current document-scanner plugin path uses Google Play Services
-    // document scanning. Do not make receipt capture wait on a Play Services
-    // module/update; Android falls back to the native camera until an offline
-    // scanner is available.
-    return Platform.isIOS;
+    // Keep native camera capture as the normal path, but make the platform
+    // document scanner available as an explicit recovery path. The Android
+    // plugin already ships the Google Play Services document-scanner bridge;
+    // rejecting Android here prevented the only available perspective-corrected
+    // capture option from ever being offered on a supported device.
+    return Platform.isAndroid || Platform.isIOS;
   }
 
   @override

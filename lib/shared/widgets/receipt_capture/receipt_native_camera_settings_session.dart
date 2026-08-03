@@ -26,6 +26,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
     );
     final storageConstrained =
         storageSafetyLevel == ReceiptDataSaverLevel.strong ||
+        storageSafetyLevel == ReceiptDataSaverLevel.economy ||
         storageSafetyLevel == ReceiptDataSaverLevel.maximum;
     final maxSectionCount = longReceiptMode
         ? _nativeCameraSectionLimitForStorage(
@@ -75,9 +76,7 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
         : 1.0;
     // A receipt camera must never open already zoomed. Start at the native
     // wide framing and let the user deliberately pinch toward the receipt.
-    final effectiveInitialZoom = (effectivePinchZoom
-            ? effectiveZoomMin
-            : 1.0)
+    final effectiveInitialZoom = (effectivePinchZoom ? effectiveZoomMin : 1.0)
         .clamp(effectiveZoomMin, effectiveZoomMax)
         .toDouble();
     final effectiveExposureMin = effectiveExposureSlider
@@ -149,6 +148,14 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
         previousSectionGhostGuideEnabled &&
         longReceiptMode &&
         previousGuidePhotoPath != null;
+    final hasNextGuide =
+        previousSectionGhostGuideEnabled &&
+        longReceiptMode &&
+        (normalizedPreviousReason == 'retake_top_with_next_context' ||
+            normalizedPreviousReason ==
+                'retake_middle_with_previous_next_context') &&
+        nextGuidePhotoPath != null &&
+        nextGuidePhotoPath != previousGuidePhotoPath;
 
     return ReceiptNativeCameraSessionConfig(
       settings: this,
@@ -216,16 +223,9 @@ extension ReceiptNativeCameraSettingsSession on ReceiptNativeCameraSettings {
       previousSectionGuidePhotoPath: hasPreviousGuide
           ? previousGuidePhotoPath
           : null,
-      nextSectionGuidePhotoPath:
-          normalizedPreviousReason ==
-                  'retake_middle_with_previous_next_context' &&
-              hasPreviousGuide &&
-              nextGuidePhotoPath != null &&
-              nextGuidePhotoPath != previousGuidePhotoPath
-          ? nextGuidePhotoPath
-          : null,
+      nextSectionGuidePhotoPath: hasNextGuide ? nextGuidePhotoPath : null,
       previousSectionReasonCode:
-          hasPreviousGuide &&
+          (hasPreviousGuide || hasNextGuide) &&
               previousSectionReasonCode != null &&
               previousSectionReasonCode.trim().isNotEmpty
           ? previousSectionReasonCode.trim()

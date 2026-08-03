@@ -9,12 +9,9 @@ class _ReceiptRecapPanel extends StatelessWidget {
     required this.receiptSubtotal,
     required this.salesTax,
     required this.receiptTotal,
-    required this.businessTotal,
-    required this.personalTotal,
     required this.detailMode,
     required this.onEdit,
     required this.onSetUse,
-    required this.onDelete,
   });
 
   final List<_ExpenseReceiptLine> lines;
@@ -24,21 +21,18 @@ class _ReceiptRecapPanel extends StatelessWidget {
   final double? receiptSubtotal;
   final double? salesTax;
   final double receiptTotal;
-  final double businessTotal;
-  final double personalTotal;
   final _ReceiptDetailEntryMode detailMode;
   final ValueChanged<int> onEdit;
   final FutureOr<void> Function(int index, _ExpenseLineUse use) onSetUse;
-  final ValueChanged<int> onDelete;
 
   @override
   Widget build(BuildContext context) {
     final showLineUseControls = _showLineUseControls(lines);
     return ReceiptFormPanel(
-      title: 'Receipt Items',
+      title: 'Receipt Details',
       subtitle: showLineUseControls
-          ? 'Review each numbered line. Change its category or business allocation at any time.'
-          : 'Review each numbered line. Tap any item to edit its description, quantity, category, or price.',
+          ? 'Review the receipt, then tap a line to change it if needed.'
+          : 'Review the receipt, then tap a line to edit it if needed.',
       icon: Icons.receipt_rounded,
       accentColor: const Color(0xFF34A9E8),
       children: [
@@ -59,23 +53,23 @@ class _ReceiptRecapPanel extends StatelessWidget {
             receiptSubtotal: receiptSubtotal,
             salesTax: salesTax,
             receiptTotal: receiptTotal,
-            businessTotal: businessTotal,
-            personalTotal: personalTotal,
             showLineUseControls: showLineUseControls,
             showItemDetails:
                 detailMode == _ReceiptDetailEntryMode.detailedItems,
             onEdit: onEdit,
             onSetUse: onSetUse,
-            onDelete: onDelete,
           ),
       ],
     );
   }
 
   static bool _showLineUseControls(List<_ExpenseReceiptLine> lines) {
-    // Every detailed line remains independently classifiable. Hiding these
-    // controls on an all-business or all-personal receipt would force the user
-    // to reclassify the entire receipt just to correct one item.
-    return lines.isNotEmpty;
+    // Business or Personal is receipt-wide. Only a split receipt needs
+    // per-line classification controls, so the saved receipt stays compact.
+    return lines.any(
+      (line) =>
+          line.use == _ExpenseLineUse.split ||
+          line.use == _ExpenseLineUse.unclassified,
+    );
   }
 }

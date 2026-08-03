@@ -107,7 +107,7 @@ extension _ReceiptOcrReviewPhotoHelpers on _ReceiptOcrReviewRow {
     return switch (diagnostics.ocrReceiptStructureStatus) {
       'ready_for_parser' => const [
         'Review filled fields',
-        'Classify Business/Personal/Mixed',
+        'Classify Business/Personal/Split',
       ],
       'missing_vendor' => const ['Check store name', 'Edit if wrong'],
       'no_items' => const [

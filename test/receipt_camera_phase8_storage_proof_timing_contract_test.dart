@@ -50,13 +50,13 @@ void main() {
     );
     expect(
       storageSettings,
-      contains('Receipt Assist still uses the clearest receipt source first'),
+      contains('Receipt Assist always reads the clear source first'),
     );
     expect(
       storageSettings,
-      contains('You preview the actual saved proof after taking a photo.'),
+      contains('After a photo is taken, you preview the actual saved proof'),
     );
-    expect(storageSettings, contains('Receipt Details And Saved Proof'));
+    expect(storageSettings, contains('Saved Receipt Proof'));
     expect(storageHandoff, contains('saved_proof_kept_for_receipt_record'));
     expect(
       storageHandoff,

@@ -177,6 +177,8 @@ class _ReceiptLocalPhotoLimitStrip extends StatelessWidget {
   }
 }
 
+// Kept for custom receipt-review configurations that still use an action rail.
+// ignore: unused_element
 class _ReceiptActionRailButton extends StatelessWidget {
   const _ReceiptActionRailButton({
     required this.icon,

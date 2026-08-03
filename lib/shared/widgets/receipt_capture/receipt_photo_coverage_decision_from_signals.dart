@@ -51,7 +51,7 @@ ReceiptPhotoCoverageDecision _receiptPhotoCoverageDecisionFromSignals({
           'Two checks agree that the receipt may continue: the bottom edge '
           'was not detected, and subtotal/total words plus the total amount '
           'were not confirmed. Add the bottom receipt photo with the top '
-          'ghost-slice guide and repeat 3-5 readable lines so subtotal, '
+          'reference strip and repeat 3-5 readable lines so subtotal, '
           'total, and final lines can be matched.',
     );
   }

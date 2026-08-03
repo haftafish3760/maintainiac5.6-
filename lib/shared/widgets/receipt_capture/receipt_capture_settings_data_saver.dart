@@ -7,7 +7,11 @@ extension ReceiptCaptureSettingsDataSaver on ReceiptCaptureSettingsController {
     if (normalized == null ||
         normalized.isEmpty ||
         !_isKnownDataSaverLevelName(normalized)) {
-      return _deviceCapability.recommendedDataSaverLevel;
+      // The first early-access backup plan is 100 MB. A 250 KB proof leaves
+      // room for the protected text/record reserve while keeping roughly 390
+      // photos practical. Device capability still adjusts capture work; it
+      // should not silently replace the user's backup-space preference.
+      return ReceiptDataSaverLevel.strong;
     }
     return ReceiptDataSaverLevel.fromName(normalized);
   }

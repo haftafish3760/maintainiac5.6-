@@ -86,7 +86,7 @@ void main() {
         r'Photo review accepted. $processing $proofCount ready. Clear photo versions: $ocrSourceCount.',
       ),
     );
-    expect(captureModels, contains('Business/Personal/Mixed choices'));
+    expect(captureModels, contains('Business/Personal/Split choices'));
     expect(importActions, isNot(contains(r'Evidence: $evidence')));
     expect(
       importActions,
@@ -199,10 +199,7 @@ void main() {
       stateActions,
       contains("_receiptReadHandoffStage = 'Filling receipt details';"),
     );
-    expect(
-      stateActions,
-      contains('parseExpenseReceiptOcrResultWithLocalMemory'),
-    );
+    expect(stateActions, contains('_parseReceiptOcrResultFromCapture'));
     final recoveredCaptureBlock = attachmentPanel.substring(
       attachmentPanel.indexOf('Future<void> _resumeRecoverableNativeCapture('),
       attachmentPanel.indexOf('Future<void> _dismissRecoverableNativeCapture('),

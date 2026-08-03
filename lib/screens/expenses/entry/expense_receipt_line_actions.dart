@@ -6,28 +6,14 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
     required this.materialMode,
     required this.maintenanceRepairMode,
     required this.fuelMode,
-    required this.basicMode,
-    required this.detailedMode,
-    required this.onAddBusiness,
-    required this.onAddPersonal,
-    required this.onAddShared,
-    required this.onAddMaterial,
-    required this.onAddMaintenanceRepair,
-    required this.onSwitchToCategoryLines,
+    required this.onAddItem,
   });
 
   final int nextLineNumber;
   final bool materialMode;
   final bool maintenanceRepairMode;
   final bool fuelMode;
-  final bool basicMode;
-  final bool detailedMode;
-  final VoidCallback onAddBusiness;
-  final VoidCallback onAddPersonal;
-  final VoidCallback onAddShared;
-  final VoidCallback onAddMaterial;
-  final VoidCallback onAddMaintenanceRepair;
-  final VoidCallback onSwitchToCategoryLines;
+  final VoidCallback onAddItem;
 
   @override
   Widget build(BuildContext context) {
@@ -42,77 +28,8 @@ class _ReceiptLineActionsPanel extends StatelessWidget {
       helper: helper,
       icon: Icons.playlist_add_rounded,
       color: const Color(0xFF2E78B7),
-      onTap: () => _showReceiptItemChoice(context),
+      onTap: onAddItem,
     );
-  }
-
-  Future<void> _showReceiptItemChoice(BuildContext context) async {
-    if (fuelMode) {
-      onAddBusiness();
-      return;
-    }
-    if (maintenanceRepairMode) {
-      onAddMaintenanceRepair();
-      return;
-    }
-    if (materialMode && detailedMode) {
-      onAddMaterial();
-      return;
-    }
-    final action = await showModalBottomSheet<VoidCallback>(
-      context: context,
-      backgroundColor: const Color(0xFF1F2528),
-      showDragHandle: true,
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'How should this receipt line count?',
-                    style: TextStyle(
-                      color: Color(0xFFE8ECEE),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                _ReceiptActionButton(
-                  label: 'Business',
-                  helper: 'For a receipt line bought for work.',
-                  icon: Icons.business_center_rounded,
-                  color: const Color(0xFF2E78B7),
-                  onTap: () => Navigator.of(context).pop(onAddBusiness),
-                ),
-                const SizedBox(height: 8),
-                _ReceiptActionButton(
-                  label: 'Personal',
-                  helper: 'For a personal receipt line.',
-                  icon: Icons.person_rounded,
-                  color: const Color(0xFF59636A),
-                  onTap: () => Navigator.of(context).pop(onAddPersonal),
-                ),
-                const SizedBox(height: 8),
-                _ReceiptActionButton(
-                  label: 'Split',
-                  helper: 'For one line split between business and personal.',
-                  icon: Icons.call_split_rounded,
-                  color: const Color(0xFF3B7C73),
-                  onTap: () => Navigator.of(context).pop(onAddShared),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-    action?.call();
   }
 }
 

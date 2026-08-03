@@ -23,3 +23,4 @@ export 'receipt_picker_status.dart';
 export 'receipt_pipeline_trace.dart';
 export 'receipt_scanner_service.dart';
 export 'receipt_storage_guard.dart';
+export 'receipt_stitch_text_evidence.dart';

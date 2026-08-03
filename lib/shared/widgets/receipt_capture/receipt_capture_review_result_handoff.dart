@@ -111,19 +111,19 @@ extension ReceiptPhotoReviewResultHandoff on ReceiptPhotoReviewResult {
   String get ocrSourceFirstReviewCue {
     return switch (ocrSourceFirstDecisionCode) {
       'prepared_receipt_source_before_saved_proof' =>
-        'The app is using the prepared clear receipt photo before the smaller saved proof copy.',
+        'The app is using the prepared clear receipt photo before the smaller saved image copy.',
       'imported_receipt_source_before_saved_proof' =>
-        'The app is using the imported receipt photo before the smaller saved proof copy.',
+        'The app is using the imported receipt photo before the smaller saved image copy.',
       'temporary_full_quality_source_before_saved_proof' =>
-        'The app is using the full-quality receipt photo before the smaller saved proof copy.',
+        'The app is using the full-quality receipt photo before the smaller saved image copy.',
       'separate_receipt_source_before_saved_proof' =>
-        'The app is using the clearest receipt photos before the smaller saved proof copies.',
+        'The app is using the clearest receipt photos before the smaller saved image copies.',
       'accepted_receipt_source_before_saved_proof' =>
         'The app is using the accepted receipt photo before any storage-saving proof copy.',
       'saved_proof_fallback_review_required' =>
-        'The saved proof is being used because a clearer photo was not available. Review the filled receipt carefully.',
+        'The saved image is being used because a clearer photo was not available. Review the filled receipt carefully.',
       'combined_receipt_source_before_saved_proof' =>
-        'The app is using the combined receipt image before the smaller saved proof copy.',
+        'The app is using the combined receipt image before the smaller saved image copy.',
       _ => 'A clear receipt photo is not ready. Add one or continue by hand.',
     };
   }

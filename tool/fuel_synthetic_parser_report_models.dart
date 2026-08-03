@@ -89,6 +89,8 @@ class _FuelSyntheticReport {
     required this.fuelTypeCounts,
     required this.unitCounts,
     required this.localeCounts,
+    required this.sectionStyleCounts,
+    required this.ocrDamageVariantCounts,
     required this.mixedReceiptCount,
     required this.cashReceiptCount,
     required this.evReceiptCount,
@@ -129,6 +131,8 @@ class _FuelSyntheticReport {
   final Map<String, int> fuelTypeCounts;
   final Map<String, int> unitCounts;
   final Map<String, int> localeCounts;
+  final Map<String, int> sectionStyleCounts;
+  final Map<String, int> ocrDamageVariantCounts;
   final int mixedReceiptCount;
   final int cashReceiptCount;
   final int evReceiptCount;
@@ -181,6 +185,8 @@ class _FuelSyntheticReport {
       'fuelTypeCounts': fuelTypeCounts,
       'unitCounts': unitCounts,
       'localeCounts': localeCounts,
+      'sectionStyleCounts': sectionStyleCounts,
+      'ocrDamageVariantCounts': ocrDamageVariantCounts,
       'mixedReceiptCount': mixedReceiptCount,
       'cashReceiptCount': cashReceiptCount,
       'evReceiptCount': evReceiptCount,

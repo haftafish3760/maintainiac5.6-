@@ -31,27 +31,13 @@ internal fun ReceiptCameraActivity.buildContentView(): View {
         // The capture keeps the full-resolution source. The live view fills the
         // display so letterboxing never steals the receipt framing area.
         scaleType = PreviewView.ScaleType.FILL_CENTER
-        // Keep the two-finger gesture on the actual camera surface. Routing
-        // through the Activity missed gestures on some Android view stacks,
-        // which left a working S24 camera feeling like a fixed 1x preview.
-        // Once a second finger is down, consume the gesture here so the
-        // PreviewView cannot take over the stream before CameraX gets it.
-        // Single-finger events remain available to the normal preview.
-        setOnTouchListener { _, event ->
-            val detector = scaleGestureDetector
-            if (!pinchZoomEnabled || detector == null) {
-                false
-            } else {
-                detector.onTouchEvent(event)
-                event.pointerCount >= 2 || detector.isInProgress
-            }
-        }
     }
     cameraRootView.addView(previewView)
     cameraRootView.addView(buildReceiptFrameGuide())
     cameraRootView.addView(buildTopBar())
     cameraRootView.addView(buildGuidance())
     cameraRootView.addView(buildPreviousSectionGuide())
+    cameraRootView.addView(buildNextSectionGuide())
     cameraRootView.addView(buildSettingsStatusStrip())
     cameraRootView.addView(buildExposureControls())
     cameraRootView.addView(buildBottomBar())
@@ -245,8 +231,22 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
         layoutParams = LinearLayout.LayoutParams(0, dp(54), 1f)
     }
     bottomBar.addView(addPhotoButton)
-    val leftSpacer = View(this)
-    bottomBar.addView(leftSpacer, LinearLayout.LayoutParams(0, 1, 1f))
+    // Keep the center of the camera completely clear, but do not make the
+    // normal pinch gesture invisible. The short label sits beside the shutter
+    // instead of becoming another panel over the receipt.
+    bottomBar.addView(TextView(this).apply {
+        text = receiptCameraText("Pinch to zoom", "Pellizca para acercar")
+        contentDescription = receiptCameraText(
+            "Pinch the receipt view with two fingers to zoom",
+            "Pellizque la vista del recibo con dos dedos para acercar",
+        )
+        setTextColor(Color.rgb(228, 235, 238))
+        textSize = 11f
+        setTypeface(typeface, Typeface.BOLD)
+        gravity = Gravity.CENTER
+        maxLines = 1
+        layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+    })
     shutterButton = ImageButton(this).apply {
         contentDescription = receiptCameraText("Take receipt photo", "Tomar foto del recibo")
         setImageResource(R.drawable.ic_receipt_camera_shutter)
@@ -261,8 +261,8 @@ internal fun ReceiptCameraActivity.buildBottomBar(): View {
     val rightSpacer = View(this)
     bottomBar.addView(rightSpacer, LinearLayout.LayoutParams(0, 1, 1f))
     bottomReviewButton = Button(this).apply {
-        text = receiptCameraText("Done", "Listo")
-        contentDescription = receiptCameraText("Done: review captured receipt photos in Maintainiac", "Listo: revisar las fotos del recibo en Maintainiac")
+        text = receiptCameraText("Review Photos", "Revisar fotos")
+        contentDescription = receiptCameraText("Review captured receipt photos in Maintainiac", "Revisar las fotos del recibo en Maintainiac")
         isEnabled = false
         visibility = View.GONE
         setOnClickListener { finishWithCapturedPhotos() }
@@ -293,9 +293,14 @@ internal fun ReceiptCameraActivity.applyEdgeToEdgeReceiptInsets() {
             bottomMargin = dp(154) + insets.bottom
         }
         previousSectionGuidePanel.updateLayoutParams<FrameLayout.LayoutParams> {
-            leftMargin = dp(18) + insets.left
-            rightMargin = dp(18) + insets.right
-            topMargin = dp(130) + insets.top
+            leftMargin = insets.left
+            rightMargin = insets.right
+            topMargin = dp(56) + insets.top
+        }
+        nextSectionGuidePanel.updateLayoutParams<FrameLayout.LayoutParams> {
+            leftMargin = insets.left
+            rightMargin = insets.right
+            bottomMargin = dp(72) + insets.bottom
         }
         exposurePanel.updateLayoutParams<FrameLayout.LayoutParams> {
             leftMargin = dp(12) + insets.left

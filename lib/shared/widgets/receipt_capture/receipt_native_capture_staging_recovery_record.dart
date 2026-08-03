@@ -198,7 +198,7 @@ class ReceiptNativeCaptureRecoveryRecord {
   String get recoveryNextActionLabel => 'Review saved receipt sections';
 
   String get recoveryNextActionDetail {
-    return 'Resume to review the saved sections in order, then use the saved photos to open receipt details from the saved proof. Discard only if these saved photos are not needed.';
+    return 'Resume to review the saved sections in order, then use the saved photos to open receipt details. Discard only if these saved photos are not needed.';
   }
 
   String get privacySafeRecoveryEvidenceLabel {

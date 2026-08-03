@@ -93,7 +93,10 @@ class _ExpenseTotalsPanel extends StatelessWidget {
               onTap: () => Navigator.of(context).push(
                 appNativeRoute<void>(
                   context,
-                  ExpenseDayScreen(day: anchorDate),
+                  CalendarDayFlowScreen(
+                    day: anchorDate,
+                    source: CalendarFlowSource.expenses,
+                  ),
                 ),
               ),
             ),

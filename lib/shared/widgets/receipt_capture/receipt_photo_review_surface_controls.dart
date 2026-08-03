@@ -2,12 +2,19 @@ part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
   Widget _buildReviewBottomControls(String photoPath) {
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+    final savedProofSourcePath = _dataSaverPreviewSource(photoPath);
     final controls = _ReceiptReviewBottomControls(
       uiConfig: widget.uiConfig,
       photoPaths: _photoPaths,
       selectedIndex: _selectedIndex,
       dataSaverLevel: _dataSaverLevel,
-      storagePreview: _storagePreviews[_previewKey(photoPath)],
+      storagePreview:
+          _storagePreviews[_previewKey(
+            _reviewMode == _ReceiptReviewMode.dataSaver
+                ? savedProofSourcePath
+                : photoPath,
+          )],
       selectedQualityCheck: _qualityChecksByPath[photoPath],
       selectedCaptureDiagnostics: _captureDiagnosticsByPath[photoPath],
       reviewMode: _reviewMode,
@@ -29,6 +36,11 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       },
       onDataSaverSelected: (level) =>
           _updateReviewState(() => _dataSaverLevel = level),
+      askSavedProofSizeEachReceipt:
+          settings?.askSavedProofSizeEachReceipt ?? false,
+      onAskSavedProofSizeEachReceiptChanged: (value) {
+        unawaited(settings?.setAskSavedProofSizeEachReceipt(value));
+      },
       onModeChanged: _setReviewMode,
       onStitchPairSelected: _selectStitchPairIndex,
       onManualOverlapChanged: _setManualOverlapFraction,
@@ -84,16 +96,6 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       _ReceiptReviewMode.stitch => widget.uiConfig.stitchControlsHeight,
       _ReceiptReviewMode.dataSaver => widget.uiConfig.dataSaverControlsHeight,
     };
-    // On a phone, the photo itself is the primary review surface. Keep the
-    // preview tray compact enough to preserve readable receipt pixels; its
-    // secondary actions already scroll within the tray. Larger layouts retain
-    // the configured tool-space cap below.
-    if (_reviewMode == _ReceiptReviewMode.preview && safeHeight <= 1100) {
-      const phonePreviewControlsHeight = 100.0;
-      return proportional < phonePreviewControlsHeight
-          ? proportional
-          : phonePreviewControlsHeight;
-    }
     return proportional < absolute ? proportional : absolute;
   }
 

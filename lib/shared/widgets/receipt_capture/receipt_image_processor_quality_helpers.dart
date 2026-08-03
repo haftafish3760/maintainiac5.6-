@@ -26,11 +26,17 @@ _DataSaverProfile _profileFor(ReceiptDataSaverLevel level) {
       grayscale: true,
       contrast: 115,
     ),
-    ReceiptDataSaverLevel.maximum => const _DataSaverProfile(
-      maxLongSide: 1050,
-      quality: 54,
+    ReceiptDataSaverLevel.economy => const _DataSaverProfile(
+      maxLongSide: 950,
+      quality: 52,
       grayscale: true,
-      contrast: 125,
+      contrast: 122,
+    ),
+    ReceiptDataSaverLevel.maximum => const _DataSaverProfile(
+      maxLongSide: 700,
+      quality: 42,
+      grayscale: true,
+      contrast: 130,
     ),
   };
 }
@@ -234,6 +240,7 @@ class _ReceiptOverlapMatch {
     this.nextTopOffsetPixels = 0,
     this.scaleCorrection = 1,
     this.rotationCorrectionDegrees = 0,
+    this.perspectiveCorrection = 0,
   }) : nextSkipPixels = nextSkipPixels ?? pixels;
 
   final int pixels;
@@ -244,8 +251,15 @@ class _ReceiptOverlapMatch {
   final img.Image nextImage;
   final double scaleCorrection;
   final double rotationCorrectionDegrees;
+  final double perspectiveCorrection;
 
   bool get isConfident => pixels > 0 && confidence >= .50;
+
+  // A tentative join is shown only in the review screen, never saved without
+  // the user's next explicit Continue. This admits a hard-but-readable
+  // receipt pair that has a clear best overlap but misses the stricter OCR
+  // handoff threshold. The original sections remain available for retake.
+  bool get isReviewableJoin => pixels > 0 && confidence >= .35;
 }
 
 class _ReceiptExposureCurve {
@@ -283,6 +297,7 @@ class _ReceiptStitchCandidate {
     int? nextSkipPixels,
     this.nextXOffsetPixels = 0,
     this.rotationCorrectionDegrees = 0,
+    this.perspectiveCorrection = 0,
   }) : nextSkipPixels = nextSkipPixels ?? pixels;
 
   final int pixels;
@@ -293,4 +308,5 @@ class _ReceiptStitchCandidate {
   final int sampleHeight;
   final int sampleWidth;
   final double rotationCorrectionDegrees;
+  final double perspectiveCorrection;
 }

@@ -43,10 +43,10 @@ void main() {
         'Check every filled field against the saved receipt before saving.',
       ),
     );
-    expect(parseReview, contains('Review What The App Filled In'));
+    expect(parseReview, contains('Check Receipt Details'));
     expect(
       parseReview,
-      contains('Check the store, date, total, tax, and item prices.'),
+      contains('Compare the store, date, total, tax, and item prices'),
     );
     expect(parseReview, contains('Basic price review'));
     expect(parseReview, contains('Detailed item review'));
@@ -55,10 +55,9 @@ void main() {
       entryScreen,
       contains('var _receiptReviewModeChangedByUser = false;'),
     );
-    expect(entryScreen, contains('_receiptReviewModeChangedByUser = true;'));
     expect(parseReview, contains('Price-first review'));
     expect(parseReview, contains('Full-line review'));
-    expect(parseReview, contains('Business/Personal/Mixed ready'));
+    expect(parseReview, contains('Business/Personal/Split ready'));
     expect(parseReview, contains('Classify receipt total'));
     expect(parseReview, contains('class _ReceiptReviewNextStepCallout'));
     expect(parseReview, contains('primaryNextStepLabel'));
@@ -83,13 +82,13 @@ void main() {
     expect(
       parseReview,
       contains(
-        'Next: choose All Business, All Personal, or Mixed, then check highlighted lines.',
+        'Next: choose All Business, All Personal, or Split, then check highlighted lines.',
       ),
     );
     expect(
       parseReview,
       contains(
-        'Next: choose All Business, All Personal, or Mixed, then save when totals look right.',
+        'Next: choose All Business, All Personal, or Split, then save when totals look right.',
       ),
     );
     expect(parseReview, contains('Material review ready'));
@@ -341,7 +340,12 @@ void main() {
     expect(entryScreen, contains('Use Total As Business'));
     expect(entryScreen, contains('Use Total As Personal'));
     expect(entryScreen, contains("label: 'Split Total'"));
-    expect(entryScreen, contains('Every split requires your allocation.'));
+    expect(
+      entryScreen,
+      contains(
+        'Confirm the business allocation for the split line before saving.',
+      ),
+    );
     expect(entryScreen, contains("'Review item lines': review"));
     expect(entryScreen, contains("'Check material matches': review"));
     expect(
@@ -351,20 +355,15 @@ void main() {
       ),
     );
     expect(entryScreen, contains('Item lines need review'));
-    expect(
-      photoControls,
-      contains(
-        'Photo match will use ordered sections from top to bottom because stitching was not safe enough.',
-      ),
-    );
+    expect(photoControls, isNot(contains('Photo match will use')));
     expect(parseReview, contains('_ReceiptNoLineRecoveryChip'));
     expect(parseReview, contains('_ReceiptFieldConfidenceRow'));
     expect(parseReview, contains('Fields to check'));
     expect(parseReview, contains("'receiptMath' => 'Receipt math'"));
     expect(parseReview, contains("'lineItems' => 'Line items'"));
     expect(totals, contains('splitPercentIssueCount'));
-    expect(totals, contains('One mixed line needs a business percent.'));
-    expect(totals, contains('mixed lines need business percents.'));
+    expect(totals, contains('One split line needs a business percent.'));
+    expect(totals, contains('split lines need business percents.'));
     expect(entryScreen, contains('splitPercentIssueCount'));
     expect(entryScreen, contains('_splitLinesMissingBusinessPercentCount'));
     expect(

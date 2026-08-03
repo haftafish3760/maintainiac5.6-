@@ -91,10 +91,10 @@ void main() {
     expect(session.hasPreviousSectionGuide, isTrue);
     expect(session.previousSectionGhostGuidePlacement, 'top_ghost_slice');
     expect(session.previousSectionGhostSourceStartFractionOrDefault, .80);
-    expect(session.previousSectionGhostSourceHeightFractionOrDefault, .20);
+    expect(session.previousSectionGhostSourceHeightFractionOrDefault, .24);
     expect(session.previousSectionGhostOverlayTopFractionOrDefault, 0);
-    expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .20);
-    expect(session.previousSectionGhostSlicePercent, 20);
+    expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .24);
+    expect(session.previousSectionGhostSlicePercent, 24);
     expect(
       session.nativeControlContractTags,
       contains('previous_section_ghost'),
@@ -139,11 +139,11 @@ void main() {
       expect(session.hasPreviousSectionGuide, isTrue);
       expect(session.previousSectionGhostGuidePlacement, 'top_ghost_slice');
       expect(session.previousSectionGhostSourceStartFractionOrDefault, .92);
-      expect(session.previousSectionGhostSourceHeightFractionOrDefault, .15);
+      expect(session.previousSectionGhostSourceHeightFractionOrDefault, .24);
       expect(session.previousSectionGhostOverlayTopFractionOrDefault, 0);
-      expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+      expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .34);
       expect(session.previousSectionGhostOpacityOrDefault, .62);
-      expect(session.previousSectionGhostSlicePercent, 15);
+      expect(session.previousSectionGhostSlicePercent, 24);
       expect(
         session.nativeControlContractTags,
         contains('previous_section_ghost'),
@@ -190,11 +190,11 @@ void main() {
         'bottom_overlap_ghost_at_top_repeat_3_to_5_lines',
       );
       expect(session.previousSectionGhostSourceStartFractionOrDefault, .80);
-      expect(session.previousSectionGhostSourceHeightFractionOrDefault, .20);
+      expect(session.previousSectionGhostSourceHeightFractionOrDefault, .34);
       expect(session.previousSectionGhostOverlayTopFractionOrDefault, 0);
-      expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .20);
+      expect(session.previousSectionGhostOverlayHeightFractionOrDefault, .34);
       expect(session.previousSectionGhostOpacityOrDefault, .36);
-      expect(session.previousSectionGhostSlicePercent, 20);
+      expect(session.previousSectionGhostSlicePercent, 34);
     },
   );
 

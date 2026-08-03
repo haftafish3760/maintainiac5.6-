@@ -84,16 +84,33 @@ extension _ExpenseReceiptEntryParseApplyActions
     });
     _scheduleDraftSave();
     _scrollToReceiptReview();
+    _openAppAssistedReceiptPreviewIfReady();
     final warning = _primaryParsedReceiptWarning(parsed);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           warning == null
-              ? 'Receipt fields filled. Classify it as Business, Personal, or Mixed, then review the lines before saving.'
+              ? 'Receipt fields filled. Classify it as Business, Personal, or Split, then review the lines before saving.'
               : '$warning Classify the receipt and review every filled line before saving.',
         ),
       ),
     );
+  }
+
+  void _openAppAssistedReceiptPreviewIfReady() {
+    if (!_usesRebuiltManualDetailedReceiptFlow ||
+        !_appAssistedReceiptFillEnabled ||
+        _appAssistedReceiptPreviewPresented ||
+        !mounted ||
+        (_lines.isEmpty &&
+            (_enteredReceiptTotal == null || _enteredReceiptTotal! <= 0))) {
+      return;
+    }
+    _appAssistedReceiptPreviewPresented = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      unawaited(_openManualReceiptPreview());
+    });
   }
 
   List<ExpenseReceiptLineRecord> _mergeParsedReceiptLines(
@@ -180,7 +197,7 @@ extension _ExpenseReceiptEntryParseApplyActions
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          'Receipt was read, but the app could not find usable fields. Keep the proof and fill in the receipt manually.',
+          'Receipt was read, but the app could not find usable fields. Keep the image and fill in the receipt manually.',
         ),
       ),
     );
