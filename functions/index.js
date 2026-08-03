@@ -35,6 +35,9 @@ initializeApp(
 // emulator cannot mint production App Check assertions, so authenticated
 // lifecycle tests explicitly bypass only that local verification boundary.
 const enforceCallableAppCheck = !runningInFunctionsEmulator;
+const accountAbuseIpHashPepper = defineSecret(
+  'ACCOUNT_ABUSE_IP_HASH_PEPPER',
+);
 const restoreAuthorizationFunctions = buildRestoreAuthorizationFunctions({
   enforceAppCheck: enforceCallableAppCheck,
 });
@@ -68,9 +71,16 @@ exports.getHostedUsageGrant = hostedPlanFunctions.getHostedUsageGrant;
 exports.reserveHostedSync = hostedPlanFunctions.reserveHostedSync;
 const personalWorkspaceFunctions = buildPersonalWorkspaceFunctions({
   enforceAppCheck: enforceCallableAppCheck,
+  allowEmulatorProvider: runningInFunctionsEmulator,
+  secrets: runningInFunctionsEmulator ? [] : [accountAbuseIpHashPepper],
+  ipHashPepper: () => runningInFunctionsEmulator
+    ? 'maintainiac-emulator-only-account-abuse-pepper'
+    : accountAbuseIpHashPepper.value(),
 });
 exports.bootstrapPersonalWorkspace =
     personalWorkspaceFunctions.bootstrapPersonalWorkspace;
+exports.requestHostedAccountCreation =
+    personalWorkspaceFunctions.requestHostedAccountCreation;
 
 const maxProofBytes = defineInt('EXPENSE_MAX_PROOF_BYTES', {
   default: 20 * 1024 * 1024,
@@ -148,17 +158,18 @@ function validQuotaBytes(value) {
 
 function quotaValues(data, defaultLimitBytes, {enforceLimit = false} = {}) {
   const usedBytes = data?.storageUsedBytes ?? 0;
+  const reservedBytes = data?.storageReservedBytes ?? 0;
   const storedLimitBytes = data?.storageLimitBytes ?? defaultLimitBytes;
   const requestedLimitBytes = enforceLimit ? defaultLimitBytes : storedLimitBytes;
   if (!validQuotaBytes(requestedLimitBytes) || !Number.isInteger(usedBytes) ||
-      usedBytes < 0) {
+      usedBytes < 0 || !Number.isInteger(reservedBytes) || reservedBytes < 0) {
     throw new HttpsError('failed-precondition', 'Proof storage quota is invalid.');
   }
   // A reduced plan never deletes or invalidates already-backed-up evidence.
   // It preserves used bytes while blocking any new reservation above the new
   // entitlement until usage is again within the configured allowance.
   const limitBytes = Math.max(requestedLimitBytes, usedBytes);
-  return {limitBytes, usedBytes};
+  return {limitBytes, usedBytes, reservedBytes};
 }
 
 function finalizedProofResult(data, {uid, proofId, receiptId, contentSha256}) {
@@ -254,20 +265,15 @@ exports.issueExpenseProofUploadGrant = onCall(
       const quotaData = quotaValues(quota.data(), configuredQuotaBytes, {
         enforceLimit: true,
       });
-      const reservedBytes = openGrants.docs.reduce((total, openGrant) => {
-        const data = openGrant.data();
-        return data.expiresAt?.toMillis() > Date.now() &&
-            Number.isInteger(data.maxBytes) && data.maxBytes > 0
-          ? total + data.maxBytes
-          : total;
-      }, 0);
-      if (quotaData.usedBytes + reservedBytes + maxBytes > quotaData.limitBytes) {
+      if (quotaData.usedBytes + quotaData.reservedBytes + maxBytes >
+          quotaData.limitBytes) {
         throw new HttpsError('resource-exhausted', 'Proof storage quota is exhausted.');
       }
       transaction.set(quotaRef, {
         storageLimitBytes: quotaData.limitBytes,
         entitlementLimitBytes: configuredQuotaBytes,
         storageUsedBytes: quotaData.usedBytes,
+        storageReservedBytes: quotaData.reservedBytes + maxBytes,
         planId: hostedGrant.planId,
         policyVersion: hostedGrant.policyVersion,
         createdAt: quota.data()?.createdAt || Timestamp.now(),
@@ -361,7 +367,8 @@ exports.finalizeExpenseProofUpload = onCall(
         throw new HttpsError('failed-precondition', 'The proof upload grant is no longer usable.');
       }
       const quotaData = quotaValues(quota.data(), 0);
-      if (quotaData.usedBytes + size > quotaData.limitBytes) {
+      if (quotaData.reservedBytes < current.maxBytes ||
+          quotaData.usedBytes + size > quotaData.limitBytes) {
         throw new HttpsError('resource-exhausted', 'Proof storage quota is exhausted.');
       }
       transaction.update(grantRef, {
@@ -374,6 +381,7 @@ exports.finalizeExpenseProofUpload = onCall(
       });
       transaction.update(quotaRef, {
         storageUsedBytes: quotaData.usedBytes + size,
+        storageReservedBytes: quotaData.reservedBytes - current.maxBytes,
         updatedAt: Timestamp.now(),
       });
       return { status: 'finalized', byteCount: size, contentSha256 };

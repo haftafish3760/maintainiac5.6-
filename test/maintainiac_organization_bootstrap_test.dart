@@ -1,11 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/firebase/app_installation_identity.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_callable_functions.dart';
 import 'package:maintaniac/shared/firebase/maintainiac_organization_bootstrap.dart';
 
 void main() {
   const uid = 'firebase-user-1';
+  final installationHash = sha256
+      .convert(utf8.encode(_installationId))
+      .toString();
 
   test('uses an opaque deterministic workspace ID', () {
     final first = MaintainiacOrganizationBootstrapper.personalOrganizationIdFor(
@@ -26,9 +32,10 @@ void main() {
       'organizationId': expectedId,
       'ownerUid': uid,
       'planId': 'freeConfigurable',
+      'installationHash': installationHash,
     });
     final bootstrapper = MaintainiacOrganizationBootstrapper(
-      gateway: CallableMaintainiacOrganizationBootstrapGateway(client: client),
+      gateway: _callableGateway(client),
     );
 
     final workspace = await bootstrapper.ensurePersonalWorkspace(
@@ -38,8 +45,8 @@ void main() {
       authenticatedUid: uid,
     );
 
-    expect(client.names, ['bootstrapPersonalWorkspace']);
-    expect(client.payloads, [isEmpty]);
+    expect(client.names, ['requestHostedAccountCreation']);
+    expect(client.payloads.single['appInstallationHash'], installationHash);
     expect(identical(cached, workspace), isTrue);
     expect(workspace.organizationId, expectedId);
     expect(workspace.ownerUid, uid);
@@ -50,10 +57,9 @@ void main() {
     final client = _RecordingCallableClient({
       'organizationId': 'personal_wrong',
       'ownerUid': uid,
+      'installationHash': installationHash,
     });
-    final gateway = CallableMaintainiacOrganizationBootstrapGateway(
-      client: client,
-    );
+    final gateway = _callableGateway(client);
 
     expect(
       gateway.ensurePersonalWorkspace(authenticatedUid: uid),
@@ -69,7 +75,9 @@ void main() {
         'organizationId': expectedId,
         'ownerUid': uid,
         'planId': '../another-plan',
+        'installationHash': installationHash,
       }),
+      installationIdentityStore: _installationStore(),
     );
 
     expect(
@@ -113,6 +121,33 @@ void main() {
       expect(identical(workspaces.first, workspaces.last), isTrue);
     },
   );
+}
+
+const _installationId =
+    'mai_install_abcdefghijklmnopqrstuvwxyzABCDEFGH12345678';
+
+CallableMaintainiacOrganizationBootstrapGateway _callableGateway(
+  MaintainiacCallableFunctionClient client,
+) => CallableMaintainiacOrganizationBootstrapGateway(
+  client: client,
+  installationIdentityStore: _installationStore(),
+);
+
+AppInstallationIdentityStore _installationStore() =>
+    AppInstallationIdentityStore(
+      vault: _MemoryIdentityVault(),
+      now: () => DateTime.utc(2026, 8, 1),
+      idFactory: () => _installationId,
+    );
+
+class _MemoryIdentityVault implements InstallationIdentityVault {
+  final values = <String, String>{};
+
+  @override
+  Future<String?> read(String key) async => values[key];
+
+  @override
+  Future<void> write(String key, String value) async => values[key] = value;
 }
 
 class _RecordingCallableClient implements MaintainiacCallableFunctionClient {

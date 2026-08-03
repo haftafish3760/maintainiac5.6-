@@ -21,11 +21,11 @@ class AccountCreationGateContract {
   static const additionalVerificationSatisfiedField =
       'additionalVerificationSatisfied';
 
-  static const requiredRequestFields = [
-    appInstallationHashField,
-    providerIdField,
-    appCheckVerifiedField,
-  ];
+  static const requiredRequestFields = [appInstallationHashField];
+
+  /// These values are derived from verified callable context. A client value
+  /// with either name is never trusted for entitlement decisions.
+  static const serverDerivedFields = [providerIdField, appCheckVerifiedField];
 
   static const serverOnlyCollections = [
     installCollection,

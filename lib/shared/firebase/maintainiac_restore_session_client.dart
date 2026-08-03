@@ -49,7 +49,8 @@ class MaintainiacRestoreSessionClient {
     required String platform,
     required String appVersion,
   }) async {
-    if (!_inputToken(deviceId) ||
+    if (!_inputSha(deviceId) ||
+        deviceId != installationIdHash ||
         !RegExp(r'^[a-f0-9]{64}$').hasMatch(installationIdHash) ||
         !const {'android', 'ios'}.contains(platform) ||
         appVersion.trim() != appVersion ||
@@ -270,3 +271,5 @@ DateTime _requiredDate(Map<String, Object?> map, String key) {
 
 bool _inputToken(String value) =>
     RegExp(r'^[A-Za-z0-9_-]{1,160}$').hasMatch(value);
+
+bool _inputSha(String value) => RegExp(r'^[a-f0-9]{64}$').hasMatch(value);

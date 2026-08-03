@@ -51,9 +51,10 @@ describe('restore device registration limits', () => {
 });
 
 function registration(index) {
+  const installationIdHash = index.toString(16).padStart(64, '0');
   return {
-    deviceId: `boundedDevice${index}`,
-    installationIdHash: index.toString(16).padStart(64, '0'),
+    deviceId: installationIdHash,
+    installationIdHash,
     platform: 'android',
     appVersion: '1.0.0',
   };

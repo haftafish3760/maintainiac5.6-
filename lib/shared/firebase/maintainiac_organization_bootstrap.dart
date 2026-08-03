@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
+import 'app_installation_identity.dart';
 import 'maintainiac_callable_functions.dart';
 
 /// Atomic, server-authorized creation of an independent user's private
@@ -17,9 +18,13 @@ class CallableMaintainiacOrganizationBootstrapGateway
     implements MaintainiacOrganizationBootstrapGateway {
   CallableMaintainiacOrganizationBootstrapGateway({
     MaintainiacCallableFunctionClient? client,
-  }) : _client = client ?? FirebaseMaintainiacCallableFunctionClient();
+    AppInstallationIdentityStore? installationIdentityStore,
+  }) : _client = client ?? FirebaseMaintainiacCallableFunctionClient(),
+       _installationIdentityStore =
+           installationIdentityStore ?? AppInstallationIdentityStore();
 
   final MaintainiacCallableFunctionClient _client;
+  final AppInstallationIdentityStore _installationIdentityStore;
 
   @override
   Future<MaintainiacOrganizationWorkspace> ensurePersonalWorkspace({
@@ -33,9 +38,10 @@ class CallableMaintainiacOrganizationBootstrapGateway
         'An authenticated user ID is required.',
       );
     }
+    final installation = await _installationIdentityStore.getOrCreate();
     final response = await _client.call(
-      name: 'bootstrapPersonalWorkspace',
-      data: const {},
+      name: 'requestHostedAccountCreation',
+      data: installation.toSignupSignalPayload(),
     );
     final organizationId = response['organizationId'];
     final ownerUid = response['ownerUid'];
@@ -52,6 +58,11 @@ class CallableMaintainiacOrganizationBootstrapGateway
             !RegExp(r'^[A-Za-z0-9_.-]{1,80}$').hasMatch(planId))) {
       throw const FormatException(
         'Hosted personal workspace plan identity is invalid.',
+      );
+    }
+    if (response['installationHash'] != installation.cloudDeviceId) {
+      throw const FormatException(
+        'Hosted workspace installation identity did not match this device.',
       );
     }
     return MaintainiacOrganizationWorkspace(

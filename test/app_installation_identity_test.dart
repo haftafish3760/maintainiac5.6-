@@ -128,9 +128,12 @@ void main() {
 
   group('AccountCreationGateContract', () {
     test('keeps server-only collections and required fields explicit', () {
+      expect(AccountCreationGateContract.requiredRequestFields, [
+        'appInstallationHash',
+      ]);
       expect(
-        AccountCreationGateContract.requiredRequestFields,
-        containsAll(['appInstallationHash', 'providerId', 'appCheckVerified']),
+        AccountCreationGateContract.serverDerivedFields,
+        containsAll(['providerId', 'appCheckVerified']),
       );
       expect(
         AccountCreationGateContract.serverOnlyCollections,

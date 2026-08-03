@@ -21,7 +21,8 @@ async function registerRestoreDevice(request) {
   const platform = String(request.data?.platform || '').trim();
   const appVersion = String(request.data?.appVersion || '').trim();
   if (!uid) throw new HttpsError('unauthenticated', 'Sign in is required.');
-  if (!deviceId || !SHA256.test(installationIdHash) ||
+  if (!deviceId || !SHA256.test(deviceId) ||
+      !SHA256.test(installationIdHash) || deviceId !== installationIdHash ||
       !['android', 'ios'].includes(platform) ||
       appVersion.length < 1 || appVersion.length > 64) {
     throw new HttpsError('invalid-argument', 'Invalid device registration.');

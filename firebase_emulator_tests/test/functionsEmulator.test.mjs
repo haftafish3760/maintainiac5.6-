@@ -37,6 +37,7 @@ const callableNames = [
   'reserveHostedSync',
   'commitDurableRecordBatch',
   'bootstrapPersonalWorkspace',
+  'requestHostedAccountCreation',
 ];
 let testEnv;
 
@@ -91,6 +92,13 @@ describe('Cloud Functions emulator safety', () => {
     });
     assert.match(grant.grantId, /^[a-f0-9-]{36}$/);
     assert.equal(grant.maxBytes, proofBytes.byteLength);
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const quota = await getDoc(
+        doc(context.firestore(), `orgs/orgLifecycleA/storageQuotas/${identity.uid}`),
+      );
+      assert.equal(quota.data()?.storageReservedBytes, proofBytes.byteLength);
+      assert.equal(quota.data()?.storageUsedBytes, 0);
+    });
 
     const storage = testEnv.authenticatedContext(identity.uid).storage();
     const path = `orgs/orgLifecycleA/proof-uploads/${identity.uid}` +
@@ -133,10 +141,54 @@ describe('Cloud Functions emulator safety', () => {
         doc(db, `orgs/orgLifecycleA/uploadGrants/${grant.grantId}`),
       );
       assert.equal(quota.data()?.storageUsedBytes, proofBytes.byteLength);
+      assert.equal(quota.data()?.storageReservedBytes, 0);
       assert.equal(quota.data()?.storageLimitBytes, 100 * 1024 * 1024);
       assert.equal(quota.data()?.planId, 'freeConfigurable');
       assert.equal(storedGrant.data()?.status, 'finalized');
       assert.equal(storedGrant.data()?.receiptId, receiptId);
+    });
+  });
+
+  test('expired upload grants keep abandoned bytes reserved', async () => {
+    const identity = await createEmulatorIdentity();
+    await seedMember(identity.uid);
+    await seedHostedPlan(identity.uid);
+    const requestedBytes = 20 * 1024 * 1024;
+    for (let index = 0; index < 5; index += 1) {
+      const grant = await callFunction(
+        'issueExpenseProofUploadGrant',
+        identity.token,
+        {
+          organizationId: 'orgLifecycleA',
+          proofId: `abandonedProof${index}`,
+          requestedBytes,
+        },
+      );
+      await testEnv.withSecurityRulesDisabled(async (context) => {
+        await setDoc(
+          doc(context.firestore(), `orgs/orgLifecycleA/uploadGrants/${grant.grantId}`),
+          {status: 'expired'},
+          {merge: true},
+        );
+      });
+    }
+    const blocked = await callFunctionError(
+      'issueExpenseProofUploadGrant',
+      identity.token,
+      {
+        organizationId: 'orgLifecycleA',
+        proofId: 'abandonedProofBlocked',
+        requestedBytes: 1024,
+      },
+    );
+    assert.equal(blocked.status, 429);
+    assert.equal(blocked.body?.error?.status, 'RESOURCE_EXHAUSTED');
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const quota = await getDoc(
+        doc(context.firestore(), `orgs/orgLifecycleA/storageQuotas/${identity.uid}`),
+      );
+      assert.equal(quota.data()?.storageUsedBytes, 0);
+      assert.equal(quota.data()?.storageReservedBytes, 100 * 1024 * 1024);
     });
   });
 
@@ -145,17 +197,17 @@ describe('Cloud Functions emulator safety', () => {
     await seedMember(identity.uid);
     const installationIdHash = 'c'.repeat(64);
     const registered = await callFunction('registerRestoreDevice', identity.token, {
-      deviceId: 'restoreDeviceA',
+      deviceId: installationIdHash,
       installationIdHash,
       platform: 'android',
       appVersion: '1.0.0',
     });
-    assert.equal(registered.deviceId, 'restoreDeviceA');
+    assert.equal(registered.deviceId, installationIdHash);
     assert.equal(registered.registrationRevision, 1);
     await seedRestoreRecordsAndManifest(testEnv, identity.uid);
     const restorePlan = await waitForRestorePlan(identity.token, {
       organizationId: 'orgLifecycleA',
-      deviceId: 'restoreDeviceA',
+      deviceId: installationIdHash,
     }, 2);
     assert.equal(restorePlan.recordCount, 2);
     assert.ok(restorePlan.structuredBytes > 0);
@@ -165,7 +217,7 @@ describe('Cloud Functions emulator safety', () => {
       identity.token,
       {
         organizationId: 'orgLifecycleA',
-        deviceId: 'restoreDeviceA',
+        deviceId: installationIdHash,
         mode: 'smart',
         requestId: 'restore-request-a',
       },
@@ -175,7 +227,7 @@ describe('Cloud Functions emulator safety', () => {
       identity.token,
       {
         organizationId: 'orgLifecycleA',
-        deviceId: 'restoreDeviceA',
+        deviceId: installationIdHash,
         mode: 'smart',
         requestId: 'restore-request-a',
       },
@@ -194,7 +246,7 @@ describe('Cloud Functions emulator safety', () => {
 
     let sessionInput = {
       organizationId: 'orgLifecycleA',
-      deviceId: 'restoreDeviceA',
+      deviceId: installationIdHash,
       sessionId: authorization.sessionId,
       authorizationToken: authorization.authorizationToken,
     };
@@ -315,7 +367,7 @@ describe('Cloud Functions emulator safety', () => {
         ),
       );
       const device = await getDoc(
-        doc(db, `users/${identity.uid}/devices/restoreDeviceA`),
+        doc(db, `users/${identity.uid}/devices/${installationIdHash}`),
       );
       const expectedHash = createHash('sha256')
         .update(sessionInput.authorizationToken)
@@ -340,14 +392,14 @@ describe('Cloud Functions emulator safety', () => {
       'registerRestoreDevice',
       identity.token,
       {
-        deviceId: 'restoreDeviceA',
+        deviceId: installationIdHash,
         installationIdHash: 'd'.repeat(64),
         platform: 'android',
         appVersion: '1.0.0',
       },
     );
     assert.equal(rebound.status, 400);
-    assert.equal(rebound.body?.error?.status, 'FAILED_PRECONDITION');
+    assert.equal(rebound.body?.error?.status, 'INVALID_ARGUMENT');
 
     const outsider = await createEmulatorIdentity();
     const denied = await callFunctionError(
@@ -355,7 +407,7 @@ describe('Cloud Functions emulator safety', () => {
       outsider.token,
       {
         organizationId: 'orgLifecycleA',
-        deviceId: 'restoreDeviceA',
+        deviceId: installationIdHash,
         mode: 'smart',
         requestId: 'outsider-restore-request',
       },
@@ -367,9 +419,10 @@ describe('Cloud Functions emulator safety', () => {
   test('device registration is idempotent and revocation is permanent', async () => {
     const identity = await createEmulatorIdentity();
     await seedMember(identity.uid);
+    const installationIdHash = 'e'.repeat(64);
     const registration = {
-      deviceId: 'revokedDevice',
-      installationIdHash: 'e'.repeat(64),
+      deviceId: installationIdHash,
+      installationIdHash,
       platform: 'ios',
       appVersion: '1.0.0',
     };
@@ -383,10 +436,10 @@ describe('Cloud Functions emulator safety', () => {
     assert.equal(retry.registrationRevision, 1);
 
     const revoked = await callFunction(
-      'revokeRestoreDevice', identity.token, {deviceId: 'revokedDevice'},
+      'revokeRestoreDevice', identity.token, {deviceId: installationIdHash},
     );
     const revokeRetry = await callFunction(
-      'revokeRestoreDevice', identity.token, {deviceId: 'revokedDevice'},
+      'revokeRestoreDevice', identity.token, {deviceId: installationIdHash},
     );
     assert.equal(revoked.status, 'revoked');
     assert.equal(revoked.registrationRevision, 2);

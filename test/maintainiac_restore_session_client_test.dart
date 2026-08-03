@@ -67,6 +67,21 @@ void main() {
     expect(functions.lastData, {'deviceId': 'device-a'});
   });
 
+  test('device registration uses one opaque installation hash', () async {
+    final functions = _Functions(const {'registerRestoreDevice': {}});
+    final deviceId = 'c' * 64;
+
+    await MaintainiacRestoreSessionClient(functions).registerDevice(
+      deviceId: deviceId,
+      installationIdHash: deviceId,
+      platform: 'android',
+      appVersion: '1.0.0',
+    );
+
+    expect(functions.lastData?['deviceId'], deviceId);
+    expect(functions.lastData?['installationIdHash'], deviceId);
+  });
+
   test(
     'invalid device and restore requests make zero callable requests',
     () async {
@@ -75,8 +90,8 @@ void main() {
 
       await expectLater(
         client.registerDevice(
-          deviceId: 'device-a',
-          installationIdHash: 'not-a-hash',
+          deviceId: 'a' * 64,
+          installationIdHash: 'b' * 64,
           platform: 'android',
           appVersion: '1.0.0',
         ),

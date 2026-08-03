@@ -41,11 +41,12 @@ after(async () => {
 describe('personal workspace bootstrap', () => {
   test('atomically creates one private workspace and initial entitlement', async () => {
     const identity = await createEmulatorIdentity();
+    const appInstallationHash = 'a'.repeat(64);
 
     const first = await callFunction(
-      'bootstrapPersonalWorkspace',
+      'requestHostedAccountCreation',
       identity.token,
-      {},
+      {appInstallationHash},
     );
     let organizationUpdatedAt;
     await testEnv.withSecurityRulesDisabled(async (context) => {
@@ -55,15 +56,16 @@ describe('personal workspace bootstrap', () => {
       organizationUpdatedAt = snapshot.data()?.updatedAt;
     });
     const retry = await callFunction(
-      'bootstrapPersonalWorkspace',
+      'requestHostedAccountCreation',
       identity.token,
-      {},
+      {appInstallationHash},
     );
 
     assert.deepEqual(retry, first, 'exact retries must be idempotent');
     assert.match(first.organizationId, /^personal_[a-f0-9]{32}$/);
     assert.equal(first.ownerUid, identity.uid);
     assert.equal(first.planId, 'freeConfigurable');
+    assert.equal(first.installationHash, appInstallationHash);
 
     await testEnv.withSecurityRulesDisabled(async (context) => {
       const db = context.firestore();
@@ -75,6 +77,9 @@ describe('personal workspace bootstrap', () => {
       );
       const entitlement = await getDoc(
         doc(db, `users/${identity.uid}/entitlements/current`),
+      );
+      const install = await getDoc(
+        doc(db, `accountAbuseInstalls/${appInstallationHash}`),
       );
       assert.equal(organization.data()?.ownerUid, identity.uid);
       assert.equal(organization.data()?.organizationKind, 'independent_personal');
@@ -90,6 +95,48 @@ describe('personal workspace bootstrap', () => {
       assert.equal(entitlement.data()?.uid, identity.uid);
       assert.equal(entitlement.data()?.planId, 'freeConfigurable');
       assert.equal(entitlement.data()?.status, 'active');
+      assert.equal(entitlement.data()?.initialAppInstallationHash,
+        appInstallationHash);
+      assert.deepEqual(install.data()?.accountUids, [identity.uid]);
+      assert.equal(install.data()?.accountCount, 1);
+    });
+  });
+
+  test('rejects missing installation evidence before granting free storage', async () => {
+    const identity = await createEmulatorIdentity();
+    await assert.rejects(
+      callFunction('requestHostedAccountCreation', identity.token, {}),
+      /valid app installation identity/i,
+    );
+  });
+
+  test('one installation cannot mint unbounded free entitlements', async () => {
+    const appInstallationHash = 'b'.repeat(64);
+    const first = await createEmulatorIdentity();
+    const second = await createEmulatorIdentity();
+    const third = await createEmulatorIdentity();
+    await callFunction('requestHostedAccountCreation', first.token, {
+      appInstallationHash,
+    });
+    await callFunction('requestHostedAccountCreation', second.token, {
+      appInstallationHash,
+    });
+    await assert.rejects(
+      callFunction('requestHostedAccountCreation', third.token, {
+        appInstallationHash,
+      }),
+      /additional account verification is required/i,
+    );
+    await testEnv.withSecurityRulesDisabled(async (context) => {
+      const db = context.firestore();
+      const blockedEntitlement = await getDoc(
+        doc(db, `users/${third.uid}/entitlements/current`),
+      );
+      const install = await getDoc(
+        doc(db, `accountAbuseInstalls/${appInstallationHash}`),
+      );
+      assert.equal(blockedEntitlement.exists(), false);
+      assert.equal(install.data()?.accountCount, 2);
     });
   });
 
