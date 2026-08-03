@@ -15,10 +15,12 @@ the owner; the earlier split planning files are supporting notes only.
 Current truthfulness statement
 ------------------------------
 Maintainiac has a meaningful code-level foundation and substantial focused test
-coverage. It is NOT yet honestly describable as road-ready, field-verified,
-commercial-ready, or production-ready. It must first complete its remaining
-code-level repairs and complete gates, then undergo Android and iPhone controlled
-physical-device testing and repeated controlled road testing.
+coverage. The current complete trip-tracking QA gate is green at 1,990 tests,
+and the required post-repair 100,000-scenario deterministic stress runs are
+green. It is still NOT honestly describable as field-verified, commercially
+ready, or production-ready. It needs reachable final Dashboard safety
+projections plus Android/iPhone controlled physical-device and repeated road
+testing.
 
 The product being built
 -----------------------
@@ -507,15 +509,16 @@ Root cause found:
 - This mismatch was responsible for the prior complete gate’s shared entitlement
   failures after it had reached 1,978 tests.
 
-Repair in progress:
+Repair completed and verified:
 
 - Make local GPS/settings safe summaries and validation derive from one shared
   hosted limit rather than magic number six.
 - Update stale tests to verify the authoritative configuration.
 - Do not modify Firebase backend, durable storage schema, remote grants, backup
   transport, or server implementation.
-- The focused test run was interrupted before final log collection. It must be
-  restarted and pass before this is claimed complete.
+- Focused sync policy, guard, reservation, and backup-scope tests passed: 40
+  tests, exit code 0.
+- The complete trip-tracking QA gate then passed 1,990 tests, exit code 0.
 
 QA and stress architecture
 --------------------------
