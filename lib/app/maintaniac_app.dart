@@ -12,14 +12,20 @@ import '../shared/device_capabilities/device_capability_scope.dart';
 import '../shared/theme/app_theme.dart';
 import '../shared/trip_tracking/trip_tracking_controller.dart';
 import '../shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
+import '../shared/trip_tracking/trip_automatic_evidence_runtime.dart';
 import '../shared/trip_tracking/trip_tracking_settings_store.dart';
 import '../shared/widgets/receipt_capture/incoming_receipt_share.dart';
 import '../shared/localization/maintaniac_localizations.dart';
 
 class MaintaniacApp extends StatefulWidget {
-  const MaintaniacApp({super.key, required this.bluetoothTripRuntime});
+  const MaintaniacApp({
+    super.key,
+    required this.bluetoothTripRuntime,
+    required this.automaticEvidenceRuntime,
+  });
 
   final TripTrackingBluetoothRuntimeController bluetoothTripRuntime;
+  final TripAutomaticEvidenceRuntimeController automaticEvidenceRuntime;
 
   @override
   State<MaintaniacApp> createState() => _MaintaniacAppState();
@@ -49,6 +55,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
     );
     unawaited(_deviceCapabilities.initialize());
     unawaited(widget.bluetoothTripRuntime.start());
+    unawaited(widget.automaticEvidenceRuntime.synchronize());
   }
 
   @override
@@ -69,6 +76,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
     _deviceCapabilities.dispose();
     _incomingShare?.removeListener(_handleIncomingShare);
     widget.bluetoothTripRuntime.dispose();
+    widget.automaticEvidenceRuntime.dispose();
     super.dispose();
   }
 
@@ -78,6 +86,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
     if (state == AppLifecycleState.resumed) {
       unawaited(_deviceCapabilities.refreshRuntime());
       unawaited(widget.bluetoothTripRuntime.start());
+      unawaited(widget.automaticEvidenceRuntime.synchronize());
     }
     final tripTracking = TripTrackingScope.maybeOf(context);
     final settings = TripTrackingSettingsScope.maybeOf(context);

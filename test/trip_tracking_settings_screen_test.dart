@@ -140,6 +140,10 @@ void main() {
     );
     expect(find.text('Automatically switch the active vehicle'), findsNothing);
     expect(find.text('Paid feature'), findsOneWidget);
+    expect(
+      find.text('Let App Assistant suggest possible drives'),
+      findsOneWidget,
+    );
     expect(settings.settings.activityRecognitionEnabled, isFalse);
     expect(settings.settings.odometerAnomalyAlertsEnabled, isFalse);
     expect(settings.settings.gpsOdometerCalibrationAssistEnabled, isFalse);

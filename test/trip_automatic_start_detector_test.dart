@@ -128,7 +128,8 @@ void main() {
     );
 
     expect(decision.disposition, TripAutomaticStartDisposition.candidate);
-    expect(decision.shouldSuggestStart, isTrue);
+    expect(decision.shouldSuggestStart, isFalse);
+    expect(decision.canStartTrackingAutomatically, isFalse);
     expect(decision.shouldCreateReviewCandidate, isTrue);
     expect(decision.requiresPaidEntitlementOnAcceptance, isFalse);
     expect(decision.allowanceDecision?.freeUsesRemaining, 4);
@@ -154,7 +155,8 @@ void main() {
       );
 
       expect(decision.disposition, TripAutomaticStartDisposition.candidate);
-      expect(decision.shouldSuggestStart, isTrue);
+      expect(decision.shouldSuggestStart, isFalse);
+      expect(decision.canStartTrackingAutomatically, isFalse);
       expect(decision.shouldCreateReviewCandidate, isTrue);
       expect(decision.requiresPaidEntitlementOnAcceptance, isTrue);
       expect(decision.allowanceDecision?.freeUsesRemaining, 0);

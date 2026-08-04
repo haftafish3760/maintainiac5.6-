@@ -17,6 +17,22 @@ abstract interface class TripTrackingNativeGateway {
   Future<bool> get isTracking;
 }
 
+/// Optional platform contract for opt-in App Assistant evidence observation.
+///
+/// Owns native collection lifecycle for possible-drive evidence only. It does
+/// not create trip sessions, report route distance, or confirm any record.
+/// Consumed by [TripAutomaticEvidenceRuntimeController] through the shared
+/// validated platform event stream.
+abstract interface class TripAutomaticEvidenceNativeGateway {
+  Stream<TripTrackingPlatformEvent> get events;
+
+  Future<bool> startAutomaticEvidenceObservation({
+    required bool activityRecognitionEnabled,
+  });
+  Future<void> stopAutomaticEvidenceObservation();
+  Future<bool> get isAutomaticEvidenceObservationRunning;
+}
+
 /// Optional native evidence retained when a platform-side driver action occurs
 /// while Dart is suspended. Reading consumes the marker so stale intent cannot
 /// affect a later trip.
@@ -33,6 +49,7 @@ abstract interface class TripTrackingNativeSettingsGateway {
 class TripTrackingPlatform
     implements
         TripTrackingNativeGateway,
+        TripAutomaticEvidenceNativeGateway,
         TripTrackingNativeRecoveryGateway,
         TripTrackingNativeSettingsGateway {
   TripTrackingPlatform({MethodChannel? commands, EventChannel? events})
@@ -45,10 +62,13 @@ class TripTrackingPlatform
   final MethodChannel _commands;
   final EventChannel _events;
 
-  @override
-  Stream<TripTrackingPlatformEvent> get events => _events
+  late final Stream<TripTrackingPlatformEvent> _eventStream = _events
       .receiveBroadcastStream()
-      .map(TripTrackingPlatformEvent.fromNativePayload);
+      .map(TripTrackingPlatformEvent.fromNativePayload)
+      .asBroadcastStream();
+
+  @override
+  Stream<TripTrackingPlatformEvent> get events => _eventStream;
 
   @override
   Future<TripTrackingPlatformCapabilities> readCapabilities() async {
@@ -96,6 +116,24 @@ class TripTrackingPlatform
 
   @override
   Future<void> stop() => _commands.invokeMethod<void>('stop');
+
+  @override
+  Future<bool> startAutomaticEvidenceObservation({
+    required bool activityRecognitionEnabled,
+  }) async =>
+      await _commands.invokeMethod<Object?>('startAutomaticEvidence', {
+        'activityRecognitionEnabled': activityRecognitionEnabled,
+      }) ==
+      true;
+
+  @override
+  Future<void> stopAutomaticEvidenceObservation() =>
+      _commands.invokeMethod<void>('stopAutomaticEvidence');
+
+  @override
+  Future<bool> get isAutomaticEvidenceObservationRunning async =>
+      await _commands.invokeMethod<Object?>('isAutomaticEvidenceRunning') ==
+      true;
 
   @override
   Future<bool> get isTracking async =>

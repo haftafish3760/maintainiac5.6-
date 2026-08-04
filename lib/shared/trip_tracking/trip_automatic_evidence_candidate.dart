@@ -59,6 +59,9 @@ class TripAutomaticEvidenceCandidateAudit {
 }
 
 class TripAutomaticEvidenceCandidate {
+  /// Candidate evidence never owns mileage truth; the physical odometer does.
+  static const bool odometerIsGlobalTruth = true;
+
   const TripAutomaticEvidenceCandidate._({
     required this.id,
     required this.revision,

@@ -51,8 +51,12 @@ class TripAutomaticStartDecision {
   final String? suggestedVehicleId;
   final AutomaticEvidenceCaptureAllowanceDecision? allowanceDecision;
 
-  bool get shouldSuggestStart =>
-      disposition == TripAutomaticStartDisposition.candidate;
+  /// App Assistant may suggest evidence for review, but it can never start a
+  /// tracking session by itself. Keep this legacy-shaped getter fail-closed so
+  /// a future caller cannot mistake a strong candidate for start authority.
+  bool get shouldSuggestStart => false;
+
+  bool get canStartTrackingAutomatically => false;
 
   /// A review candidate is evidence only. It can never start, classify, or
   /// confirm a workday by itself.
@@ -76,6 +80,7 @@ class TripAutomaticStartDecision {
     'evidenceEndedAt': evidenceEndedAt?.toUtc().toIso8601String(),
     'suggestedVehicleId': _safeVehicleId(suggestedVehicleId),
     'shouldSuggestStart': shouldSuggestStart,
+    'canStartTrackingAutomatically': canStartTrackingAutomatically,
     'shouldCreateReviewCandidate': shouldCreateReviewCandidate,
     'requiresPaidEntitlementOnAcceptance': requiresPaidEntitlementOnAcceptance,
     'paidEntitlementVerifiedOnAcceptance': allowanceDecision?.allowed != false,

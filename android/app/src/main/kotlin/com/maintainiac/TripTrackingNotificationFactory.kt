@@ -52,6 +52,31 @@ internal object TripTrackingNotificationFactory {
             .build()
     }
 
+    fun automaticEvidence(context: Context, stopAction: String): Notification {
+        val openAppIntent = PendingIntent.getActivity(
+            context,
+            7317,
+            Intent(context, MainActivity::class.java).addFlags(
+                Intent.FLAG_ACTIVITY_SINGLE_TOP,
+            ),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val stopIntent = PendingIntent.getService(
+            context,
+            7318,
+            Intent(context, TripAutomaticEvidenceForegroundService::class.java).setAction(stopAction),
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        return NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setContentTitle("Maintainiac App Assistant")
+            .setContentText("Looking for possible drives for your review")
+            .setContentIntent(openAppIntent)
+            .setOngoing(true)
+            .addAction(0, "Stop App Assistant", stopIntent)
+            .build()
+    }
+
     fun notifyRecovery(context: Context) {
         ensureChannel(context)
         val openAppIntent = PendingIntent.getActivity(

@@ -82,6 +82,12 @@ class TripTrackingNativeBridge(
             "openBackgroundLocationSettings" -> openBackgroundLocationSettings(result)
             "start" -> start(call, result)
             "update" -> update(call, result)
+            "startAutomaticEvidence" -> startAutomaticEvidence(call, result)
+            "stopAutomaticEvidence" -> {
+                TripAutomaticEvidenceForegroundService.stop(activity)
+                result.success(null)
+            }
+            "isAutomaticEvidenceRunning" -> result.success(TripAutomaticEvidenceForegroundService.isRunning)
             "stop" -> {
                 // Retire callbacks before stopService returns. Android may
                 // invoke onDestroy asynchronously after this bridge reply.
@@ -196,6 +202,10 @@ class TripTrackingNativeBridge(
             )
             return
         }
+        // A reviewed trip owns the only active location collector. Stop the
+        // lower-frequency evidence observer before a driver-approved session
+        // starts so callbacks cannot be attributed to the wrong lifecycle.
+        TripAutomaticEvidenceForegroundService.stop(activity)
         if (!hasLocation()) {
             result.error("trip_tracking_location_denied", "Location permission is required before starting trip tracking.", authorizationMap())
             return
@@ -240,6 +250,32 @@ class TripTrackingNativeBridge(
                 "Android blocked the trip-tracking foreground service: ${error.message ?: "start not allowed"}",
                 null,
             )
+        }
+    }
+
+    private fun startAutomaticEvidence(call: MethodCall, result: MethodChannel.Result) {
+        if (isTracking()) {
+            result.success(false)
+            return
+        }
+        if (TripAutomaticEvidenceForegroundService.isRunning) {
+            result.success(true)
+            return
+        }
+        if (!hasLocation() || !hasBackgroundLocation()) {
+            result.success(false)
+            return
+        }
+        val intent = Intent(activity, TripAutomaticEvidenceForegroundService::class.java)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                activity.startForegroundService(intent)
+            } else {
+                activity.startService(intent)
+            }
+            result.success(true)
+        } catch (_: SecurityException) {
+            result.success(false)
         }
     }
 

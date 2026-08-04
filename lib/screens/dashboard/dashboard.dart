@@ -7,6 +7,7 @@ import 'dashboard_active_day_panel.dart';
 import 'gig_start_day_setup_sheet.dart';
 import 'start_day_panel.dart';
 import 'trip_tracking_setup_sheet.dart';
+import 'trip_automatic_evidence_pre_day_prompt.dart';
 import 'vehicle_profile_flow.dart';
 import 'vehicle_profile_widgets.dart';
 import '../../shared/navigation/app_page_routes.dart';
@@ -195,6 +196,7 @@ class _PreDayDashboardBodyState extends State<_PreDayDashboardBody> {
           ),
         ),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
+        const SliverToBoxAdapter(child: TripAutomaticEvidencePreDayPrompt()),
         const SliverToBoxAdapter(child: SizedBox(height: 8)),
         SliverToBoxAdapter(
           child: PreDayStartContent(

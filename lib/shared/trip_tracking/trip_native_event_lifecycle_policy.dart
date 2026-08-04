@@ -15,6 +15,7 @@ enum TripNativeEventLifecycleAction {
 enum TripNativeEventLifecycleReason {
   activeLocationSample,
   activeActivitySample,
+  automaticEvidenceRequiresSeparateReview,
   permissionRequired,
   providerUnavailable,
   backgroundRestricted,
@@ -263,6 +264,18 @@ _NativeTarget _targetState(
       action: TripNativeEventLifecycleAction.ingestActivity,
       reason: TripNativeEventLifecycleReason.activeActivitySample,
       canFeedEngine: false,
+    ),
+    // App Assistant observations use their own review-only runtime path.
+    // They must never mutate an active trip lifecycle or feed its distance
+    // engine, even though both collectors share the native event channel.
+    TripTrackingPlatformEventType.automaticEvidenceLocation ||
+    TripTrackingPlatformEventType.automaticEvidenceActivity => _NativeTarget(
+      state: currentState,
+      action: TripNativeEventLifecycleAction.ignoreEvent,
+      reason: TripNativeEventLifecycleReason
+          .automaticEvidenceRequiresSeparateReview,
+      canFeedEngine: false,
+      requiresUserReview: true,
     ),
     TripTrackingPlatformEventType.authorization => _authorizationTarget(
       event.authorization,

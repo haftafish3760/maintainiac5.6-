@@ -14,6 +14,7 @@ import 'trip_signal_quality_action_policy.dart';
 import 'trip_tracking_bluetooth.dart';
 import 'trip_automatic_evidence_candidate.dart';
 import 'trip_automatic_evidence_candidate_store.dart';
+import 'trip_automatic_evidence_observation_buffer.dart';
 import 'trip_automatic_start_detector.dart';
 import 'trip_initial_fix_classifier.dart';
 import 'trip_boundary_candidate.dart';
@@ -106,6 +107,7 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingDurableRecordBridge? durableRecordBridge,
     TripTrackingTripLogProposalSink? tripLogProposalSink,
     TripAutomaticEvidenceCandidateStore? automaticEvidenceCandidateStore,
+    TripAutomaticEvidenceObservationBuffer? automaticEvidenceObservationBuffer,
     TripTrackingRoutePointStore? routePointStore,
     TripTrackingSettings Function()? routeSettings,
     String Function(DateTime utc)? localRouteDayKey,
@@ -126,6 +128,9 @@ class TripTrackingController extends ChangeNotifier {
        _durableRecordBridge = durableRecordBridge,
        _tripLogProposalSink = tripLogProposalSink,
        _automaticEvidenceCandidateStore = automaticEvidenceCandidateStore,
+       _automaticEvidenceObservationBuffer =
+           automaticEvidenceObservationBuffer ??
+           TripAutomaticEvidenceObservationBuffer(),
        _routePointStore = routePointStore,
        _routeSettings = routeSettings,
        _localRouteDayKey = localRouteDayKey,
@@ -148,6 +153,8 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
   final TripTrackingTripLogProposalSink? _tripLogProposalSink;
   final TripAutomaticEvidenceCandidateStore? _automaticEvidenceCandidateStore;
+  final TripAutomaticEvidenceObservationBuffer
+  _automaticEvidenceObservationBuffer;
   final TripTrackingRoutePointStore? _routePointStore;
   final TripTrackingSettings Function()? _routeSettings;
   final String Function(DateTime utc)? _localRouteDayKey;
@@ -472,6 +479,63 @@ class TripTrackingController extends ChangeNotifier {
     }
     return decision;
   }
+
+  /// Captures one opt-in live location as possible-drive evidence only.
+  ///
+  /// This path keeps coordinates in memory only long enough to derive a
+  /// displacement. It never starts native tracking, a workday, a trip, or an
+  /// odometer change. A caller supplies current settings on every event so
+  /// disabled assistance cannot retain stale evidence.
+  Future<TripAutomaticStartDecision?> captureAutomaticLocationEvidence({
+    required TripTrackingSettings settings,
+    required TripAutomaticStartAccessLevel accessLevel,
+    required TripLocationSample location,
+    String? bluetoothVehicleId,
+    int acceptedFreeUsesInPeriod = 0,
+    TripAutomaticStartDetector detector = const TripAutomaticStartDetector(),
+  }) async {
+    if (!settings.gpsAssistedTrackingEnabled ||
+        !settings.automaticStartAssistanceEnabled) {
+      _automaticEvidenceObservationBuffer.reset();
+      return null;
+    }
+    final observation = _automaticEvidenceObservationBuffer.recordLocation(
+      location,
+      bluetoothVehicleId: bluetoothVehicleId,
+    );
+    if (observation == null ||
+        !_automaticEvidenceObservationBuffer.canEmitReviewCandidate) {
+      return null;
+    }
+    final decision = await captureAutomaticStartAssistance(
+      settings: settings,
+      accessLevel: accessLevel,
+      observations: _automaticEvidenceObservationBuffer.observations,
+      acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
+      detector: detector,
+    );
+    if (decision.shouldCreateReviewCandidate) {
+      _automaticEvidenceObservationBuffer.markReviewCandidateEmitted();
+    }
+    return decision;
+  }
+
+  /// Records optional activity evidence for a later review proposal only.
+  void captureAutomaticActivityEvidence({
+    required TripTrackingSettings settings,
+    required TripActivityObservation activity,
+  }) {
+    if (!settings.gpsAssistedTrackingEnabled ||
+        !settings.automaticStartAssistanceEnabled) {
+      return;
+    }
+    _automaticEvidenceObservationBuffer.recordActivity(activity);
+  }
+
+  /// Clears transient evidence after opt-out or native observation shutdown.
+  /// Nothing durable is removed or changed.
+  void clearAutomaticEvidenceObservationWindow() =>
+      _automaticEvidenceObservationBuffer.reset();
 
   List<TripAutomaticEvidenceCandidate> get automaticEvidenceCandidates =>
       _automaticEvidenceCandidateStore?.candidates ??

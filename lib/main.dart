@@ -49,6 +49,7 @@ import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_route_point_store.dart';
 import 'shared/trip_tracking/trip_automatic_evidence_candidate_store.dart';
+import 'shared/trip_tracking/trip_automatic_evidence_runtime.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
 import 'shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'shared/trip_tracking/trip_tracking_trip_log_proposal_store.dart';
@@ -250,10 +251,11 @@ Future<void> main() async {
       uploadCoordinator: uploadCoordinator,
     );
   }
+  final tripTrackingPlatform = TripTrackingPlatform();
   final tripTracking = TripTrackingController(
     sessionStore: tripTrackingStore,
     odometer: globalOdometer,
-    platform: TripTrackingPlatform(),
+    platform: tripTrackingPlatform,
     routePointStore: routePointStore,
     routeSettings: () => tripTrackingSettings.settings,
     localRouteDayKey: tripTrackingLocalDayKey,
@@ -285,6 +287,26 @@ Future<void> main() async {
   }
 
   tripTrackingSettings.addListener(syncActiveTripSettings);
+  final automaticEvidenceRuntime = TripAutomaticEvidenceRuntimeController(
+    gateway: tripTrackingPlatform,
+    tripTracking: tripTracking,
+    settings: () => tripTrackingSettings.settings,
+  );
+  void syncAutomaticEvidenceObservation() {
+    unawaited(automaticEvidenceRuntime.synchronize());
+  }
+
+  syncAutomaticEvidenceObservation();
+  tripTrackingSettings.addListener(syncAutomaticEvidenceObservation);
+  var automaticEvidenceTripWasActive = tripTracking.isTracking;
+  void syncAutomaticEvidenceForTripLifecycle() {
+    final trackingNow = tripTracking.isTracking;
+    if (trackingNow == automaticEvidenceTripWasActive) return;
+    automaticEvidenceTripWasActive = trackingNow;
+    syncAutomaticEvidenceObservation();
+  }
+
+  tripTracking.addListener(syncAutomaticEvidenceForTripLifecycle);
   void syncTripCalibrationAssist() {
     tripTracking.refreshGpsAssistanceCalibration(
       enabled: tripTrackingSettings.settings.gpsAssistedTrackingEnabled,
@@ -456,6 +478,8 @@ Future<void> main() async {
                                                       child: MaintaniacApp(
                                                         bluetoothTripRuntime:
                                                             bluetoothTripRuntime,
+                                                        automaticEvidenceRuntime:
+                                                            automaticEvidenceRuntime,
                                                       ),
                                                     ),
                                                   ),

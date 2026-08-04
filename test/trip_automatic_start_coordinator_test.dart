@@ -150,7 +150,8 @@ void main() {
     );
 
     expect(decision.disposition, TripAutomaticStartDisposition.candidate);
-    expect(decision.shouldSuggestStart, isTrue);
+    expect(decision.shouldSuggestStart, isFalse);
+    expect(decision.canStartTrackingAutomatically, isFalse);
     expect(decision.canFinalizeTripLog, isFalse);
     expect(decision.allowanceDecision?.consumesOnDetection, isFalse);
   });
@@ -261,6 +262,96 @@ void main() {
       expect(odometer.confirmedReading, 1000);
     },
   );
+
+  test(
+    'opt-in live evidence creates one review item without starting a trip',
+    () async {
+      final store = TripAutomaticEvidenceCandidateStore.memory();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final at = DateTime.utc(2026, 8, 4, 12);
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        automaticEvidenceCandidateStore: store,
+        clockNow: () => at.add(const Duration(seconds: 30)),
+      );
+      addTearDown(odometer.dispose);
+      addTearDown(controller.dispose);
+      final settings = const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      );
+      await controller.captureAutomaticLocationEvidence(
+        settings: settings,
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        location: TripLocationSample(
+          latitude: 35,
+          longitude: -82,
+          recordedAt: at,
+          horizontalAccuracyMeters: 12,
+          speedMetersPerSecond: 8,
+        ),
+      );
+      final decision = await controller.captureAutomaticLocationEvidence(
+        settings: settings,
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        bluetoothVehicleId: 'truck-1',
+        location: TripLocationSample(
+          latitude: 35.0004,
+          longitude: -82.0004,
+          recordedAt: at.add(const Duration(seconds: 15)),
+          horizontalAccuracyMeters: 12,
+          speedMetersPerSecond: 8,
+        ),
+      );
+
+      expect(decision?.shouldCreateReviewCandidate, isTrue);
+      expect(controller.pendingAutomaticEvidenceCandidates, hasLength(1));
+      expect(controller.isTracking, isFalse);
+      expect(odometer.confirmedReading, 1000);
+
+      await controller.captureAutomaticLocationEvidence(
+        settings: settings,
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        location: TripLocationSample(
+          latitude: 35.0008,
+          longitude: -82.0008,
+          recordedAt: at.add(const Duration(seconds: 30)),
+          horizontalAccuracyMeters: 12,
+          speedMetersPerSecond: 8,
+        ),
+      );
+      expect(controller.pendingAutomaticEvidenceCandidates, hasLength(1));
+    },
+  );
+
+  test('disabled assistance clears live evidence without a proposal', () async {
+    final store = TripAutomaticEvidenceCandidateStore.memory();
+    final odometer = GlobalOdometerController();
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+      automaticEvidenceCandidateStore: store,
+    );
+    addTearDown(odometer.dispose);
+    addTearDown(controller.dispose);
+
+    final result = await controller.captureAutomaticLocationEvidence(
+      settings: const TripTrackingSettings(),
+      accessLevel: TripAutomaticStartAccessLevel.paid,
+      location: TripLocationSample(
+        latitude: 35,
+        longitude: -82,
+        recordedAt: DateTime.utc(2026, 8, 4, 12),
+        horizontalAccuracyMeters: 12,
+        speedMetersPerSecond: 8,
+      ),
+    );
+
+    expect(result, isNull);
+    expect(controller.pendingAutomaticEvidenceCandidates, isEmpty);
+    expect(controller.isTracking, isFalse);
+  });
 }
 
 class _RecoveringActiveSessionStore extends TripTrackingSessionStore {

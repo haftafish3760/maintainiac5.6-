@@ -31,6 +31,27 @@ void main() {
     expect(decision.canFeedEngine, isFalse);
   });
 
+  test('automatic evidence cannot mutate an active trip lifecycle', () {
+    for (final event in [
+      automaticEvidenceLocationEvent(),
+      automaticEvidenceActivityEvent(),
+    ]) {
+      final decision = TripNativeEventLifecyclePolicy.evaluate(
+        currentState: TripTrackingSessionLifecycleState.active,
+        event: event,
+      );
+
+      expect(decision.action, TripNativeEventLifecycleAction.ignoreEvent);
+      expect(
+        decision.reason,
+        TripNativeEventLifecycleReason.automaticEvidenceRequiresSeparateReview,
+      );
+      expect(decision.to, TripTrackingSessionLifecycleState.active);
+      expect(decision.canFeedEngine, isFalse);
+      expect(decision.requiresUserReview, isTrue);
+    }
+  });
+
   test('permission loss requires user review and cannot complete trip', () {
     final decision = TripNativeEventLifecyclePolicy.evaluate(
       currentState: TripTrackingSessionLifecycleState.starting,
@@ -318,6 +339,28 @@ TripTrackingPlatformEvent activityEvent() {
   return TripTrackingPlatformEvent.fromMap({
     'schemaVersion': 1,
     'type': 'activity',
+    'activity': 'walking',
+    'confidence': 80,
+    'recordedAt': DateTime.utc(2026, 7, 18, 12).toIso8601String(),
+  });
+}
+
+TripTrackingPlatformEvent automaticEvidenceLocationEvent() {
+  return TripTrackingPlatformEvent.fromMap({
+    'schemaVersion': 1,
+    'type': 'automaticEvidenceLocation',
+    'latitude': 35.0,
+    'longitude': -80.0,
+    'horizontalAccuracyMeters': 8,
+    'recordedAt': DateTime.utc(2026, 7, 18, 12).toIso8601String(),
+    'speedMetersPerSecond': 12,
+  });
+}
+
+TripTrackingPlatformEvent automaticEvidenceActivityEvent() {
+  return TripTrackingPlatformEvent.fromMap({
+    'schemaVersion': 1,
+    'type': 'automaticEvidenceActivity',
     'activity': 'walking',
     'confidence': 80,
     'recordedAt': DateTime.utc(2026, 7, 18, 12).toIso8601String(),

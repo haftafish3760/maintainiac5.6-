@@ -13,6 +13,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'trip_automatic_evidence_candidate.dart';
 
 class TripAutomaticEvidenceCandidateStore {
+  /// Candidate storage cannot change physical odometer truth.
+  static const bool odometerIsGlobalTruth = true;
+
   TripAutomaticEvidenceCandidateStore._(this._box) : _available = true;
   TripAutomaticEvidenceCandidateStore.memory() : _box = null, _available = true;
   TripAutomaticEvidenceCandidateStore.unavailable()

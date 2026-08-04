@@ -112,6 +112,10 @@
             android:name=".TripTrackingForegroundService"
             android:exported="false"
             android:foregroundServiceType="location" />
+        <service
+            android:name=".TripAutomaticEvidenceForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
         <receiver
             android:name=".TripTrackingActivityReceiver"
             android:exported="false" />

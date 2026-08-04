@@ -2,12 +2,14 @@ import CoreLocation
 
 extension TripTrackingNativeBridge: CLLocationManagerDelegate {
   func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-    if tracking && stopForLocationServicesDisabledIfNeeded() { return }
+    if (tracking || automaticEvidenceObserving) && stopForLocationServicesDisabledIfNeeded() { return }
     let authorization = authorizationMap()
     emit(["type": "authorization"] .merging(authorization) { _, latest in latest })
     let state = authorization["state"] as? String
-    let canKeepBackgroundTracking = !requestedBackgroundAuthorization || state == "always"
-    if tracking && (
+    let canKeepBackgroundTracking = tracking
+      ? (!requestedBackgroundAuthorization || state == "always")
+      : !automaticEvidenceObserving || state == "always"
+    if (tracking || automaticEvidenceObserving) && (
       state == "denied" ||
       state == "restricted" ||
       !canKeepBackgroundTracking
@@ -38,12 +40,14 @@ extension TripTrackingNativeBridge: CLLocationManagerDelegate {
   }
 
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-    guard tracking, let trackingStartedAt else { return }
+    guard tracking || automaticEvidenceObserving else { return }
+    let collectionStartedAt = trackingStartedAt ?? automaticEvidenceStartedAt
+    guard let collectionStartedAt else { return }
     if stopForLocationServicesDisabledIfNeeded() { return }
     if stopForCriticalBatteryIfNeeded() { return }
     let callbackReceivedAt = Date()
     for location in locations {
-      guard location.timestamp >= trackingStartedAt else { continue }
+      guard location.timestamp >= collectionStartedAt else { continue }
       guard CLLocationCoordinate2DIsValid(location.coordinate),
             location.coordinate.latitude.isFinite,
             location.coordinate.longitude.isFinite,
@@ -51,7 +55,7 @@ extension TripTrackingNativeBridge: CLLocationManagerDelegate {
             location.horizontalAccuracy.isFinite,
             location.timestamp.timeIntervalSince1970 > 0,
             location.timestamp <= callbackReceivedAt.addingTimeInterval(120) else { continue }
-      if !providerRegistered {
+      if tracking && !providerRegistered {
         // Only a credible Core Location callback proves the collector became
         // live. This precedes the sample event but does not make that sample
         // canonical mileage; Dart still applies its own evidence rules.
@@ -70,7 +74,7 @@ extension TripTrackingNativeBridge: CLLocationManagerDelegate {
         : nil
       let simulated = isSimulatedLocation(location)
       var event: [String: Any] = [
-        "type": "location",
+        "type": tracking ? "location" : "automaticEvidenceLocation",
         "latitude": location.coordinate.latitude,
         "longitude": location.coordinate.longitude,
         "recordedAt": ISO8601DateFormatter().string(from: location.timestamp),
@@ -91,7 +95,7 @@ extension TripTrackingNativeBridge: CLLocationManagerDelegate {
   }
 
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-    guard tracking else { return }
+    guard tracking || automaticEvidenceObserving else { return }
     if let locationError = error as? CLError, locationError.code == .locationUnknown {
       return
     }

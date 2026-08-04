@@ -275,7 +275,7 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
           _settingsNotice(
             title: 'Odometer calibration review',
             detail: settings.gpsAssistedTrackingEnabled
-                ? 'GPS consent permits local advisory calibration after enough trusted, reviewed evidence. It affects future GPS estimates only and never changes confirmed odometer records.'
+                ? 'GPS consent permits local advisory calibration after enough trusted, reviewed evidence. It affects future GPS estimates only. Confirmed odometer mileage is never changed without your review.'
                 : 'Enable GPS-assisted tracking before local advisory calibration can use trusted reviewed evidence.',
           ),
           if (settings.gpsAssistedTrackingEnabled && tripTracking != null) ...[
@@ -327,15 +327,14 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                 'Bluetooth can recognize a linked vehicle, but it never changes your active workday vehicle or odometer vehicle on its own.',
           ),
           _switch(
-            title: 'Automatically start GPS for the linked vehicle',
+            title: 'Let App Assistant suggest possible drives',
             detail: !settings.gpsAssistedTrackingEnabled
                 ? 'Enable GPS-assisted tracking first. Manual mileage remains available.'
-                : 'Paid feature. Starts advisory GPS distance when the approved vehicle connects. Confirmed odometer mileage is never changed without your review.',
+                : 'Paid feature. App Assistant can save possible vehicle movement for your review. It never starts a workday or confirms mileage on its own.',
             value: settings.automaticStartAssistanceEnabled,
             onChanged:
                 _automaticStartControlsEnabled &&
-                    settings.gpsAssistedTrackingEnabled &&
-                    settings.bluetoothVehicleRecognitionEnabled
+                    settings.gpsAssistedTrackingEnabled
                 ? (value) => onChanged(
                     settings.copyWith(automaticStartAssistanceEnabled: value),
                   )

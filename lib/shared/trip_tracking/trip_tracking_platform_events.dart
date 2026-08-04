@@ -63,7 +63,9 @@ class TripTrackingAuthorization {
 
 enum TripTrackingPlatformEventType {
   location,
+  automaticEvidenceLocation,
   activity,
+  automaticEvidenceActivity,
   authorization,
   status,
   error,
@@ -176,12 +178,16 @@ class TripTrackingPlatformEvent {
       (value) => value.name == map['type'],
       orElse: () => TripTrackingPlatformEventType.error,
     );
-    final location =
-        declaredType == TripTrackingPlatformEventType.location &&
-            !_hasInvalidNativeReportedSpeed(map)
+    final isLocation =
+        declaredType == TripTrackingPlatformEventType.location ||
+        declaredType == TripTrackingPlatformEventType.automaticEvidenceLocation;
+    final isActivity =
+        declaredType == TripTrackingPlatformEventType.activity ||
+        declaredType == TripTrackingPlatformEventType.automaticEvidenceActivity;
+    final location = isLocation && !_hasInvalidNativeReportedSpeed(map)
         ? TripLocationSample.tryFromMap(map)
         : null;
-    final activity = declaredType == TripTrackingPlatformEventType.activity
+    final activity = isActivity
         ? TripActivityObservation.tryFromMap(map)
         : null;
     final authorization =
@@ -191,12 +197,9 @@ class TripTrackingPlatformEvent {
     final status = declaredType == TripTrackingPlatformEventType.status
         ? _safePlatformStatus(map['status'])
         : null;
-    final type =
-        declaredType == TripTrackingPlatformEventType.location &&
-            location == null
+    final type = isLocation && location == null
         ? TripTrackingPlatformEventType.error
-        : declaredType == TripTrackingPlatformEventType.activity &&
-              activity == null
+        : isActivity && activity == null
         ? TripTrackingPlatformEventType.error
         : declaredType == TripTrackingPlatformEventType.authorization &&
               authorization == null
@@ -212,12 +215,9 @@ class TripTrackingPlatformEvent {
           ? authorization
           : null,
       status: type == TripTrackingPlatformEventType.status ? status : null,
-      errorCode:
-          type == TripTrackingPlatformEventType.error &&
-              declaredType == TripTrackingPlatformEventType.location
+      errorCode: type == TripTrackingPlatformEventType.error && isLocation
           ? 'invalidLocationPayload'
-          : type == TripTrackingPlatformEventType.error &&
-                declaredType == TripTrackingPlatformEventType.activity
+          : type == TripTrackingPlatformEventType.error && isActivity
           ? 'invalidActivityPayload'
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.authorization
@@ -228,12 +228,9 @@ class TripTrackingPlatformEvent {
           : type == TripTrackingPlatformEventType.error
           ? _safePlatformToken(map['errorCode']) ?? 'unknownNativeEvent'
           : null,
-      errorMessage:
-          type == TripTrackingPlatformEventType.error &&
-              declaredType == TripTrackingPlatformEventType.location
+      errorMessage: type == TripTrackingPlatformEventType.error && isLocation
           ? 'Ignored malformed location payload.'
-          : type == TripTrackingPlatformEventType.error &&
-                declaredType == TripTrackingPlatformEventType.activity
+          : type == TripTrackingPlatformEventType.error && isActivity
           ? 'Ignored malformed activity payload.'
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.authorization

@@ -26,6 +26,85 @@ void main() {
     expect(calls.single.arguments, isNull);
   });
 
+  test(
+    'automatic evidence commands remain distinct from active trip commands',
+    () async {
+      const channel = MethodChannel('maintainiac/test/automatic_evidence');
+      final calls = <MethodCall>[];
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        return call.method == 'startAutomaticEvidence';
+      });
+      addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+      final platform = TripTrackingPlatform(commands: channel);
+
+      expect(
+        await platform.startAutomaticEvidenceObservation(
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+      await platform.stopAutomaticEvidenceObservation();
+
+      expect(calls.map((call) => call.method), [
+        'startAutomaticEvidence',
+        'stopAutomaticEvidence',
+      ]);
+      expect(calls.first.arguments, {'activityRecognitionEnabled': true});
+    },
+  );
+
+  test('dedicated automatic evidence location payload is schema-validated', () {
+    final event = TripTrackingPlatformEvent.fromNativePayload({
+      'schemaVersion': 1,
+      'type': 'automaticEvidenceLocation',
+      'latitude': 35.0,
+      'longitude': -82.0,
+      'recordedAt': DateTime.utc(2026, 8, 4, 12).millisecondsSinceEpoch,
+      'horizontalAccuracyMeters': 12.0,
+      'speedMetersPerSecond': 8.0,
+    });
+
+    expect(event.type, TripTrackingPlatformEventType.automaticEvidenceLocation);
+    expect(event.location, isNotNull);
+    expect(event.toSafeLogMap()['preciseLocationIncluded'], isFalse);
+  });
+
+  test('native automatic evidence remains a distinct review-only collector', () {
+    final androidBridge = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
+    ).readAsStringSync();
+    final androidObserver = File(
+      'android/app/src/main/kotlin/com/maintainiac/TripAutomaticEvidenceForegroundService.kt',
+    ).readAsStringSync();
+    final iosBridge = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+    final iosDelegate = File(
+      'ios/Runner/TripTrackingLocationDelegate.swift',
+    ).readAsStringSync();
+
+    for (final source in [androidBridge, iosBridge]) {
+      expect(source, contains('startAutomaticEvidence'));
+      expect(source, contains('stopAutomaticEvidence'));
+    }
+    expect(
+      androidBridge.indexOf(
+        'TripAutomaticEvidenceForegroundService.stop(activity)',
+      ),
+      lessThan(
+        androidBridge.indexOf('TripTrackingForegroundService::class.java'),
+      ),
+    );
+    expect(androidObserver, contains('"type" to "automaticEvidenceLocation"'));
+    expect(androidObserver, contains('PRIORITY_BALANCED_POWER_ACCURACY'));
+    expect(androidObserver, contains('hasBackgroundLocationPermission'));
+    expect(iosBridge, contains('automaticEvidenceObserving'));
+    expect(iosDelegate, contains('"automaticEvidenceLocation"'));
+  });
+
   test('native request preserves the adaptive sampling recommendation', () {
     const policy = TripTrackingPolicy();
     final request = TripTrackingNativeRequest(

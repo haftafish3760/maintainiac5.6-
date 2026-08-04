@@ -17,11 +17,15 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
   var requestedBackgroundAuthorization = false
   var backgroundAuthorizationRequested = false
   var tracking = false
+  // Separate from a driver-approved trip. This mode emits only dedicated
+  // possible-drive evidence for App Assistant review.
+  var automaticEvidenceObserving = false
   // Core Location has no registration-success callback equivalent to Android's
   // fused provider. A credible delegate callback is the first evidence that
   // the requested collector is actually live.
   var providerRegistered = false
   var trackingStartedAt: Date?
+  var automaticEvidenceStartedAt: Date?
   private var activityRecognitionEnabled = false
   private var activityRecognitionGeneration = 0
   private var activityRecognitionUnavailableReported = false
@@ -61,7 +65,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     eventSink = events
-    let status = tracking ? (providerRegistered ? "tracking" : "starting") : "idle"
+    let status = tracking
+      ? (providerRegistered ? "tracking" : "starting")
+      : automaticEvidenceObserving ? "automatic_evidence_observing" : "idle"
     emit(["type": "status", "status": status])
     return nil
   }
@@ -81,6 +87,13 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
       requestAuthorization(call, result: result)
     case "start":
       start(call, result: result)
+    case "startAutomaticEvidence":
+      startAutomaticEvidence(result: result)
+    case "stopAutomaticEvidence":
+      stopAutomaticEvidenceObservation()
+      result(nil)
+    case "isAutomaticEvidenceRunning":
+      result(automaticEvidenceObserving)
     case "update":
       update(call, result: result)
     case "stop":
@@ -132,6 +145,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
       result(FlutterError(code: "trip_tracking_native_already_running", message: "A GPS collector is already running. Recover or stop it before starting another trip.", details: nil))
       return
     }
+    // A user-approved trip owns the sole native location collector. Retire any
+    // lower-frequency possible-drive observer before starting that session.
+    stopAutomaticEvidenceObservation()
     guard CLLocationManager.locationServicesEnabled() else {
       result(FlutterError(code: "trip_tracking_gps_unavailable", message: "Device location is unavailable. Turn on Location Services before starting trip tracking.", details: nil))
       return
@@ -175,6 +191,55 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
     setActivityRecognitionEnabled(activityEnabled)
     emit(["type": "status", "status": "starting"])
     result(true)
+  }
+
+  private func startAutomaticEvidence(result: @escaping FlutterResult) {
+    guard !tracking else {
+      result(false)
+      return
+    }
+    if automaticEvidenceObserving {
+      result(true)
+      return
+    }
+    guard CLLocationManager.locationServicesEnabled() else {
+      result(false)
+      return
+    }
+    let authorization = authorizationMap()
+    guard authorization["state"] as? String == "always" else {
+      // Do not request permissions implicitly from a background observer.
+      result(false)
+      return
+    }
+    locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+    locationManager.distanceFilter = 30
+    locationManager.activityType = .automotiveNavigation
+    locationManager.pausesLocationUpdatesAutomatically = true
+    if #available(iOS 9.0, *) {
+      locationManager.allowsBackgroundLocationUpdates = true
+    }
+    if #available(iOS 11.0, *) {
+      locationManager.showsBackgroundLocationIndicator = true
+    }
+    automaticEvidenceStartedAt = Date()
+    automaticEvidenceObserving = true
+    locationManager.startUpdatingLocation()
+    result(true)
+  }
+
+  private func stopAutomaticEvidenceObservation() {
+    guard automaticEvidenceObserving else { return }
+    automaticEvidenceObserving = false
+    automaticEvidenceStartedAt = nil
+    guard !tracking else { return }
+    locationManager.stopUpdatingLocation()
+    if #available(iOS 9.0, *) {
+      locationManager.allowsBackgroundLocationUpdates = false
+    }
+    if #available(iOS 11.0, *) {
+      locationManager.showsBackgroundLocationIndicator = false
+    }
   }
 
   private func update(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -392,8 +457,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
   /// callback must never influence a completed or replacement Dart session.
   func stopNativeCollection() {
     tracking = false
+    automaticEvidenceObserving = false
     providerRegistered = false
     trackingStartedAt = nil
+    automaticEvidenceStartedAt = nil
     stopHeartbeat()
     locationManager.stopUpdatingLocation()
     if #available(iOS 9.0, *) {
