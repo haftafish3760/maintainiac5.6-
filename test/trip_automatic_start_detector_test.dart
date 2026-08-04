@@ -21,27 +21,37 @@ void main() {
     bluetoothVehicleId: vehicleId,
   );
 
-  test('one point and GPS-only thresholds cannot create a candidate', () {
-    final onePoint = detector.evaluate(
-      enabled: true,
-      accessLevel: TripAutomaticStartAccessLevel.paid,
-      hasActiveOrRecoverableSession: false,
-      evaluatedAt: start.add(const Duration(seconds: 30)),
-      observations: [
-        observation(0, activity: TripActivity.automotive, confidence: 90),
-      ],
-    );
-    final gpsOnly = detector.evaluate(
-      enabled: true,
-      accessLevel: TripAutomaticStartAccessLevel.paid,
-      hasActiveOrRecoverableSession: false,
-      evaluatedAt: start.add(const Duration(seconds: 30)),
-      observations: [observation(0), observation(15), observation(30)],
-    );
+  test(
+    'one point cannot start, while plausible GPS movement is retained for review',
+    () {
+      final onePoint = detector.evaluate(
+        enabled: true,
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        hasActiveOrRecoverableSession: false,
+        evaluatedAt: start.add(const Duration(seconds: 30)),
+        observations: [
+          observation(0, activity: TripActivity.automotive, confidence: 90),
+        ],
+      );
+      final gpsOnly = detector.evaluate(
+        enabled: true,
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        hasActiveOrRecoverableSession: false,
+        evaluatedAt: start.add(const Duration(seconds: 30)),
+        observations: [observation(0), observation(15), observation(30)],
+      );
 
-    expect(onePoint.shouldSuggestStart, isFalse);
-    expect(gpsOnly.shouldSuggestStart, isFalse);
-  });
+      expect(onePoint.shouldSuggestStart, isFalse);
+      expect(onePoint.shouldCreateReviewCandidate, isTrue);
+      expect(
+        onePoint.disposition,
+        TripAutomaticStartDisposition.reviewCandidate,
+      );
+      expect(gpsOnly.shouldSuggestStart, isFalse);
+      expect(gpsOnly.shouldCreateReviewCandidate, isTrue);
+      expect(gpsOnly.reasonCode, 'possible_vehicle_movement_requires_review');
+    },
+  );
 
   test(
     'Bluetooth connection without current movement cannot create a candidate',
@@ -119,34 +129,61 @@ void main() {
 
     expect(decision.disposition, TripAutomaticStartDisposition.candidate);
     expect(decision.shouldSuggestStart, isTrue);
-    expect(decision.requiresPaidEntitlement, isFalse);
+    expect(decision.shouldCreateReviewCandidate, isTrue);
+    expect(decision.requiresPaidEntitlementOnAcceptance, isFalse);
     expect(decision.allowanceDecision?.freeUsesRemaining, 4);
     expect(decision.allowanceDecision?.consumesOnDetection, isFalse);
     expect(decision.allowanceDecision?.consumesFreeUseIfAccepted, isTrue);
     expect(decision.toMap()['confidenceScoreShown'], isFalse);
   });
 
-  test('fifth accepted free recovery requires paid access', () {
+  test(
+    'fifth free recovery stays reviewable but requires paid access on acceptance',
+    () {
+      final decision = detector.evaluate(
+        enabled: true,
+        accessLevel: TripAutomaticStartAccessLevel.free,
+        hasActiveOrRecoverableSession: false,
+        evaluatedAt: start.add(const Duration(seconds: 30)),
+        acceptedFreeUsesInPeriod: 4,
+        observations: [
+          observation(0, vehicleId: 'vehicle_1'),
+          observation(15, vehicleId: 'vehicle_1'),
+          observation(30, vehicleId: 'vehicle_1'),
+        ],
+      );
+
+      expect(decision.disposition, TripAutomaticStartDisposition.candidate);
+      expect(decision.shouldSuggestStart, isTrue);
+      expect(decision.shouldCreateReviewCandidate, isTrue);
+      expect(decision.requiresPaidEntitlementOnAcceptance, isTrue);
+      expect(decision.allowanceDecision?.freeUsesRemaining, 0);
+    },
+  );
+
+  test('strong walking evidence never becomes a vehicle review candidate', () {
     final decision = detector.evaluate(
       enabled: true,
-      accessLevel: TripAutomaticStartAccessLevel.free,
+      accessLevel: TripAutomaticStartAccessLevel.paid,
       hasActiveOrRecoverableSession: false,
       evaluatedAt: start.add(const Duration(seconds: 30)),
-      acceptedFreeUsesInPeriod: 4,
       observations: [
-        observation(0, vehicleId: 'vehicle_1'),
-        observation(15, vehicleId: 'vehicle_1'),
-        observation(30, vehicleId: 'vehicle_1'),
+        TripAutomaticStartObservation(
+          recordedAt: start,
+          speedMetersPerSecond: 2.5,
+          displacementMeters: 12,
+          horizontalAccuracyMeters: 8,
+          activity: TripActivity.walking,
+          activityConfidence: 90,
+        ),
       ],
     );
 
     expect(
       decision.disposition,
-      TripAutomaticStartDisposition.paidEntitlementRequired,
+      TripAutomaticStartDisposition.insufficientEvidence,
     );
-    expect(decision.shouldSuggestStart, isFalse);
-    expect(decision.requiresPaidEntitlement, isTrue);
-    expect(decision.allowanceDecision?.freeUsesRemaining, 0);
+    expect(decision.shouldCreateReviewCandidate, isFalse);
   });
 
   test('cached or future movement evidence cannot create a proposal', () {

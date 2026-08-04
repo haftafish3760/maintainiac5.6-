@@ -4,9 +4,9 @@ import 'trip_tracking_models.dart';
 
 enum TripAutomaticStartDisposition {
   disabled,
-  paidEntitlementRequired,
   activeSessionExists,
   insufficientEvidence,
+  reviewCandidate,
   candidate,
 }
 
@@ -53,8 +53,14 @@ class TripAutomaticStartDecision {
 
   bool get shouldSuggestStart =>
       disposition == TripAutomaticStartDisposition.candidate;
-  bool get requiresPaidEntitlement =>
-      disposition == TripAutomaticStartDisposition.paidEntitlementRequired;
+
+  /// A review candidate is evidence only. It can never start, classify, or
+  /// confirm a workday by itself.
+  bool get shouldCreateReviewCandidate =>
+      disposition == TripAutomaticStartDisposition.reviewCandidate ||
+      disposition == TripAutomaticStartDisposition.candidate;
+  bool get requiresPaidEntitlementOnAcceptance =>
+      allowanceDecision?.allowed == false;
   bool get canInventStartingOdometer => false;
   bool get canAssignBusinessPurpose => false;
   bool get canAssignJob => false;
@@ -70,9 +76,9 @@ class TripAutomaticStartDecision {
     'evidenceEndedAt': evidenceEndedAt?.toUtc().toIso8601String(),
     'suggestedVehicleId': _safeVehicleId(suggestedVehicleId),
     'shouldSuggestStart': shouldSuggestStart,
-    'requiresPaidEntitlement': requiresPaidEntitlement,
-    'paidEntitlementVerified':
-        disposition == TripAutomaticStartDisposition.candidate,
+    'shouldCreateReviewCandidate': shouldCreateReviewCandidate,
+    'requiresPaidEntitlementOnAcceptance': requiresPaidEntitlementOnAcceptance,
+    'paidEntitlementVerifiedOnAcceptance': allowanceDecision?.allowed != false,
     'canInventStartingOdometer': false,
     'canAssignBusinessPurpose': false,
     'canAssignJob': false,
@@ -93,6 +99,9 @@ class TripAutomaticStartDetector {
     this.minimumSpeedMetersPerSecond = 3,
     this.minimumDisplacementMeters = 10,
     this.maximumAccuracyMeters = 50,
+    this.minimumPossibleVehicleSpeedMetersPerSecond = 2.2,
+    this.minimumPossibleVehicleDisplacementMeters = 5,
+    this.maximumPossibleVehicleAccuracyMeters = 100,
     this.minimumActivityConfidence = 70,
   });
 
@@ -103,6 +112,9 @@ class TripAutomaticStartDetector {
   final double minimumSpeedMetersPerSecond;
   final double minimumDisplacementMeters;
   final double maximumAccuracyMeters;
+  final double minimumPossibleVehicleSpeedMetersPerSecond;
+  final double minimumPossibleVehicleDisplacementMeters;
+  final double maximumPossibleVehicleAccuracyMeters;
   final int minimumActivityConfidence;
 
   TripAutomaticStartDecision evaluate({
@@ -140,12 +152,6 @@ class TripAutomaticStartDetector {
       occurredAt: latestAt,
       acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
     );
-    if (!allowance.allowed) {
-      return _decision(
-        TripAutomaticStartDisposition.paidEntitlementRequired,
-        allowanceDecision: allowance,
-      );
-    }
     final window = ordered
         .where(
           (item) =>
@@ -182,9 +188,27 @@ class TripAutomaticStartDetector {
         .whereType<String>()
         .toSet();
     final bluetoothCorroborated = bluetoothVehicleIds.length == 1;
+    final plausibleMovement = window
+        .where(_isPlausibleVehicleMovement)
+        .toList(growable: false);
+    final hasStrongWalkingEvidence = window.any(
+      (item) =>
+          item.activity == TripActivity.walking &&
+          item.activityConfidence >= minimumActivityConfidence,
+    );
     if (moving.length < minimumMovingObservations ||
         !hasTimeSpan ||
         (!automotiveEvidence && !bluetoothCorroborated)) {
+      if (plausibleMovement.isNotEmpty && !hasStrongWalkingEvidence) {
+        return _decision(
+          TripAutomaticStartDisposition.reviewCandidate,
+          confidence: TripTrackingConfidence.low,
+          startedAt: plausibleMovement.first.recordedAt,
+          endedAt: plausibleMovement.last.recordedAt,
+          vehicleId: bluetoothCorroborated ? bluetoothVehicleIds.single : null,
+          allowanceDecision: allowance,
+        );
+      }
       return _decision(
         TripAutomaticStartDisposition.insufficientEvidence,
         startedAt: moving.isEmpty ? null : moving.first.recordedAt,
@@ -203,6 +227,17 @@ class TripAutomaticStartDetector {
     );
   }
 
+  bool _isPlausibleVehicleMovement(TripAutomaticStartObservation item) {
+    return item.speedMetersPerSecond.isFinite &&
+        item.speedMetersPerSecond >=
+            minimumPossibleVehicleSpeedMetersPerSecond &&
+        item.displacementMeters.isFinite &&
+        item.displacementMeters >= minimumPossibleVehicleDisplacementMeters &&
+        item.horizontalAccuracyMeters.isFinite &&
+        item.horizontalAccuracyMeters >= 0 &&
+        item.horizontalAccuracyMeters <= maximumPossibleVehicleAccuracyMeters;
+  }
+
   TripAutomaticStartDecision _decision(
     TripAutomaticStartDisposition disposition, {
     TripTrackingConfidence confidence = TripTrackingConfidence.unknown,
@@ -217,12 +252,12 @@ class TripAutomaticStartDetector {
         reasonCode ??
         switch (disposition) {
           TripAutomaticStartDisposition.disabled => 'automatic_start_disabled',
-          TripAutomaticStartDisposition.paidEntitlementRequired =>
-            'paid_automatic_tracking_required',
           TripAutomaticStartDisposition.activeSessionExists =>
             'active_or_recoverable_session_exists',
           TripAutomaticStartDisposition.insufficientEvidence =>
             'insufficient_multi_signal_movement_evidence',
+          TripAutomaticStartDisposition.reviewCandidate =>
+            'possible_vehicle_movement_requires_review',
           TripAutomaticStartDisposition.candidate =>
             'probable_vehicle_movement_candidate',
         },
