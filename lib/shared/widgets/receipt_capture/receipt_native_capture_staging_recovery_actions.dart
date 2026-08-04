@@ -61,6 +61,36 @@ extension ReceiptNativeCaptureStagingRecoveryActions
     return _deleteRecoveryManifest(manifestPath);
   }
 
+  /// Deletes an accepted native capture only after its permanent receipt
+  /// image and receipt record have been saved successfully.
+  Future<bool> finalizeAcceptedCapture(String manifestPath) async {
+    final normalized = manifestPath.trim();
+    if (normalized.isEmpty) return true;
+    final manifest = File(normalized);
+    try {
+      if (!await manifest.exists()) {
+        await _deleteRecoveryManifest(normalized);
+        return true;
+      }
+      final decoded = jsonDecode(await manifest.readAsString());
+      if (decoded is! Map ||
+          decoded['schema'] !=
+              'maintainiac_native_receipt_capture_recovery_v1') {
+        return false;
+      }
+      final record = ReceiptNativeCaptureRecoveryRecord.fromManifest(
+        normalized,
+        decoded,
+      );
+      await discardRecoveryRecord(record);
+      return !await manifest.exists();
+    } catch (_) {
+      // Preserve an unreadable manifest and its staged photos for explicit
+      // recovery instead of guessing which files may be safe to delete.
+      return false;
+    }
+  }
+
   Future<void> markRecoveryStage(
     String manifestPath, {
     required String stage,

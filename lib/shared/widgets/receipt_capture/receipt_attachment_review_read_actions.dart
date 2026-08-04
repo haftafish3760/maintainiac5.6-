@@ -49,6 +49,7 @@ extension _ReceiptAttachmentReviewReadActions
     Map<String, String>? previousPhotoIdByPath,
     Map<String, ReceiptAttachmentReadState>? previousPhotoReadStateByPath,
   }) async {
+    widget.controller?._retainAcceptedReceiptSources(result);
     final existingPhotoIdByPath = previousPhotoIdByPath ?? {..._photoIdByPath};
     final existingPhotoReadStateByPath =
         previousPhotoReadStateByPath ?? {..._photoReadStateByPath};
@@ -174,12 +175,14 @@ extension _ReceiptAttachmentReviewReadActions
       return await _readReviewedPhotosForReceiptForm(result);
     } finally {
       _reviewedPhotoReadInFlight = false;
-      unawaited(
-        deleteTemporaryOcrPhotos(
-          result.ocrSourcePhotoPaths,
-          keptReceiptPhotoPaths: result.photoPaths,
-        ),
-      );
+      if (widget.controller == null) {
+        unawaited(
+          deleteTemporaryOcrPhotos(
+            result.ocrSourcePhotoPaths,
+            keptReceiptPhotoPaths: result.photoPaths,
+          ),
+        );
+      }
     }
   }
 

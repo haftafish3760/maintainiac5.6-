@@ -1,27 +1,34 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:crypto/crypto.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 
 import 'receipt_capture_models.dart';
 import 'receipt_photo_path_identity.dart';
+import 'receipt_stitch_acceptance.dart';
 import 'receipt_stitch_text_evidence.dart';
 
 part 'receipt_image_processor_models.dart';
 part 'receipt_image_processor_source_prep.dart';
 part 'receipt_image_processor_resize_helpers.dart';
 part 'receipt_image_processor_stitch_helpers.dart';
+part 'receipt_image_processor_stitch_fast_path.dart';
 part 'receipt_image_processor_stitch_duplicate_helpers.dart';
 part 'receipt_image_processor_stitch_transform_helpers.dart';
 part 'receipt_image_processor_stitch_scoring_helpers.dart';
+part 'receipt_image_processor_stitch_geometry_helpers.dart';
 part 'receipt_image_processor_stitch_support.dart';
+part 'receipt_image_processor_stitch_isolate.dart';
 part 'receipt_image_processor_stitch_sources.dart';
 part 'receipt_image_processor_stitch_api.dart';
 part 'receipt_image_processor_scan_helpers.dart';
+part 'receipt_image_processor_perspective_helpers.dart';
 part 'receipt_image_processor_enhancement_helpers.dart';
 part 'receipt_image_processor_exposure_helpers.dart';
 part 'receipt_image_processor_quality_helpers.dart';
@@ -261,6 +268,13 @@ class ReceiptImageProcessor {
     List<double>? manualHorizontalOffsetFractions,
     int maxOutputPixels = 16000000,
     int maxOutputHeight = 20000,
+    int maxTargetWidth = 1400,
+    int comparisonWidth = 400,
+    int retryComparisonWidth = 320,
+    Duration? processingTimeout,
+    String timeoutReasonCode = 'stitch_timeout',
+    String timeoutWarning =
+        'Putting these photos together took too long. Receipt details will use them from top to bottom.',
   }) {
     final evidenceByPath = <String, List<String>>{};
     for (final evidence
@@ -269,6 +283,9 @@ class ReceiptImageProcessor {
       if (normalizedPath == null) continue;
       evidenceByPath[normalizedPath] = List<String>.of(evidence.lines);
     }
+    final outputPath =
+        '${Directory.systemTemp.path}/maintaniac_receipt_stitched_'
+        '${DateTime.now().microsecondsSinceEpoch}.jpg';
     final request = _ReceiptStitchRequest(
       paths: List<String>.of(paths),
       textLinesByPath: evidenceByPath.isEmpty
@@ -300,7 +317,16 @@ class ReceiptImageProcessor {
           : List<double>.of(manualHorizontalOffsetFractions),
       maxOutputPixels: maxOutputPixels,
       maxOutputHeight: maxOutputHeight,
+      maxTargetWidth: maxTargetWidth,
+      comparisonWidth: comparisonWidth,
+      retryComparisonWidth: retryComparisonWidth,
+      outputPath: outputPath,
     );
-    return Isolate.run(() => _runReceiptStitchInBackground(request));
+    return _runReceiptStitchInManagedIsolate(
+      request: request,
+      processingTimeout: processingTimeout,
+      timeoutReasonCode: timeoutReasonCode,
+      timeoutWarning: timeoutWarning,
+    );
   }
 }

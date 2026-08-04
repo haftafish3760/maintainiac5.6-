@@ -274,5 +274,8 @@ String _stitchResultDiagnostics(ReceiptStitchResult result) {
             'x=${pair.horizontalOffsetPixels}, '
             'y=${pair.verticalOffsetPixels}, '
             'continuity=${pair.continuityCorrelation} '
-            '(${pair.continuityMatchingBands}/${pair.continuityDetailedBands})'].join('; ')}';
+            '(${pair.continuityMatchingBands}/${pair.continuityDetailedBands}), '
+            'geometry=${pair.geometryCorrelation} '
+            '(${pair.geometryMatchingCells}/${pair.geometryDetailedCells}), '
+            'visual=${pair.visualConfidence}'].join('; ')}';
 }

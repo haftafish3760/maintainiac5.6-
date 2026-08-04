@@ -253,6 +253,11 @@ void main() {
     expect(light.localPdfLimitLabel, '12 PDF pages');
     expect(light.stitchLimits.maxOutputPixels, 9000000);
     expect(light.stitchLimits.maxOutputHeight, 14000);
+    expect(light.stitchLimits.maxTargetWidth, 900);
+    expect(light.stitchLimits.comparisonWidth, 320);
+    expect(light.stitchLimits.retryComparisonWidth, 280);
+    expect(light.stitchLimits.evidenceTimeout, const Duration(seconds: 7));
+    expect(light.stitchLimits.processingTimeout, const Duration(seconds: 12));
     expect(light.stitchLimits.label, contains('9.0 MP'));
     expect(light.cameraCaptureLabel, 'Medium camera, 2 assisted shots');
     expect(light.localCatalogLimitLabel, '250 local catalog matches');
@@ -263,6 +268,9 @@ void main() {
     expect(heavy.localPdfLimitLabel, '50 PDF pages');
     expect(heavy.stitchLimits.maxOutputPixels, 18000000);
     expect(heavy.stitchLimits.maxOutputHeight, 24000);
+    expect(heavy.stitchLimits.maxTargetWidth, 1400);
+    expect(heavy.stitchLimits.evidenceTimeout, const Duration(seconds: 12));
+    expect(heavy.stitchLimits.processingTimeout, const Duration(seconds: 15));
     expect(heavy.stitchLimits.label, contains('18.0 MP'));
     expect(heavy.cameraCaptureLabel, 'Receipt High camera, 5 assisted shots');
     expect(heavy.localCatalogLimitLabel, '8000 local catalog matches');

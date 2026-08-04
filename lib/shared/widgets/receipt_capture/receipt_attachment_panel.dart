@@ -28,6 +28,7 @@ import 'receipt_pipeline_trace.dart';
 import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
 import 'receipt_storage_guard.dart';
+import 'receipt_temporary_artifact_cleanup.dart';
 
 part 'receipt_attachment_list.dart';
 part 'receipt_attachment_summary.dart';

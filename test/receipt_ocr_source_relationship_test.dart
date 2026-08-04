@@ -142,7 +142,7 @@ void main() {
         expect(
           result.ocrSourceFirstReviewCue,
           contains(
-            'imported receipt photo before the smaller saved proof copy',
+            'imported receipt photo before the smaller saved image copy',
           ),
         );
         expect(
@@ -191,7 +191,7 @@ void main() {
         expect(
           result.ocrSourceFirstReviewCue,
           contains(
-            'combined receipt image before the smaller saved proof copy',
+            'combined receipt image before the smaller saved image copy',
           ),
         );
         expect(

@@ -18,14 +18,16 @@ GEN MDSE 17.48
 CASE WATER 5.99
 SHOP TOWELS 8.97
 AA BATTERIES 16.99
-''',
+            ''',
             '''
+SHOP TOWELS 8.97
 AA BATTERIES 16.99
 TRASH BAGS 18.49
 NITRILE GLOVES 14.99
 PHONE CHARGER 12.88
 ''',
             '''
+NITRILE GLOVES 14.99
 PHONE CHARGER 12.88
 HOT DOG BUNS 3.48
 SUBTOTAL 99.27
@@ -37,7 +39,7 @@ TOTAL 106.22
           expectedTotal: 106.22,
           expectedParserLineCount: 8,
           expectedOcrSeverity: ReceiptOcrReviewSeverity.review,
-          mustContainWarning: 'Ignored 2 repeated receipt lines',
+          mustContainWarning: 'Ignored 4 repeated receipt lines',
           duplicateLine: 'PHONE CHARGER 12.88',
           expectedRawOccurrences: 2,
           expectedAppFillOccurrences: 1,
@@ -175,7 +177,7 @@ TOTAL 35.27
   );
 
   test(
-    'ocr app fill suppresses exact overlap across long receipt sections',
+    'ocr app fill suppresses distinct ordered overlap across long sections',
     () async {
       final result = await const ReceiptOcrService()
           .recognizeTextFromAttachments([
@@ -192,6 +194,7 @@ PVC PRIMER 8.99
             _textAttachment(
               id: 'middle',
               text: '''
+PVC GLUE 7.99
 PVC PRIMER 8.99
 5LB DECK SCREWS 32.49
 SAW BLADE 19.98
@@ -200,6 +203,7 @@ SAW BLADE 19.98
             _textAttachment(
               id: 'bottom',
               text: '''
+5LB DECK SCREWS 32.49
 SAW BLADE 19.98
 NITRILE GLOVES 12.99
 TOTAL 105.72
@@ -208,18 +212,25 @@ TOTAL 105.72
           ]);
 
       expect(result.rawText, contains('THE HOME DEPOT'));
+      expect('PVC GLUE 7.99'.allMatches(result.rawText), hasLength(2));
       expect('PVC PRIMER 8.99'.allMatches(result.rawText), hasLength(2));
+      expect('5LB DECK SCREWS 32.49'.allMatches(result.rawText), hasLength(2));
       expect('SAW BLADE 19.98'.allMatches(result.rawText), hasLength(2));
+      expect('PVC GLUE 7.99'.allMatches(result.appFillText), hasLength(1));
       expect('PVC PRIMER 8.99'.allMatches(result.appFillText), hasLength(1));
+      expect(
+        '5LB DECK SCREWS 32.49'.allMatches(result.appFillText),
+        hasLength(1),
+      );
       expect('SAW BLADE 19.98'.allMatches(result.appFillText), hasLength(1));
       expect(result.stats.importedTextRead, 3);
       expect(
         result.warnings.single,
-        contains('Ignored 2 repeated receipt lines'),
+        contains('Ignored 4 repeated receipt lines'),
       );
       expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.review);
       expect(result.diagnostics.hadDuplicateOrOverlapText, isTrue);
-      expect(result.diagnostics.rawLineCount, 11);
+      expect(result.diagnostics.rawLineCount, 13);
       expect(result.diagnostics.parserLineCount, 9);
     },
   );

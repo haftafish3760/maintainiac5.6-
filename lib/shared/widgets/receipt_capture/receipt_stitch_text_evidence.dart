@@ -1,3 +1,5 @@
+part 'receipt_stitch_order_solver.dart';
+
 class ReceiptStitchTextEvidence {
   const ReceiptStitchTextEvidence({required this.path, required this.lines});
 
@@ -65,7 +67,7 @@ class ReceiptStitchOrderPlan {
         reasonCode: 'single_section',
       );
     }
-    if (evidence.length > 6 ||
+    if (evidence.length > 8 ||
         evidence.any((item) => item.normalizedLines.isEmpty)) {
       return ReceiptStitchOrderPlan(
         originalPaths: original,
@@ -85,31 +87,11 @@ class ReceiptStitchOrderPlan {
       );
     }
 
-    List<int>? bestOrder;
-    var bestScore = -1.0;
-    var secondScore = -1.0;
     final indexes = List<int>.generate(evidence.length, (index) => index);
-    for (final candidate in _receiptStitchPermutations(indexes)) {
-      var score = 0.0;
-      var everyPairStrong = true;
-      for (var index = 0; index < candidate.length - 1; index++) {
-        final adjacent = pair(candidate[index], candidate[index + 1]);
-        score += adjacent.confidence * 2;
-        everyPairStrong = everyPairStrong && adjacent.isStrong;
-      }
-      score += _receiptHeaderHint(evidence[candidate.first]) * .20;
-      score += _receiptFooterHint(evidence[candidate.last]) * .20;
-      if (!everyPairStrong) score -= .45;
-      if (score > bestScore) {
-        secondScore = bestScore;
-        bestScore = score;
-        bestOrder = candidate;
-      } else if (score > secondScore) {
-        secondScore = score;
-      }
-    }
-
-    final selected = bestOrder ?? indexes;
+    final candidates = _bestReceiptStitchOrders(evidence, pair);
+    final selected = candidates.isEmpty ? indexes : candidates.first.order;
+    final bestScore = candidates.isEmpty ? -1.0 : candidates.first.score;
+    final secondScore = candidates.length < 2 ? -1.0 : candidates[1].score;
     final pairConfidences = <double>[
       for (var index = 0; index < selected.length - 1; index++)
         pair(selected[index], selected[index + 1]).confidence,
@@ -210,18 +192,27 @@ ReceiptStitchTextPairEvidence matchReceiptStitchTextOverlap(
   return best;
 }
 
-Iterable<List<int>> _receiptStitchPermutations(List<int> values) sync* {
-  if (values.length <= 1) {
-    yield List<int>.of(values);
-    return;
+bool receiptStitchTextSafelyAcceleratesGeometry(
+  ReceiptStitchTextEvidence previous,
+  ReceiptStitchTextEvidence next,
+  ReceiptStitchTextPairEvidence match,
+) {
+  if (!match.isStrong || match.matchedLineCount < 2) return false;
+  final previousLines = previous.normalizedLines;
+  final nextLines = next.normalizedLines;
+  final previousEnd = previousLines.length - match.previousTailOffset;
+  final previousStart = previousEnd - match.matchedLineCount;
+  final nextStart = match.nextHeadOffset;
+  final nextEnd = nextStart + match.matchedLineCount;
+  if (previousStart < 0 ||
+      previousEnd > previousLines.length ||
+      nextStart < 0 ||
+      nextEnd > nextLines.length) {
+    return false;
   }
-  for (var index = 0; index < values.length; index++) {
-    final head = values[index];
-    final rest = <int>[...values.take(index), ...values.skip(index + 1)];
-    for (final tail in _receiptStitchPermutations(rest)) {
-      yield [head, ...tail];
-    }
-  }
+  return previousLines.sublist(previousStart, previousEnd).toSet().length >=
+          2 &&
+      nextLines.sublist(nextStart, nextEnd).toSet().length >= 2;
 }
 
 double _receiptHeaderHint(ReceiptStitchTextEvidence evidence) {

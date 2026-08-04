@@ -35,6 +35,7 @@ while IFS= read -r path; do
     docs/receipt_camera_release_one_blueprint.md | \
     docs/receipt_camera_world_class_readiness.md | \
     docs/receipt_native_camera_service_spec.md | \
+    docs/receipt_processing_implementation_pass_log.md | \
     docs/receipt_bug_regression_ledger.md | \
     docs/receipt_bug_regression_ledger_archive_*.md | \
     lib/shared/receipts/* | \
@@ -50,13 +51,18 @@ while IFS= read -r path; do
 	    test/helpers/receipt_stitching_* | \
 	    test/receipt_capture_flow_assist_opt_in_contract_test.dart | \
 	    test/receipt_capture_flow_handoff_order_test.dart | \
+	    test/receipt_capture_flow_recovery_contract_test.dart | \
 	    test/receipt_capture_flow_barcode_handoff_test.dart | \
 	    test/receipt_capture_flow_ocr_source_count_test.dart | \
 	    test/receipt_attachment_panel_actions_test.dart | \
-	    test/receipt_attachment_panel_recovery_contract_test.dart | \
+    test/receipt_attachment_panel_recovery_contract_test.dart | \
+	    test/receipt_assistance_policy*.dart | \
+	    test/receipt_durable_save_cleanup_contract_test.dart | \
+	    test/receipt_temporary_artifact_cleanup_test.dart | \
 	    test/receipt_import_source_sheet_test.dart | \
     test/receipt_camera_dataset_qa_gate_contract_test.dart | \
     test/receipt_camera_* | \
+    test/receipt_image_* | \
     test/receipt_native_* | \
     test/receipt_ocr_* | \
     test/receipt_ocr_source_* | \
@@ -66,6 +72,7 @@ while IFS= read -r path; do
     test/receipt_external_dataset_gate_test.dart | \
     test/receipt_external_fixture_schema_gate_test.dart | \
     test/receipt_stitch_fallback_metadata_test.dart | \
+    test/receipt_stitch_* | \
     test/fixtures/receipt_qa/external_dataset_manifest.json | \
     test/receipt_stitching_* | \
     test/expense_receipt_* | \

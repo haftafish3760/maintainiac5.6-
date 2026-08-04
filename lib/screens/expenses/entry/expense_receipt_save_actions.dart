@@ -138,11 +138,16 @@ extension _ExpenseReceiptSaveActions on _ExpenseReceiptEntryScreenState {
     });
     if (!await _saveDraftNow()) return;
     final draftCheckpointUpdatedAt = _drafts?.draftById(_draftId)?.updatedAt;
+    final saved = await _saveReceiptToLedger(ledger, receipt);
+    if (saved == null) return;
     await ReceiptProofStorage.instance.deleteStagedAttachments(
       stagedRecoveryAttachments,
     );
-    final saved = await _saveReceiptToLedger(ledger, receipt);
-    if (saved == null) return;
+    await _manualReceiptAttachmentController.finalizeSuccessfulReceiptSave(
+      keptReceiptPhotoPaths: saved.attachments.map(
+        (attachment) => attachment.path,
+      ),
+    );
     if (!mounted) return;
     final odometerResult = odometerCommit.commit();
     if (!odometerResult.ok) {

@@ -46,7 +46,10 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
         receiptCameraText("Live camera", "Cámara en vivo"),
         receiptCameraText(
             "Changes apply to this camera session. The phone keeps control of its supported autofocus, lens, exposure, and stabilization features.",
-            "Estos controles se aplican mientras esta cámara está abierta. Configure sus valores predeterminados de recibos en Configuración de recibos. El teléfono conserva el control de las funciones compatibles de enfoque, lente, exposición y estabilización.",
+            "Estos controles se aplican mientras esta cámara está abierta. " +
+                "Configure sus valores predeterminados de recibos en Configuración de recibos. " +
+                "El teléfono conserva el control de las funciones compatibles de enfoque, " +
+                "lente, exposición y estabilización.",
         ),
     ))
     content.addView(settingSectionHeader(receiptCameraText("CAPTURE FLOW", "FLUJO DE CAPTURA")))
@@ -78,8 +81,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSwitch(
         receiptCameraText("Receipt framing checks", "Revisiones de encuadre del recibo"),
         receiptCameraText(
-            "Warn when paper edges may be cut off or the receipt may be too far away. These checks never block the shutter button.",
-            "Advierte cuando los bordes del papel pueden estar cortados o el recibo está demasiado lejos. Estas revisiones nunca bloquean el disparador.",
+            "Warn when paper edges may be cut off or the receipt may be too far away. The shutter button always works immediately.",
+            "Advierte cuando los bordes del papel pueden estar cortados o el recibo está demasiado lejos. El disparador siempre funciona de inmediato.",
         ),
         receiptGuidanceWarningsEnabled(),
     ) {
@@ -171,8 +174,8 @@ internal fun ReceiptCameraActivity.showReceiptCameraSettings() {
     content.addView(settingSummary(
         receiptCameraText("Image quality", "Calidad de imagen"),
         receiptCameraText(
-            "Maintainiac reads the full-quality capture for text extraction before creating a smaller saved copy for backup.",
-            "Maintainiac lee la captura de calidad completa para extraer texto antes de crear una copia guardada más pequeña para respaldo.",
+            "Maintainiac reads the temporary full-quality photo first. A smaller saved copy is made only after the receipt is read.",
+            "Maintainiac lee primero la foto temporal de calidad completa. Solo después de leer el recibo se crea una copia guardada más pequeña.",
         ),
     ))
     val scroll = ScrollView(this).apply {

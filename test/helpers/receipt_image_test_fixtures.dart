@@ -58,6 +58,53 @@ img.Image receiptOnCounterImage() {
   return image;
 }
 
+img.Image skewedReceiptOnCounterImage({double degrees = 2}) {
+  final receipt = img.copyRotate(
+    receiptLikeImage(),
+    angle: degrees,
+    interpolation: img.Interpolation.linear,
+  );
+  final image = img.Image(width: 1800, height: 2400);
+  img.fill(image, color: img.ColorRgb8(76, 72, 68));
+  img.compositeImage(
+    image,
+    receipt,
+    dstX: (image.width - receipt.width) ~/ 2,
+    dstY: (image.height - receipt.height) ~/ 2,
+  );
+  return image;
+}
+
+img.Image perspectiveReceiptOnCounterImage() {
+  final image = img.Image(width: 1200, height: 1800);
+  img.fill(image, color: img.ColorRgb8(68, 64, 61));
+  final topLeft = img.Point(250, 110);
+  final topRight = img.Point(930, 190);
+  final bottomLeft = img.Point(175, 1660);
+  final bottomRight = img.Point(1020, 1710);
+  img.fillPolygon(
+    image,
+    vertices: [topLeft, topRight, bottomRight, bottomLeft],
+    color: img.ColorRgb8(246, 245, 238),
+  );
+  for (var y = 260; y < 1580; y += 48) {
+    final progress = (y - topLeft.y) / (bottomLeft.y - topLeft.y);
+    final left = (topLeft.x + (bottomLeft.x - topLeft.x) * progress).round();
+    final right = (topRight.x + (bottomRight.x - topRight.x) * progress)
+        .round();
+    img.drawLine(
+      image,
+      x1: left + 65,
+      y1: y,
+      x2: right - 65,
+      y2: y + 2,
+      color: img.ColorRgb8(30, 30, 30),
+      thickness: 3,
+    );
+  }
+  return image;
+}
+
 img.Image tinyCornerReceiptLikeImage() {
   final image = img.Image(width: 1800, height: 2400);
   img.fill(image, color: img.ColorRgb8(64, 61, 58));

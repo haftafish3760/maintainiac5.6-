@@ -1,10 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/screens/expenses/data/expense_receipt_parser.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_ocr_service.dart';
 
 void main() {
   test(
-    'ocr keeps raw exact overlap text but suppresses it for app fill',
+    'ocr preserves one exact boundary line because purchase count is ambiguous',
     () async {
       final result = await const ReceiptOcrService()
           .recognizeTextFromAttachments([
@@ -21,14 +22,14 @@ void main() {
       expect(result.rawText, contains('LOWES'));
       expect(result.rawText, contains('PIPE STRAP 3.49'));
       expect('PVC GLUE 7.99'.allMatches(result.rawText), hasLength(2));
-      expect('PVC GLUE 7.99'.allMatches(result.appFillText), hasLength(1));
+      expect('PVC GLUE 7.99'.allMatches(result.appFillText), hasLength(2));
       expect(
         result.warnings.single,
-        contains('Ignored 1 repeated receipt line for app-assisted fill'),
+        contains('possible overlapping receipt line'),
       );
       expect(
         result.structuredWarnings.single.kind,
-        ReceiptOcrWarningKind.duplicateText,
+        ReceiptOcrWarningKind.probableOverlap,
       );
       expect(result.structuredWarnings.single.needsReview, isTrue);
       expect(result.diagnostics.reviewWarningCount, 1);
@@ -36,16 +37,13 @@ void main() {
         result.diagnostics.countForWarningKind(
           ReceiptOcrWarningKind.duplicateText,
         ),
-        1,
+        0,
       );
-      expect(
-        result.warnings.single,
-        contains('Original receipt text was kept'),
-      );
+      expect(result.warnings.single, contains('Nothing was changed'));
       expect(result.diagnostics.severity, ReceiptOcrReviewSeverity.review);
       expect(result.diagnostics.hadDuplicateOrOverlapText, isTrue);
       expect(result.diagnostics.rawLineCount, 6);
-      expect(result.diagnostics.parserLineCount, 5);
+      expect(result.diagnostics.parserLineCount, 6);
       expect(
         result.appFillText.indexOf('PVC COUPLING 2.49'),
         lessThan(result.appFillText.indexOf('PIPE STRAP 3.49')),
@@ -84,7 +82,7 @@ void main() {
     expect(result.diagnostics.rawLineCount, result.diagnostics.parserLineCount);
   });
 
-  test('ocr suppresses overlap when price formatting changes', () async {
+  test('ocr preserves one normalized boundary match for review', () async {
     final result = await const ReceiptOcrService()
         .recognizeTextFromAttachments([
           _textAttachment(
@@ -98,16 +96,13 @@ void main() {
         ]);
 
     expect('PVC GLUE'.allMatches(result.rawText), hasLength(2));
-    expect('PVC GLUE'.allMatches(result.appFillText), hasLength(1));
+    expect('PVC GLUE'.allMatches(result.appFillText), hasLength(2));
     expect(result.appFillText, contains('PIPE STRAP 3 49'));
     expect(
       result.structuredWarnings.map((warning) => warning.kind),
-      contains(ReceiptOcrWarningKind.duplicateText),
+      contains(ReceiptOcrWarningKind.probableOverlap),
     );
-    expect(
-      result.diagnostics.parserLineCount,
-      result.diagnostics.rawLineCount - 1,
-    );
+    expect(result.diagnostics.parserLineCount, result.diagnostics.rawLineCount);
   });
 
   test(
@@ -135,6 +130,144 @@ TOTAL 9.18
         isNot(contains(ReceiptOcrWarningKind.duplicateText)),
       );
       expect(result.diagnostics.hadDuplicateOrOverlapText, isFalse);
+    },
+  );
+
+  test(
+    'ocr preserves indistinguishable repeated purchases across a section edge',
+    () async {
+      final result = await const ReceiptOcrService()
+          .recognizeTextFromAttachments([
+            _textAttachment(
+              id: 'top',
+              text: '''
+LOWES
+1/2 IN COPPER 90 ELBOW 1.49
+1/2 IN COPPER 90 ELBOW 1.49
+''',
+            ),
+            _textAttachment(
+              id: 'bottom',
+              text: '''
+1/2 IN COPPER 90 ELBOW 1.49
+1/2 IN COPPER 90 ELBOW 1.49
+TOTAL 5.96
+''',
+            ),
+          ]);
+
+      expect(
+        '1/2 IN COPPER 90 ELBOW 1.49'.allMatches(result.appFillText),
+        hasLength(4),
+      );
+      expect(
+        result.structuredWarnings.map((warning) => warning.kind),
+        contains(ReceiptOcrWarningKind.probableOverlap),
+      );
+      expect(
+        result.structuredWarnings.map((warning) => warning.kind),
+        isNot(contains(ReceiptOcrWarningKind.duplicateText)),
+      );
+    },
+  );
+
+  test(
+    'repeated purchases cross OCR handoff and reconcile without line loss',
+    () async {
+      final ocr = await const ReceiptOcrService().recognizeTextFromAttachments([
+        _textAttachment(
+          id: 'top',
+          text: '''
+LOWES
+1/2 IN COPPER 90 ELBOW 1.49
+1/2 IN COPPER 90 ELBOW 1.49
+''',
+        ),
+        _textAttachment(
+          id: 'bottom',
+          text: '''
+1/2 IN COPPER 90 ELBOW 1.49
+1/2 IN COPPER 90 ELBOW 1.49
+TOTAL 5.96
+''',
+        ),
+      ]);
+
+      final parsed = parseExpenseReceiptOcrResult(ocr);
+
+      expect(parsed.lines, hasLength(4));
+      expect(parsed.diagnostics.lineSubtotal, 5.96);
+      expect(parsed.diagnostics.expectedSubtotalOrTotal, 5.96);
+      expect(parsed.diagnostics.reconciled, isTrue);
+      expect(parsed.diagnostics.hasParserDuplicateOverlapReview, isTrue);
+    },
+  );
+
+  test(
+    'ambiguous repeated purchases stay visible when receipt math disagrees',
+    () async {
+      final ocr = await const ReceiptOcrService().recognizeTextFromAttachments([
+        _textAttachment(
+          id: 'top',
+          text: '''
+LOWES
+1/2 IN COPPER 90 ELBOW 1.49
+1/2 IN COPPER 90 ELBOW 1.49
+''',
+        ),
+        _textAttachment(
+          id: 'bottom',
+          text: '''
+1/2 IN COPPER 90 ELBOW 1.49
+1/2 IN COPPER 90 ELBOW 1.49
+TOTAL 7.45
+''',
+        ),
+      ]);
+
+      final parsed = parseExpenseReceiptOcrResult(ocr);
+
+      expect(parsed.lines, hasLength(4));
+      expect(parsed.diagnostics.lineSubtotal, 5.96);
+      expect(parsed.diagnostics.expectedSubtotalOrTotal, 7.45);
+      expect(parsed.diagnostics.reconciled, isFalse);
+      expect(
+        parsed.warnings.join(' '),
+        contains('do not match the receipt total'),
+      );
+    },
+  );
+
+  test(
+    'ocr suppresses a distinct ordered multi-line section overlap',
+    () async {
+      final result = await const ReceiptOcrService()
+          .recognizeTextFromAttachments([
+            _textAttachment(
+              id: 'top',
+              text: '''
+LOWES
+PVC GLUE 7.99
+PVC PIPE 12.49
+''',
+            ),
+            _textAttachment(
+              id: 'bottom',
+              text: '''
+PVC GLUE 7.99
+PVC PIPE 12.49
+PIPE STRAP 3.49
+TOTAL 23.97
+''',
+            ),
+          ]);
+
+      expect('PVC GLUE 7.99'.allMatches(result.appFillText), hasLength(1));
+      expect('PVC PIPE 12.49'.allMatches(result.appFillText), hasLength(1));
+      expect(
+        result.diagnostics.rawLineCount - result.diagnostics.parserLineCount,
+        2,
+      );
     },
   );
 
@@ -271,18 +404,18 @@ TOTAL 79.81
       expect(result.rawText, contains('WALMART'));
       expect('AA BATTERIES 16.99'.allMatches(result.rawText), hasLength(2));
       expect('PHONE CHARGER 12.88'.allMatches(result.rawText), hasLength(2));
-      expect('AA BATTERIES 16.99'.allMatches(result.appFillText), hasLength(1));
+      expect('AA BATTERIES 16.99'.allMatches(result.appFillText), hasLength(2));
       expect(
         'PHONE CHARGER 12.88'.allMatches(result.appFillText),
-        hasLength(1),
+        hasLength(2),
       );
       expect(result.appFillText, contains('HOT DOG COMBO 1.50'));
       expect(result.diagnostics.hadDuplicateOrOverlapText, isTrue);
       expect(result.diagnostics.rawLineCount, 12);
-      expect(result.diagnostics.parserLineCount, 10);
+      expect(result.diagnostics.parserLineCount, 12);
       expect(
         result.structuredWarnings.map((warning) => warning.kind),
-        contains(ReceiptOcrWarningKind.duplicateText),
+        contains(ReceiptOcrWarningKind.probableOverlap),
       );
     },
   );

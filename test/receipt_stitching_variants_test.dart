@@ -4,6 +4,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_artifact_expectations.dart';
 import 'helpers/receipt_stitching_image_helpers.dart';
+import 'helpers/receipt_stitching_result_reason.dart';
 
 const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
 
@@ -35,7 +36,11 @@ void main() {
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
-      expect(result.pairs.single.rotationCorrectionDegrees, 0);
+      expect(
+        result.pairs.single.rotationCorrectionDegrees,
+        0,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.overlapPixels.single, greaterThan(340));
       expect(
         result.overlapPixels.single,
@@ -167,8 +172,7 @@ void main() {
       expect(
         result.didStitch,
         isTrue,
-        reason:
-            '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+        reason: receiptStitchingResultReason(result),
       );
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
       expect(result.overlapPixels.single, greaterThan(330));
@@ -259,8 +263,7 @@ void main() {
       expect(
         result.didStitch,
         isTrue,
-        reason:
-            '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+        reason: receiptStitchingResultReason(result),
       );
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
       expect(result.overlapPixels.single, greaterThanOrEqualTo(190));

@@ -280,22 +280,33 @@ _ReceiptImageBounds? _scanReceiptBounds(
 
 _ScannerImageDecision _autoStraightenReceiptWithDecision(img.Image source) {
   final sourceQuality = _qualityCheck(source);
-  var bestDegrees = 0.0;
-  var bestScore = sourceQuality.reviewScore;
   final reviewSource = _resizeToMaxSide(source, 760);
+  final reviewQuality = _qualityCheck(reviewSource);
+  var bestDegrees = 0.0;
+  var bestAlignment = _receiptStraightnessScore(reviewSource);
+  var bestQuality = reviewQuality;
   for (final degrees in const [-2.0, -1.25, -.65, .65, 1.25, 2.0]) {
     final candidate = img.copyRotate(
       reviewSource,
       angle: degrees,
       interpolation: img.Interpolation.linear,
     );
-    final score = _qualityCheck(candidate).reviewScore;
-    if (score > bestScore) {
-      bestScore = score;
+    final candidateQuality = _qualityCheck(candidate);
+    final candidateAlignment = _receiptStraightnessScore(candidate);
+    final preservesReading =
+        candidateQuality.reviewScore + 2 >= reviewQuality.reviewScore &&
+        candidateQuality.textBandScore >= reviewQuality.textBandScore * .90;
+    if (preservesReading && candidateAlignment > bestAlignment) {
+      bestAlignment = candidateAlignment;
+      bestQuality = candidateQuality;
       bestDegrees = degrees;
     }
   }
-  if (bestDegrees.abs() < .5 || bestScore < sourceQuality.reviewScore + 3) {
+  final baselineAlignment = _receiptStraightnessScore(reviewSource);
+  final requiredGain = math.max(.045, baselineAlignment.abs() * .055);
+  if (bestDegrees.abs() < .5 ||
+      bestAlignment < baselineAlignment + requiredGain ||
+      bestQuality.textBandScore < reviewQuality.textBandScore * .90) {
     return _ScannerImageDecision(source, 'straighten_skipped_no_benefit');
   }
   final rotated = img.copyRotate(
@@ -309,4 +320,38 @@ _ScannerImageDecision _autoStraightenReceiptWithDecision(img.Image source) {
     return _ScannerImageDecision(source, 'straighten_skipped_quality_guard');
   }
   return _ScannerImageDecision(rotated, 'straighten_applied_text_bands');
+}
+
+double _receiptStraightnessScore(img.Image source) {
+  final sample = _resizeToMaxSide(source, 480);
+  if (sample.width < 8 || sample.height < 8) return 0;
+  final rowEnergy = <double>[];
+  var horizontalEdgeEnergy = 0.0;
+  var verticalEdgeEnergy = 0.0;
+  for (var y = 2; y < sample.height - 2; y += 2) {
+    var energy = 0.0;
+    for (var x = 2; x < sample.width - 2; x += 2) {
+      final center = _luma(sample.getPixel(x, y));
+      final vertical = (center - _luma(sample.getPixel(x, y - 2))).abs();
+      final horizontal = (center - _luma(sample.getPixel(x - 2, y))).abs();
+      if (vertical >= 12) energy += vertical;
+      horizontalEdgeEnergy += vertical;
+      verticalEdgeEnergy += horizontal;
+    }
+    rowEnergy.add(energy);
+  }
+  if (rowEnergy.isEmpty || horizontalEdgeEnergy < 1) return 0;
+  final mean = rowEnergy.reduce((a, b) => a + b) / rowEnergy.length;
+  if (mean < 1) return 0;
+  var variance = 0.0;
+  for (final energy in rowEnergy) {
+    final delta = energy - mean;
+    variance += delta * delta;
+  }
+  variance /= rowEnergy.length;
+  final rowConcentration = variance / (mean * mean + 1);
+  final directionality =
+      horizontalEdgeEnergy /
+      math.max(1.0, horizontalEdgeEnergy + verticalEdgeEnergy);
+  return rowConcentration + directionality * .35;
 }

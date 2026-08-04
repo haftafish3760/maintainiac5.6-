@@ -107,6 +107,13 @@ extension _ReceiptPhotoReviewExitStitchActions
           : null,
       maxOutputPixels: _stitchDeviceLimits.maxOutputPixels,
       maxOutputHeight: _stitchDeviceLimits.maxOutputHeight,
+      maxTargetWidth: _stitchDeviceLimits.maxTargetWidth,
+      comparisonWidth: _stitchDeviceLimits.comparisonWidth,
+      retryComparisonWidth: _stitchDeviceLimits.retryComparisonWidth,
+      processingTimeout: _stitchDeviceLimits.processingTimeout,
+      timeoutReasonCode: 'stitch_timeout',
+      timeoutWarning:
+          'Putting these photos together took too long. Receipt details will use them from top to bottom.',
     );
   }
 

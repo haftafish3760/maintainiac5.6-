@@ -5,6 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
+import 'helpers/receipt_stitching_result_reason.dart';
 
 const _timeout = Timeout(Duration(minutes: 2));
 
@@ -20,7 +21,11 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.pairs, hasLength(2));
       expect(result.overlapPixels, hasLength(2));
       expect(result.overlapPixelTotal, greaterThan(640));

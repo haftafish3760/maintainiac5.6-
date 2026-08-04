@@ -102,7 +102,7 @@ extension _ReceiptAttachmentCameraActions
         if (!accepted || !mounted) {
           return _MaintainiacNativeCameraPhotoOutcome.canceled;
         }
-        await _clearAcceptedNativeRecovery(flowResult);
+        await _retainAcceptedNativeRecoveryUntilReceiptSave(flowResult);
         if (!mounted) return _MaintainiacNativeCameraPhotoOutcome.canceled;
         return _MaintainiacNativeCameraPhotoOutcome.added;
       case ReceiptCaptureFlowStatus.canceled:
@@ -180,7 +180,7 @@ extension _ReceiptAttachmentCameraActions
     _publishReceiptCaptureDiagnostic(result.diagnostics);
   }
 
-  Future<void> _clearAcceptedNativeRecovery(
+  Future<void> _retainAcceptedNativeRecoveryUntilReceiptSave(
     ReceiptCaptureFlowResult result,
   ) async {
     if (!result.accepted || result.reviewResult == null) return;
@@ -190,8 +190,12 @@ extension _ReceiptAttachmentCameraActions
     }
     final manifestPath = result.recoveryManifestPath.trim();
     if (manifestPath.isEmpty) return;
-    await const ReceiptNativeCaptureStaging().clearRecoveryManifestPath(
+    widget.controller?._retainNativeRecoveryManifest(manifestPath);
+    await const ReceiptNativeCaptureStaging().markRecoveryStage(
       manifestPath,
+      stage: 'receipt_save_pending',
+      reason: 'accepted_original_retained_until_receipt_save',
+      action: 'finalize_after_durable_receipt_save',
     );
   }
 

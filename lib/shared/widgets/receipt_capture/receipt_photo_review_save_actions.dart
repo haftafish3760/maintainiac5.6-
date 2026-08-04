@@ -130,27 +130,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         inputPaths: pathsToSave,
         preparedOcrPaths: ocrSourcePaths,
       );
-      final stitch = await stitchFuture.timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          // A stale preview can force a final assembly attempt. Never trap a
-          // person on this screen because that work is slow: use the already
-          // prepared clear sections in order, and remove a late temporary
-          // composite if the isolate finishes after the fallback is accepted.
-          unawaited(
-            stitchFuture.then(
-              (lateStitch) => _deleteStitchPreviewPath(lateStitch.stitchedPath),
-              onError: (Object _) {},
-            ),
-          );
-          return ReceiptStitchResult.fallback(
-            inputPaths: ocrSourcePaths,
-            warning:
-                'Putting these photos together took too long. Receipt details will use them from top to bottom.',
-            fallbackReasonCode: 'stitch_timeout',
-          );
-        },
-      );
+      final stitch = await stitchFuture;
       final finalPreparationDiagnostics =
           _preparationDiagnosticsForFinalOcrSources(
             stitch: stitch,
@@ -195,6 +175,7 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
           photoQualityChecksByPath: savedQualityChecks,
           preparationDiagnosticsByOcrPath: finalPreparationDiagnostics,
           captureDiagnosticsByPhotoPath: captureDiagnostics,
+          temporarySourcePhotoPaths: pathsToSave,
         ),
       );
     } on TimeoutException {

@@ -197,6 +197,16 @@ Future<String> _writeJpg(
   return file.path;
 }
 
+Future<String> _writeJpgToPath(
+  img.Image image, {
+  required String outputPath,
+  required int quality,
+}) async {
+  final file = File(outputPath);
+  await file.writeAsBytes(img.encodeJpg(image, quality: quality), flush: true);
+  return file.path;
+}
+
 class _DataSaverProfile {
   const _DataSaverProfile({
     required this.maxLongSide,

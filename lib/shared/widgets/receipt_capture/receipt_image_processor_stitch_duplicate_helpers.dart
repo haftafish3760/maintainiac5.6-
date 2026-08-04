@@ -1,13 +1,5 @@
 part of 'receipt_image_processor.dart';
 
-bool _receiptImageBytesMatch(List<int> a, List<int> b) {
-  if (a.length != b.length) return false;
-  for (var index = 0; index < a.length; index++) {
-    if (a[index] != b[index]) return false;
-  }
-  return true;
-}
-
 int _receiptImageAverageHashDistance(img.Image a, img.Image b) {
   return _receiptImageAverageHashHammingDistance(
     _receiptImageAverageHash(a),
@@ -62,6 +54,49 @@ bool _receiptImageImmediateDuplicateContentMatches(img.Image a, img.Image b) {
     maxInkProfileAverage: .04,
     maxBandDifference: 32,
   );
+}
+
+bool _receiptImageSmallShiftDuplicateContentMatches(img.Image a, img.Image b) {
+  final shortestHeight = math.min(a.height, b.height);
+  if (shortestHeight < 160) return false;
+  for (final fraction in const [.02, .025, .028, .03, .04, .05, .06]) {
+    final shift = (shortestHeight * fraction).round();
+    final commonHeight = shortestHeight - shift;
+    if (commonHeight < 120) continue;
+    final aTop = img.copyCrop(
+      a,
+      x: 0,
+      y: 0,
+      width: a.width,
+      height: commonHeight,
+    );
+    final aBottom = img.copyCrop(
+      a,
+      x: 0,
+      y: shift,
+      width: a.width,
+      height: commonHeight,
+    );
+    final bTop = img.copyCrop(
+      b,
+      x: 0,
+      y: 0,
+      width: b.width,
+      height: commonHeight,
+    );
+    final bBottom = img.copyCrop(
+      b,
+      x: 0,
+      y: shift,
+      width: b.width,
+      height: commonHeight,
+    );
+    if (_receiptImageImmediateDuplicateContentMatches(aTop, bBottom) ||
+        _receiptImageImmediateDuplicateContentMatches(aBottom, bTop)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool _receiptImageContentMatchScore(

@@ -18,8 +18,17 @@ void main() {
       final stitchExitActions = await File(
         'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_stitch_actions.dart',
       ).readAsString();
+      final stitchOrderEvidence = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_order_evidence.dart',
+      ).readAsString();
+      final ocrStitchEvidence = await File(
+        'lib/shared/widgets/receipt_capture/receipt_ocr_service_stitch_evidence.dart',
+      ).readAsString();
       final imageProcessor = await File(
         'lib/shared/widgets/receipt_capture/receipt_image_processor.dart',
+      ).readAsString();
+      final stitchIsolate = await File(
+        'lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_isolate.dart',
       ).readAsString();
 
       expect(
@@ -49,14 +58,19 @@ void main() {
         saveActions,
         contains('final stitchFuture = _finalStitchResultForOcr('),
       );
-      expect(saveActions, contains("fallbackReasonCode: 'stitch_timeout'"));
       expect(
-        saveActions,
-        contains('_deleteStitchPreviewPath(lateStitch.stitchedPath)'),
+        stitchExitActions,
+        contains("timeoutReasonCode: 'stitch_timeout'"),
       );
+      expect(stitchIsolate, contains('Isolate.spawn('));
+      expect(
+        stitchIsolate,
+        contains('isolate?.kill(priority: Isolate.immediate)'),
+      );
+      expect(stitchIsolate, contains('_deleteFileQuietly(request.outputPath)'));
       expect(saveActions, contains('await _deleteGeneratedStitchPreview();'));
       expect(
-          saveActions.indexOf('prepareForOcrAndBackup('),
+        saveActions.indexOf('prepareForOcrAndBackup('),
         lessThan(
           saveActions.indexOf('final stitchFuture = _finalStitchResultForOcr('),
         ),
@@ -66,17 +80,33 @@ void main() {
         stitchPreviewAsync,
         contains('ReceiptImageProcessor.stitchReceiptPhotosForOcr('),
       );
-      expect(stitchPreviewAsync, contains('const Duration(seconds: 15)'));
+      expect(
+        stitchPreviewAsync,
+        contains('_stitchDeviceLimits.processingTimeout'),
+      );
+      expect(
+        stitchPreviewAsync,
+        contains('maxTargetWidth: _stitchDeviceLimits.maxTargetWidth'),
+      );
       expect(stitchPreviewAsync, contains('stitch_preview_timeout'));
+      expect(
+        stitchOrderEvidence,
+        contains('totalBudget: _stitchDeviceLimits.evidenceTimeout'),
+      );
+      expect(stitchOrderEvidence, isNot(contains('Duration(seconds: 28)')));
+      expect(
+        ocrStitchEvidence,
+        isNot(contains('recognizeTextFromAttachments')),
+      );
+      expect(
+        ocrStitchEvidence,
+        contains('effectiveBudget - stopwatch.elapsed'),
+      );
       expect(
         stitchPreviewAsync,
         contains(
           'They will stay in order as separate photos so you can continue.',
         ),
-      );
-      expect(
-        stitchPreviewAsync,
-        contains('_deleteStitchPreviewPath(lateResult.stitchedPath)'),
       );
       expect(
         stitchPreviewAsync,

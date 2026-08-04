@@ -11,10 +11,16 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   List<double>? manualHorizontalOffsetFractions,
   int maxOutputPixels = 16000000,
   int maxOutputHeight = 20000,
+  int maxTargetWidth = 1400,
+  int comparisonWidth = 400,
+  int retryComparisonWidth = 320,
+  required String outputPath,
 }) async {
   final inputPaths = paths
       .map((path) => path.trim())
-      .where((path) => path.isNotEmpty)
+      .where((path) {
+        return path.isNotEmpty;
+      })
       .toList(growable: false);
   if (inputPaths.isEmpty) {
     return ReceiptStitchResult.fallback(
@@ -48,10 +54,10 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
 
   final confidences = <double>[];
   final pairResults = <ReceiptStitchPairResult>[];
-  // The combined proof has a deliberate width cap. Do the private crop/frame
-  // work close to that cap instead of repeatedly copying an entire 12–50 MP
-  // camera image just to reduce it later. Original user photos remain intact.
-  final targetWidth = _stitchTargetWidth(inputPaths.length);
+  final targetWidth = _stitchTargetWidth(
+    inputPaths.length,
+    maxTargetWidth: maxTargetWidth,
+  );
   var activePairIndex = -1;
   try {
     final sourcePreparation = await _prepareReceiptStitchSources(
@@ -202,9 +208,6 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           ),
         );
         normalized.add(manualNext);
-        // Keep the matching sequence aligned with the visible sequence. A
-        // following automatic join in a three-or-more-photo receipt must use
-        // this manually accepted section as its previous comparison image.
         normalizedForComparison.add(
           _transformForStitchComparison(
             comparisonPrepared[index],
@@ -240,12 +243,47 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairs: List.unmodifiable([...pairResults, failedPair]),
           );
         }
+        final textPlan = _receiptStitchTextPlanForPair(
+          inputPaths: inputPaths,
+          textLinesByPath: textLinesByPath,
+          pairIndex: pairIndex,
+        );
+        final textEvidence = textPlan.evidence;
+        // Automatic long-receipt composition is a document operation, not a
+        // photo-collage guess. Pixels may refine a transform after OCR proves
+        // that adjacent sections share distinctive receipt lines, but visual
+        // similarity alone must never authorize deleting repeated rows.
+        if (!textEvidence.isStrong) {
+          final failedPair = ReceiptStitchPairResult(
+            pairIndex: pairIndex,
+            overlapPixels: 0,
+            confidence: textEvidence.confidence,
+            textOverlapConfidence: textEvidence.confidence,
+            matchedTextLineCount: textEvidence.matchedLineCount,
+          );
+          return ReceiptStitchResult.fallback(
+            inputPaths: inputPaths,
+            warning:
+                'The shared receipt lines could not be confirmed automatically. Review the order or align these photos yourself.',
+            fallbackReasonCode: 'ocr_overlap_not_proven',
+            confidence: textEvidence.confidence,
+            failedPairIndex: pairIndex,
+            pairs: List.unmodifiable([...pairResults, failedPair]),
+          );
+        }
         var match = _bestScaleTolerantVerticalOverlap(
           previous: normalizedForComparison[pairIndex],
           next: comparisonPrepared[index],
           targetWidth: targetWidth,
+          comparisonWidth: comparisonWidth,
+          retryComparisonWidth: retryComparisonWidth,
+          allowUprightFastPath: textPlan.safelyAcceleratesGeometry,
         );
         var continuity = _receiptOverlapContinuityEvidence(
+          previous: normalizedForComparison[pairIndex],
+          match: match,
+        );
+        var geometry = _receiptOverlapGeometryEvidence(
           previous: normalizedForComparison[pairIndex],
           match: match,
         );
@@ -257,6 +295,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             previous: normalizedForComparison[pairIndex],
             next: comparisonPrepared[index],
             targetWidth: targetWidth,
+            comparisonWidth: comparisonWidth,
           );
           final fixedContinuity = _receiptOverlapContinuityEvidence(
             previous: normalizedForComparison[pairIndex],
@@ -265,13 +304,12 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           if (fixedContinuity.isProven) {
             match = fixedMatch;
             continuity = fixedContinuity;
+            geometry = _receiptOverlapGeometryEvidence(
+              previous: normalizedForComparison[pairIndex],
+              match: match,
+            );
           }
         }
-        final textEvidence = _receiptStitchTextEvidenceForPair(
-          inputPaths: inputPaths,
-          textLinesByPath: textLinesByPath,
-          pairIndex: pairIndex,
-        );
         final textCorroboratesGeometry =
             textEvidence.isStrong && match.confidence >= .28;
         final continuityIsCorroborated =
@@ -295,10 +333,29 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           math.max(match.confidence, continuityConfidence),
           textConfidence,
         );
-        final hasExceptionalContinuity =
-            continuity.detailedBands >= 4 &&
-            continuity.matchingBands == continuity.detailedBands &&
-            continuity.correlation >= .72;
+        final hasExceptionalContinuity = hasExceptionalReceiptStitchContinuity(
+          correlation: continuity.correlation,
+          detailedBands: continuity.detailedBands,
+          matchingBands: continuity.matchingBands,
+        );
+        final overlapReferenceHeight = math.max(
+          1,
+          math.min(
+            normalizedForComparison[pairIndex].height,
+            match.nextImage.height - match.nextTopOffsetPixels,
+          ),
+        );
+        final largeOverlapTransformIsAmbiguous =
+            isLargeReceiptOverlapTransformAmbiguous(
+              overlapPixels: match.pixels,
+              overlapReferenceHeight: overlapReferenceHeight,
+              scaleCorrection: match.scaleCorrection,
+              rotationCorrectionDegrees: match.rotationCorrectionDegrees,
+              perspectiveCorrection: match.perspectiveCorrection,
+              continuityCorrelation: continuity.correlation,
+              continuityDetailedBands: continuity.detailedBands,
+              continuityMatchingBands: continuity.matchingBands,
+            );
         // A combined receipt is a user-facing proof image. Do not turn a
         // merely plausible overlap into a green "combined" result: preserve
         // the original ordered photos and target the failed pair for review.
@@ -308,6 +365,11 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             ((match.scaleCorrection - 1).abs() >= .15 ||
                 match.rotationCorrectionDegrees.abs() >= 3.5 ||
                 match.perspectiveCorrection.abs() >= .085);
+        final delayedOverlapIsStructurallyAmbiguous =
+            (match.nextTopOffsetPixels > match.pixels ||
+                match.nextTopOffsetPixels / overlapReferenceHeight > .18) &&
+            !textEvidence.isStrong &&
+            !geometry.isProven;
         // A reviewable low-confidence join may still be geometrically stable.
         // But a weak match that also needs a large scale, rotation, or offset
         // correction can erase real receipt rows when the next opaque image is
@@ -315,6 +377,8 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
         // alignment instead of producing that destructive combined image.
         if (effectiveConfidence < .49 ||
             !continuityIsCorroborated ||
+            delayedOverlapIsStructurallyAmbiguous ||
+            largeOverlapTransformIsAmbiguous ||
             lowConfidenceTransformIsAggressive) {
           final reportedConfidence = math.min(effectiveConfidence, .69);
           final failedPair = ReceiptStitchPairResult(
@@ -331,6 +395,10 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             continuityCorrelation: continuity.correlation,
             continuityDetailedBands: continuity.detailedBands,
             continuityMatchingBands: continuity.matchingBands,
+            geometryCorrelation: geometry.correlation,
+            geometryDetailedCells: geometry.detailedCells,
+            geometryMatchingCells: geometry.matchingCells,
+            visualConfidence: match.confidence,
           );
           return ReceiptStitchResult.fallback(
             inputPaths: inputPaths,
@@ -342,9 +410,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairs: List.unmodifiable([...pairResults, failedPair]),
           );
         }
-        // This includes the actual repeated rows and any leading rows before
-        // the overlap. The full continuation image is retained, so both must
-        // affect its placement exactly once.
+        // Account for repeated and leading rows exactly once.
         overlaps.add(match.nextSkipPixels);
         horizontalOffsets.add(match.nextXOffsetPixels);
         confidences.add(effectiveConfidence);
@@ -374,6 +440,10 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             continuityCorrelation: continuity.correlation,
             continuityDetailedBands: continuity.detailedBands,
             continuityMatchingBands: continuity.matchingBands,
+            geometryCorrelation: geometry.correlation,
+            geometryDetailedCells: geometry.detailedCells,
+            geometryMatchingCells: geometry.matchingCells,
+            visualConfidence: match.confidence,
           ),
         );
         expectedHeight += nextImage.height - match.nextSkipPixels;
@@ -419,13 +489,25 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     for (var index = 1; index < normalized.length; index++) {
       y -= overlaps[index - 1];
       final pair = pairResults[index - 1];
-      final seamCropY = _selectReceiptStitchSeamCropY(
+      final seam = _selectReceiptStitchSeam(
         previous: normalized[index - 1],
         next: normalized[index],
         overlapPixels: pair.overlapPixels,
         nextTopOffset: pair.verticalOffsetPixels,
         horizontalOffset: pair.horizontalOffsetPixels,
       );
+      if (!pair.usedManualAdjustment && !seam.isSafe) {
+        return ReceiptStitchResult.fallback(
+          inputPaths: inputPaths,
+          warning:
+              'The shared receipt area did not contain a safe join between printed lines.',
+          fallbackReasonCode: 'seam_quality_low',
+          confidence: math.min(pair.confidence, .69),
+          failedPairIndex: index - 1,
+          pairs: pairResults,
+        );
+      }
+      final seamCropY = seam.cropY;
       final continuation = seamCropY <= 0
           ? normalized[index]
           : img.copyCrop(
@@ -444,7 +526,11 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       y += normalized[index].height;
     }
 
-    final path = await _writeJpg(canvas, prefix: 'stitched', quality: 88);
+    final path = await _writeJpgToPath(
+      canvas,
+      outputPath: outputPath,
+      quality: 88,
+    );
     final confidence = confidences.isEmpty ? 1.0 : confidences.reduce(math.min);
     return ReceiptStitchResult(
       status: ReceiptStitchStatus.stitched,

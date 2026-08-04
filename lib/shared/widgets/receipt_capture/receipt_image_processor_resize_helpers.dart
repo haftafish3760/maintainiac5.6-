@@ -9,11 +9,14 @@ img.Image _resizeToMaxSide(img.Image source, int maxLongSide) {
   return img.copyResize(source, height: maxLongSide);
 }
 
-int _stitchTargetWidth(int photoCount) {
-  if (photoCount <= 2) return 1400;
-  if (photoCount <= 5) return 1200;
-  if (photoCount <= 10) return 1000;
-  return 820;
+int _stitchTargetWidth(int photoCount, {int maxTargetWidth = 1400}) {
+  final desired = switch (photoCount) {
+    <= 2 => 1400,
+    <= 5 => 1200,
+    <= 10 => 1000,
+    _ => 820,
+  };
+  return math.max(640, math.min(desired, maxTargetWidth));
 }
 
 /// The stitcher only needs a modest framing margin above the eventual combined

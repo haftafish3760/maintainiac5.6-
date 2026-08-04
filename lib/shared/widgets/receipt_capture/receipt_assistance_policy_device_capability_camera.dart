@@ -20,14 +20,29 @@ extension ReceiptDeviceCapabilityCamera on ReceiptDeviceCapability {
       ReceiptCapabilityTier.light => const ReceiptStitchDeviceLimits(
         maxOutputPixels: 9000000,
         maxOutputHeight: 14000,
+        maxTargetWidth: 900,
+        comparisonWidth: 320,
+        retryComparisonWidth: 280,
+        evidenceTimeout: Duration(seconds: 7),
+        processingTimeout: Duration(seconds: 12),
       ),
       ReceiptCapabilityTier.medium => const ReceiptStitchDeviceLimits(
         maxOutputPixels: 14000000,
         maxOutputHeight: 18000,
+        maxTargetWidth: 1200,
+        comparisonWidth: 360,
+        retryComparisonWidth: 280,
+        evidenceTimeout: Duration(seconds: 10),
+        processingTimeout: Duration(seconds: 12),
       ),
       ReceiptCapabilityTier.heavyweight => const ReceiptStitchDeviceLimits(
         maxOutputPixels: 18000000,
         maxOutputHeight: 24000,
+        maxTargetWidth: 1400,
+        comparisonWidth: 400,
+        retryComparisonWidth: 320,
+        evidenceTimeout: Duration(seconds: 12),
+        processingTimeout: Duration(seconds: 15),
       ),
     };
   }

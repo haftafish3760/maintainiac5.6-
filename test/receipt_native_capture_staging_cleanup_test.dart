@@ -95,6 +95,56 @@ void main() {
     expect(recoveryIndex.entries, isEmpty);
   });
 
+  test(
+    'finalizing accepted capture deletes staged copy after durable save',
+    () async {
+      final source = File(
+        '${Directory.systemTemp.path}/native-finalize-accepted.jpg',
+      );
+      await source.writeAsBytes(List<int>.filled(128, 45), flush: true);
+      addTearDown(() {
+        if (source.existsSync()) source.deleteSync();
+      });
+
+      final staging = const ReceiptNativeCaptureStaging();
+      final staged = await staging.stage(
+        ReceiptNativeCaptureResult(
+          engine: ReceiptNativeCameraEngine.cameraX,
+          originalPhotoPaths: [source.path],
+          temporaryCaptureIds: const ['accepted-finalize'],
+          capturedAt: DateTime(2026, 6, 29, 10, 20),
+        ),
+      );
+      final stagedPath = staged.photoPaths.single;
+      final manifestPath = staged.recoveryManifestPath;
+
+      final finalized = await staging.finalizeAcceptedCapture(manifestPath);
+
+      expect(finalized, isTrue);
+      expect(await File(stagedPath).exists(), isFalse);
+      expect(await File(manifestPath).exists(), isFalse);
+      expect(await source.exists(), isTrue);
+      final recoveryIndex = await ReceiptNativeCaptureRecoveryStore.create();
+      expect(recoveryIndex.entries, isEmpty);
+    },
+  );
+
+  test(
+    'finalizing malformed recovery preserves it for explicit recovery',
+    () async {
+      final malformed = File(
+        '${documentsDirectory.path}/malformed-native-recovery.json',
+      );
+      await malformed.writeAsString('{not-json', flush: true);
+
+      final finalized = await const ReceiptNativeCaptureStaging()
+          .finalizeAcceptedCapture(malformed.path);
+
+      expect(finalized, isFalse);
+      expect(await malformed.exists(), isTrue);
+    },
+  );
+
   test('recovery stage updates manifest and Hive index safely', () async {
     final source = File('${Directory.systemTemp.path}/native-stage-update.jpg');
     await source.writeAsBytes(List<int>.filled(128, 61), flush: true);

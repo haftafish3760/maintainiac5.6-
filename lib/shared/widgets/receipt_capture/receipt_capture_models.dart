@@ -161,6 +161,7 @@ class ReceiptPhotoReviewResult {
     Map<String, Map<String, Object?>> preparationDiagnosticsByOcrPath =
         const {},
     Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath = const {},
+    List<String> temporarySourcePhotoPaths = const [],
     this.reviewExitAction = 'accepted_for_receipt_details',
     bool allowSavedProofOcrFallback = true,
   }) : photoPaths = List.unmodifiable(_uniqueNonBlankPaths(photoPaths)),
@@ -184,6 +185,9 @@ class ReceiptPhotoReviewResult {
        captureDiagnosticsByPhotoPath = _diagnosticsForPaths(
          captureDiagnosticsByPhotoPath,
          _uniqueNonBlankPaths(photoPaths),
+       ),
+       temporarySourcePhotoPaths = List.unmodifiable(
+         _uniqueNonBlankPaths(temporarySourcePhotoPaths),
        ),
        stitchResult = _frozenStitchResult(stitchResult),
        photoPathInputWasSanitized = _pathInputWasSanitized(photoPaths),
@@ -243,6 +247,7 @@ class ReceiptPhotoReviewResult {
 
   final List<String> photoPaths;
   final List<String> ocrSourcePhotoPaths;
+  final List<String> temporarySourcePhotoPaths;
   final ReceiptDataSaverLevel dataSaverLevel;
   final ReceiptStitchResult stitchResult;
   final Map<String, ReceiptPhotoQualityCheck> photoQualityChecksByPath;

@@ -5,6 +5,8 @@ part of 'receipt_attachment_panel.dart';
 class ReceiptAttachmentPanelController {
   Future<void> Function()? _openImportOptions;
   Future<void> Function(ReceiptSettingsScreenContext?)? _openSettings;
+  final Set<String> _temporaryReceiptArtifactPaths = {};
+  final Set<String> _nativeRecoveryManifestPaths = {};
 
   bool get isAttached => _openImportOptions != null;
 
@@ -14,10 +16,41 @@ class ReceiptAttachmentPanelController {
     await open();
   }
 
-  Future<void> openSettings({ReceiptSettingsScreenContext? screenContext}) async {
+  Future<void> openSettings({
+    ReceiptSettingsScreenContext? screenContext,
+  }) async {
     final open = _openSettings;
     if (open == null) return;
     await open(screenContext);
+  }
+
+  /// Finalizes temporary receipt sources only after the owning receipt record
+  /// and its permanent saved images have both been written successfully.
+  Future<void> finalizeSuccessfulReceiptSave({
+    required Iterable<String> keptReceiptPhotoPaths,
+  }) async {
+    await const ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles(
+      _temporaryReceiptArtifactPaths,
+      keptPaths: keptReceiptPhotoPaths,
+    );
+    _temporaryReceiptArtifactPaths.clear();
+    final staging = const ReceiptNativeCaptureStaging();
+    for (final manifestPath in _nativeRecoveryManifestPaths.toList()) {
+      final finalized = await staging.finalizeAcceptedCapture(manifestPath);
+      if (finalized) _nativeRecoveryManifestPaths.remove(manifestPath);
+    }
+  }
+
+  void _retainAcceptedReceiptSources(ReceiptPhotoReviewResult result) {
+    _temporaryReceiptArtifactPaths
+      ..addAll(result.photoPaths)
+      ..addAll(result.ocrSourcePhotoPaths)
+      ..addAll(result.temporarySourcePhotoPaths);
+  }
+
+  void _retainNativeRecoveryManifest(String manifestPath) {
+    final normalized = manifestPath.trim();
+    if (normalized.isNotEmpty) _nativeRecoveryManifestPaths.add(normalized);
   }
 
   void _bind({

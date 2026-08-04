@@ -91,6 +91,7 @@ void main() {
 
     final report = await ReceiptImageProcessor.prepareReceiptSourceWithReport(
       path: source.path,
+      cleanupSettings: const ReceiptImageCleanupSettings(autoStraighten: true),
     );
 
     expect(
@@ -138,7 +139,89 @@ void main() {
       report.cleanupActions,
       anyOf(contains('auto_crop'), contains('scanner_cleanup')),
     );
-    expect(report.ocrSourceLabel, contains('OCR source'));
+    expect(report.ocrSourceLabel, contains('receipt photo'));
+    expect(report.ocrSourceLabel, isNot(contains('OCR')));
     expect(report.toDiagnostics().toString(), isNot(contains(source.path)));
+  });
+
+  test(
+    'receipt source prep straightens skewed horizontal text bands',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('receipt_straighten_');
+      addTearDown(() async {
+        if (await dir.exists()) await dir.delete(recursive: true);
+      });
+
+      final source = await writeReceiptFixtureImage(
+        dir,
+        'skewed_receipt.jpg',
+        skewedReceiptOnCounterImage(),
+      );
+      final report = await ReceiptImageProcessor.prepareReceiptSourceWithReport(
+        path: source.path,
+        cleanupSettings: const ReceiptImageCleanupSettings(
+          autoCrop: false,
+          autoStraighten: true,
+          grayscale: false,
+          contrastBoost: false,
+          sharpening: false,
+          shadowReduction: false,
+          adaptiveExposure: false,
+        ),
+      );
+
+      expect(
+        report.scannerDecisionCodes,
+        contains('straighten_applied_text_bands'),
+      );
+      expect(report.cleanupActions, contains('auto_straighten'));
+      expect(report.usedEnhancedOcrSource, isTrue);
+      expect(await File(report.ocrSourcePath).exists(), isTrue);
+    },
+  );
+
+  test('receipt source prep rectifies a safe receipt quadrilateral', () async {
+    final dir = await Directory.systemTemp.createTemp('receipt_perspective_');
+    addTearDown(() async {
+      if (await dir.exists()) await dir.delete(recursive: true);
+    });
+    final source = await writeReceiptFixtureImage(
+      dir,
+      'perspective_receipt.jpg',
+      perspectiveReceiptOnCounterImage(),
+    );
+    final report = await ReceiptImageProcessor.prepareReceiptSourceWithReport(
+      path: source.path,
+      cleanupSettings: const ReceiptImageCleanupSettings(
+        autoCrop: false,
+        autoStraighten: true,
+        grayscale: false,
+        contrastBoost: false,
+        sharpening: false,
+        shadowReduction: false,
+        adaptiveExposure: false,
+      ),
+    );
+
+    expect(
+      report.scannerDecisionCodes,
+      contains('perspective_applied_safe_quad'),
+    );
+    expect(report.cleanupActions, contains('perspective_correction'));
+    expect(report.usedEnhancedOcrSource, isTrue);
+    final prepared = img.decodeImage(
+      await File(report.ocrSourcePath).readAsBytes(),
+    );
+    expect(prepared, isNotNull);
+    expect(prepared!.width, greaterThanOrEqualTo(900));
+    expect(prepared.height, greaterThan(prepared.width));
+    for (final pixel in [
+      prepared.getPixel(8, 8),
+      prepared.getPixel(prepared.width - 9, 8),
+      prepared.getPixel(8, prepared.height - 9),
+      prepared.getPixel(prepared.width - 9, prepared.height - 9),
+    ]) {
+      expect(pixel.r + pixel.g + pixel.b, greaterThan(570));
+    }
   });
 }

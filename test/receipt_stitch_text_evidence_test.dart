@@ -130,5 +130,167 @@ void main() {
         'section-5',
       ]);
     });
+
+    test('does not reorder indistinguishable repeated-item sections', () {
+      final original = [
+        section('selected-1', [
+          'Independent Hardware Receipt',
+          'Copper elbow half inch 2.49',
+          'Copper elbow half inch 2.49',
+          'Copper elbow half inch 2.49',
+        ]),
+        section('selected-2', [
+          'Copper elbow half inch 2.49',
+          'Copper elbow half inch 2.49',
+          'Copper elbow half inch 2.49',
+          'Copper elbow half inch 2.49',
+        ]),
+        section('selected-3', [
+          'Copper elbow half inch 2.49',
+          'Copper elbow half inch 2.49',
+          'Copper elbow half inch 2.49',
+          'Total 24.90',
+        ]),
+      ];
+
+      final plan = ReceiptStitchOrderPlan.fromEvidence(original);
+
+      expect(plan.changed, isFalse);
+      expect(plan.requiresReview, isTrue);
+      expect(plan.orderedPaths, ['selected-1', 'selected-2', 'selected-3']);
+      expect(plan.reasonCode, 'ocr_overlap_order_ambiguous');
+    });
+
+    test('distinct shared lines can safely accelerate upright geometry', () {
+      final previous = section('top', [
+        'Independent Supply Receipt',
+        'Copper elbow half inch 2.49',
+        'Exterior screws three inch 12.40',
+      ]);
+      final next = section('bottom', [
+        'Copper elbow half inch 2.49',
+        'Exterior screws three inch 12.40',
+        'Subtotal 14.89',
+      ]);
+      final match = matchReceiptStitchTextOverlap(previous, next);
+
+      expect(match.isStrong, isTrue);
+      expect(match.matchedLineCount, 2);
+      expect(
+        receiptStitchTextSafelyAcceleratesGeometry(previous, next, match),
+        isTrue,
+      );
+    });
+
+    test('identical repeated purchases never accelerate geometry', () {
+      final previous = section('top', [
+        'Independent Supply Receipt',
+        'Copper elbow half inch 2.49',
+        'Copper elbow half inch 2.49',
+        'Copper elbow half inch 2.49',
+      ]);
+      final next = section('bottom', [
+        'Copper elbow half inch 2.49',
+        'Copper elbow half inch 2.49',
+        'Copper elbow half inch 2.49',
+        'Subtotal 24.90',
+      ]);
+      final match = matchReceiptStitchTextOverlap(previous, next);
+
+      expect(match.isStrong, isTrue);
+      expect(match.matchedLineCount, greaterThanOrEqualTo(2));
+      expect(
+        receiptStitchTextSafelyAcceleratesGeometry(previous, next, match),
+        isFalse,
+      );
+    });
+
+    test('orders eight sections with bounded path search', () {
+      final evidence = <ReceiptStitchTextEvidence>[];
+      for (var index = 0; index < 8; index++) {
+        evidence.add(
+          section('section-$index', [
+            if (index == 0) 'Independent Supply Receipt',
+            if (index > 0) 'Bridge ${index - 1} item A',
+            if (index > 0) 'Bridge ${index - 1} item B',
+            'Section $index unique item 12.34',
+            if (index < 7) 'Bridge $index item A',
+            if (index < 7) 'Bridge $index item B',
+            if (index == 7) 'Total 199.99',
+          ]),
+        );
+      }
+      final shuffled = [
+        evidence[5],
+        evidence[2],
+        evidence[7],
+        evidence[0],
+        evidence[4],
+        evidence[1],
+        evidence[6],
+        evidence[3],
+      ];
+
+      final plan = ReceiptStitchOrderPlan.fromEvidence(shuffled);
+
+      expect(plan.changed, isTrue);
+      expect(plan.requiresReview, isFalse);
+      expect(plan.orderedPaths, [
+        for (var index = 0; index < 8; index++) 'section-$index',
+      ]);
+      expect(plan.reasonCode, 'ocr_overlap_order_corrected');
+    });
+
+    test('header and footer topology resolves a circular overlap tie', () {
+      final plan = ReceiptStitchOrderPlan.fromEvidence([
+        section('middle', [
+          'Loop B item one 4.00',
+          'Loop B item two 5.00',
+          'Loop C item one 6.00',
+          'Loop C item two 7.00',
+        ]),
+        section('bottom', [
+          'Loop C item one 6.00',
+          'Loop C item two 7.00',
+          'Loop A item one 2.00',
+          'Loop A item two 3.00',
+          'Subtotal 27.00',
+          'Total 29.16',
+          'Thank you',
+        ]),
+        section('top', [
+          'Independent Store Receipt',
+          'Address 10 Main Street',
+          'Loop A item one 2.00',
+          'Loop A item two 3.00',
+          'Loop B item one 4.00',
+          'Loop B item two 5.00',
+        ]),
+      ]);
+
+      expect(plan.changed, isTrue);
+      expect(plan.requiresReview, isFalse);
+      expect(plan.orderedPaths, ['top', 'middle', 'bottom']);
+    });
+
+    test('keeps ambiguous eight-section repeated purchases selected', () {
+      final evidence = [
+        for (var index = 0; index < 8; index++)
+          section('selected-$index', [
+            'Copper elbow half inch 2.49',
+            'Copper elbow half inch 2.49',
+            'Copper elbow half inch 2.49',
+          ]),
+      ];
+
+      final plan = ReceiptStitchOrderPlan.fromEvidence(evidence);
+
+      expect(plan.changed, isFalse);
+      expect(plan.requiresReview, isTrue);
+      expect(plan.orderedPaths, [
+        for (var index = 0; index < 8; index++) 'selected-$index',
+      ]);
+      expect(plan.reasonCode, 'ocr_overlap_order_ambiguous');
+    });
   });
 }

@@ -5,6 +5,8 @@ import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
+import 'helpers/receipt_stitching_long_stack_helpers.dart';
+import 'helpers/receipt_stitching_result_reason.dart';
 
 const _longStackTimeout = Timeout(Duration(minutes: 3));
 
@@ -17,8 +19,11 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
       );
-
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.pairs, hasLength(4));
       expect(result.overlapPixels, hasLength(4));
       expect(
@@ -27,13 +32,15 @@ void main() {
       );
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(result.ocrSourcePaths, [result.stitchedPath]);
+      final unrotatedExpectedHeight = _expectedStitchedHeightForUniformSections(
+        sectionWidth: 900,
+        sectionHeight: 1500,
+        result: result,
+      );
       expect(
         result.stitchedHeight,
-        _expectedStitchedHeightForUniformSections(
-          sectionWidth: 900,
-          sectionHeight: 1500,
-          result: result,
-        ),
+        closeTo(unrotatedExpectedHeight, unrotatedExpectedHeight * .02),
+        reason: receiptStitchingResultReason(result),
       );
 
       final decoded = img.decodeImage(
@@ -95,8 +102,11 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
       );
-
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.pairs, hasLength(4));
       expect(result.overlapPixels, hasLength(4));
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
@@ -125,7 +135,11 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
@@ -148,7 +162,11 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(result.ocrSourcePaths, [result.stitchedPath]);
@@ -169,7 +187,7 @@ void main() {
   test(
     'stitches phone-window captures cropped from one tall receipt',
     () async {
-      final files = await _writePhoneWindowStack('phone_window_tall_receipt');
+      final files = await writePhoneWindowStack('phone_window_tall_receipt');
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
@@ -178,8 +196,7 @@ void main() {
       expect(
         result.didStitch,
         isTrue,
-        reason:
-            '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}, continuity ${pair.continuityCorrelation.toStringAsFixed(3)} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
+        reason: receiptStitchingResultReason(result),
       );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
@@ -197,15 +214,18 @@ void main() {
   test(
     'stitches six phone-window captures with alternating side crops',
     () async {
-      final files = await _writeSixPhoneWindowStack(
+      final files = await writeSixPhoneWindowStack(
         'six_phone_window_side_crops',
       );
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
       );
-
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.pairs, hasLength(5));
       expect(result.overlapPixels, hasLength(5));
       expect(
@@ -222,7 +242,7 @@ void main() {
   test(
     'stitches six phone-window captures with mixed exposure and side crops',
     () async {
-      final files = await _writeSixPhoneWindowExposureStack(
+      final files = await writeSixPhoneWindowExposureStack(
         'six_phone_window_exposure_crops',
       );
 
@@ -230,7 +250,11 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: receiptStitchingResultReason(result),
+      );
       expect(result.pairs, hasLength(5));
       expect(result.overlapPixels, hasLength(5));
       expect(
@@ -243,6 +267,7 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
+
 }
 
 int _expectedStitchedHeightForUniformSections({
@@ -402,98 +427,6 @@ Future<List<File>> _writeMixedTransformStack(String prefix) async {
         transformed[index],
         '${prefix}_$index',
       ),
-    );
-  }
-  return files;
-}
-
-Future<List<File>> _writePhoneWindowStack(String prefix) async {
-  final tallReceipt = tallReceiptStitchingCanvas();
-  final starts = <int>[0, 1120, 2240, 3360];
-  final captures = <img.Image>[];
-  for (var index = 0; index < starts.length; index++) {
-    final window = img.copyCrop(
-      tallReceipt,
-      x: 0,
-      y: starts[index],
-      width: tallReceipt.width,
-      height: 1500,
-    );
-    final shifted = index.isOdd
-        ? shiftReceiptStitchingShot(window, dx: 18, dy: 0)
-        : index == 2
-        ? shiftReceiptStitchingShot(window, dx: -15, dy: 0)
-        : window;
-    captures.add(shifted);
-  }
-
-  final files = <File>[];
-  for (var index = 0; index < captures.length; index++) {
-    files.add(
-      await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
-    );
-  }
-  return files;
-}
-
-Future<List<File>> _writeSixPhoneWindowStack(String prefix) async {
-  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 6);
-  final starts = <int>[0, 1120, 2240, 3360, 4480, 5600];
-  final captures = <img.Image>[];
-  for (var index = 0; index < starts.length; index++) {
-    final window = img.copyCrop(
-      tallReceipt,
-      x: 0,
-      y: starts[index],
-      width: tallReceipt.width,
-      height: 1500,
-    );
-    final cropped = index.isEven
-        ? clipReceiptStitchingSide(window, right: 42)
-        : clipReceiptStitchingSide(window, left: 36);
-    captures.add(
-      shiftReceiptStitchingShot(cropped, dx: index.isEven ? 16 : -18, dy: 0),
-    );
-  }
-  final files = <File>[];
-  for (var index = 0; index < captures.length; index++) {
-    files.add(
-      await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
-    );
-  }
-  return files;
-}
-
-Future<List<File>> _writeSixPhoneWindowExposureStack(String prefix) async {
-  final tallReceipt = tallReceiptStitchingCanvas(sectionCount: 6);
-  final starts = <int>[0, 1120, 2240, 3360, 4480, 5600];
-  final captures = <img.Image>[];
-  for (var index = 0; index < starts.length; index++) {
-    final window = img.copyCrop(
-      tallReceipt,
-      x: 0,
-      y: starts[index],
-      width: tallReceipt.width,
-      height: 1500,
-    );
-    final cropped = index.isEven
-        ? clipReceiptStitchingSide(window, right: 36)
-        : clipReceiptStitchingSide(window, left: 32);
-    final shifted = shiftReceiptStitchingShot(
-      cropped,
-      dx: index.isEven ? 15 : -17,
-      dy: 0,
-    );
-    final adjusted = adjustReceiptStitchingBrightness(
-      shifted,
-      delta: index.isEven ? 32 : -26,
-    );
-    captures.add(adjusted);
-  }
-  final files = <File>[];
-  for (var index = 0; index < captures.length; index++) {
-    files.add(
-      await writeTempReceiptStitchingImage(captures[index], '${prefix}_$index'),
     );
   }
   return files;

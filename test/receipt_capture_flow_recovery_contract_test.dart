@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'helpers/receipt_camera_capture_layout_source_readers.dart';
 
 void main() {
-  test('accepted shared flow clears interrupted native recovery after attach', () async {
+  test('accepted shared flow retains native recovery until durable save', () async {
     final flow =
         await File(
           'lib/shared/widgets/receipt_capture/receipt_capture_flow.dart',
@@ -148,7 +148,10 @@ void main() {
     expect(flow, contains("'open_photo_review_before_ocr_or_receipt_form'"));
     expect(flow, contains("'receiptReviewOpeningExpectedFirstAction':"));
     expect(flow, contains("'next_or_add_photo_visible_before_scroll'"));
-    expect(actions, contains('_clearAcceptedNativeRecovery(flowResult)'));
+    expect(
+      actions,
+      contains('_retainAcceptedNativeRecoveryUntilReceiptSave(flowResult)'),
+    );
     expect(
       actions,
       contains(
@@ -165,7 +168,13 @@ void main() {
         'review.photoPaths.isEmpty || review.ocrSourcePhotoPaths.isEmpty',
       ),
     );
-    expect(actions, contains('clearRecoveryManifestPath'));
+    expect(actions, contains("stage: 'receipt_save_pending'"));
+    expect(
+      actions,
+      contains("reason: 'accepted_original_retained_until_receipt_save'"),
+    );
+    expect(actions, contains("action: 'finalize_after_durable_receipt_save'"));
+    expect(actions, isNot(contains('clearRecoveryManifestPath')));
     expect(models, contains('usedSavedProofAsOcrSourceFallback'));
     expect(flow, contains('receipt_handoff_ocr_source_fallback_saved_proof'));
     expect(
@@ -199,7 +208,9 @@ void main() {
         'final accepted = await _acceptReviewedPhotoResult(result)',
       ),
       lessThan(
-        actions.indexOf('await _clearAcceptedNativeRecovery(flowResult)'),
+        actions.indexOf(
+          'await _retainAcceptedNativeRecoveryUntilReceiptSave(flowResult)',
+        ),
       ),
     );
     expect(actions, contains('if (!accepted || !mounted)'));

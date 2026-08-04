@@ -124,6 +124,14 @@ void main() {
         standard.stitchLimits.maxOutputPixels,
         lessThan(heavy.stitchLimits.maxOutputPixels),
       );
+      expect(
+        light.stitchLimits.maxTargetWidth,
+        lessThan(standard.stitchLimits.maxTargetWidth),
+      );
+      expect(
+        standard.stitchLimits.maxTargetWidth,
+        lessThan(heavy.stitchLimits.maxTargetWidth),
+      );
     },
   );
 

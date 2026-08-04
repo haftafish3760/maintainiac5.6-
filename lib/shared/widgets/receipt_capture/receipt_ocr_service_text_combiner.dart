@@ -4,7 +4,7 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
   final rawSections = <String>[];
   final parserSections = <String>[];
   final parserLineSourceLocations = <ReceiptOcrParserLineLocation>[];
-  var previousExactTail = const <String>[];
+  var previousExactLines = const <String>[];
   var previousProbableTail = const <String>[];
   var suppressedDuplicateLines = 0;
   var probableOverlapLines = 0;
@@ -17,10 +17,22 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
         .where((line) => line.isNotEmpty)
         .toList(growable: false);
     if (rawSectionLines.isEmpty) continue;
+    final exactLines = rawSectionLines
+        .map(_receiptLineDedupeKey)
+        .toList(growable: false);
+    final exactOverlapCount = _receiptExactSectionOverlapCount(
+      previousExactLines,
+      exactLines,
+    );
+    final suppressExactOverlapCount =
+        _receiptOverlapCanBeSuppressed(exactLines.take(exactOverlapCount))
+        ? exactOverlapCount
+        : 0;
     final parserSectionLines = <String>[];
-    var stillInOverlapHeader = true;
-    var foundBoundarySignal = sectionIndex == 0;
-    final previousExactTailSet = previousExactTail.toSet();
+    var foundBoundarySignal = sectionIndex == 0 || exactOverlapCount > 0;
+    if (exactOverlapCount > 0 && suppressExactOverlapCount == 0) {
+      probableOverlapLines += exactOverlapCount;
+    }
     final previousProbableTailSet = previousProbableTail.toSet();
     for (
       var rawLineIndex = 0;
@@ -28,22 +40,18 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
       rawLineIndex++
     ) {
       final clean = rawSectionLines[rawLineIndex];
-      final key = _receiptLineDedupeKey(clean);
       final probableKey = _receiptLineProbableOverlapKey(clean);
-      if (stillInOverlapHeader &&
-          key.isNotEmpty &&
-          previousExactTailSet.contains(key)) {
+      if (rawLineIndex < suppressExactOverlapCount) {
         suppressedDuplicateLines += 1;
-        foundBoundarySignal = true;
         continue;
       }
-      if (stillInOverlapHeader &&
+      if (rawLineIndex == 0 &&
+          exactOverlapCount == 0 &&
           probableKey.length >= 5 &&
           previousProbableTailSet.contains(probableKey)) {
         probableOverlapLines += 1;
         foundBoundarySignal = true;
       }
-      stillInOverlapHeader = false;
       parserSectionLines.add(clean);
       parserLineSourceLocations.add(
         ReceiptOcrParserLineLocation(
@@ -52,7 +60,7 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
         ),
       );
     }
-    if (!foundBoundarySignal && previousExactTail.isNotEmpty) {
+    if (!foundBoundarySignal && previousExactLines.isNotEmpty) {
       possibleSectionGaps += 1;
     }
     // Keep the provider's section text unchanged for source evidence. The
@@ -61,13 +69,7 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
     if (parserSectionLines.isNotEmpty) {
       parserSections.add(parserSectionLines.join('\n'));
     }
-    previousExactTail = rawSectionLines
-        .map(_receiptLineDedupeKey)
-        .where((key) => key.isNotEmpty)
-        .toList(growable: false)
-        .reversed
-        .take(8)
-        .toList(growable: false);
+    previousExactLines = exactLines;
     previousProbableTail = rawSectionLines
         .map(_receiptLineProbableOverlapKey)
         .where((key) => key.length >= 5)
@@ -85,6 +87,31 @@ _CombinedReceiptText _combinedReceiptText(Iterable<String> sections) {
     probableOverlapLines: probableOverlapLines,
     possibleSectionGaps: possibleSectionGaps,
   );
+}
+
+int _receiptExactSectionOverlapCount(
+  List<String> previous,
+  List<String> current,
+) {
+  final maximum = [8, previous.length, current.length].reduce(math.min);
+  for (var count = maximum; count > 0; count--) {
+    final previousStart = previous.length - count;
+    var matches = true;
+    for (var index = 0; index < count; index++) {
+      final key = current[index];
+      if (key.isEmpty || previous[previousStart + index] != key) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) return count;
+  }
+  return 0;
+}
+
+bool _receiptOverlapCanBeSuppressed(Iterable<String> overlap) {
+  final keys = overlap.where((key) => key.isNotEmpty).toSet();
+  return keys.length >= 2;
 }
 
 String _receiptLineDedupeKey(String line) {

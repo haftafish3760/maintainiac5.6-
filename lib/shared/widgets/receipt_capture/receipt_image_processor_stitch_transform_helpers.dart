@@ -173,7 +173,7 @@ img.Image _centerFitToWidth(img.Image source, int targetWidth) {
   return canvas;
 }
 
-int _selectReceiptStitchSeamCropY({
+_ReceiptStitchSeamSelection _selectReceiptStitchSeam({
   required img.Image previous,
   required img.Image next,
   required int overlapPixels,
@@ -181,26 +181,35 @@ int _selectReceiptStitchSeamCropY({
   required int horizontalOffset,
 }) {
   if (overlapPixels < 24 || next.height < 48 || previous.height < 48) {
-    return 0;
+    return const _ReceiptStitchSeamSelection.noOverlap();
   }
   final safeTop = nextTopOffset.clamp(0, next.height - 1);
   final safeOverlap = math.min(
     overlapPixels,
     math.min(previous.height, next.height - safeTop),
   );
-  if (safeOverlap < 24) return safeTop;
+  if (safeOverlap < 24) {
+    return _ReceiptStitchSeamSelection(
+      cropY: safeTop,
+      difference: 0,
+      inkRatio: 0,
+      isSafe: true,
+    );
+  }
   final searchStart = safeTop + (safeOverlap * .30).round();
   final searchEnd = safeTop + (safeOverlap * .72).round();
   final bandRadius = math.max(4, (safeOverlap * .025).round());
   var bestY = safeTop + safeOverlap ~/ 2;
   var bestScore = double.infinity;
+  var bestDifference = double.infinity;
+  var bestInkRatio = 1.0;
   final stepY = math.max(3, safeOverlap ~/ 48);
   for (
     var candidateY = searchStart;
     candidateY <= searchEnd;
     candidateY += stepY
   ) {
-    final score = _receiptStitchSeamRowScore(
+    final evidence = _receiptStitchSeamRowEvidence(
       previous: previous,
       next: next,
       previousY: previous.height - safeOverlap + (candidateY - safeTop),
@@ -208,15 +217,23 @@ int _selectReceiptStitchSeamCropY({
       horizontalOffset: horizontalOffset,
       bandRadius: bandRadius,
     );
-    if (score < bestScore) {
-      bestScore = score;
+    if (evidence.score < bestScore) {
+      bestScore = evidence.score;
+      bestDifference = evidence.difference;
+      bestInkRatio = evidence.inkRatio;
       bestY = candidateY;
     }
   }
-  return bestY.clamp(1, next.height - 1);
+  return _ReceiptStitchSeamSelection(
+    cropY: bestY.clamp(1, next.height - 1),
+    difference: bestDifference,
+    inkRatio: bestInkRatio,
+    isSafe: bestScore.isFinite && bestDifference <= 96 && bestInkRatio <= .55,
+  );
 }
 
-double _receiptStitchSeamRowScore({
+({double score, double difference, double inkRatio})
+_receiptStitchSeamRowEvidence({
   required img.Image previous,
   required img.Image next,
   required int previousY,
@@ -244,8 +261,36 @@ double _receiptStitchSeamRowScore({
       samples++;
     }
   }
-  if (samples == 0) return double.infinity;
+  if (samples == 0) {
+    return (score: double.infinity, difference: double.infinity, inkRatio: 1);
+  }
   // Prefer a visually agreeing, low-ink gap so the join does not cut through
   // printed receipt text, a barcode, or a handwritten annotation.
-  return (difference / samples) + ((ink / samples) * 42);
+  final averageDifference = difference / samples;
+  final inkRatio = ink / samples;
+  return (
+    score: averageDifference + inkRatio * 42,
+    difference: averageDifference,
+    inkRatio: inkRatio,
+  );
+}
+
+class _ReceiptStitchSeamSelection {
+  const _ReceiptStitchSeamSelection({
+    required this.cropY,
+    required this.difference,
+    required this.inkRatio,
+    required this.isSafe,
+  });
+
+  const _ReceiptStitchSeamSelection.noOverlap()
+    : cropY = 0,
+      difference = 0,
+      inkRatio = 0,
+      isSafe = true;
+
+  final int cropY;
+  final double difference;
+  final double inkRatio;
+  final bool isSafe;
 }

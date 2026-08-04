@@ -211,12 +211,17 @@ void main() {
     expect(recoveredCaptureBlock, contains('final accepted = await'));
     expect(
       recoveredCaptureBlock,
-      contains('ReceiptNativeCaptureStaging().clearRecoveryManifestPath'),
+      contains('_retainAcceptedNativeRecoveryUntilReceiptSave(result)'),
     );
     expect(
       recoveredCaptureBlock.indexOf('final accepted = await'),
-      lessThan(recoveredCaptureBlock.indexOf('clearRecoveryManifestPath')),
+      lessThan(
+        recoveredCaptureBlock.indexOf(
+          '_retainAcceptedNativeRecoveryUntilReceiptSave(result)',
+        ),
+      ),
     );
+    expect(recoveredCaptureBlock, isNot(contains('clearRecoveryManifestPath')));
     expect(
       '_readReviewedPhotosForReceiptForm'.allMatches(recoveredCaptureBlock),
       hasLength(0),

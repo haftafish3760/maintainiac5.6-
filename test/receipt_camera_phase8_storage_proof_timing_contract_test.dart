@@ -40,12 +40,12 @@ void main() {
     );
     expect(
       settingsSheet,
-      contains('Your next receipt review shows the actual saved-proof size'),
+      contains('Your next receipt review shows the actual saved image size'),
     );
     expect(
       settingsSheet,
       contains(
-        'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved proof size appears after you capture or attach a receipt first.',
+        'Changes save as soon as you tap a switch. Apply Settings closes this screen. Saved image size appears after you capture or attach a receipt first.',
       ),
     );
     expect(
@@ -54,9 +54,9 @@ void main() {
     );
     expect(
       storageSettings,
-      contains('After a photo is taken, you preview the actual saved proof'),
+      contains('After a photo is taken, you preview the actual saved image'),
     );
-    expect(storageSettings, contains('Saved Receipt Proof'));
+    expect(storageSettings, contains('Saved Receipt Image'));
     expect(storageHandoff, contains('saved_proof_kept_for_receipt_record'));
     expect(
       storageHandoff,

@@ -51,9 +51,7 @@ extension _ReceiptAttachmentRecoveryActions
             previousPhotoIdByPath: previousPhotoIdByPath,
           );
           if (accepted && result.recoveryManifestPath.trim().isNotEmpty) {
-            await const ReceiptNativeCaptureStaging().clearRecoveryManifestPath(
-              result.recoveryManifestPath,
-            );
+            await _retainAcceptedNativeRecoveryUntilReceiptSave(result);
           }
           break;
         case ReceiptCaptureFlowStatus.stagingFailed:

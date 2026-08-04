@@ -35,7 +35,12 @@ void main() {
     expect(panelSource, contains('_normalizedInitialPhotoAttachments'));
     expect(panelSource, contains('final photoAttachments ='));
     expect(panelSource, contains('final path = attachment.path.trim();'));
-    expect(panelSource, contains('path.isEmpty || !seenPaths.add(path)'));
+    expect(
+      panelSource,
+      contains(
+        'path.isEmpty || !File(path).existsSync() || !seenPaths.add(path)',
+      ),
+    );
     expect(panelSource, contains('attachment.copyWith(path: path)'));
     expect(panelSource, contains('_ReceiptReadStatusKind.warning'));
     expect(panelSource, contains('Receipt Could Not Be Read'));
@@ -110,7 +115,13 @@ void main() {
     );
     expect(
       panelSource,
-      contains('ReceiptNativeCaptureStaging().clearRecoveryManifestPath('),
+      contains('_retainAcceptedNativeRecoveryUntilReceiptSave(result)'),
+    );
+    expect(
+      panelSource,
+      isNot(
+        contains('ReceiptNativeCaptureStaging().clearRecoveryManifestPath('),
+      ),
     );
     expect(captureFlow, contains('reason: \'recovery_review_accepted\''));
     expect(
@@ -162,9 +173,7 @@ void main() {
     );
     expect(
       stagingSource,
-      contains(
-        'use the saved photos to open receipt details',
-      ),
+      contains('use the saved photos to open receipt details'),
     );
     expect(panelSource, contains('record.recoveredCountLabel'));
     expect(panelSource, contains('discardRecoveryRecord(record)'));

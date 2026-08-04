@@ -16,6 +16,17 @@ void main() {
       .split('|')
       .where((path) => path.trim().isNotEmpty)
       .toList(growable: false);
+  final maxTargetWidth = int.tryParse(
+    Platform.environment['MAINTAINIAC_RECEIPT_STITCH_MAX_TARGET_WIDTH'] ?? '',
+  );
+  final comparisonWidth = int.tryParse(
+    Platform.environment['MAINTAINIAC_RECEIPT_STITCH_COMPARISON_WIDTH'] ?? '',
+  );
+  final retryComparisonWidth = int.tryParse(
+    Platform.environment['MAINTAINIAC_RECEIPT_STITCH_RETRY_WIDTH'] ?? '',
+  );
+  final expectedOutcome =
+      Platform.environment['MAINTAINIAC_RECEIPT_STITCH_EXPECT'] ?? 'stitched';
 
   test(
     'reports production stitch metadata for supplied device photos',
@@ -43,6 +54,9 @@ void main() {
       final stopwatch = Stopwatch()..start();
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: paths,
+        maxTargetWidth: maxTargetWidth ?? 1400,
+        comparisonWidth: comparisonWidth ?? 400,
+        retryComparisonWidth: retryComparisonWidth ?? 320,
       );
       stopwatch.stop();
       // ignore: avoid_print
@@ -50,6 +64,9 @@ void main() {
         jsonEncode({
           'status': result.status.name,
           'elapsedMs': stopwatch.elapsedMilliseconds,
+          'maxTargetWidth': maxTargetWidth ?? 1400,
+          'comparisonWidth': comparisonWidth ?? 400,
+          'retryComparisonWidth': retryComparisonWidth ?? 320,
           'didStitch': result.didStitch,
           'fallbackReason': result.fallbackReasonCode,
           'confidence': result.confidence,
@@ -71,7 +88,11 @@ void main() {
           ],
         }),
       );
-      expect(result.didStitch, isTrue);
+      if (expectedOutcome == 'stitched') {
+        expect(result.didStitch, isTrue);
+      } else if (expectedOutcome == 'fallback') {
+        expect(result.usedFallback, isTrue);
+      }
       final stitchedPath = result.stitchedPath;
       if (result.didStitch && stitchedPath != null) {
         final stitchedBytes = await File(stitchedPath).readAsBytes();

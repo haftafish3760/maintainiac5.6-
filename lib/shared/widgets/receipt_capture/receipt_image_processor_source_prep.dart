@@ -58,17 +58,24 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
       processed.width != beforeStraightenWidth ||
       processed.height != beforeStraightenHeight;
   if (cleanupSettings.autoStraighten) {
-    scannerDecisionCodes.add(_perspectiveReadinessCode(processed));
+    final perspective = _autoCorrectPerspectiveWithDecision(processed);
+    processed = perspective.image;
+    scannerDecisionCodes.add(perspective.code);
   } else {
     scannerDecisionCodes.add('perspective_skipped_setting_off');
   }
+  final perspectiveCorrected = scannerDecisionCodes.contains(
+    'perspective_applied_safe_quad',
+  );
   final cleanup = _enhanceReceiptForReadingWithDecision(
     processed,
     cleanupSettings: cleanupSettings,
   );
   processed = cleanup.image;
   scannerDecisionCodes.add(cleanup.code);
-  final safe = _bestReceiptOcrSource([baseline, processed]);
+  final safe = perspectiveCorrected
+      ? processed
+      : _bestReceiptOcrSource([baseline, processed]);
   final usedEnhanced = !identical(safe, baseline);
   scannerDecisionCodes.add(
     usedEnhanced
@@ -82,6 +89,7 @@ Future<ReceiptImagePreparationReport> _prepareReceiptSourceWithReport({
     if (oriented) 'auto_orient',
     if (cropped) 'auto_crop',
     if (straightened) 'auto_straighten',
+    if (perspectiveCorrected) 'perspective_correction',
     if (usedEnhanced) 'scanner_cleanup',
     if (!usedEnhanced) 'temporary_full_quality_source_preserved',
     ...cleanupSettings.enabledDiagnosticLabels,

@@ -50,10 +50,20 @@ class ReceiptStitchDeviceLimits {
   const ReceiptStitchDeviceLimits({
     required this.maxOutputPixels,
     required this.maxOutputHeight,
+    required this.maxTargetWidth,
+    required this.comparisonWidth,
+    required this.retryComparisonWidth,
+    required this.evidenceTimeout,
+    required this.processingTimeout,
   });
 
   final int maxOutputPixels;
   final int maxOutputHeight;
+  final int maxTargetWidth;
+  final int comparisonWidth;
+  final int retryComparisonWidth;
+  final Duration evidenceTimeout;
+  final Duration processingTimeout;
 
   String get label {
     return '${(maxOutputPixels / 1000000).toStringAsFixed(1)} MP, max height $maxOutputHeight px';

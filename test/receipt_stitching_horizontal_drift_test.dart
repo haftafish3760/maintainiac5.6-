@@ -72,6 +72,11 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [first.path, second.path],
       );
+      printOnFailure(
+        '${result.fallbackReasonCode}; '
+        '${result.pairs.map((pair) => 'overlap=${pair.overlapPixels} '
+            'y=${pair.verticalOffsetPixels} confidence=${pair.confidence}').join(' | ')}',
+      );
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
       expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
@@ -121,7 +126,8 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [first.path, second.path, third.path],
       );
-
+      // ignore: avoid_print
+      print('VISUAL DEBUG ${_pairEvidence(result)}');
       expect(
         result.didStitch,
         isTrue,
@@ -129,6 +135,11 @@ void main() {
       );
       expect(result.pairs, hasLength(2));
       expect(result.overlapPixels, hasLength(2));
+      expect(
+        result.pairs.map((pair) => pair.verticalOffsetPixels),
+        everyElement(lessThan(100)),
+        reason: 'The copied overlap begins at the top of each continuation.',
+      );
       expect(result.stitchedWidth, greaterThan(900));
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       await _expectStitchedImageMatchesReportedSize(result);
@@ -140,7 +151,7 @@ void main() {
 String _pairEvidence(ReceiptStitchResult result) => result.pairs
     .map(
       (pair) =>
-          '${pair.summaryLabel}; scale ${pair.scaleCorrection.toStringAsFixed(3)}; perspective ${pair.perspectiveCorrection.toStringAsFixed(3)}; continuity ${pair.continuityCorrelation.toStringAsFixed(3)} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})',
+          '${pair.summaryLabel}; scale ${pair.scaleCorrection.toStringAsFixed(3)}; perspective ${pair.perspectiveCorrection.toStringAsFixed(3)}; continuity ${pair.continuityCorrelation.toStringAsFixed(3)} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands}); geometry ${pair.geometryCorrelation.toStringAsFixed(3)} (${pair.geometryMatchingCells}/${pair.geometryDetailedCells}); visual ${pair.visualConfidence.toStringAsFixed(3)}',
     )
     .join('; ');
 

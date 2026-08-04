@@ -26,9 +26,11 @@ extension _ReceiptPhotoReviewStitchOrderEvidence
 
     List<ReceiptStitchTextEvidence> evidence;
     try {
-      evidence = await ReceiptOcrService.forDevice(
-        _deviceCapability,
-      ).recognizeStitchTextEvidence(paths).timeout(const Duration(seconds: 28));
+      evidence = await ReceiptOcrService.forDevice(_deviceCapability)
+          .recognizeStitchTextEvidence(
+            paths,
+            totalBudget: _stitchDeviceLimits.evidenceTimeout,
+          );
     } catch (_) {
       evidence = [
         for (final path in paths)

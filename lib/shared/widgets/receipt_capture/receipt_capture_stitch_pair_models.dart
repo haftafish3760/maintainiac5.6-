@@ -17,6 +17,10 @@ class ReceiptStitchPairResult {
     this.continuityCorrelation = 0,
     this.continuityDetailedBands = 0,
     this.continuityMatchingBands = 0,
+    this.geometryCorrelation = 0,
+    this.geometryDetailedCells = 0,
+    this.geometryMatchingCells = 0,
+    this.visualConfidence = 0,
   });
 
   final int pairIndex;
@@ -34,6 +38,10 @@ class ReceiptStitchPairResult {
   final double continuityCorrelation;
   final int continuityDetailedBands;
   final int continuityMatchingBands;
+  final double geometryCorrelation;
+  final int geometryDetailedCells;
+  final int geometryMatchingCells;
+  final double visualConfidence;
 
   String get pairLabel => 'Photo ${pairIndex + 1} to ${pairIndex + 2}';
   double get _safeConfidence => _safeStitchUnitInterval(confidence);

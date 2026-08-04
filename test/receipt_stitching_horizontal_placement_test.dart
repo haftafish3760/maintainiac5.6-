@@ -60,7 +60,11 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(
+        result.didStitch,
+        isTrue,
+        reason: '${result.detailLabel}; ${_pairEvidence(result)}',
+      );
       expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       expect(
         result.pairs.single.confidence,

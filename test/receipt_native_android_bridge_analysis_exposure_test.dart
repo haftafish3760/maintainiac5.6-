@@ -20,9 +20,7 @@ void main() {
     expect(cameraActivity, isNot(contains('OCR reads original first')));
     expect(
       cameraActivity,
-      contains(
-        'Smaller saved proof copies are made after the receipt is read.',
-      ),
+      contains('A smaller saved copy is made only after the receipt is read.'),
     );
     expect(
       cameraActivity,
@@ -290,7 +288,11 @@ void main() {
         'override fun onStopTrackingTouch(seekBar: SeekBar?) {\n                restoreWorkflowGuidanceIfNeeded()',
       ),
     );
-    expect(cameraActivity, contains('MotionEvent.ACTION_POINTER_UP -> {'));
+    expect(
+      cameraActivity,
+      contains('scaleGestureDetector?.onTouchEvent(event)'),
+    );
+    expect(cameraActivity, isNot(contains('MotionEvent.ACTION_POINTER_UP')));
     expect(cameraActivity, contains('lastFocusStatus'));
     expect(
       cameraActivity,

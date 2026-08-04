@@ -187,28 +187,15 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
         ),
         maxOutputPixels: _stitchDeviceLimits.maxOutputPixels,
         maxOutputHeight: _stitchDeviceLimits.maxOutputHeight,
+        maxTargetWidth: _stitchDeviceLimits.maxTargetWidth,
+        comparisonWidth: _stitchDeviceLimits.comparisonWidth,
+        retryComparisonWidth: _stitchDeviceLimits.retryComparisonWidth,
+        processingTimeout: _stitchDeviceLimits.processingTimeout,
+        timeoutReasonCode: 'stitch_preview_timeout',
+        timeoutWarning:
+            'Putting these photos together took too long. They will stay in order as separate photos so you can continue.',
       );
-      final result = await stitchFuture.timeout(
-        const Duration(seconds: 15),
-        onTimeout: () {
-          // Isolate work cannot be canceled safely. If it eventually creates
-          // a preview after the user has been returned to ordered-photo
-          // review, remove that app-created artifact rather than leaving it
-          // behind on the device.
-          unawaited(
-            stitchFuture.then(
-              (lateResult) => _deleteStitchPreviewPath(lateResult.stitchedPath),
-              onError: (Object _) {},
-            ),
-          );
-          return ReceiptStitchResult.fallback(
-            inputPaths: List<String>.of(_photoPaths),
-            warning:
-                'Putting these photos together took too long. They will stay in order as separate photos so you can continue.',
-            fallbackReasonCode: 'stitch_preview_timeout',
-          );
-        },
-      );
+      final result = await stitchFuture;
       if (!_reviewWorkTokenActive(generation) ||
           _currentStitchPreviewKey() != key) {
         await _deleteStitchPreviewPath(result.stitchedPath);

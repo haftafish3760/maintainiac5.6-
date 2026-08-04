@@ -19,7 +19,7 @@ void main() {
       expect(
         androidSettings,
         contains(
-          'These controls apply while this camera is open. Set your usual receipt defaults in Receipt Settings.',
+          'Changes apply to this camera session. The phone keeps control of its supported autofocus, lens, exposure, and stabilization features.',
         ),
       );
       expect(iosSettings, contains('if !capturedPhotoPaths.isEmpty {'));

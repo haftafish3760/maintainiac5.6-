@@ -1,5 +1,67 @@
 part of 'receipt_image_processor.dart';
 
+int? _manualOverlapFor({
+  required img.Image previous,
+  required img.Image next,
+  required int pairIndex,
+  required List<int>? manualOverlapPixels,
+  required List<double>? manualOverlapFractions,
+}) {
+  if (manualOverlapPixels != null && pairIndex < manualOverlapPixels.length) {
+    final pixels = manualOverlapPixels[pairIndex];
+    if (pixels <= 0) return null;
+    return pixels;
+  }
+  if (manualOverlapFractions != null &&
+      pairIndex < manualOverlapFractions.length) {
+    final fraction = manualOverlapFractions[pairIndex];
+    if (!fraction.isFinite) return -1;
+    if (fraction <= 0) return null;
+    final shortest = math.min(previous.height, next.height);
+    return (shortest * fraction).round();
+  }
+  return null;
+}
+
+double _manualStitchValue(
+  List<double>? values,
+  int pairIndex, {
+  required double fallback,
+  required double minimum,
+  required double maximum,
+}) {
+  if (values == null || pairIndex < 0 || pairIndex >= values.length) {
+    return fallback;
+  }
+  final value = values[pairIndex];
+  if (!value.isFinite) return fallback;
+  return value.clamp(minimum, maximum).toDouble();
+}
+
+_ReceiptOverlapMatch _strongerCorroboratedStitchMatch({
+  required img.Image previous,
+  required _ReceiptOverlapMatch primary,
+  required _ReceiptOverlapMatch retry,
+}) {
+  double score(_ReceiptOverlapMatch match) {
+    final evidence = _receiptOverlapContinuityEvidence(
+      previous: previous,
+      match: match,
+    );
+    final continuityScore = evidence.isProven
+        ? (.42 + evidence.correlation * .30).clamp(0.0, .72)
+        : 0.0;
+    final delayedOverlapPenalty = match.nextTopOffsetPixels > match.pixels
+        ? .08
+        : 0.0;
+    return math.max(match.confidence, continuityScore) - delayedOverlapPenalty;
+  }
+
+  final primaryScore = score(primary);
+  final retryScore = score(retry);
+  return retryScore > primaryScore + .01 ? retry : primary;
+}
+
 class _ReceiptStitchRequest {
   const _ReceiptStitchRequest({
     required this.paths,
@@ -12,6 +74,10 @@ class _ReceiptStitchRequest {
     required this.manualHorizontalOffsetFractions,
     required this.maxOutputPixels,
     required this.maxOutputHeight,
+    required this.maxTargetWidth,
+    required this.comparisonWidth,
+    required this.retryComparisonWidth,
+    required this.outputPath,
   });
 
   final List<String> paths;
@@ -24,6 +90,10 @@ class _ReceiptStitchRequest {
   final List<double>? manualHorizontalOffsetFractions;
   final int maxOutputPixels;
   final int maxOutputHeight;
+  final int maxTargetWidth;
+  final int comparisonWidth;
+  final int retryComparisonWidth;
+  final String outputPath;
 }
 
 Future<ReceiptStitchResult> _runReceiptStitchInBackground(
@@ -40,6 +110,10 @@ Future<ReceiptStitchResult> _runReceiptStitchInBackground(
     manualHorizontalOffsetFractions: request.manualHorizontalOffsetFractions,
     maxOutputPixels: request.maxOutputPixels,
     maxOutputHeight: request.maxOutputHeight,
+    maxTargetWidth: request.maxTargetWidth,
+    comparisonWidth: request.comparisonWidth,
+    retryComparisonWidth: request.retryComparisonWidth,
+    outputPath: request.outputPath,
   );
 }
 
@@ -62,6 +136,39 @@ ReceiptStitchTextPairEvidence _receiptStitchTextEvidenceForPair({
     ReceiptStitchTextEvidence(
       path: inputPaths[pairIndex + 1],
       lines: textLinesByPath[pairIndex + 1],
+    ),
+  );
+}
+
+({ReceiptStitchTextPairEvidence evidence, bool safelyAcceleratesGeometry})
+_receiptStitchTextPlanForPair({
+  required List<String> inputPaths,
+  required List<List<String>>? textLinesByPath,
+  required int pairIndex,
+}) {
+  final evidence = _receiptStitchTextEvidenceForPair(
+    inputPaths: inputPaths,
+    textLinesByPath: textLinesByPath,
+    pairIndex: pairIndex,
+  );
+  if (textLinesByPath == null ||
+      pairIndex < 0 ||
+      pairIndex + 1 >= inputPaths.length ||
+      pairIndex + 1 >= textLinesByPath.length) {
+    return (evidence: evidence, safelyAcceleratesGeometry: false);
+  }
+  return (
+    evidence: evidence,
+    safelyAcceleratesGeometry: receiptStitchTextSafelyAcceleratesGeometry(
+      ReceiptStitchTextEvidence(
+        path: inputPaths[pairIndex],
+        lines: textLinesByPath[pairIndex],
+      ),
+      ReceiptStitchTextEvidence(
+        path: inputPaths[pairIndex + 1],
+        lines: textLinesByPath[pairIndex + 1],
+      ),
+      evidence,
     ),
   );
 }
@@ -154,15 +261,10 @@ int _maxAutoNextSkipBound({
   return math.min(next.height - 1, maxPixels + maxNextTopOffset);
 }
 
-int _findDuplicateReceiptImageIndex(
-  List<List<int>> decodedBytes,
-  List<int> candidate,
-) {
-  for (var index = 0; index < decodedBytes.length; index++) {
-    if (_receiptImageBytesMatch(decodedBytes[index], candidate)) return index;
-  }
-  return -1;
-}
+int _findDuplicateReceiptSourceHashIndex(
+  List<String> sourceHashes,
+  String candidate,
+) => sourceHashes.indexOf(candidate);
 
 int _findDuplicateReceiptDecodedImageIndex(
   List<img.Image> decoded,
@@ -176,7 +278,12 @@ int _findDuplicateReceiptDecodedImageIndex(
             candidate,
           )
         : _receiptImageContentMatches(decoded[index], candidate);
+    final shiftedDuplicate = _receiptImageSmallShiftDuplicateContentMatches(
+      decoded[index],
+      candidate,
+    );
     if (contentMatches ||
+        shiftedDuplicate ||
         (!isImmediateNeighbor &&
             _receiptImageAverageHashDistance(decoded[index], candidate) <=
                 12)) {

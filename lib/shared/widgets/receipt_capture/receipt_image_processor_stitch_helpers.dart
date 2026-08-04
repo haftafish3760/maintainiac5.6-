@@ -4,11 +4,46 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
   required img.Image previous,
   required img.Image next,
   required int targetWidth,
+  int comparisonWidth = 400,
+  int retryComparisonWidth = 320,
+  bool allowUprightFastPath = false,
 }) {
-  // The comparison copy is smaller than the clear proof, but 320px is the
-  // minimum that still preserves delayed-overlap offsets on worn thermal
-  // receipts. Dropping below this can leave a pre-roll strip in the result.
-  const comparisonWidth = 320;
+  final safeComparisonWidth = comparisonWidth.clamp(240, 480).toInt();
+  final safeRetryComparisonWidth = retryComparisonWidth
+      .clamp(200, safeComparisonWidth)
+      .toInt();
+  final primaryMatch = _bestScaleTolerantVerticalOverlapAtWidth(
+    previous: previous,
+    next: next,
+    targetWidth: targetWidth,
+    comparisonWidth: safeComparisonWidth,
+    allowUprightFastPath: allowUprightFastPath,
+  );
+  if (_stitchMatchHasVisualCorroboration(previous, primaryMatch) &&
+      primaryMatch.nextTopOffsetPixels <= primaryMatch.pixels) {
+    return primaryMatch;
+  }
+  final detailRetry = _bestScaleTolerantVerticalOverlapAtWidth(
+    previous: previous,
+    next: next,
+    targetWidth: targetWidth,
+    comparisonWidth: safeRetryComparisonWidth,
+    allowUprightFastPath: allowUprightFastPath,
+  );
+  return _strongerCorroboratedStitchMatch(
+    previous: previous,
+    primary: primaryMatch,
+    retry: detailRetry,
+  );
+}
+
+_ReceiptOverlapMatch _bestScaleTolerantVerticalOverlapAtWidth({
+  required img.Image previous,
+  required img.Image next,
+  required int targetWidth,
+  required int comparisonWidth,
+  required bool allowUprightFastPath,
+}) {
   final sampleWidth = math.min(
     comparisonWidth,
     math.min(previous.width, next.width),
@@ -19,6 +54,17 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
   final nextSample = next.width == sampleWidth
       ? next
       : img.copyResize(next, width: sampleWidth);
+  final uprightFastPath = allowUprightFastPath
+      ? _uprightReceiptOverlapFastPath(
+          previous: previous,
+          next: next,
+          previousSample: previousSample,
+          nextSample: nextSample,
+          targetWidth: targetWidth,
+          sampleWidth: sampleWidth,
+        )
+      : null;
+  if (uprightFastPath != null) return uprightFastPath;
   final candidates = <_ReceiptStitchCandidate>[];
   for (final scale in const [1.0, .94, 1.06, .88, 1.12, .82, 1.18]) {
     final candidateImage = _transformForStitchComparison(
@@ -55,10 +101,10 @@ _ReceiptOverlapMatch _bestScaleTolerantVerticalOverlap({
               baseScaleCandidate.confidence + .05
       ? baseScaleCandidate
       : bestUnrotatedCandidate;
-  // A very strong base match does not need further correction. Borderline
-  // matches continue through the guarded retry path so a delayed overlap is
-  // not mistaken for the start of the next photo.
-  if (selectedUnrotatedCandidate.confidence >= .62 &&
+  // A continuity-proven upright match already meets the same safe acceptance
+  // floor used by the final proof gate. Avoid dozens of rotation/perspective
+  // resamples unless base geometry cannot prove the overlap.
+  if (selectedUnrotatedCandidate.confidence >= .49 &&
       _stitchCandidateHasContinuity(
         candidate: selectedUnrotatedCandidate,
         previous: previousSample,
@@ -257,10 +303,11 @@ _ReceiptOverlapMatch _fixedScaleVerticalOverlap({
   required img.Image previous,
   required img.Image next,
   required int targetWidth,
+  int comparisonWidth = 400,
 }) {
-  const comparisonWidth = 320;
+  final safeComparisonWidth = comparisonWidth.clamp(240, 480).toInt();
   final sampleWidth = math.min(
-    comparisonWidth,
+    safeComparisonWidth,
     math.min(previous.width, next.width),
   );
   final previousSample = previous.width == sampleWidth
@@ -302,6 +349,37 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   var secondBestScore = double.infinity;
   var bestHorizontalOffset = 0;
   var bestNextYOffset = 0;
+  final offsetSeeds =
+      <int, ({double score, int pixels, int horizontalOffset})>{};
+  final geometryCandidates =
+      <({double score, int pixels, int horizontalOffset, int nextYOffset})>[];
+  final geometryCandidatesByOffsetBucket =
+      <
+        int,
+        ({double score, int pixels, int horizontalOffset, int nextYOffset})
+      >{};
+  void trackGeometryCandidate({
+    required double score,
+    required int pixels,
+    required int horizontalOffset,
+    required int nextYOffset,
+  }) {
+    final candidate = (
+      score: score,
+      pixels: pixels,
+      horizontalOffset: horizontalOffset,
+      nextYOffset: nextYOffset,
+    );
+    geometryCandidates.add(candidate);
+    geometryCandidates.sort((a, b) => a.score.compareTo(b.score));
+    if (geometryCandidates.length > 10) geometryCandidates.removeLast();
+    final bucket = nextYOffset ~/ 12;
+    final bucketCandidate = geometryCandidatesByOffsetBucket[bucket];
+    if (bucketCandidate == null || score < bucketCandidate.score) {
+      geometryCandidatesByOffsetBucket[bucket] = candidate;
+    }
+  }
+
   final horizontalOffsets = _stitchHorizontalOffsets(previous.width);
   for (var pixels = minPixels; pixels <= maxPixels; pixels += 24) {
     final nextTopOffsets = _stitchNextTopOffsets(next.height, pixels);
@@ -317,7 +395,25 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
         final score =
             visualScore +
             (horizontalOffset.abs() / math.max(1, previous.width) * 80) +
-            (nextYOffset / math.max(1, next.height) * 12);
+            _stitchNextTopOffsetPenalty(
+              height: next.height,
+              overlapPixels: pixels,
+              nextTopOffset: nextYOffset,
+            );
+        final offsetSeed = offsetSeeds[nextYOffset];
+        if (offsetSeed == null || score < offsetSeed.score) {
+          offsetSeeds[nextYOffset] = (
+            score: score,
+            pixels: pixels,
+            horizontalOffset: horizontalOffset,
+          );
+        }
+        trackGeometryCandidate(
+          score: score,
+          pixels: pixels,
+          horizontalOffset: horizontalOffset,
+          nextYOffset: nextYOffset,
+        );
         if (_stitchCandidateBeatsCurrent(
           score: score,
           pixels: pixels,
@@ -328,6 +424,65 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
           bestScore = score;
           bestPixels = pixels;
           bestHorizontalOffset = horizontalOffset;
+          bestNextYOffset = nextYOffset;
+        } else if ((pixels - bestPixels).abs() > 36 &&
+            score < secondBestScore) {
+          secondBestScore = score;
+        }
+      }
+    }
+  }
+  // Refine the continuation start as well as the overlap height. The coarse
+  // start grid is deliberately small for device cost, but a two- or
+  // three-sample miss can put narrow printed strokes out of phase and hide a
+  // real overlap. Refining only each coarse offset's best local basin keeps
+  // the extra work bounded instead of scanning every possible row.
+  for (final entry in offsetSeeds.entries) {
+    final seed = entry.value;
+    for (var yDelta = -4; yDelta <= 4; yDelta += 2) {
+      final nextYOffset = entry.key + yDelta;
+      if (nextYOffset < 0 || nextYOffset + minPixels >= next.height) continue;
+      for (
+        var pixels = seed.pixels - 12;
+        pixels <= seed.pixels + 12;
+        pixels += 6
+      ) {
+        if (pixels < minPixels ||
+            pixels > maxPixels ||
+            nextYOffset + pixels >= next.height) {
+          continue;
+        }
+        final visualScore = _overlapDifference(
+          previous: previous,
+          next: next,
+          pixels: pixels,
+          horizontalOffset: seed.horizontalOffset,
+          nextYOffset: nextYOffset,
+        );
+        final score =
+            visualScore +
+            (seed.horizontalOffset.abs() / math.max(1, previous.width) * 80) +
+            _stitchNextTopOffsetPenalty(
+              height: next.height,
+              overlapPixels: pixels,
+              nextTopOffset: nextYOffset,
+            );
+        trackGeometryCandidate(
+          score: score,
+          pixels: pixels,
+          horizontalOffset: seed.horizontalOffset,
+          nextYOffset: nextYOffset,
+        );
+        if (_stitchCandidateBeatsCurrent(
+          score: score,
+          pixels: pixels,
+          bestScore: bestScore,
+          bestPixels: bestPixels,
+        )) {
+          secondBestScore = bestScore;
+          bestScore = score;
+          bestPixels = pixels;
+          bestHorizontalOffset = seed.horizontalOffset;
           bestNextYOffset = nextYOffset;
         } else if ((pixels - bestPixels).abs() > 36 &&
             score < secondBestScore) {
@@ -352,7 +507,17 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
         final score =
             visualScore +
             (horizontalOffset.abs() / math.max(1, previous.width) * 80) +
-            (nextYOffset / math.max(1, next.height) * 12);
+            _stitchNextTopOffsetPenalty(
+              height: next.height,
+              overlapPixels: pixels,
+              nextTopOffset: nextYOffset,
+            );
+        trackGeometryCandidate(
+          score: score,
+          pixels: pixels,
+          horizontalOffset: horizontalOffset,
+          nextYOffset: nextYOffset,
+        );
         if (_stitchCandidateBeatsCurrent(
           score: score,
           pixels: pixels,
@@ -370,6 +535,58 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
         }
       }
     }
+  }
+  // Repetitive receipt rows can make the lowest one-dimensional profile score
+  // belong to the wrong occurrence. Re-rank only the bounded best basins with
+  // two-dimensional local-ink correspondence, without widening the search.
+  ({
+    double score,
+    int pixels,
+    int horizontalOffset,
+    int nextYOffset,
+    double geometryScore,
+  })?
+  geometryChoice;
+  final geometryShortlist =
+      <({double score, int pixels, int horizontalOffset, int nextYOffset})>{
+        ...geometryCandidates,
+        ...geometryCandidatesByOffsetBucket.values,
+      };
+  for (final candidate in geometryShortlist) {
+    if (candidate.score > bestScore + 40) continue;
+    final match = _ReceiptOverlapMatch(
+      pixels: candidate.pixels,
+      nextSkipPixels: candidate.pixels + candidate.nextYOffset,
+      nextXOffsetPixels: candidate.horizontalOffset,
+      nextTopOffsetPixels: candidate.nextYOffset,
+      confidence: 0,
+      nextImage: next,
+    );
+    final geometry = _receiptOverlapGeometryEvidence(
+      previous: previous,
+      match: match,
+    );
+    if (!geometry.isProven) continue;
+    final matchShare =
+        geometry.matchingCells / math.max(1, geometry.detailedCells);
+    final geometryScore =
+        candidate.score - geometry.correlation * 16 - matchShare * 5;
+    if (geometryChoice == null ||
+        geometryScore < geometryChoice.geometryScore) {
+      geometryChoice = (
+        score: candidate.score,
+        pixels: candidate.pixels,
+        horizontalOffset: candidate.horizontalOffset,
+        nextYOffset: candidate.nextYOffset,
+        geometryScore: geometryScore,
+      );
+    }
+  }
+  if (geometryChoice != null) {
+    bestScore = geometryChoice.score;
+    bestPixels = geometryChoice.pixels;
+    bestHorizontalOffset = geometryChoice.horizontalOffset;
+    bestNextYOffset = geometryChoice.nextYOffset;
   }
   final visualConfidence = (1 - (bestScore / 64)).clamp(0.0, 1.0);
   final distinctiveness = secondBestScore.isFinite
@@ -409,6 +626,20 @@ _ReceiptOverlapMatch _bestVerticalOverlap({
   );
 }
 
+double _stitchNextTopOffsetPenalty({
+  required int height,
+  required int overlapPixels,
+  required int nextTopOffset,
+}) {
+  // In a normal long-receipt capture the shared area begins near the top of
+  // the continuation. A deep start remains possible, but it must win with
+  // materially better evidence rather than tying a repeated line pattern.
+  final ordinaryPenalty = nextTopOffset / math.max(1, height) * 180;
+  if (nextTopOffset <= overlapPixels) return ordinaryPenalty;
+  final unsupportedPreRoll = nextTopOffset - overlapPixels;
+  return ordinaryPenalty + 48 + (unsupportedPreRoll / math.max(1, height) * 80);
+}
+
 bool _stitchCandidateBeatsCurrent({
   required double score,
   required int pixels,
@@ -446,42 +677,4 @@ List<int> _stitchNextTopOffsets(int height, int pixels) {
   if (maxOffset <= 0) return const [0];
   final offsets = <int>{0, 12, 24, 36, 48, 72, 96, 132, 168, 220, 260, 320};
   return offsets.where((offset) => offset <= maxOffset).toList(growable: false);
-}
-
-int? _manualOverlapFor({
-  required img.Image previous,
-  required img.Image next,
-  required int pairIndex,
-  required List<int>? manualOverlapPixels,
-  required List<double>? manualOverlapFractions,
-}) {
-  if (manualOverlapPixels != null && pairIndex < manualOverlapPixels.length) {
-    final pixels = manualOverlapPixels[pairIndex];
-    if (pixels <= 0) return null;
-    return pixels;
-  }
-  if (manualOverlapFractions != null &&
-      pairIndex < manualOverlapFractions.length) {
-    final fraction = manualOverlapFractions[pairIndex];
-    if (!fraction.isFinite) return -1;
-    if (fraction <= 0) return null;
-    final shortest = math.min(previous.height, next.height);
-    return (shortest * fraction).round();
-  }
-  return null;
-}
-
-double _manualStitchValue(
-  List<double>? values,
-  int pairIndex, {
-  required double fallback,
-  required double minimum,
-  required double maximum,
-}) {
-  if (values == null || pairIndex < 0 || pairIndex >= values.length) {
-    return fallback;
-  }
-  final value = values[pairIndex];
-  if (!value.isFinite) return fallback;
-  return value.clamp(minimum, maximum).toDouble();
 }
