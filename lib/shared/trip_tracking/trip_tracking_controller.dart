@@ -12,6 +12,8 @@ import 'trip_odometer_end_review_policy.dart';
 import 'trip_odometer_calibration_prompt_policy.dart';
 import 'trip_signal_quality_action_policy.dart';
 import 'trip_tracking_bluetooth.dart';
+import 'trip_automatic_evidence_candidate.dart';
+import 'trip_automatic_evidence_candidate_store.dart';
 import 'trip_automatic_start_detector.dart';
 import 'trip_initial_fix_classifier.dart';
 import 'trip_boundary_candidate.dart';
@@ -103,6 +105,7 @@ class TripTrackingController extends ChangeNotifier {
     TripTrackingCloudMirror cloudMirror = const NoopTripTrackingCloudMirror(),
     TripTrackingDurableRecordBridge? durableRecordBridge,
     TripTrackingTripLogProposalSink? tripLogProposalSink,
+    TripAutomaticEvidenceCandidateStore? automaticEvidenceCandidateStore,
     TripTrackingRoutePointStore? routePointStore,
     TripTrackingSettings Function()? routeSettings,
     String Function(DateTime utc)? localRouteDayKey,
@@ -122,6 +125,7 @@ class TripTrackingController extends ChangeNotifier {
        _cloudMirror = cloudMirror,
        _durableRecordBridge = durableRecordBridge,
        _tripLogProposalSink = tripLogProposalSink,
+       _automaticEvidenceCandidateStore = automaticEvidenceCandidateStore,
        _routePointStore = routePointStore,
        _routeSettings = routeSettings,
        _localRouteDayKey = localRouteDayKey,
@@ -143,6 +147,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripTrackingCloudMirror _cloudMirror;
   final TripTrackingDurableRecordBridge? _durableRecordBridge;
   final TripTrackingTripLogProposalSink? _tripLogProposalSink;
+  final TripAutomaticEvidenceCandidateStore? _automaticEvidenceCandidateStore;
   final TripTrackingRoutePointStore? _routePointStore;
   final TripTrackingSettings Function()? _routeSettings;
   final String Function(DateTime utc)? _localRouteDayKey;
@@ -427,6 +432,74 @@ class TripTrackingController extends ChangeNotifier {
       evaluatedAt: _clockNow(),
       acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
     );
+  }
+
+  /// Saves a current, proposal-only automatic-evidence candidate when possible.
+  ///
+  /// This never starts tracking, creates a workday, changes the odometer, or
+  /// confirms a business record. A storage failure leaves manual tracking fully
+  /// available and is surfaced through the existing safe platform status.
+  Future<TripAutomaticStartDecision> captureAutomaticStartAssistance({
+    required TripTrackingSettings settings,
+    required TripAutomaticStartAccessLevel accessLevel,
+    required Iterable<TripAutomaticStartObservation> observations,
+    int acceptedFreeUsesInPeriod = 0,
+    TripAutomaticStartDetector detector = const TripAutomaticStartDetector(),
+  }) async {
+    final decision = evaluateAutomaticStartAssistance(
+      settings: settings,
+      accessLevel: accessLevel,
+      observations: observations,
+      acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
+      detector: detector,
+    );
+    if (!decision.shouldCreateReviewCandidate) return decision;
+    final store = _automaticEvidenceCandidateStore;
+    if (store == null) return decision;
+    try {
+      await store.propose(
+        TripAutomaticEvidenceCandidate.fromDecision(
+          decision: decision,
+          detectedAt: _clockNow(),
+        ),
+      );
+      notifyListeners();
+    } catch (_) {
+      _platformStatus = 'automatic_evidence_candidate_storage_unavailable';
+      _platformError =
+          'Possible vehicle movement could not be saved for review. Manual tracking remains available.';
+      notifyListeners();
+    }
+    return decision;
+  }
+
+  List<TripAutomaticEvidenceCandidate> get automaticEvidenceCandidates =>
+      _automaticEvidenceCandidateStore?.candidates ??
+      const <TripAutomaticEvidenceCandidate>[];
+
+  List<TripAutomaticEvidenceCandidate> get pendingAutomaticEvidenceCandidates =>
+      _automaticEvidenceCandidateStore?.reviewNeeded ??
+      const <TripAutomaticEvidenceCandidate>[];
+
+  /// Records the user's decision about a possible drive without creating a
+  /// session, trip, odometer entry, vehicle switch, or business classification.
+  Future<TripAutomaticEvidenceCandidate> decideAutomaticEvidenceCandidate({
+    required String candidateId,
+    required int expectedRevision,
+    required bool approved,
+  }) async {
+    final store = _automaticEvidenceCandidateStore;
+    if (store == null) {
+      throw StateError('Automatic evidence review is unavailable.');
+    }
+    final decided = await store.decide(
+      candidateId: candidateId,
+      expectedRevision: expectedRevision,
+      approved: approved,
+      decidedAt: _clockNow(),
+    );
+    notifyListeners();
+    return decided;
   }
 
   String? get platformStatus => _platformStatus;

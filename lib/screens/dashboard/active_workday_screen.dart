@@ -42,6 +42,7 @@ import 'active_workday_financial_summary_panel.dart';
 import 'active_workday_vehicle_use_summary_panel.dart';
 import 'active_workday_odometer_review_panel.dart';
 import 'active_workday_tracking_status_line.dart';
+import 'trip_automatic_evidence_review_sheet.dart';
 import 'active_workday_quick_action_editor.dart';
 import 'data/active_workday_elapsed_clock.dart';
 import 'data/active_workday_context_handoff_coordinator.dart';
@@ -160,6 +161,8 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   onResume: _startGpsTrip,
                   onStop: _cancelGpsTrip,
                   onReview: _reviewLatestGpsTrip,
+                  onReviewAutomaticEvidence: () =>
+                      showTripAutomaticEvidenceReviewSheet(context),
                   resumeInFlight: _gpsStartInFlight,
                   stopInFlight: _gpsCancelInFlight,
                 ),

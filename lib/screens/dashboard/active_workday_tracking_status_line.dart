@@ -20,6 +20,7 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
     required this.onResume,
     required this.onStop,
     required this.onReview,
+    this.onReviewAutomaticEvidence,
     this.resumeInFlight = false,
     this.stopInFlight = false,
   });
@@ -28,6 +29,7 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
   final VoidCallback onResume;
   final VoidCallback onStop;
   final VoidCallback onReview;
+  final VoidCallback? onReviewAutomaticEvidence;
   final bool resumeInFlight;
   final bool stopInFlight;
 
@@ -55,6 +57,8 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
         final canResume = controller.isTracking && !controller.nativeTracking;
         final canStop = controller.nativeTracking || stopInFlight;
         final hasReview = controller.latestUnconfirmedReview != null;
+        final pendingAutomaticEvidenceCount =
+            controller.pendingAutomaticEvidenceCandidates.length;
         final evidenceSummary = ActiveWorkdayTrackingStatus.evidenceSummaryFor(
           tracking: controller.isTracking,
           nativeTracking: controller.nativeTracking,
@@ -134,6 +138,13 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                 TextButton(
                   onPressed: onReview,
                   child: const Text('Review GPS Trip Odometer'),
+                ),
+              if (pendingAutomaticEvidenceCount > 0)
+                TextButton(
+                  onPressed: onReviewAutomaticEvidence,
+                  child: Text(
+                    'Review $pendingAutomaticEvidenceCount App Assistant ${pendingAutomaticEvidenceCount == 1 ? 'item' : 'items'}',
+                  ),
                 ),
               if (evidenceSummary != null) ...[
                 const SizedBox(height: 3),

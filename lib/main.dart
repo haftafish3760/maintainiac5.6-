@@ -48,6 +48,7 @@ import 'shared/state/vehicle_profile_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_durable_record_bridge.dart';
 import 'shared/trip_tracking/trip_tracking_platform.dart';
 import 'shared/trip_tracking/trip_tracking_route_point_store.dart';
+import 'shared/trip_tracking/trip_automatic_evidence_candidate_store.dart';
 import 'shared/trip_tracking/trip_tracking_session_store.dart';
 import 'shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'shared/trip_tracking/trip_tracking_trip_log_proposal_store.dart';
@@ -170,6 +171,14 @@ Future<void> main() async {
   } catch (_) {
     tripLogProposalStore = TripTrackingTripLogProposalStore.unavailable();
   }
+  TripAutomaticEvidenceCandidateStore automaticEvidenceCandidateStore;
+  try {
+    automaticEvidenceCandidateStore =
+        await TripAutomaticEvidenceCandidateStore.create();
+  } catch (_) {
+    automaticEvidenceCandidateStore =
+        TripAutomaticEvidenceCandidateStore.unavailable();
+  }
   TripTrackingRoutePointStore routePointStore;
   try {
     routePointStore = await TripTrackingRoutePointStore.create();
@@ -252,6 +261,7 @@ Future<void> main() async {
         appState.activeVehicle?.tireConfigurationRevision ?? 0,
     durableRecordBridge: TripTrackingDurableRecordBridge(durableRecordStore),
     tripLogProposalSink: tripLogProposalStore,
+    automaticEvidenceCandidateStore: automaticEvidenceCandidateStore,
   );
   await tripTracking.restore();
   await tripTracking.retryPendingTripLogProposals();

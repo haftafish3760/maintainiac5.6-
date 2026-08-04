@@ -121,48 +121,8 @@ void main() {
   );
 
   test(
-    'paid linked vehicle connection waits for vehicle approval before GPS',
+    'paid linked vehicle connection is evidence only and never starts GPS',
     () async {
-      var active = false;
-      String? startedVehicle;
-      final coordinator = TripTrackingBluetoothCoordinator(
-        linkStore: await links(),
-        settings: () => const TripTrackingSettings(
-          gpsAssistedTrackingEnabled: true,
-          bluetoothVehicleRecognitionEnabled: true,
-          automaticVehicleSwitchEnabled: true,
-          automaticStartAssistanceEnabled: true,
-        ),
-        hasActiveSession: () => active,
-        hasUnfinishedStoredSession: () => false,
-        currentVehicleId: () => 'vehicle_1',
-        switchVehicle: (_) async => true,
-        automaticStartAccess: () => TripAutomaticStartAccessLevel.paid,
-        startAutomaticTracking: (vehicleId, _) async {
-          startedVehicle = vehicleId;
-          active = true;
-          return true;
-        },
-      );
-
-      await coordinator.handleConnection(
-        DeviceBluetoothConnectionObservation(
-          opaqueDeviceId: 'opaque_local_device',
-          connected: true,
-          observedAtUtc: now,
-        ),
-        nowUtc: now,
-      );
-
-      expect(startedVehicle, isNull);
-      expect(active, isFalse);
-    },
-  );
-
-  test(
-    'free linked vehicle connection cannot start automatic tracking',
-    () async {
-      var startCalls = 0;
       final coordinator = TripTrackingBluetoothCoordinator(
         linkStore: await links(),
         settings: () => const TripTrackingSettings(
@@ -175,11 +135,6 @@ void main() {
         hasUnfinishedStoredSession: () => false,
         currentVehicleId: () => 'vehicle_1',
         switchVehicle: (_) async => true,
-        automaticStartAccess: () => TripAutomaticStartAccessLevel.free,
-        startAutomaticTracking: (_, _) async {
-          startCalls += 1;
-          return true;
-        },
       );
 
       await coordinator.handleConnection(
@@ -190,8 +145,31 @@ void main() {
         ),
         nowUtc: now,
       );
-
-      expect(startCalls, 0);
     },
   );
+
+  test('free linked vehicle connection remains evidence only', () async {
+    final coordinator = TripTrackingBluetoothCoordinator(
+      linkStore: await links(),
+      settings: () => const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        bluetoothVehicleRecognitionEnabled: true,
+        automaticVehicleSwitchEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      ),
+      hasActiveSession: () => false,
+      hasUnfinishedStoredSession: () => false,
+      currentVehicleId: () => 'vehicle_1',
+      switchVehicle: (_) async => true,
+    );
+
+    await coordinator.handleConnection(
+      DeviceBluetoothConnectionObservation(
+        opaqueDeviceId: 'opaque_local_device',
+        connected: true,
+        observedAtUtc: now,
+      ),
+      nowUtc: now,
+    );
+  });
 }

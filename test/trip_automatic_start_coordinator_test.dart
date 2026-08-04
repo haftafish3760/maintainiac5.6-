@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_automatic_start_detector.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_automatic_evidence_candidate_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
@@ -153,6 +154,113 @@ void main() {
     expect(decision.canFinalizeTripLog, isFalse);
     expect(decision.allowanceDecision?.consumesOnDetection, isFalse);
   });
+
+  test(
+    'controller persists a proposal-only candidate without starting a trip',
+    () async {
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        automaticEvidenceCandidateStore:
+            TripAutomaticEvidenceCandidateStore.memory(),
+        clockNow: () => at.add(const Duration(seconds: 31)),
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+
+      final decision = await controller.captureAutomaticStartAssistance(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          automaticStartAssistanceEnabled: true,
+        ),
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        observations: evidence(),
+      );
+
+      expect(decision.shouldCreateReviewCandidate, isTrue);
+      expect(controller.isTracking, isFalse);
+      expect(controller.pendingAutomaticEvidenceCandidates, hasLength(1));
+      expect(
+        controller.pendingAutomaticEvidenceCandidates.single.canConfirmMileage,
+        isFalse,
+      );
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
+  test('candidate-store failure leaves manual tracking available', () async {
+    final controller = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      automaticEvidenceCandidateStore:
+          TripAutomaticEvidenceCandidateStore.unavailable(),
+      clockNow: () => at.add(const Duration(seconds: 31)),
+      odometer: GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      ),
+    );
+    addTearDown(controller.dispose);
+
+    final decision = await controller.captureAutomaticStartAssistance(
+      settings: const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      ),
+      accessLevel: TripAutomaticStartAccessLevel.paid,
+      observations: evidence(),
+    );
+
+    expect(decision.shouldCreateReviewCandidate, isTrue);
+    expect(controller.isTracking, isFalse);
+    expect(controller.pendingAutomaticEvidenceCandidates, isEmpty);
+    expect(
+      controller.platformStatus,
+      'automatic_evidence_candidate_storage_unavailable',
+    );
+  });
+
+  test(
+    'user decision resolves evidence without creating a trip or mileage record',
+    () async {
+      final odometer = GlobalOdometerController(
+        vehicleId: 'vehicle_1',
+        initialReading: 1000,
+      );
+      final controller = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        automaticEvidenceCandidateStore:
+            TripAutomaticEvidenceCandidateStore.memory(),
+        clockNow: () => at.add(const Duration(minutes: 1)),
+        odometer: odometer,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      await controller.captureAutomaticStartAssistance(
+        settings: const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          automaticStartAssistanceEnabled: true,
+        ),
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        observations: evidence(),
+      );
+      final candidate = controller.pendingAutomaticEvidenceCandidates.single;
+
+      final decided = await controller.decideAutomaticEvidenceCandidate(
+        candidateId: candidate.id,
+        expectedRevision: candidate.revision,
+        approved: false,
+      );
+
+      expect(decided.requiresUserReview, isFalse);
+      expect(controller.pendingAutomaticEvidenceCandidates, isEmpty);
+      expect(controller.isTracking, isFalse);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
 }
 
 class _RecoveringActiveSessionStore extends TripTrackingSessionStore {
