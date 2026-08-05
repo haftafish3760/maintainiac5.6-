@@ -115,7 +115,15 @@ class TripAutomaticEvidenceForegroundService : Service() {
     }
 
     private fun emitEvidenceLocation(location: Location) {
+        // Permission or provider state can change while the foreground service
+        // is alive. Stop before a late callback can become App Assistant evidence.
+        if (!hasBackgroundLocationPermission() || !locationServicesEnabled()) {
+            emitUnavailable("automatic_evidence_permission_or_location_unavailable")
+            stopSelf()
+            return
+        }
         if (location.time < observationStartedAtMillis ||
+            isMocked(location) ||
             !location.hasAccuracy() ||
             !location.latitude.isFinite() ||
             !location.longitude.isFinite() ||

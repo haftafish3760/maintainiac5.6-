@@ -101,6 +101,13 @@ void main() {
     expect(androidObserver, contains('"type" to "automaticEvidenceLocation"'));
     expect(androidObserver, contains('PRIORITY_BALANCED_POWER_ACCURACY'));
     expect(androidObserver, contains('hasBackgroundLocationPermission'));
+    expect(
+      androidObserver,
+      contains(
+        'if (!hasBackgroundLocationPermission() || !locationServicesEnabled())',
+      ),
+    );
+    expect(androidObserver, contains('isMocked(location) ||'));
     expect(iosBridge, contains('automaticEvidenceObserving'));
     expect(iosDelegate, contains('"automaticEvidenceLocation"'));
   });
