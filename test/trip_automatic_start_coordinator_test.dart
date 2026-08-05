@@ -310,6 +310,14 @@ void main() {
       expect(controller.isTracking, isFalse);
       expect(odometer.confirmedReading, 1000);
 
+      controller.captureAutomaticActivityEvidence(
+        settings: settings,
+        activity: TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: at.add(const Duration(seconds: 25)),
+        ),
+      );
       await controller.captureAutomaticLocationEvidence(
         settings: settings,
         accessLevel: TripAutomaticStartAccessLevel.paid,
@@ -322,6 +330,9 @@ void main() {
         ),
       );
       expect(controller.pendingAutomaticEvidenceCandidates, hasLength(1));
+      expect(controller.pendingStopReviewCount, 0);
+      expect(controller.advisories, isEmpty);
+      expect(controller.boundaryCandidates, isEmpty);
     },
   );
 

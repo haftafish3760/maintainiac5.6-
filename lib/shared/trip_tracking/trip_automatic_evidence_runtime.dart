@@ -59,9 +59,14 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
     final enabled =
         settings.gpsAssistedTrackingEnabled &&
         settings.automaticStartAssistanceEnabled;
-    if (!enabled) {
+    if (!enabled || _tripTracking.isTracking) {
       _tripTracking.clearAutomaticEvidenceObservationWindow();
-      await _stopNativeObservation();
+      if (await _isNativeObservationRunning()) {
+        await _stopNativeObservation();
+      } else {
+        _observationRunning = false;
+        _setStatus('automatic_evidence_observation_stopped');
+      }
       return;
     }
     _subscription ??= _gateway.events.listen(
@@ -69,6 +74,11 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
       onError: (error, stackTrace) =>
           _setStatus('automatic_evidence_stream_unavailable'),
     );
+    if (await _isNativeObservationRunning()) {
+      _observationRunning = true;
+      _setStatus('automatic_evidence_observing');
+      return;
+    }
     try {
       final started = await _gateway.startAutomaticEvidenceObservation(
         activityRecognitionEnabled: settings.activityRecognitionEnabled,
@@ -90,6 +100,7 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
     final settings = _settings();
     switch (event.type) {
       case TripTrackingPlatformEventType.automaticEvidenceLocation:
+        if (!_observationRunning) return;
         final location = event.location;
         if (location == null) return;
         unawaited(
@@ -100,6 +111,7 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
           ),
         );
       case TripTrackingPlatformEventType.automaticEvidenceActivity:
+        if (!_observationRunning) return;
         final activity = event.activity;
         if (activity == null) return;
         _tripTracking.captureAutomaticActivityEvidence(
@@ -127,6 +139,14 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
     }
     _observationRunning = false;
     _setStatus('automatic_evidence_observation_stopped');
+  }
+
+  Future<bool> _isNativeObservationRunning() async {
+    try {
+      return await _gateway.isAutomaticEvidenceObservationRunning;
+    } catch (_) {
+      return false;
+    }
   }
 
   void _setStatus(String status) {

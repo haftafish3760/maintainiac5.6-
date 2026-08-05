@@ -4,7 +4,10 @@
 /// Does not test GPS collection, active sessions, odometer confirmation, or UI.
 library;
 
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_automatic_evidence_candidate.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_automatic_evidence_candidate_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_automatic_start_detector.dart';
@@ -12,6 +15,19 @@ import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
 void main() {
   final startedAt = DateTime.utc(2026, 8, 4, 12);
+  late Directory hiveDirectory;
+
+  setUp(() async {
+    hiveDirectory = await Directory.systemTemp.createTemp(
+      'trip-automatic-evidence-inbox-',
+    );
+    Hive.init(hiveDirectory.path);
+  });
+
+  tearDown(() async {
+    await Hive.close();
+    await hiveDirectory.delete(recursive: true);
+  });
 
   TripAutomaticEvidenceCandidate candidate({int acceptedFreeUses = 0}) {
     final decision = const TripAutomaticStartDetector().evaluate(
@@ -138,4 +154,37 @@ void main() {
       expect(store.reviewNeeded.single.requiresUserReview, isTrue);
     },
   );
+
+  test(
+    'durably restores a review-only candidate after local restart',
+    () async {
+      final store = await TripAutomaticEvidenceCandidateStore.create();
+      final proposed = candidate();
+      await store.propose(proposed);
+
+      await Hive.close();
+      Hive.init(hiveDirectory.path);
+      final restored = await TripAutomaticEvidenceCandidateStore.create();
+
+      expect(restored.reviewNeeded, hasLength(1));
+      final saved = restored.reviewNeeded.single;
+      expect(saved.id, proposed.id);
+      expect(saved.canCreateConfirmedRecord, isFalse);
+      expect(saved.canConfirmMileage, isFalse);
+      expect(saved.canAssignBusinessPurpose, isFalse);
+      expect(saved.toMap()['coordinatesIncluded'], isFalse);
+    },
+  );
+
+  test('isolates malformed local data without hiding a valid review', () async {
+    final store = await TripAutomaticEvidenceCandidateStore.create();
+    final proposed = candidate();
+    await store.propose(proposed);
+    final box = Hive.box<dynamic>(TripAutomaticEvidenceCandidateStore.boxName);
+    await box.put('malformed', {'schemaVersion': 999, 'candidate': 'invalid'});
+
+    expect(store.reviewNeeded, hasLength(1));
+    expect(store.reviewNeeded.single.id, proposed.id);
+    expect(store.reviewNeeded.single.requiresUserReview, isTrue);
+  });
 }

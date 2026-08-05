@@ -10,6 +10,7 @@ import 'package:maintaniac/shared/trip_tracking/trip_automatic_evidence_candidat
 import 'package:maintaniac/shared/trip_tracking/trip_automatic_evidence_runtime.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_automatic_start_detector.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_controller.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_platform.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_session_store.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
@@ -108,9 +109,83 @@ void main() {
       settings = const TripTrackingSettings();
       expect(await runtime.synchronize(), isFalse);
       expect(gateway.stopCalls, 1);
+      expect(await runtime.synchronize(), isFalse);
+      expect(gateway.stopCalls, 1);
       expect(tripTracking.isTracking, isFalse);
     },
   );
+
+  test(
+    'repeated enabled synchronization does not duplicate observation',
+    () async {
+      final gateway = _EvidenceGateway();
+      final odometer = GlobalOdometerController();
+      final tripTracking = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+      );
+      final runtime = TripAutomaticEvidenceRuntimeController(
+        gateway: gateway,
+        tripTracking: tripTracking,
+        settings: () => const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          automaticStartAssistanceEnabled: true,
+        ),
+      );
+      addTearDown(gateway.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(tripTracking.dispose);
+      addTearDown(runtime.dispose);
+
+      expect(await runtime.synchronize(), isTrue);
+      expect(await runtime.synchronize(), isTrue);
+      expect(gateway.startCalls, 1);
+      gateway.stopExternally();
+      expect(await runtime.synchronize(), isTrue);
+      expect(gateway.startCalls, 2);
+      expect(runtime.observationRunning, isTrue);
+      expect(tripTracking.isTracking, isFalse);
+    },
+  );
+
+  test('an active local trip keeps the separate observer stopped', () async {
+    final gateway = _EvidenceGateway();
+    final odometer = GlobalOdometerController(
+      vehicleId: 'vehicle_1',
+      initialReading: 1000,
+    );
+    final tripTracking = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: odometer,
+    );
+    final runtime = TripAutomaticEvidenceRuntimeController(
+      gateway: gateway,
+      tripTracking: tripTracking,
+      settings: () => const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      ),
+    );
+    addTearDown(gateway.dispose);
+    addTearDown(odometer.dispose);
+    addTearDown(tripTracking.dispose);
+    addTearDown(runtime.dispose);
+
+    expect(await runtime.synchronize(), isTrue);
+    expect(
+      await tripTracking.start(
+        tripId: 'trip_1',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.roadVehicle,
+        startedAt: DateTime.utc(2026, 8, 4, 12),
+      ),
+      isTrue,
+    );
+
+    expect(await runtime.synchronize(), isFalse);
+    expect(gateway.stopCalls, 1);
+    expect(runtime.observationRunning, isFalse);
+  });
 
   test('native evidence failure cannot create or alter a trip', () async {
     final gateway = _EvidenceGateway();
@@ -118,6 +193,8 @@ void main() {
     final tripTracking = TripTrackingController(
       sessionStore: TripTrackingSessionStore.memory(),
       odometer: odometer,
+      automaticEvidenceCandidateStore:
+          TripAutomaticEvidenceCandidateStore.memory(),
     );
     final runtime = TripAutomaticEvidenceRuntimeController(
       gateway: gateway,
@@ -142,6 +219,17 @@ void main() {
 
     expect(runtime.observationRunning, isFalse);
     expect(runtime.lastStatus, 'automatic_evidence_observation_unavailable');
+    gateway.emit({
+      'schemaVersion': 1,
+      'type': 'automaticEvidenceLocation',
+      'latitude': 35.0,
+      'longitude': -82.0,
+      'recordedAt': DateTime.utc(2026, 8, 4, 12).millisecondsSinceEpoch,
+      'horizontalAccuracyMeters': 12.0,
+      'speedMetersPerSecond': 8.0,
+    });
+    await Future<void>.delayed(Duration.zero);
+    expect(tripTracking.pendingAutomaticEvidenceCandidates, isEmpty);
     expect(tripTracking.isTracking, isFalse);
     expect(odometer.confirmedReading, 1000);
   });
@@ -153,6 +241,7 @@ class _EvidenceGateway implements TripAutomaticEvidenceNativeGateway {
   int startCalls = 0;
   int stopCalls = 0;
   bool startResult = true;
+  bool _running = false;
 
   @override
   Stream<TripTrackingPlatformEvent> get events => _events.stream;
@@ -162,16 +251,20 @@ class _EvidenceGateway implements TripAutomaticEvidenceNativeGateway {
     required bool activityRecognitionEnabled,
   }) async {
     startCalls++;
+    _running = startResult;
     return startResult;
   }
 
   @override
   Future<void> stopAutomaticEvidenceObservation() async {
     stopCalls++;
+    _running = false;
   }
 
   @override
-  Future<bool> get isAutomaticEvidenceObservationRunning async => startResult;
+  Future<bool> get isAutomaticEvidenceObservationRunning async => _running;
+
+  void stopExternally() => _running = false;
 
   void emit(Map<String, Object> payload) =>
       _events.add(TripTrackingPlatformEvent.fromNativePayload(payload));
