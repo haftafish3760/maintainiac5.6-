@@ -160,6 +160,7 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
       // can finish the whole long receipt without waiting between captures.
       _reviewMode = _ReceiptReviewMode.preview;
       _stitchPreviewRequested = false;
+      _manualAlignmentRequested = false;
       _savingPhotos = false;
       _cropProcessing = false;
       _cropSourcePath = null;
@@ -168,6 +169,7 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
       _cropRect = null;
       _cropDisplayRect = null;
     });
+    _syncPhotoReviewPagerToSelection();
     _resetToolControlsScrollPosition();
   }
 }

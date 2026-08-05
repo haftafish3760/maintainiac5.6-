@@ -17,6 +17,9 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
             minScale: 1,
             maxScale: 6,
             boundaryMargin: const EdgeInsets.all(48),
+            panEnabled: _photoPreviewZoomed,
+            onInteractionUpdate: (_) => _syncPhotoPreviewZoomState(),
+            onInteractionEnd: (_) => _syncPhotoPreviewZoomState(),
             child: SizedBox.expand(
               child: Image.file(
                 File(photoPath),
@@ -71,6 +74,7 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
     final currentScale = current.getMaxScaleOnAxis();
     if (currentScale > 1.05) {
       _photoPreviewTransformController.value = Matrix4.identity();
+      _setPhotoPreviewZoomed(false);
       return;
     }
     final tapPosition =
@@ -82,10 +86,51 @@ extension _ReceiptPhotoReviewPhotoSurface on _ReceiptPhotoReviewScreenState {
     zoomMatrix.storage[12] = -tapPosition.dx * (targetScale - 1);
     zoomMatrix.storage[13] = -tapPosition.dy * (targetScale - 1);
     _photoPreviewTransformController.value = zoomMatrix;
+    _setPhotoPreviewZoomed(true);
   }
 
   void _resetPhotoPreviewZoom() {
     _lastPhotoPreviewDoubleTap = null;
     _photoPreviewTransformController.value = Matrix4.identity();
+    _setPhotoPreviewZoomed(false);
+  }
+
+  void _syncPhotoPreviewZoomState() {
+    _setPhotoPreviewZoomed(
+      _photoPreviewTransformController.value.getMaxScaleOnAxis() > 1.05,
+    );
+  }
+
+  void _setPhotoPreviewZoomed(bool value) {
+    if (_photoPreviewZoomed == value || !_reviewWorkActive) return;
+    _updateReviewState(() => _photoPreviewZoomed = value);
+  }
+
+  void _selectPhotoForPreview(int index, {bool animate = true}) {
+    if (!_reviewInteractiveControlsActive || _photoPaths.isEmpty) return;
+    final selected = index.clamp(0, _photoPaths.length - 1).toInt();
+    _resetPhotoPreviewZoom();
+    _updateReviewState(() => _selectedIndex = selected);
+    if (!_photoReviewPageController.hasClients) return;
+    if (animate) {
+      unawaited(
+        _photoReviewPageController.animateToPage(
+          selected,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+        ),
+      );
+    } else {
+      _photoReviewPageController.jumpToPage(selected);
+    }
+  }
+
+  void _syncPhotoReviewPagerToSelection() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_reviewWorkActive || !_photoReviewPageController.hasClients) return;
+      final selected = _selectedIndex.clamp(0, _photoPaths.length - 1).toInt();
+      if (_photoReviewPageController.page?.round() == selected) return;
+      _photoReviewPageController.jumpToPage(selected);
+    });
   }
 }

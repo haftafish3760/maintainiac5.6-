@@ -30,10 +30,7 @@ extension _ReceiptPhotoReviewSurfaceControls on _ReceiptPhotoReviewScreenState {
       openingCamera: _openingCamera,
       cropProcessing: _cropProcessing,
       savingPhotos: _savingPhotos,
-      onPhotoSelected: (index) {
-        _resetPhotoPreviewZoom();
-        _updateReviewState(() => _selectedIndex = index);
-      },
+      onPhotoSelected: _selectPhotoForPreview,
       onDataSaverSelected: (level) =>
           _updateReviewState(() => _dataSaverLevel = level),
       askSavedProofSizeEachReceipt:

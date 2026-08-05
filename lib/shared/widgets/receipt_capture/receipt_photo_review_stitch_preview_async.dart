@@ -123,12 +123,50 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     _scheduleStitchPreviewRefresh();
   }
 
+  void _setManualAlignmentGesture(_ReceiptManualAlignmentUpdate update) {
+    if (!_reviewInteractiveControlsActive) return;
+    _syncManualOverlapSlots();
+    if (_manualOverlapFractions.isEmpty) return;
+    _updateReviewState(() {
+      final index = _selectedStitchPairIndex;
+      if (!_manualZeroOverlapPairs[index]) {
+        _manualOverlapFractions[index] = update.overlapFraction
+            .clamp(.08, .48)
+            .toDouble();
+      }
+      _manualScaleCorrections[index] = update.scale.clamp(.75, 1.25).toDouble();
+      _manualRotationCorrectionsDegrees[index] = update.rotationDegrees
+          .clamp(-8, 8)
+          .toDouble();
+      _manualHorizontalOffsetFractions[index] = update.horizontalOffsetFraction
+          .clamp(-.20, .20)
+          .toDouble();
+    });
+    _scheduleStitchPreviewRefresh();
+  }
+
+  void _resetManualAlignment() {
+    if (!_reviewInteractiveControlsActive) return;
+    _syncManualOverlapSlots();
+    if (_manualOverlapFractions.isEmpty) return;
+    _updateReviewState(() {
+      final index = _selectedStitchPairIndex;
+      _manualOverlapFractions[index] = .20;
+      _manualZeroOverlapPairs[index] = false;
+      _manualScaleCorrections[index] = 1;
+      _manualRotationCorrectionsDegrees[index] = 0;
+      _manualHorizontalOffsetFractions[index] = 0;
+    });
+    _scheduleStitchPreviewRefresh();
+  }
+
   void _invalidateStitchPreview() {
     _stitchPreviewDebounce?.cancel();
     final previousPreviewPath = _stitchPreviewResult?.stitchedPath;
     _stitchPreviewKey = null;
     _stitchPreviewResult = null;
     _stitchPreviewInFlight = false;
+    _manualAlignmentRequested = false;
     unawaited(_deleteStitchPreviewPath(previousPreviewPath));
   }
 

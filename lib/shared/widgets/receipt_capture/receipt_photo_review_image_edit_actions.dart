@@ -71,6 +71,7 @@ extension _ReceiptPhotoReviewImageEditActions
         _stitchPreviewRequested = true;
       } else {
         _stitchPreviewRequested = false;
+        _manualAlignmentRequested = false;
       }
     });
     if (mode == _ReceiptReviewMode.stitch) {

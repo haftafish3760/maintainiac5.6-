@@ -165,7 +165,19 @@ void main() {
     expect(reviewScreen, contains('void _togglePhotoPreviewZoom()'));
     expect(reviewScreen, contains('void _resetPhotoPreviewZoom()'));
     expect(reviewScreen, contains('onOpenSettings: openReceiptReviewSettings'));
-    expect(reviewScreen, isNot(contains('_controlsVisible')));
+    final reviewShell =
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_build.dart',
+        ).readAsString();
+    expect(
+      reviewShell,
+      isNot(contains('_controlsVisible')),
+      reason:
+          'The main review must not hide navigation or primary actions. The manual-alignment canvas may independently hide its precision controls.',
+    );
     expect(
       reviewScreen,
       contains("part 'receipt_photo_review_thumbnail_strip.dart'"),

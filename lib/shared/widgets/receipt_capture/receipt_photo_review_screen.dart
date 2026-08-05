@@ -20,6 +20,7 @@ import 'receipt_native_camera_contract.dart';
 import 'receipt_native_camera_preference_mapper.dart';
 import 'receipt_native_camera_service.dart';
 import 'receipt_picker_status.dart';
+import 'receipt_photo_pipeline_contract.dart';
 import 'receipt_photo_review_retake_order.dart';
 import 'receipt_photo_path_identity.dart';
 import 'receipt_photo_review_ui_config.dart';
@@ -28,6 +29,7 @@ import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
 import 'receipt_stitch_text_evidence.dart';
 import 'receipt_storage_guard.dart';
+import 'receipt_temporary_artifact_cleanup.dart';
 
 part 'receipt_photo_review_controls.dart';
 part 'receipt_photo_review_preview_action_tray.dart';
@@ -68,9 +70,11 @@ part 'receipt_photo_review_stitch_preview_async.dart';
 part 'receipt_photo_review_stitch_order_evidence.dart';
 part 'receipt_photo_review_stitch_preview_widgets.dart';
 part 'receipt_photo_review_stitch_pair_preview.dart';
+part 'receipt_photo_review_stitch_alignment_controls.dart';
 part 'receipt_photo_review_stitch_pair_navigator.dart';
 part 'receipt_photo_review_stitch_ghost_preview.dart';
 part 'receipt_photo_review_stitch_photo.dart';
+part 'receipt_photo_review_photo_pager.dart';
 part 'receipt_photo_review_stitch_actions.dart';
 part 'receipt_photo_review_thumbnail_strip.dart';
 part 'receipt_photo_review_settings.dart';
@@ -168,6 +172,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   Future<bool>? _stitchOrderWork;
   var _stitchOrderUserAdjusted = false;
   var _stitchPreviewRequested = false;
+  var _manualAlignmentRequested = false;
   // Review photos is an in-flow detour from the combined-receipt screen.
   // Android Back/iOS swipe-back should return to that screen, not ask whether
   // to discard the whole receipt flow.
@@ -183,7 +188,11 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   String? _cropSourcePath;
   final _toolControlsScrollController = ScrollController();
   final _photoPreviewTransformController = TransformationController();
+  late final _photoReviewPageController = PageController(
+    initialPage: _initialSelectedIndex(),
+  );
   TapDownDetails? _lastPhotoPreviewDoubleTap;
+  var _photoPreviewZoomed = false;
 
   @override
   void initState() {
@@ -243,6 +252,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
     _dataSaverPreviewKeysInFlight.clear();
     _toolControlsScrollController.dispose();
     _photoPreviewTransformController.dispose();
+    _photoReviewPageController.dispose();
     unawaited(_deleteGeneratedStitchPreview());
     unawaited(_deleteGeneratedDataSaverPreviews());
     unawaited(_deleteGeneratedEditPhotos(_photoPaths.toSet()));

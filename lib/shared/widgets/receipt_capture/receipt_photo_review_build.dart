@@ -61,6 +61,9 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                         ? _buildCropSurface(photoPath)
                         : showingLongReceiptMatch
                         ? _buildStitchSurface()
+                        : _reviewMode == _ReceiptReviewMode.preview &&
+                              _photoPaths.length > 1
+                        ? _buildPhotoReviewPager()
                         : _buildPhotoSurface(
                             _reviewMode == _ReceiptReviewMode.dataSaver
                                 ? dataSaverPreviewPath ?? savedProofSourcePath
@@ -123,10 +126,7 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                 _ReceiptReviewThumbnailStrip(
                   photoPaths: _photoPaths,
                   selectedIndex: effectiveSelectedIndex,
-                  onPhotoSelected: (index) {
-                    _resetPhotoPreviewZoom();
-                    _updateReviewState(() => _selectedIndex = index);
-                  },
+                  onPhotoSelected: _selectPhotoForPreview,
                 ),
               if (_showThumbnailStrip &&
                   _reviewMode != _ReceiptReviewMode.preview &&
@@ -152,12 +152,21 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                   saving: _savingPhotos,
                   onContinue: continueReceiptPhotoReview,
                 )
+              else if (showingLongReceiptMatch &&
+                  _automaticStitchAssemblyVisible)
+                const SizedBox.shrink()
+              else if (showingLongReceiptMatch &&
+                  _stitchPreviewResult?.usedFallback == true &&
+                  !_manualAlignmentRequested)
+                const SizedBox.shrink()
               else if (showingLongReceiptMatch)
                 _ReceiptStitchReviewActions(
                   ready: _stitchPreviewResult?.didStitch == true,
                   fallback: _stitchPreviewResult?.usedFallback == true,
                   saving: _savingPhotos,
-                  onUse: continueReceiptPhotoReview,
+                  onUse: _stitchPreviewResult?.usedFallback == true
+                      ? _requestStitchPreview
+                      : continueReceiptPhotoReview,
                   onCancel: () => unawaited(leaveReceiptReviewWithoutSaving()),
                   onRedo: () {
                     _returnToStitchOnPreviewBack = true;
