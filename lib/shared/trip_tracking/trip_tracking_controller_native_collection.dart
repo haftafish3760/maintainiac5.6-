@@ -3,6 +3,34 @@ part of 'trip_tracking_controller.dart';
 /// Starts native location collection after policy, capability, and local
 /// recovery safeguards have approved the request.
 extension TripTrackingControllerNativeCollection on TripTrackingController {
+  /// Requests background location only after the user explicitly enables App
+  /// Assistant. No trip, workday, mileage, or session is created here.
+  Future<TripTrackingAuthorization?> requestAutomaticEvidenceAuthorization({
+    required bool activityRecognitionEnabled,
+  }) async {
+    final platform = _platform;
+    if (_isDisposed || platform == null) return null;
+    try {
+      final authorization = await platform.requestAuthorization(
+        allowBackground: true,
+        activityRecognitionEnabled: activityRecognitionEnabled,
+      );
+      if (!authorization.canTrackInBackground) {
+        _platformStatus = 'automatic_evidence_background_permission_required';
+        _platformError =
+            'Allow background location to let App Assistant suggest possible drives. Manual trip tracking remains available.';
+        notifyListeners();
+      }
+      return authorization;
+    } catch (_) {
+      _platformStatus = 'automatic_evidence_permission_request_failed';
+      _platformError =
+          'App Assistant permission could not be checked. Manual trip tracking remains available.';
+      notifyListeners();
+      return null;
+    }
+  }
+
   Future<bool> openBackgroundLocationSettings() async {
     final platform = _platform;
     if (_isDisposed ||
@@ -257,8 +285,10 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
       lowBatteryProtectionEnabled: lowBatteryProtectionEnabled,
       lowBatteryOverrideEnabled: lowBatteryOverrideEnabled,
       lowBatteryWarningDismissed: lowBatteryWarningDismissed,
-      deviceLocationIntervalFloorSeconds:
-          deviceIntervalFloorSeconds.clamp(1, 60),
+      deviceLocationIntervalFloorSeconds: deviceIntervalFloorSeconds.clamp(
+        1,
+        60,
+      ),
     )) {
       await _tryTransitionSession(
         TripTrackingSessionLifecycleState.failedRecoverable,
@@ -454,8 +484,10 @@ extension TripTrackingControllerNativeCollection on TripTrackingController {
     _engine?.recordInitialFixAssessment(null);
     _nativeSampling = request.sampling;
     _nativeSamplingPlan = samplingPlan;
-    _deviceLocationIntervalFloorSeconds =
-        deviceIntervalFloorSeconds.clamp(1, 60);
+    _deviceLocationIntervalFloorSeconds = deviceIntervalFloorSeconds.clamp(
+      1,
+      60,
+    );
     _lastNativeHeartbeatUtc = _clockNow().toUtc();
     _nativeTrackingStartedAtUtc = _lastNativeHeartbeatUtc;
     _lastNativeLocationReceivedUtc = null;

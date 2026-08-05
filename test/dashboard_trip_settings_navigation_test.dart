@@ -52,9 +52,15 @@ void main() {
       contains("const _SettingsSectionTitle('Vehicle recognition')"),
     );
     expect(source, contains("'Paid feature'"));
+    expect(source, contains("'Let App Assistant suggest possible drives'"));
+    expect(source, contains('requestAutomaticEvidenceAuthorization'));
     expect(
       source,
-      contains("'Automatically start GPS for the linked vehicle'"),
+      contains('App Assistant stays off until background location is allowed.'),
+    );
+    expect(
+      source,
+      contains('It never starts a workday or confirms mileage on its own.'),
     );
     expect(
       source,

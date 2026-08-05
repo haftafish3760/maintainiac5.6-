@@ -335,14 +335,47 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             onChanged:
                 _automaticStartControlsEnabled &&
                     settings.gpsAssistedTrackingEnabled
-                ? (value) => onChanged(
-                    settings.copyWith(automaticStartAssistanceEnabled: value),
+                ? (value) => _setAutomaticEvidenceEnabled(
+                    context,
+                    enabled: value,
+                    settings: settings,
+                    onChanged: onChanged,
+                    tripTracking: tripTracking,
                   )
                 : null,
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _setAutomaticEvidenceEnabled(
+    BuildContext context, {
+    required bool enabled,
+    required TripTrackingSettings settings,
+    required ValueChanged<TripTrackingSettings> onChanged,
+    required TripTrackingController? tripTracking,
+  }) async {
+    if (!enabled) {
+      onChanged(settings.copyWith(automaticStartAssistanceEnabled: false));
+      return;
+    }
+    final authorization = await tripTracking
+        ?.requestAutomaticEvidenceAuthorization(
+          activityRecognitionEnabled: settings.activityRecognitionEnabled,
+        );
+    if (!context.mounted) return;
+    if (tripTracking != null && authorization?.canTrackInBackground != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'App Assistant stays off until background location is allowed. Manual trip tracking remains available.',
+          ),
+        ),
+      );
+      return;
+    }
+    onChanged(settings.copyWith(automaticStartAssistanceEnabled: true));
   }
 
   Widget _switch({
