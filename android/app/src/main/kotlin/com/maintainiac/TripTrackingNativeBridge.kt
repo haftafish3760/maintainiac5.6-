@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
@@ -12,6 +13,7 @@ import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
+import android.util.Log
 import androidx.core.content.ContextCompat
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
@@ -21,23 +23,73 @@ import io.flutter.plugin.common.MethodChannel
 private const val tripTrackingCommandChannel = "maintainiac/trip_tracking/commands"
 private const val tripTrackingEventChannel = "maintainiac/trip_tracking/events"
 private const val tripTrackingPermissionRequestCode = 7312
+private const val tripTrackingDiagnosticLogTag = "MaintainiacTripDiag"
 
 /** The foreground service reports location/lifecycle events through this sink. */
 object TripTrackingEventEmitter {
     private var sink: EventChannel.EventSink? = null
+    private var debugDiagnosticsEnabled = false
+
+    fun enableDebugDiagnostics(applicationInfo: ApplicationInfo) {
+        debugDiagnosticsEnabled =
+            applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+    }
 
     fun attach(nextSink: EventChannel.EventSink?) {
         sink = nextSink
     }
 
     fun emit(event: Map<String, Any?>) {
+        if (debugDiagnosticsEnabled) {
+            Log.i(tripTrackingDiagnosticLogTag, safeDiagnosticEvent(event))
+        }
         sink?.success(event + mapOf("schemaVersion" to 1))
+    }
+
+    /// Emits only field-test health signals to logcat in debug builds.
+    ///
+    /// Coordinates, route geometry, timestamps, mileage, device identity, and
+    /// user-entered text are deliberately excluded. The monitor is read-only
+    /// and cannot change a trip, stop, workday, or odometer record.
+    private fun safeDiagnosticEvent(event: Map<String, Any?>): String {
+        val type = safeDiagnosticToken(event["type"], "unknown")
+        return when (type) {
+            "location", "automaticEvidenceLocation" -> {
+                val accuracy = (event["horizontalAccuracyMeters"] as? Number)
+                    ?.toDouble()
+                    ?.takeIf { it.isFinite() && it >= 0 }
+                    ?.toInt()
+                    ?.coerceAtMost(10000)
+                    ?.toString()
+                    ?: "unknown"
+                val mocked = event["mockedLocation"] == true
+                "type=$type callback=location accuracyMeters=$accuracy mocked=$mocked"
+            }
+            "activity", "automaticEvidenceActivity" ->
+                "type=$type activity=${safeDiagnosticToken(event["activity"], "unknown")}" +
+                    " confidence=${safeDiagnosticToken(event["confidence"], "unknown")}"
+            "error" -> "type=error code=${safeDiagnosticToken(event["errorCode"], "unknown")}"
+            "status" -> "type=status value=${safeDiagnosticToken(event["status"], "unknown")}"
+            else -> "type=$type"
+        }
+    }
+
+    private fun safeDiagnosticToken(value: Any?, fallback: String): String {
+        val token = value?.toString()
+            ?.filter { it.isLetterOrDigit() || it == '_' || it == '-' || it == '.' }
+            ?.take(80)
+            ?.takeIf { it.isNotEmpty() }
+        return token ?: fallback
     }
 }
 
 class TripTrackingNativeBridge(
     private val activity: Activity,
 ) : EventChannel.StreamHandler {
+    init {
+        TripTrackingEventEmitter.enableDebugDiagnostics(activity.applicationInfo)
+    }
+
     private var pendingAuthorizationResult: MethodChannel.Result? = null
     private var pendingBackgroundAuthorization = false
     private var pendingActivityAuthorization = false
