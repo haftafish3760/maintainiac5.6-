@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
 import '../../shared/trip_tracking/trip_tracking_models.dart';
+import '../../shared/trip_tracking/trip_tracking_signal_quality.dart';
 import '../../shared/trip_tracking/trip_tracking_settings_store.dart';
 import 'active_workday_bluetooth_status_line.dart';
 
@@ -70,6 +71,25 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
           isListening: bluetoothRuntime?.isListening ?? false,
           lastDecision: bluetoothRuntime?.lastDecision,
         );
+        final diagnostics = controller.diagnostics;
+        final signal = controller.signalQualitySummary;
+        final diagnosticSummary =
+            ActiveWorkdayTrackingStatus.diagnosticSummaryFor(
+              nativeTracking: controller.nativeTracking,
+              providerRegistered: controller.nativeProviderRegistered,
+              awaitingInitialFix: controller.awaitingInitialFix,
+              receivedSamples: diagnostics.receivedSamples,
+              acceptedSamples: diagnostics.acceptedSamples,
+              rejectedSamples: diagnostics.rejectedSamples,
+              signalQuality: signal.quality,
+              signalReason: signal.reasonCode,
+              motionState: controller.motionState,
+              signalGapCount: controller.signalGaps.length,
+              pendingStopCount: controller.pendingStopReviewCount,
+              hasAcceptedLocation:
+                  controller.activeSession?.engineSnapshot.lastAccepted != null,
+              bluetoothLabel: bluetoothStatus.label,
+            );
         return Semantics(
           label: status.label,
           child: Column(
@@ -157,6 +177,33 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                   ),
                 ),
               ],
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 4),
+                collapsedIconColor: const Color(0xFF9CC7E8),
+                iconColor: const Color(0xFF9CC7E8),
+                title: const Text(
+                  'GPS test details',
+                  style: TextStyle(
+                    color: Color(0xFF9CC7E8),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                children: [
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      diagnosticSummary,
+                      style: const TextStyle(
+                        color: Color(0xFFCAD2D5),
+                        fontSize: 11,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         );
@@ -255,6 +302,46 @@ class ActiveWorkdayTrackingStatus {
       return 'GPS evidence: waiting for accepted movement. Odometer stays official.';
     }
     return 'GPS evidence: ${acceptedMiles.toStringAsFixed(1)} mi accepted. Odometer stays official.';
+  }
+
+  /// Builds privacy-safe, live field-test diagnostics from controller state.
+  ///
+  /// This explains collector and evidence health without showing coordinates,
+  /// route geometry, or changing a trip, stop, or odometer record.
+  static String diagnosticSummaryFor({
+    required bool nativeTracking,
+    required bool providerRegistered,
+    required bool awaitingInitialFix,
+    required int receivedSamples,
+    required int acceptedSamples,
+    required int rejectedSamples,
+    required TripTrackingSignalQuality signalQuality,
+    required String signalReason,
+    required TripMotionState motionState,
+    required int signalGapCount,
+    required int pendingStopCount,
+    required bool hasAcceptedLocation,
+    required String bluetoothLabel,
+  }) {
+    final collector = nativeTracking
+        ? (providerRegistered ? 'running' : 'starting')
+        : 'not running';
+    final location = awaitingInitialFix
+        ? 'waiting for a current location'
+        : hasAcceptedLocation
+        ? 'current evidence accepted'
+        : 'no accepted location yet';
+    final safeReason = signalReason.trim().isEmpty ? 'none' : signalReason;
+    return 'Collector: $collector\n'
+        'Location: $location\n'
+        'Samples: $receivedSamples received · $acceptedSamples accepted · '
+        '$rejectedSamples rejected\n'
+        'Signal: ${signalQuality.name} ($safeReason) · gaps: $signalGapCount\n'
+        'Motion: ${motionState.name} · stops waiting for review: '
+        '$pendingStopCount\n'
+        'Bluetooth: $bluetoothLabel\n'
+        'No coordinates are shown here. GPS remains evidence; the odometer '
+        'and your review remain official.';
   }
 
   final String label;

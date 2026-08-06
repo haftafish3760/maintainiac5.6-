@@ -7,6 +7,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/dashboard/active_workday_tracking_status_line.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_signal_quality.dart';
 
 void main() {
   test('Active Day never calls an initial-fix wait live GPS', () {
@@ -99,6 +100,34 @@ void main() {
         ),
         isNull,
       );
+    },
+  );
+
+  test(
+    'GPS test details explain live evidence without exposing coordinates',
+    () {
+      final details = ActiveWorkdayTrackingStatus.diagnosticSummaryFor(
+        nativeTracking: true,
+        providerRegistered: true,
+        awaitingInitialFix: false,
+        receivedSamples: 12,
+        acceptedSamples: 10,
+        rejectedSamples: 2,
+        signalQuality: TripTrackingSignalQuality.healthy,
+        signalReason: 'accepted_evidence',
+        motionState: TripMotionState.stopCandidate,
+        signalGapCount: 1,
+        pendingStopCount: 1,
+        hasAcceptedLocation: true,
+        bluetoothLabel: 'Bluetooth recognizes the active vehicle',
+      );
+
+      expect(details, contains('Collector: running'));
+      expect(details, contains('12 received · 10 accepted · 2 rejected'));
+      expect(details, contains('Motion: stopCandidate'));
+      expect(details, contains('stops waiting for review: 1'));
+      expect(details, contains('No coordinates are shown here'));
+      expect(details, contains('odometer and your review remain official'));
     },
   );
 }
