@@ -92,6 +92,81 @@ void main() {
   }
 
   test(
+    'App Assistant background-permission denial cannot start or alter a trip',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        authorization: const TripTrackingAuthorization(
+          state: TripTrackingAuthorizationState.whileInUse,
+          preciseLocation: true,
+        ),
+      );
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+
+      final authorization = await controller
+          .requestAutomaticEvidenceAuthorization(
+            activityRecognitionEnabled: true,
+          );
+
+      expect(authorization?.canTrackInBackground, isFalse);
+      expect(native.requestAuthorizationCalls, 1);
+      expect(native.startCalls, 0);
+      expect(controller.isTracking, isFalse);
+      expect(controller.nativeTracking, isFalse);
+      expect(odometer.confirmedReading, 1000);
+      expect(
+        controller.platformStatus,
+        'automatic_evidence_background_permission_required',
+      );
+      expect(
+        controller.platformError,
+        contains('Manual trip tracking remains'),
+      );
+    },
+  );
+
+  test(
+    'App Assistant permission faults leave manual tracking and mileage intact',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        authorizationException: StateError('permission bridge fault'),
+      );
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        await controller.requestAutomaticEvidenceAuthorization(
+          activityRecognitionEnabled: false,
+        ),
+        isNull,
+      );
+
+      expect(native.startCalls, 0);
+      expect(controller.isTracking, isFalse);
+      expect(controller.nativeTracking, isFalse);
+      expect(odometer.confirmedReading, 1000);
+      expect(
+        controller.platformStatus,
+        'automatic_evidence_permission_request_failed',
+      );
+      expect(
+        controller.platformError,
+        contains('Manual trip tracking remains'),
+      );
+    },
+  );
+
+  test(
     'controller accepts newer Android monotonic time at a duplicate wall clock',
     () async {
       final controller = TestTripTrackingController(
