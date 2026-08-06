@@ -18,14 +18,17 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
     required TripAutomaticEvidenceNativeGateway gateway,
     required TripTrackingController tripTracking,
     required TripTrackingSettings Function() settings,
+    String? Function()? bluetoothEvidenceVehicleId,
     this.accessLevel = TripAutomaticStartAccessLevel.free,
   }) : _gateway = gateway,
        _tripTracking = tripTracking,
-       _settings = settings;
+       _settings = settings,
+       _bluetoothEvidenceVehicleId = bluetoothEvidenceVehicleId;
 
   final TripAutomaticEvidenceNativeGateway _gateway;
   final TripTrackingController _tripTracking;
   final TripTrackingSettings Function() _settings;
+  final String? Function()? _bluetoothEvidenceVehicleId;
   final TripAutomaticStartAccessLevel accessLevel;
 
   StreamSubscription<TripTrackingPlatformEvent>? _subscription;
@@ -108,6 +111,7 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
             settings: settings,
             accessLevel: accessLevel,
             location: location,
+            bluetoothVehicleId: _bluetoothEvidenceVehicleId?.call(),
           ),
         );
       case TripTrackingPlatformEventType.automaticEvidenceActivity:

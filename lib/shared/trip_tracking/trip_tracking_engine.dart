@@ -134,8 +134,37 @@ class TripTrackingEngine {
     final priorCount = _walkingEvidence.length;
     final priorReview = _walkingReviewSuggested;
     _recordActivity(activity, observedAt: referenceAt);
+    if (_hasWalkingStopEvidence(referenceAt)) {
+      _motionState = TripMotionState.stopped;
+    } else if (_isRecentVehicleToWalkingTransition(
+      activity,
+      observedAt: referenceAt,
+    )) {
+      _motionState = TripMotionState.stopCandidate;
+    }
     return priorCount != _walkingEvidence.length ||
         priorReview != _walkingReviewSuggested;
+  }
+
+  bool _isRecentVehicleToWalkingTransition(
+    TripActivityObservation activity, {
+    required DateTime observedAt,
+  }) {
+    if (!_strategy.usesWalkingStopEvidence ||
+        !_vehicleMovementObserved ||
+        !activity.canSupportStopReview ||
+        activity.confidence <
+            policy.walkingTransitionCandidateMinimumConfidence) {
+      return false;
+    }
+    final lastVehicleSample = _lastAccepted;
+    if (lastVehicleSample == null) return false;
+    final elapsed = observedAt.difference(lastVehicleSample.recordedAt);
+    final minimumDelay = policy.walkingTransitionCandidateDelay;
+    final maximumDelay = policy.walkingConfirmationWindow;
+    return !elapsed.isNegative &&
+        elapsed >= minimumDelay &&
+        elapsed <= maximumDelay;
   }
 
   TripTrackingEngineSnapshot get snapshot => TripTrackingEngineSnapshot(

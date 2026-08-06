@@ -49,6 +49,24 @@ class TripTrackingBluetoothRuntimeController extends ChangeNotifier {
   bool get isListening => _binding.isListening;
   BluetoothVehicleMatchDecision? get lastDecision => _lastDecision;
 
+  /// A currently connected, already user-linked vehicle may corroborate an
+  /// App Assistant proposal. It is evidence only: callers must not use it to
+  /// select a vehicle, start a trip, or confirm mileage.
+  String? get connectedEvidenceVehicleId {
+    final decision = _lastDecision;
+    if (decision == null) return null;
+    return switch (decision.disposition) {
+      BluetoothVehicleMatchDisposition.requiresUserConfirmation ||
+      BluetoothVehicleMatchDisposition.automaticSwitchAllowed ||
+      BluetoothVehicleMatchDisposition.alreadyActiveVehicle =>
+        decision.vehicleId,
+      BluetoothVehicleMatchDisposition.noMatch ||
+      BluetoothVehicleMatchDisposition.recognitionDisabled ||
+      BluetoothVehicleMatchDisposition.blockedByActiveTrip ||
+      BluetoothVehicleMatchDisposition.blockedByUnfinishedSession => null,
+    };
+  }
+
   bool get hasPendingDevice => _usablePendingObservation() != null;
 
   DateTime? get pendingObservedAtUtc =>

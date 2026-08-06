@@ -85,6 +85,58 @@ void main() {
   );
 
   test(
+    'runtime carries Bluetooth only as vehicle evidence for review',
+    () async {
+      final at = DateTime.utc(2026, 8, 4, 12);
+      final gateway = _EvidenceGateway();
+      final store = TripAutomaticEvidenceCandidateStore.memory();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final tripTracking = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        automaticEvidenceCandidateStore: store,
+        clockNow: () => at.add(const Duration(seconds: 45)),
+      );
+      final runtime = TripAutomaticEvidenceRuntimeController(
+        gateway: gateway,
+        tripTracking: tripTracking,
+        settings: () => const TripTrackingSettings(
+          gpsAssistedTrackingEnabled: true,
+          automaticStartAssistanceEnabled: true,
+        ),
+        accessLevel: TripAutomaticStartAccessLevel.paid,
+        bluetoothEvidenceVehicleId: () => 'vehicle_1',
+      );
+      addTearDown(gateway.dispose);
+      addTearDown(odometer.dispose);
+      addTearDown(tripTracking.dispose);
+      addTearDown(runtime.dispose);
+
+      expect(await runtime.synchronize(), isTrue);
+      for (var index = 0; index < 3; index += 1) {
+        gateway.emit({
+          'schemaVersion': 1,
+          'type': 'automaticEvidenceLocation',
+          'latitude': 35.0 + (index * 0.0004),
+          'longitude': -82.0 - (index * 0.0004),
+          'recordedAt': at
+              .add(Duration(seconds: index * 15))
+              .millisecondsSinceEpoch,
+          'horizontalAccuracyMeters': 12.0,
+          'speedMetersPerSecond': 8.0,
+        });
+      }
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      final candidate = tripTracking.pendingAutomaticEvidenceCandidates.single;
+      expect(candidate.suggestedVehicleId, 'vehicle_1');
+      expect(tripTracking.isTracking, isFalse);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
+  test(
     'opt-out stops native observation and clears only transient evidence',
     () async {
       final gateway = _EvidenceGateway();

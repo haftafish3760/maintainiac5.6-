@@ -226,7 +226,15 @@ class _ActiveWorkdayScreenState extends State<ActiveWorkdayScreen> {
                   },
                 ),
                 const SizedBox(height: 12),
-                _SessionActivityList(events: session?.events ?? const []),
+                _SessionActivityList(
+                  events: session?.events ?? const [],
+                  pendingGpsStopReviews:
+                      TripTrackingScope.maybeOf(
+                        context,
+                      )?.pendingStopReviewCount ??
+                      0,
+                  onReviewGpsStops: _reviewWalkingStop,
+                ),
                 const SizedBox(height: 16),
                 // The Dashboard Calendar remains available while a workday is
                 // active. It projects scheduled and recorded source records;

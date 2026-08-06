@@ -79,6 +79,8 @@ class TripTrackingPolicy {
     this.walkingConfirmationCount = 3,
     this.walkingConfirmationWindow = const Duration(seconds: 45),
     this.walkingStopConfirmationDuration = const Duration(seconds: 20),
+    this.walkingTransitionCandidateDelay = const Duration(seconds: 4),
+    this.walkingTransitionCandidateMinimumConfidence = 90,
     this.vehicleOnlyStopCandidateDuration = const Duration(seconds: 90),
     this.lowBatteryGpsCutoffPercent = 15,
     this.lowBatteryGpsWarningPercent = 20,
@@ -116,6 +118,13 @@ class TripTrackingPolicy {
   /// A fitness-motion classification is only an advisory stop clue after this
   /// much corroborating time; one classification must not become a stop.
   final Duration walkingStopConfirmationDuration;
+
+  /// A fresh, very-high-confidence walking transition shortly after verified
+  /// vehicle movement may create a low-confidence *review proposal*. This
+  /// catches a driver parking and immediately walking away; it never confirms
+  /// a stop, ends a trip, or changes mileage.
+  final Duration walkingTransitionCandidateDelay;
+  final int walkingTransitionCandidateMinimumConfidence;
 
   /// Stationary GPS drift after accepted vehicle movement can suggest a
   /// vehicle-only wait, but it never creates an official stop.

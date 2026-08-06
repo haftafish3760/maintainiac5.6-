@@ -287,10 +287,13 @@ Future<void> main() async {
   }
 
   tripTrackingSettings.addListener(syncActiveTripSettings);
+  late final TripTrackingBluetoothRuntimeController bluetoothTripRuntime;
   final automaticEvidenceRuntime = TripAutomaticEvidenceRuntimeController(
     gateway: tripTrackingPlatform,
     tripTracking: tripTracking,
     settings: () => tripTrackingSettings.settings,
+    bluetoothEvidenceVehicleId: () =>
+        bluetoothTripRuntime.connectedEvidenceVehicleId,
   );
   void syncAutomaticEvidenceObservation() {
     unawaited(automaticEvidenceRuntime.synchronize());
@@ -375,7 +378,7 @@ Future<void> main() async {
       return true;
     },
   );
-  final bluetoothTripRuntime = TripTrackingBluetoothRuntimeController(
+  bluetoothTripRuntime = TripTrackingBluetoothRuntimeController(
     probe: DeviceCapabilityService.instance,
     coordinator: bluetoothTripCoordinator,
     linkStore: bluetoothVehicleLinks,

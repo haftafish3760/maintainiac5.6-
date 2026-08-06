@@ -7224,6 +7224,71 @@ void main() {
   );
 
   test(
+    'park then a short high-confidence walk creates a stop proposal without a later GPS point',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      await controller.start(
+        tripId: 'trip_drive_park_short_walk',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.9997, 15, speed: 8));
+      // The vehicle is parked. No later location is required for the short
+      // walk itself to become a review-only proposal.
+      native.addLocation(sample(-79.9997, 20, speed: 0));
+      await drainNativeTripEventsUntil(
+        () => controller.acceptedMeters > 0,
+        maxPumps: 48,
+      );
+
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: start.add(const Duration(seconds: 25)),
+        ),
+      );
+      await drainNativeTripEventsUntil(
+        () => controller.pendingStopReviewCount == 1,
+        maxPumps: 48,
+      );
+
+      expect(controller.pendingStopReviewCount, 1);
+      expect(controller.needsWalkingReview, isTrue);
+      expect(
+        controller.activeSession?.advisories.single.type,
+        TripTrackingAdvisoryType.probableStop,
+      );
+      expect(
+        controller.activeSession?.advisories.single.disposition,
+        TripTrackingAdvisoryDisposition.pending,
+      );
+      expect(controller.isTracking, isTrue);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
+  test(
     'failed activity evidence checkpoint cannot influence a later GPS sample',
     () async {
       final native = _FakeTripTrackingPlatform(

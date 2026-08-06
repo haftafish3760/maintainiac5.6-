@@ -155,6 +155,7 @@ class TripTrackingController extends ChangeNotifier {
   final TripAutomaticEvidenceCandidateStore? _automaticEvidenceCandidateStore;
   final TripAutomaticEvidenceObservationBuffer
   _automaticEvidenceObservationBuffer;
+  bool _automaticEvidenceCandidateProposalInFlight = false;
   final TripTrackingRoutePointStore? _routePointStore;
   final TripTrackingSettings Function()? _routeSettings;
   final String Function(DateTime utc)? _localRouteDayKey;
@@ -452,6 +453,20 @@ class TripTrackingController extends ChangeNotifier {
     required Iterable<TripAutomaticStartObservation> observations,
     int acceptedFreeUsesInPeriod = 0,
     TripAutomaticStartDetector detector = const TripAutomaticStartDetector(),
+  }) async => (await _captureAutomaticStartAssistance(
+    settings: settings,
+    accessLevel: accessLevel,
+    observations: observations,
+    acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
+    detector: detector,
+  )).decision;
+
+  Future<_AutomaticEvidenceCaptureOutcome> _captureAutomaticStartAssistance({
+    required TripTrackingSettings settings,
+    required TripAutomaticStartAccessLevel accessLevel,
+    required Iterable<TripAutomaticStartObservation> observations,
+    required int acceptedFreeUsesInPeriod,
+    required TripAutomaticStartDetector detector,
   }) async {
     final decision = evaluateAutomaticStartAssistance(
       settings: settings,
@@ -460,9 +475,20 @@ class TripTrackingController extends ChangeNotifier {
       acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
       detector: detector,
     );
-    if (!decision.shouldCreateReviewCandidate) return decision;
+    if (!decision.shouldCreateReviewCandidate) {
+      return _AutomaticEvidenceCaptureOutcome(
+        decision: decision,
+        candidatePersisted: false,
+      );
+    }
     final store = _automaticEvidenceCandidateStore;
-    if (store == null) return decision;
+    if (store == null || _automaticEvidenceCandidateProposalInFlight) {
+      return _AutomaticEvidenceCaptureOutcome(
+        decision: decision,
+        candidatePersisted: false,
+      );
+    }
+    _automaticEvidenceCandidateProposalInFlight = true;
     try {
       await store.propose(
         TripAutomaticEvidenceCandidate.fromDecision(
@@ -471,13 +497,22 @@ class TripTrackingController extends ChangeNotifier {
         ),
       );
       notifyListeners();
+      return _AutomaticEvidenceCaptureOutcome(
+        decision: decision,
+        candidatePersisted: true,
+      );
     } catch (_) {
       _platformStatus = 'automatic_evidence_candidate_storage_unavailable';
       _platformError =
           'Possible vehicle movement could not be saved for review. Manual tracking remains available.';
       notifyListeners();
+      return _AutomaticEvidenceCaptureOutcome(
+        decision: decision,
+        candidatePersisted: false,
+      );
+    } finally {
+      _automaticEvidenceCandidateProposalInFlight = false;
     }
-    return decision;
   }
 
   /// Captures one opt-in live location as possible-drive evidence only.
@@ -507,17 +542,17 @@ class TripTrackingController extends ChangeNotifier {
         !_automaticEvidenceObservationBuffer.canEmitReviewCandidate) {
       return null;
     }
-    final decision = await captureAutomaticStartAssistance(
+    final outcome = await _captureAutomaticStartAssistance(
       settings: settings,
       accessLevel: accessLevel,
       observations: _automaticEvidenceObservationBuffer.observations,
       acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
       detector: detector,
     );
-    if (decision.shouldCreateReviewCandidate) {
+    if (outcome.candidatePersisted) {
       _automaticEvidenceObservationBuffer.markReviewCandidateEmitted();
     }
-    return decision;
+    return outcome.decision;
   }
 
   /// Records optional activity evidence for a later review proposal only.
@@ -1239,6 +1274,16 @@ class TripTrackingController extends ChangeNotifier {
       notifyListeners();
     }
   }
+}
+
+class _AutomaticEvidenceCaptureOutcome {
+  const _AutomaticEvidenceCaptureOutcome({
+    required this.decision,
+    required this.candidatePersisted,
+  });
+
+  final TripAutomaticStartDecision decision;
+  final bool candidatePersisted;
 }
 
 bool _isSafeTripTrackingIdentity(String value) {

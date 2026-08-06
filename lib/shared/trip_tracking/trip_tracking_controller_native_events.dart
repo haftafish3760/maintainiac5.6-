@@ -672,9 +672,17 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       return false;
     }
     final previousSnapshot = engine.snapshot;
+    final previousMotionState = engine.motionState;
     if (!engine.recordActivityEvidence(activity, observedAt: activityAt)) {
       return false;
     }
+    final advisories = TripStopAdvisoryReviewer.afterMotionTransition(
+      session,
+      engineSnapshot: engine.snapshot,
+      previousMotionState: previousMotionState,
+      currentMotionState: engine.motionState,
+      detectedAt: activityAt,
+    );
     final updatedAt = activityAt.isAfter(session.updatedAt.toUtc())
         ? activityAt
         : session.updatedAt;
@@ -682,6 +690,7 @@ extension _TripTrackingControllerNativeEvents on TripTrackingController {
       updatedAt: updatedAt,
       revision: session.revision + 1,
       engineSnapshot: engine.snapshot,
+      advisories: advisories,
     );
     try {
       await _sessionStore.save(updatedSession);

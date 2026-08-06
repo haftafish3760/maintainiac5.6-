@@ -98,9 +98,15 @@ class _QuickActionButton extends StatelessWidget {
 }
 
 class _SessionActivityList extends StatelessWidget {
-  const _SessionActivityList({required this.events});
+  const _SessionActivityList({
+    required this.events,
+    required this.pendingGpsStopReviews,
+    required this.onReviewGpsStops,
+  });
 
   final List<ActiveWorkdayEvent> events;
+  final int pendingGpsStopReviews;
+  final VoidCallback onReviewGpsStops;
 
   @override
   Widget build(BuildContext context) {
@@ -108,6 +114,13 @@ class _SessionActivityList extends StatelessWidget {
       children: [
         const _SectionLabel('CURRENT SESSION ACTIVITY'),
         const SizedBox(height: 8),
+        if (pendingGpsStopReviews > 0)
+          _SessionRow(
+            time: 'GPS',
+            text:
+                '$pendingGpsStopReviews possible ${pendingGpsStopReviews == 1 ? 'stop is' : 'stops are'} ready for review',
+            onTap: onReviewGpsStops,
+          ),
         if (events.isEmpty)
           const _SessionRow(time: 'Now', text: 'Workday started')
         else
@@ -119,14 +132,15 @@ class _SessionActivityList extends StatelessWidget {
 }
 
 class _SessionRow extends StatelessWidget {
-  const _SessionRow({required this.time, required this.text});
+  const _SessionRow({required this.time, required this.text, this.onTap});
 
   final String time;
   final String text;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final content = Container(
       constraints: const BoxConstraints(minHeight: 42),
       margin: const EdgeInsets.only(bottom: 7),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
@@ -160,6 +174,12 @@ class _SessionRow extends StatelessWidget {
           ),
         ],
       ),
+    );
+    if (onTap == null) return content;
+    return Semantics(
+      button: true,
+      label: text,
+      child: GestureDetector(onTap: onTap, child: content),
     );
   }
 }
