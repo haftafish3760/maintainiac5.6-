@@ -24,6 +24,9 @@ class TripTrackingEngine {
   final TripTrackingPolicy policy;
   final TripTrackingProfile profile;
   TripLocationSample? _lastAccepted;
+  TripLocationSample? _anchorBeforeLatestAcceptedDistance;
+  DateTime? _latestAcceptedDistanceAt;
+  var _latestAcceptedDistanceMeters = 0.0;
   DateTime? _lastObservedAt;
   DateTime? _lastContinuousAt;
   int? _lastObservedMonotonicElapsedNanos;
@@ -33,6 +36,11 @@ class TripTrackingEngine {
   var _walkingReviewSuggested = false;
   var _motionState = TripMotionState.unknown;
   var _vehicleMovementObserved = false;
+  // Automatic stop proposals require a continuous, accepted vehicle segment.
+  // Rejected GPS discontinuities must not be converted into a parked stop by
+  // later motion callbacks.
+  var _automaticStopEvidenceContinuous = false;
+  var _stopEvidenceBlockedByDiscontinuity = false;
   DateTime? _stationaryStartedAt;
   DateTime? _lastStationaryEvidenceAt;
   final List<TripTrackingSignalGap> _signalGaps = [];
@@ -131,6 +139,12 @@ class TripTrackingEngine {
         referenceAt.difference(eventAt) > confirmationWindow) {
       return false;
     }
+    if (_activityConflictsWithRecentVehicleSpeed(activity, referenceAt)) {
+      _walkingEvidence.clear();
+      _walkingReviewSuggested = false;
+      return false;
+    }
+    _discardLateWalkingDistance(activity, observedAt: referenceAt);
     final priorCount = _walkingEvidence.length;
     final priorReview = _walkingReviewSuggested;
     _recordActivity(activity, observedAt: referenceAt);
@@ -152,10 +166,23 @@ class TripTrackingEngine {
   }) {
     if (!_strategy.usesWalkingStopEvidence ||
         !_vehicleMovementObserved ||
+        !_automaticStopEvidenceContinuous ||
+        _stopEvidenceBlockedByDiscontinuity ||
         !activity.canSupportStopReview ||
         activity.confidence <
             policy.walkingTransitionCandidateMinimumConfidence) {
       return false;
+    }
+    // A fresh stationary fix plus a high-confidence walk is stronger than a
+    // timer alone: the vehicle has already been observed parked, so this is
+    // eligible for an immediate, review-only stop proposal.
+    final stationaryEvidenceAt = _lastStationaryEvidenceAt;
+    if (stationaryEvidenceAt != null) {
+      final stationaryAge = observedAt.difference(stationaryEvidenceAt);
+      if (!stationaryAge.isNegative &&
+          stationaryAge <= policy.walkingConfirmationWindow) {
+        return true;
+      }
     }
     final lastVehicleSample = _lastAccepted;
     if (lastVehicleSample == null) return false;
@@ -165,6 +192,67 @@ class TripTrackingEngine {
     return !elapsed.isNegative &&
         elapsed >= minimumDelay &&
         elapsed <= maximumDelay;
+  }
+
+  bool _activityConflictsWithRecentVehicleSpeed(
+    TripActivityObservation activity,
+    DateTime observedAt,
+  ) {
+    if (!activity.canSupportStopReview) return false;
+    final lastVehicleSample = _lastAccepted;
+    if (lastVehicleSample == null) return false;
+    final age = observedAt.difference(lastVehicleSample.recordedAt);
+    if (age.isNegative ||
+        age >
+            _safePositiveDuration(
+              policy.walkingTransitionCandidateDelay,
+              const Duration(seconds: 4),
+            )) {
+      return false;
+    }
+    final reportedSpeed = _trustedReportedSpeed(lastVehicleSample);
+    return reportedSpeed != null &&
+        reportedSpeed >=
+            _safePositiveDouble(
+              policy.precisionExitSpeedMetersPerSecond,
+              fallback: 5.6,
+            );
+  }
+
+  void _discardLateWalkingDistance(
+    TripActivityObservation activity, {
+    required DateTime observedAt,
+  }) {
+    if (!activity.canSupportStopReview) return;
+    final distanceAt = _latestAcceptedDistanceAt;
+    final latestAccepted = _lastAccepted;
+    if (distanceAt == null ||
+        latestAccepted == null ||
+        latestAccepted.recordedAt != distanceAt) {
+      return;
+    }
+    final delay = observedAt.difference(distanceAt);
+    if (delay.isNegative ||
+        delay >
+            _safePositiveDuration(
+              policy.walkingTransitionCandidateDelay,
+              const Duration(seconds: 4),
+            )) {
+      return;
+    }
+    // Android and iOS can deliver activity after the corresponding location
+    // callback. Remove that unconfirmed segment before it can support a
+    // vehicle stop or GPS mileage estimate; odometer truth is unaffected.
+    _totalAcceptedMeters =
+        (_totalAcceptedMeters - _latestAcceptedDistanceMeters)
+            .clamp(0, double.infinity)
+            .toDouble();
+    _lastAccepted = _anchorBeforeLatestAcceptedDistance;
+    _anchorBeforeLatestAcceptedDistance = null;
+    _latestAcceptedDistanceAt = null;
+    _latestAcceptedDistanceMeters = 0;
+    _automaticStopEvidenceContinuous = false;
+    _stopEvidenceBlockedByDiscontinuity = true;
   }
 
   TripTrackingEngineSnapshot get snapshot => TripTrackingEngineSnapshot(
@@ -294,6 +382,8 @@ class TripTrackingEngine {
         continuityElapsed >
             _safePositiveDuration(policy.maximumGap, _defaultGap)) {
       _lastAccepted = sample;
+      _automaticStopEvidenceContinuous = false;
+      _stopEvidenceBlockedByDiscontinuity = true;
       return _finish(
         sample,
         verifiedActivity,
@@ -321,6 +411,8 @@ class TripTrackingEngine {
       // Re-anchor without awarding distance. This prevents a rejected stale
       // point from becoming a delayed, large false odometer bridge.
       _lastAccepted = sample;
+      _automaticStopEvidenceContinuous = false;
+      _stopEvidenceBlockedByDiscontinuity = true;
       return _finish(
         sample,
         verifiedActivity,
@@ -341,6 +433,8 @@ class TripTrackingEngine {
       // Preserve the newer anchor but refuse to bridge two mutually
       // contradictory provider measurements into mileage.
       _lastAccepted = sample;
+      _automaticStopEvidenceContinuous = false;
+      _stopEvidenceBlockedByDiscontinuity = true;
       return _finish(
         sample,
         verifiedActivity,
@@ -356,6 +450,8 @@ class TripTrackingEngine {
       // Preserve the fresh anchor so a rejected acceleration spike cannot
       // later bridge into a large false mileage segment.
       _lastAccepted = sample;
+      _automaticStopEvidenceContinuous = false;
+      _stopEvidenceBlockedByDiscontinuity = true;
       return _finish(
         sample,
         verifiedActivity,
@@ -425,6 +521,8 @@ class TripTrackingEngine {
       // near-zero speed after a vehicle stops. Re-anchor to prevent repeat
       // bridges, but never add that contradiction to odometer mileage.
       _lastAccepted = sample;
+      _automaticStopEvidenceContinuous = false;
+      _stopEvidenceBlockedByDiscontinuity = true;
       return _finish(
         sample,
         activityForMileage,
@@ -441,8 +539,13 @@ class TripTrackingEngine {
       );
     }
 
+    _anchorBeforeLatestAcceptedDistance = lastAccepted;
     _lastAccepted = sample;
     _totalAcceptedMeters += distance;
+    _automaticStopEvidenceContinuous = true;
+    _stopEvidenceBlockedByDiscontinuity = false;
+    _latestAcceptedDistanceAt = sample.recordedAt;
+    _latestAcceptedDistanceMeters = distance;
     return _finish(
       sample,
       activityForMileage,

@@ -7224,7 +7224,7 @@ void main() {
   );
 
   test(
-    'park then a short high-confidence walk creates a stop proposal without a later GPS point',
+    'park then a short high-confidence walk immediately creates a stop proposal without a later GPS point',
     () async {
       final native = _FakeTripTrackingPlatform(
         activityRecognitionAvailable: true,
@@ -7265,7 +7265,7 @@ void main() {
         TripActivityObservation(
           activity: TripActivity.walking,
           confidence: 95,
-          recordedAt: start.add(const Duration(seconds: 25)),
+          recordedAt: start.add(const Duration(seconds: 20)),
         ),
       );
       await drainNativeTripEventsUntil(
@@ -7283,6 +7283,106 @@ void main() {
         controller.activeSession?.advisories.single.disposition,
         TripTrackingAdvisoryDisposition.pending,
       );
+      expect(controller.isTracking, isTrue);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
+  test(
+    'a 30-second delivery stop followed by walking creates a review proposal',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      await controller.start(
+        tripId: 'trip_delivery_30_second_stop',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.9997, 15, speed: 8));
+      for (final seconds in [20, 30, 40, 50]) {
+        native.addLocation(sample(-79.9997, seconds, speed: 0));
+      }
+      await drainNativeTripEventsUntil(
+        () => controller.diagnostics.receivedSamples >= 6,
+        maxPumps: 48,
+      );
+      native.addActivity(
+        TripActivityObservation(
+          activity: TripActivity.walking,
+          confidence: 95,
+          recordedAt: start.add(const Duration(seconds: 50)),
+        ),
+      );
+      await drainNativeTripEventsUntil(
+        () => controller.pendingStopReviewCount == 1,
+        maxPumps: 48,
+      );
+
+      expect(controller.pendingStopReviewCount, 1);
+      expect(controller.isTracking, isTrue);
+      expect(odometer.confirmedReading, 1000);
+    },
+  );
+
+  test(
+    '30 seconds of stationary traffic without walking creates no stop proposal',
+    () async {
+      final native = _FakeTripTrackingPlatform(
+        activityRecognitionAvailable: true,
+      );
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      final controller = TestTripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: odometer,
+        platform: native,
+      );
+      addTearDown(controller.dispose);
+      addTearDown(odometer.dispose);
+      await controller.start(
+        tripId: 'trip_traffic_no_stop_proposal',
+        vehicleId: 'vehicle_1',
+        profile: TripTrackingProfile.deliveryVehicle,
+        startedAt: start,
+      );
+      expect(
+        await controller.startNativeTracking(
+          allowBackground: false,
+          activityRecognitionEnabled: true,
+        ),
+        isTrue,
+      );
+
+      native.addLocation(sample(-80, 0, speed: 8));
+      native.addLocation(sample(-79.9997, 15, speed: 8));
+      for (final seconds in [20, 30, 40, 50]) {
+        native.addLocation(sample(-79.9997, seconds, speed: 0));
+      }
+      await drainNativeTripEventsUntil(
+        () => controller.diagnostics.receivedSamples >= 6,
+        maxPumps: 48,
+      );
+
+      expect(controller.pendingStopReviewCount, 0);
+      expect(controller.needsWalkingReview, isFalse);
       expect(controller.isTracking, isTrue);
       expect(odometer.confirmedReading, 1000);
     },

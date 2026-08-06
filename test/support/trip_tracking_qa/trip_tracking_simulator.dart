@@ -16,12 +16,14 @@ class SimulatedTripResult {
     required this.acceptedMeters,
     required this.dispositions,
     required this.needsWalkingReview,
+    required this.sawReviewableStopEvidence,
     required this.motionState,
   });
 
   final double acceptedMeters;
   final List<TripSampleDisposition> dispositions;
   final bool needsWalkingReview;
+  final bool sawReviewableStopEvidence;
   final TripMotionState motionState;
 
   double get acceptedMiles => acceptedMeters / 1609.344;
@@ -63,6 +65,7 @@ class SimulatedTripResult {
     'rejectedUnsafeCount': rejectedUnsafeCount,
     'rejectedGpsJumpCount': rejectedGpsJumpCount,
     'needsWalkingReview': needsWalkingReview,
+    'sawReviewableStopEvidence': sawReviewableStopEvidence,
     'motionState': motionState.name,
     'simulationCanCreateOfficialStop': false,
     'simulationCanReplaceOdometer': false,
@@ -153,15 +156,56 @@ SimulatedTripResult replayTrip(
 }) {
   final engine = TripTrackingEngine(profile: profile, policy: policy);
   final dispositions = <TripSampleDisposition>[];
+  var sawReviewableStopEvidence = false;
   for (final point in points) {
     dispositions.add(
       engine.ingest(point.sample, activity: point.activity).disposition,
     );
+    sawReviewableStopEvidence |=
+        engine.needsWalkingReview ||
+        engine.motionState == TripMotionState.stopCandidate ||
+        engine.motionState == TripMotionState.stopped;
   }
   return SimulatedTripResult(
     acceptedMeters: engine.totalAcceptedMeters,
     dispositions: List.unmodifiable(dispositions),
     needsWalkingReview: engine.needsWalkingReview,
+    sawReviewableStopEvidence: sawReviewableStopEvidence,
+    motionState: engine.motionState,
+  );
+}
+
+/// Replays independently delivered native location and activity callbacks.
+///
+/// Owns deterministic callback ordering for field-trace regressions. It does
+/// not create TripLog records, approve a stop, or replace odometer truth.
+SimulatedTripResult replayNativeEvidence(
+  Iterable<SimulatedTripPoint> points, {
+  TripTrackingProfile profile = TripTrackingProfile.roadVehicle,
+  TripTrackingPolicy policy = const TripTrackingPolicy(),
+}) {
+  final engine = TripTrackingEngine(profile: profile, policy: policy);
+  final dispositions = <TripSampleDisposition>[];
+  var sawReviewableStopEvidence = false;
+  for (final point in points) {
+    dispositions.add(engine.ingest(point.sample).disposition);
+    final activity = point.activity;
+    if (activity != null) {
+      engine.recordActivityEvidence(
+        activity,
+        observedAt: point.sample.recordedAt,
+      );
+    }
+    sawReviewableStopEvidence |=
+        engine.needsWalkingReview ||
+        engine.motionState == TripMotionState.stopCandidate ||
+        engine.motionState == TripMotionState.stopped;
+  }
+  return SimulatedTripResult(
+    acceptedMeters: engine.totalAcceptedMeters,
+    dispositions: List.unmodifiable(dispositions),
+    needsWalkingReview: engine.needsWalkingReview,
+    sawReviewableStopEvidence: sawReviewableStopEvidence,
     motionState: engine.motionState,
   );
 }

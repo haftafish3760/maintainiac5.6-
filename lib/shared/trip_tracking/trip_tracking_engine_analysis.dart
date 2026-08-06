@@ -281,6 +281,7 @@ extension TripTrackingEngineAnalysis on TripTrackingEngine {
   }
 
   bool _hasWalkingStopEvidence(DateTime observedAt) {
+    if (_stopEvidenceBlockedByDiscontinuity) return false;
     final latest = _walkingEvidence.isEmpty
         ? null
         : _walkingEvidence.last.recordedAt;
