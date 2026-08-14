@@ -121,7 +121,25 @@ Maintenance-owned review files:
 
 Primary evidence:
 
-- `test/fixtures/maintenance_receipts/synthetic_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_baseline_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_wheel_service_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_safety_inspection_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_drum_brake_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_system_service_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_brake_hydraulic_hardware_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_suspension_service_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_chassis_service_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_cooling_hardware_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_engine_electrical_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_ignition_service_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_drivetrain_support_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_belt_drive_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_radiator_hardware_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_fuel_pump_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_oxygen_sensor_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_emissions_air_management_corpus.json`
+- `test/fixtures/maintenance_receipts/synthetic_engine_gasket_corpus.json`
+- `test/support/maintenance_receipt_synthetic_corpus.dart`
 - `test/maintenance_receipt_*_test.dart`
 - `tool/maintenance_receipt_qa_gate.sh`
 - `docs/maintenance_receipt_parser_roadmap.md`
