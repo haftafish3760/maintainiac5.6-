@@ -493,7 +493,10 @@ void main() {
     expect(ios, contains('func locationManagerDidChangeAuthorization'));
     expect(
       ios,
-      contains('tracking && stopForLocationServicesDisabledIfNeeded()'),
+      contains(
+        '(tracking || automaticEvidenceObserving) && '
+        'stopForLocationServicesDisabledIfNeeded()',
+      ),
     );
     expect(ios, contains('let canKeepBackgroundTracking'));
     expect(ios, contains('trip_tracking_background_location_denied'));
@@ -505,7 +508,7 @@ void main() {
       ios,
       contains(
         RegExp(
-          r'func locationManager\(_ manager: CLLocationManager, didFailWithError error: Error\) \{[\s\S]{0,400}guard tracking else \{ return \}',
+          r'func locationManager\(_ manager: CLLocationManager, didFailWithError error: Error\) \{[\s\S]{0,400}guard tracking \|\| automaticEvidenceObserving else \{ return \}',
         ),
       ),
     );
@@ -519,7 +522,7 @@ void main() {
     expect(ios, contains('locationManager.stopUpdatingLocation()'));
     expect(
       ios.indexOf(
-        'tracking = false\n    providerRegistered = false\n    trackingStartedAt = nil\n    stopHeartbeat()',
+        'tracking = false\n    automaticEvidenceObserving = false\n    providerRegistered = false\n    trackingStartedAt = nil\n    automaticEvidenceStartedAt = nil\n    stopHeartbeat()',
       ),
       greaterThanOrEqualTo(0),
     );
@@ -534,7 +537,7 @@ void main() {
       ios,
       contains(
         RegExp(
-          r'func locationManager\(_ manager: CLLocationManager, didUpdateLocations locations: \[CLLocation\]\) \{[\s\S]{0,500}guard tracking, let trackingStartedAt else \{ return \}[\s\S]{0,500}guard location.timestamp >= trackingStartedAt else \{ continue \}',
+          r'func locationManager\(_ manager: CLLocationManager, didUpdateLocations locations: \[CLLocation\]\) \{[\s\S]{0,500}guard tracking \|\| automaticEvidenceObserving else \{ return \}[\s\S]{0,500}let collectionStartedAt = trackingStartedAt \?\? automaticEvidenceStartedAt[\s\S]{0,500}guard location.timestamp >= collectionStartedAt else \{ continue \}',
         ),
       ),
     );

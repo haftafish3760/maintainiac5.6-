@@ -33,37 +33,44 @@ void main() {
     expect(source, contains('val isCollectorActive: Boolean'));
   });
 
-  test(
-    'iOS waits for a credible Core Location callback before live status',
-    () {
-      final bridge = File(
-        'ios/Runner/TripTrackingNativeBridge.swift',
-      ).readAsStringSync();
-      final delegate = File(
-        'ios/Runner/TripTrackingLocationDelegate.swift',
-      ).readAsStringSync();
-      final start = bridge.substring(
-        bridge.indexOf('private func start('),
-        bridge.indexOf('private func update('),
-      );
+  test('iOS waits for a credible Core Location callback before live status', () {
+    final bridge = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+    final delegate = File(
+      'ios/Runner/TripTrackingLocationDelegate.swift',
+    ).readAsStringSync();
+    final start = bridge.substring(
+      bridge.indexOf('private func start('),
+      bridge.indexOf('private func update('),
+    );
 
-      expect(start, contains('providerRegistered = false'));
-      expect(start, contains('"status", "status": "starting"'));
-      expect(start, isNot(contains('"status", "status": "tracking"')));
-      expect(bridge, contains('func confirmProviderRegistration()'));
-      expect(
-        bridge,
-        contains('tracking ? (providerRegistered ? "tracking" : "starting")'),
-      );
-      expect(
-        delegate,
-        contains(
-          'guard location.timestamp >= trackingStartedAt else { continue }',
-        ),
-      );
-      expect(delegate, contains('confirmProviderRegistration()'));
-    },
-  );
+    expect(start, contains('providerRegistered = false'));
+    expect(start, contains('"status", "status": "starting"'));
+    expect(start, isNot(contains('"status", "status": "tracking"')));
+    expect(bridge, contains('func confirmProviderRegistration()'));
+    expect(
+      bridge,
+      contains(
+        'let status = tracking\n'
+        '      ? (providerRegistered ? "tracking" : "starting")\n'
+        '      : automaticEvidenceObserving ? "automatic_evidence_observing" : "idle"',
+      ),
+    );
+    expect(
+      delegate,
+      contains(
+        'let collectionStartedAt = trackingStartedAt ?? automaticEvidenceStartedAt',
+      ),
+    );
+    expect(
+      delegate,
+      contains(
+        'guard location.timestamp >= collectionStartedAt else { continue }',
+      ),
+    );
+    expect(delegate, contains('confirmProviderRegistration()'));
+  });
 
   test('Android replaces a sampling update received during registration', () {
     final source = File(
