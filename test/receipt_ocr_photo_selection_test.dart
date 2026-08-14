@@ -45,13 +45,26 @@ void main() {
     );
   });
 
-  test('keeps ordered receipt segments in capture order', () {
+  test(
+    'reads every ordered receipt section beyond the device photo budget',
+    () {
+      final selected = prioritizeReceiptPhotosForOcr([
+        photo('first', 12, documentSignals: const ['receipt_section_order_1']),
+        photo('second', 95, documentSignals: const ['receipt_section_order_2']),
+        photo('third', 90, documentSignals: const ['receipt_section_order_3']),
+      ], maximum: 2);
+
+      expect(selected.map((item) => item.id), ['first', 'second', 'third']);
+    },
+  );
+
+  test('does not treat one stray section signal as an ordered document', () {
     final selected = prioritizeReceiptPhotosForOcr([
-      photo('first', 12, documentSignals: const ['receipt_section_1']),
-      photo('second', 95, documentSignals: const ['receipt_section_2']),
-      photo('third', 90, documentSignals: const ['receipt_section_3']),
+      photo('first-low', 12, documentSignals: const ['receipt_section_1']),
+      photo('second-high', 95),
+      photo('third-medium', 70),
     ], maximum: 2);
 
-    expect(selected.map((item) => item.id), ['first', 'second']);
+    expect(selected.map((item) => item.id), ['second-high', 'third-medium']);
   });
 }

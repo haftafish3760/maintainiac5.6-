@@ -379,16 +379,22 @@ class ReceiptOcrService {
 const _repeatedAttachmentIdWarning =
     'Some receipt attachments used the same identifier. Their text was kept together; review the saved proof before saving.';
 
-/// Chooses the strongest available receipt sources under a device budget while
-/// retaining the original capture order for document reconstruction.
+/// Chooses the strongest independent receipt sources under a device budget.
+///
+/// A reviewed multi-section receipt is one logical document, not a collection
+/// of interchangeable photos. Every section must be read in the user's
+/// reviewed order even when its section count exceeds the device's normal
+/// attachment budget. The reader already processes photos sequentially; the
+/// budget remains a quality-selection limit only for independent sources.
 List<ReceiptAttachmentRecord> prioritizeReceiptPhotosForOcr(
   List<ReceiptAttachmentRecord> photos, {
   required int maximum,
 }) {
   if (maximum <= 0 || photos.isEmpty) return const [];
-  if (photos.length <= maximum || _hasOrderedReceiptSegments(photos)) {
+  if (photos.length <= maximum) {
     return List.unmodifiable(photos.take(maximum));
   }
+  if (_hasOrderedReceiptSegments(photos)) return List.unmodifiable(photos);
   final indexed =
       List.generate(
         photos.length,
@@ -408,12 +414,12 @@ List<ReceiptAttachmentRecord> prioritizeReceiptPhotosForOcr(
 }
 
 bool _hasOrderedReceiptSegments(List<ReceiptAttachmentRecord> photos) {
-  return photos.any(
+  if (photos.length < 2) return false;
+  return photos.every(
     (photo) => photo.documentSignals.any((signal) {
       final normalized = signal.trim().toLowerCase();
-      return normalized.contains('stitch') ||
-          normalized.contains('receipt_section') ||
-          normalized.contains('section_order');
+      return normalized == 'receipt_section_order' ||
+          normalized.startsWith('receipt_section_order_');
     }),
   );
 }

@@ -37,7 +37,7 @@ void main() {
   });
 
   test(
-    'ocr service keeps source section labels after suppressing overlap lines',
+    'ocr service keeps source labels when one boundary line is ambiguous',
     () async {
       final result = await const ReceiptOcrService()
           .recognizeTextFromAttachments([
@@ -71,8 +71,11 @@ TOTAL 10.48
       final lines = result.orderedParserLines;
       final couplingIndex = lines.indexOf('PVC COUPLING 2.49');
 
-      expect(result.warnings.join(' '), contains('Ignored 1 repeated'));
-      expect(lines.where((line) => line == 'PVC GLUE 7.99'), hasLength(1));
+      expect(
+        result.warnings.join(' '),
+        contains('possible overlapping receipt line'),
+      );
+      expect(lines.where((line) => line == 'PVC GLUE 7.99'), hasLength(2));
       expect(couplingIndex, greaterThanOrEqualTo(0));
       expect(
         result.parserLineSourceLocations,
@@ -96,7 +99,7 @@ TOTAL 10.48
       expect(safeMap['sourceSectionLineNumber'], 2);
       expect(result.parserHandoff.lineCountsBySourceSection, {
         'section_1': 4,
-        'section_2': 2,
+        'section_2': 3,
       });
       expect(result.parserHandoff.sourceSectionCount, 2);
       expect(result.parserHandoff.sourceSectionNumbersInOrder, [1, 2]);
@@ -108,7 +111,7 @@ TOTAL 10.48
       expect(result.parserHandoff.needsSourceSectionContinuityReview, isFalse);
       expect(result.parserHandoff.itemLineCountsBySourceSection, {
         'section_1': 1,
-        'section_2': 1,
+        'section_2': 2,
       });
       expect(
         result.parserHandoff.lineIdsBySourceSection['section_2'],
@@ -122,13 +125,13 @@ TOTAL 10.48
         result
             .parserHandoff
             .privacySafeParserHandoffContract['lineCountsBySourceSection'],
-        {'section_1': 4, 'section_2': 2},
+        {'section_1': 4, 'section_2': 3},
       );
       expect(
         result
             .parserHandoff
             .privacySafeParserHandoffContract['itemLineCountsBySourceSection'],
-        {'section_1': 1, 'section_2': 1},
+        {'section_1': 1, 'section_2': 2},
       );
       expect(
         result
