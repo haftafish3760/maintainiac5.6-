@@ -49,7 +49,10 @@ class ReceiptDeviceCapabilityService {
       deviceName: hardware.hardwareIdentifier,
       appVersion: package?.version,
       appBuildNumber: package?.buildNumber,
-      availableRamMb: hardware.physicalRamMb,
+      // Receipt work must follow the memory the app can use right now, not
+      // just the amount installed in the phone.  Fall back to total memory
+      // only when the operating system cannot report a live value.
+      availableRamMb: runtime.availableRamMb ?? hardware.physicalRamMb,
       cpuCores: hardware.cpuCores,
       androidSdk: hardware.androidSdk,
       androidPerformanceClass: hardware.androidMediaPerformanceClass,

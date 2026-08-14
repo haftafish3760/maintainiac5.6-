@@ -58,13 +58,14 @@ DeviceCapabilityProfile _profile() {
       platform: 'android',
       androidSdk: 33,
       androidMediaPerformanceClass: 33,
-      physicalRamMb: 3072,
+      physicalRamMb: 8192,
       cpuCores: 4,
       isLowRamDevice: true,
     ),
     runtime: DeviceRuntimeSnapshot(
       observedAt: DateTime.utc(2026, 7, 16),
       freeStorageMb: 499,
+      availableRamMb: 3072,
       powerSaving: true,
     ),
     camera: const DeviceCameraCapabilities(
