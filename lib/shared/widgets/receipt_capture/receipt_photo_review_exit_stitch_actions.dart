@@ -2,8 +2,16 @@ part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewExitStitchActions
     on _ReceiptPhotoReviewScreenState {
-  bool get _needsStitchReviewBeforeSave {
-    return !widget.bestShotCandidateMode && _photoPaths.length > 1;
+  List<String> _receiptImagePathsForAcceptedSave(List<String> inputPaths) {
+    final preview = _stitchPreviewResult;
+    final previewMatchesCurrentReceipt =
+        _stitchPreviewKey == _currentStitchPreviewKey() &&
+        _sameReceiptPhotoOrder(inputPaths, _photoPaths);
+    return acceptedReceiptImageSourcePaths(
+      inputPaths: inputPaths,
+      stitchResult: preview,
+      stitchMatchesCurrentReceipt: previewMatchesCurrentReceipt,
+    );
   }
 
   Future<void> _deleteUnusedBestShotCandidatePhotos(
@@ -48,7 +56,6 @@ extension _ReceiptPhotoReviewExitStitchActions
     required List<String> preparedOcrPaths,
   }) async {
     final preview = _stitchPreviewResult;
-    final previewPath = preview?.stitchedPath;
     final currentPathOrderMatches = _sameReceiptPhotoOrder(
       inputPaths,
       _photoPaths,
@@ -57,6 +64,13 @@ extension _ReceiptPhotoReviewExitStitchActions
         preview != null &&
         _stitchPreviewKey == _currentStitchPreviewKey() &&
         currentPathOrderMatches;
+    if (previewCanBeUsed && preview.didStitch && preparedOcrPaths.length == 1) {
+      return preview.copyForFinalOcr(
+        inputPaths: inputPaths,
+        ocrSourcePaths: preparedOcrPaths,
+        stitchedPath: preparedOcrPaths.single,
+      );
+    }
     if (previewCanBeUsed &&
         (preview.usedFallback ||
             preview.status == ReceiptStitchStatus.notNeeded)) {
@@ -65,8 +79,14 @@ extension _ReceiptPhotoReviewExitStitchActions
         ocrSourcePaths: preparedOcrPaths,
       );
     }
+    if (!previewCanBeUsed) {
+      // Ordered original sections are the default OCR source. Do not hold a
+      // complete long receipt hostage to a derived-image operation.
+      return ReceiptStitchResult.notNeeded(preparedOcrPaths);
+    }
+    final previewPath = preview.stitchedPath;
     final stitchedPreviewCanBeCopied =
-        preview?.didStitch == true && previewPath != null && previewCanBeUsed;
+        preview.didStitch && previewPath != null && previewCanBeUsed;
     if (stitchedPreviewCanBeCopied && await File(previewPath).exists()) {
       final finalPath = await ReceiptImageProcessor.copyReceiptOcrArtifact(
         path: previewPath,
@@ -78,43 +98,11 @@ extension _ReceiptPhotoReviewExitStitchActions
       );
     }
 
-    final manualOverlapFractions = currentPathOrderMatches
-        ? _manualOverlapFractions
-              .map((value) => value ?? 0)
-              .toList(growable: false)
-        : const <double>[];
-    return ReceiptImageProcessor.stitchReceiptPhotosForOcr(
-      paths: preparedOcrPaths,
-      textEvidence: currentPathOrderMatches
-          ? _stitchEvidenceForPaths(preparedOcrPaths, sourcePaths: _photoPaths)
-          : null,
-      manualZeroOverlapPairs:
-          currentPathOrderMatches &&
-              _manualZeroOverlapPairs.any((value) => value)
-          ? List<bool>.of(_manualZeroOverlapPairs)
-          : null,
-      manualOverlapFractions: manualOverlapFractions.any((value) => value > 0)
-          ? manualOverlapFractions
-          : null,
-      manualScaleCorrections: currentPathOrderMatches
-          ? List<double>.of(_manualScaleCorrections)
-          : null,
-      manualRotationCorrectionsDegrees: currentPathOrderMatches
-          ? List<double>.of(_manualRotationCorrectionsDegrees)
-          : null,
-      manualHorizontalOffsetFractions: currentPathOrderMatches
-          ? List<double>.of(_manualHorizontalOffsetFractions)
-          : null,
-      maxOutputPixels: _stitchDeviceLimits.maxOutputPixels,
-      maxOutputHeight: _stitchDeviceLimits.maxOutputHeight,
-      maxTargetWidth: _stitchDeviceLimits.maxTargetWidth,
-      comparisonWidth: _stitchDeviceLimits.comparisonWidth,
-      retryComparisonWidth: _stitchDeviceLimits.retryComparisonWidth,
-      processingTimeout: _stitchDeviceLimits.processingTimeout,
-      timeoutReasonCode: 'stitch_timeout',
-      timeoutWarning:
-          'Putting these photos together took too long. Receipt details will use them from top to bottom.',
-    );
+    // A new combine attempt here used to make Continue wait and could send a
+    // perfectly usable receipt into the failure screen. The reviewed preview
+    // above is safe to reuse when it exists; otherwise read the original
+    // sections in order and keep moving.
+    return ReceiptStitchResult.notNeeded(preparedOcrPaths);
   }
 
   bool _sameReceiptPhotoOrder(List<String> expected, List<String> current) {

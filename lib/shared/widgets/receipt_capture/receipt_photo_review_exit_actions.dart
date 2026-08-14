@@ -33,17 +33,10 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
   }
 
   Future<void> _cleanupFailedReceiptPrepArtifacts(Set<String> paths) async {
-    for (final path in paths) {
-      if (path.isEmpty || receiptPhotoPathSetContains(_photoPaths, path)) {
-        continue;
-      }
-      try {
-        final file = File(path);
-        if (await file.exists()) await file.delete();
-      } catch (_) {
-        // Best effort cleanup for app-created OCR/backup prep files.
-      }
-    }
+    await const ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles(
+      paths,
+      keptPaths: _photoPaths,
+    );
   }
 
   void _forgetAcceptedReceiptPrepArtifacts(

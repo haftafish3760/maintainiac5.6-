@@ -16,14 +16,8 @@ void main() {
     ).readAsString();
     expect(saveActions, contains('ReceiptPhotoReviewResult.keptForLater('));
     expect(exitActions, contains('if (!beginReceiptReviewClose()) return;'));
-    expect(
-      reviewScreen,
-      contains('canPop: _closingReview'),
-    );
-    expect(
-      saveActions,
-      contains('await finishReceiptReview('),
-    );
+    expect(reviewScreen, contains('canPop: _closingReview'));
+    expect(saveActions, contains('await finishReceiptReview('));
     expect(exitActions, contains('await WidgetsBinding.instance.endOfFrame;'));
     expect(
       saveActions,
@@ -102,14 +96,9 @@ void main() {
     );
     expect(
       saveActions,
-      contains(
-        'path.isEmpty || receiptPhotoPathSetContains(_photoPaths, path)',
-      ),
+      contains('ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles('),
     );
-    expect(
-      saveActions,
-      contains('Best effort cleanup for app-created OCR/backup prep files.'),
-    );
+    expect(saveActions, contains('keptPaths: _photoPaths'));
     expect(
       saveActions,
       isNot(contains('await _deleteGeneratedEditPhotos(const {})')),
@@ -227,7 +216,12 @@ void main() {
     );
     expect(
       saveActions,
-      contains('final manualOverlapFractions = currentPathOrderMatches'),
+      isNot(contains('final manualOverlapFractions = currentPathOrderMatches')),
+    );
+    expect(saveActions, contains('if (!previewCanBeUsed)'));
+    expect(
+      saveActions,
+      contains('return ReceiptStitchResult.notNeeded(preparedOcrPaths);'),
     );
     final manualOverlapSetterBlock = reviewScreen.substring(
       reviewScreen.indexOf('void _setManualOverlapFraction(double value)'),
