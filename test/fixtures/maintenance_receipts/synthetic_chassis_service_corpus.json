@@ -1,0 +1,32 @@
+[
+  {
+    "id": "independent_sway_link_and_wheel_hub_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/28/2026\nREPAIR ORDER 1207\nODOMETER 91250\nFRONT SWAY BAR LINKS REPLACED 249.99\nREAR WHEEL HUB ASSEMBLIES REPLACED 729.99\nWORK COMPLETED\nPAID IN FULL 979.98",
+    "actions": {
+      "Sway Bar Links": "reviewCompletedService",
+      "Wheel Bearings": "reviewCompletedService"
+    },
+    "fields": {
+      "Sway Bar Links": {
+        "detailA": "Front",
+        "serviceDate": "2026-07-28",
+        "serviceOdometer": 91250,
+        "completedServiceIndicated": true
+      },
+      "Wheel Bearings": {
+        "detailA": "Rear",
+        "detailB": "Hub assembly",
+        "serviceDate": "2026-07-28",
+        "serviceOdometer": 91250,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": [
+      "Steering and Suspension Inspection",
+      "Wheel Alignment",
+      "Wheel Balancing"
+    ]
+  }
+]

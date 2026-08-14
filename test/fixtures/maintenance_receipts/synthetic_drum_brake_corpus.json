@@ -1,0 +1,37 @@
+[
+  {
+    "id": "independent_mixed_disc_and_drum_brake_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/24/2026\nREPAIR ORDER 1203\nODOMETER 90300\nFRONT BRAKE ROTORS RESURFACED 169.99\nREAR SEMI-METALLIC BRAKE SHOES REPLACED 189.99\nREAR BRAKE DRUMS MACHINED 249.99\nWORK COMPLETED\nPAID IN FULL 609.97",
+    "actions": {
+      "Brake Shoes": "reviewCompletedService",
+      "Brake Drums": "reviewCompletedService",
+      "Brake Rotors": "reviewCompletedService"
+    },
+    "fields": {
+      "Brake Shoes": {
+        "detailA": "Rear",
+        "detailB": "Semi-metallic",
+        "serviceDate": "2026-07-24",
+        "serviceOdometer": 90300,
+        "completedServiceIndicated": true
+      },
+      "Brake Drums": {
+        "detailA": "Rear",
+        "detailB": "Resurfaced",
+        "serviceDate": "2026-07-24",
+        "serviceOdometer": 90300,
+        "completedServiceIndicated": true
+      },
+      "Brake Rotors": {
+        "detailA": "Front",
+        "detailB": "Resurfaced",
+        "serviceDate": "2026-07-24",
+        "serviceOdometer": 90300,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": ["Brake Pads", "Brake Inspection"]
+  }
+]

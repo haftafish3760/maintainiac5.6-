@@ -1,0 +1,27 @@
+part of 'maintenance_models.dart';
+
+const engineOilWeights = <String>[
+  '0W-8',
+  '0W-12',
+  '0W-16',
+  '0W-20',
+  '0W-30',
+  '0W-40',
+  '5W-16',
+  '5W-20',
+  '5W-30',
+  '5W-40',
+  '5W-50',
+  '10W-30',
+  '10W-40',
+  '10W-50',
+  '10W-60',
+  '15W-40',
+  '15W-50',
+  '20W-50',
+  'SAE 20',
+  'SAE 30',
+  'SAE 40',
+  'SAE 50',
+  'Other',
+];

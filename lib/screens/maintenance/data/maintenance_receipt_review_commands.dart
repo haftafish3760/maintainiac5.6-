@@ -9,9 +9,38 @@ MaintenanceReceiptReview createMaintenanceReceiptReview({
     currentOdometer: currentOdometer,
     items: List.unmodifiable([
       for (final candidate in parserResult.candidates)
-        MaintenanceReceiptReviewItem(source: candidate),
+        createMaintenanceReceiptReviewItem(candidate),
     ]),
   );
+}
+
+MaintenanceReceiptReviewItem createMaintenanceReceiptReviewItem(
+  MaintenanceReceiptCandidate candidate,
+) {
+  return MaintenanceReceiptReviewItem(
+    source: candidate,
+    intervalMiles: _catalogIntervalMiles(candidate.itemName),
+    intervalMonths: _catalogIntervalMonths(candidate.itemName),
+  );
+}
+
+int? _catalogIntervalMiles(String itemName) {
+  final item = maintenanceReceiptCatalogItem(itemName);
+  final miles = item?.defaultMiles;
+  return miles == null || miles <= 0 ? null : miles;
+}
+
+int? _catalogIntervalMonths(String itemName) {
+  final item = maintenanceReceiptCatalogItem(itemName);
+  return item?.defaultMonths;
+}
+
+MaintenanceCatalogItem? maintenanceReceiptCatalogItem(String itemName) {
+  final normalizedName = itemName.trim().toLowerCase();
+  for (final item in maintenanceCatalog) {
+    if (item.name.toLowerCase() == normalizedName) return item;
+  }
+  return null;
 }
 
 MaintenanceReceiptReviewOutcome buildMaintenanceReceiptCommands(
@@ -65,6 +94,21 @@ MaintenanceReceiptReviewOutcome buildMaintenanceReceiptCommands(
     final service =
         decision == MaintenanceReceiptReviewDecision.serviceOnly ||
         decision == MaintenanceReceiptReviewDecision.setupAndService;
+    if (setup &&
+        (item.effectiveIntervalMiles == null ||
+            item.effectiveIntervalMiles! <= 0) &&
+        (item.effectiveIntervalMonths == null ||
+            item.effectiveIntervalMonths! <= 0)) {
+      issues.add(
+        MaintenanceReceiptReviewIssue(
+          code: 'maintenance_interval_required',
+          message:
+              'Enter a mileage or time interval before setting up tracking.',
+          itemIndex: index,
+        ),
+      );
+      continue;
+    }
     if (item.source.returnOrExchangeIndicated &&
         !item.confirmedReturnOrExchangeResolved) {
       issues.add(

@@ -215,7 +215,12 @@ class _ServiceRecordDetails extends StatelessWidget {
       child: Column(
         children: [
           _DetailLine(label: 'Date', value: _dateLabel(event.serviceDate)),
-          _DetailLine(label: 'Odometer', value: formatMiles(event.odometer)),
+          _DetailLine(
+            label: 'Odometer',
+            value: event.odometer > 0
+                ? formatMiles(event.odometer)
+                : 'Not recorded',
+          ),
           _DetailLine(
             label: 'Provider',
             value: event.provider.trim().isEmpty

@@ -35,7 +35,7 @@ class CalendarMaintenanceProjectionAdapter {
           ? 'Maintenance service'
           : event.itemName,
       conciseDetail:
-          '${event.vehicleName} · ${event.odometer} miles · ${_money(event.totalCost)}',
+          '${event.vehicleName} · ${_odometerDetail(event)} · ${_money(event.totalCost)}',
       state: CalendarProjectionState.confirmed,
       sourceRecordStatus: 'completed_service',
       revision: _revisionFor(event),
@@ -61,6 +61,9 @@ class CalendarMaintenanceProjectionAdapter {
 
   static String sourceIdFor(MaintenanceServiceEvent event) => _sourceId(event);
 }
+
+String _odometerDetail(MaintenanceServiceEvent event) =>
+    event.odometer > 0 ? '${event.odometer} miles' : 'Odometer not recorded';
 
 bool _sameDay(DateTime left, DateTime right) =>
     left.year == right.year &&

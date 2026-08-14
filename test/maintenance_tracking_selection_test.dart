@@ -4,12 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/screens/maintenance/maintenance_draft_store.dart';
-import 'package:maintaniac/screens/maintenance/maintenance_screen.dart';
 import 'package:maintaniac/screens/maintenance/maintenance_models.dart';
 import 'package:maintaniac/shared/calendar/calendar_day_flow.dart';
 import 'package:maintaniac/shared/calendar/calendar_flow_models.dart';
 import 'package:maintaniac/shared/state/app_state.dart';
 import 'package:maintaniac/shared/state/global_odometer.dart';
+
+import 'support/maintenance_tracking_widget_test_support.dart';
+
+final _pumpMaintenance = pumpMaintenanceTestScreen;
+final _expectSameRow = expectMaintenanceFieldsOnSameRow;
 
 void main() {
   late AppStateController appState;
@@ -113,6 +117,52 @@ void main() {
     );
     expect(appState.maintenance.single.milesSinceService, 0);
     expect(find.text('Tracked Maintenance'), findsOneWidget);
+
+    final timeOnlyState = AppStateController();
+    addTearDown(timeOnlyState.dispose);
+    timeOnlyState.addMaintenanceRecords([
+      MaintenanceRecord(
+        itemName: 'Registration',
+        vehicleName: 'Work Truck 1',
+        intervalMiles: 0,
+        milesSinceService: 0,
+        intervalMonths: 12,
+        monthsSinceService: 0,
+        importance: 98,
+        timeOnly: true,
+      ),
+      MaintenanceRecord(
+        itemName: 'Engine Oil',
+        vehicleName: 'Work Truck 1',
+        intervalMiles: 5000,
+        milesSinceService: 0,
+        intervalMonths: 6,
+        monthsSinceService: 0,
+        importance: 100,
+      ),
+    ]);
+    await _pumpMaintenance(tester, timeOnlyState, odometer);
+    await tester.tap(find.text('Log Service'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Engine Oil').last);
+    await tester.pump();
+    await tester.tap(find.text('Registration').last);
+    await tester.pump();
+    await tester.tap(find.text('Engine Oil').last);
+    await tester.pump();
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Odometer is optional for time-only items'),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(find.text('Review').last);
+    await tester.tap(find.text('Review').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Not entered'), findsWidgets);
+    await tester.tap(find.text('Save Visit'));
+    await tester.pumpAndSettle();
+    expect(timeOnlyState.maintenanceEvents.single.odometer, 0);
   });
 
   testWidgets('manual maintenance visit handles multiple selected items', (
@@ -360,7 +410,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Engine Oil'), findsOneWidget);
     expect(find.textContaining('Work Truck 1 · 128415 miles'), findsOneWidget);
-    expect(find.textContaining(r'$74.25'), findsOneWidget);
+    expect(
+      find.text(
+        r'Confirmed · Time not recorded · Work Truck 1 · 128415 miles · $74.25',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('maintenance home summarizes saved service history', (
@@ -382,7 +437,7 @@ void main() {
         itemName: 'Engine Oil',
         vehicleName: 'Work Truck 1',
         serviceDate: DateTime.now(),
-        odometer: 128415,
+        odometer: 0,
         provider: 'Test Shop',
         totalCost: 74.25,
         receiptProofCount: 1,
@@ -396,48 +451,19 @@ void main() {
     expect(find.text('Spent'), findsOneWidget);
     expect(find.text(r'$74.25'), findsOneWidget);
     expect(find.text('Proof'), findsOneWidget);
-    expect(find.text(r'128,415 miles • $74.25 • 1 proof'), findsOneWidget);
+    expect(
+      find.text(r'Odometer not recorded • $74.25 • 1 proof'),
+      findsOneWidget,
+    );
 
-    await tester.tap(find.text(r'128,415 miles • $74.25 • 1 proof'));
+    await tester.tap(find.text(r'Odometer not recorded • $74.25 • 1 proof'));
     await tester.pumpAndSettle();
 
     expect(find.text('Service Record'), findsOneWidget);
     expect(find.text('Provider'), findsOneWidget);
     expect(find.text('Test Shop'), findsOneWidget);
+    expect(find.text('Not recorded'), findsOneWidget);
     expect(find.text('Open Item'), findsOneWidget);
     expect(find.text('Log Again'), findsOneWidget);
   });
-}
-
-Future<void> _pumpMaintenance(
-  WidgetTester tester,
-  AppStateController appState,
-  GlobalOdometerController odometer, {
-  Size physicalSize = const Size(900, 1500),
-}) async {
-  tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = physicalSize;
-  addTearDown(tester.view.resetPhysicalSize);
-  addTearDown(tester.view.resetDevicePixelRatio);
-
-  await tester.pumpWidget(
-    AppStateScope(
-      controller: appState,
-      child: GlobalOdometerScope(
-        controller: odometer,
-        child: const MaterialApp(home: MaintenanceScreen()),
-      ),
-    ),
-  );
-}
-
-void _expectSameRow(
-  WidgetTester tester,
-  String leftText,
-  String rightText, {
-  double tolerance = 3,
-}) {
-  final left = tester.getTopLeft(find.text(leftText).first).dy;
-  final right = tester.getTopLeft(find.text(rightText).first).dy;
-  expect((left - right).abs(), lessThan(tolerance));
 }

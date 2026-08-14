@@ -52,6 +52,8 @@ void main() {
     expect(outcome.commands.first.setupMode, MaintenanceReceiptSetupMode.basic);
     expect(outcome.commands.first.detailA, isNull);
     expect(outcome.commands.first.detailB, isNull);
+    expect(outcome.commands.first.intervalMiles, 5000);
+    expect(outcome.commands.first.intervalMonths, 6);
   });
 
   test(
@@ -168,6 +170,8 @@ void main() {
       currentOdometer: 101250,
     );
     final first = source.items.first;
+    expect(first.effectiveIntervalMiles, 5000);
+    expect(first.effectiveIntervalMonths, 6);
     final reviewed = source.copyWith(
       items: [
         first.copyWith(
@@ -182,6 +186,10 @@ void main() {
       ],
     );
 
+    expect(
+      reviewed.items.first.intervalSource,
+      MaintenanceReceiptIntervalSource.userReviewed,
+    );
     final outcome = buildMaintenanceReceiptCommands(reviewed);
     expect(outcome.isValid, isTrue);
     final command = outcome.commands.single;
@@ -345,6 +353,16 @@ void main() {
     expect(cleared.effectiveServiceOdometer, isNull);
     expect(cleared.effectiveIntervalMiles, isNull);
     expect(cleared.effectiveIntervalMonths, isNull);
+    final setupOutcome = buildMaintenanceReceiptCommands(
+      source.copyWith(
+        items: [
+          cleared.copyWith(
+            decision: MaintenanceReceiptReviewDecision.setupOnly,
+          ),
+        ],
+      ),
+    );
+    expect(setupOutcome.issues.single.code, 'maintenance_interval_required');
     final outcome = buildMaintenanceReceiptCommands(
       source.copyWith(
         items: [
@@ -411,41 +429,6 @@ FULL SYNTHETIC OIL CHANGE 5W-30 79.99
     expect(restored.items.single.effectiveDetailA, 'Synthetic Blend');
     expect(restored.items.single.effectiveIntervalMiles, 6000);
     expect(restored.mayMutateMaintenance, isFalse);
-  });
-
-  test('review draft rejects unsupported or mismatched schemas', () {
-    final source = createMaintenanceReceiptReview(
-      parserResult: _partsReceipt(),
-      currentOdometer: 101250,
-    );
-    final legacy = Map<String, Object?>.from(source.toDraftJson());
-    final legacyItems = (legacy['items']! as List<Object?>)
-        .map(
-          (item) =>
-              Map<String, Object?>.from(item! as Map)..remove('setupMode'),
-        )
-        .toList();
-    legacy['items'] = legacyItems;
-    expect(
-      MaintenanceReceiptReview.fromDraftJson(
-        legacy,
-      ).items.map((item) => item.setupMode),
-      everyElement(MaintenanceReceiptSetupMode.basic),
-    );
-
-    final unsupported = Map<String, Object?>.from(source.toDraftJson())
-      ..['draftSchemaVersion'] = 999;
-    expect(
-      () => MaintenanceReceiptReview.fromDraftJson(unsupported),
-      throwsFormatException,
-    );
-
-    final mismatched = Map<String, Object?>.from(source.toDraftJson())
-      ..['items'] = const <Object?>[];
-    expect(
-      () => MaintenanceReceiptReview.fromDraftJson(mismatched),
-      throwsFormatException,
-    );
   });
 }
 

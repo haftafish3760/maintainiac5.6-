@@ -1,0 +1,40 @@
+[
+  {
+    "id": "independent_suspension_and_steering_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/27/2026\nREPAIR ORDER 1206\nODOMETER 91000\nFRONT STRUTS REPLACED 699.99\nFRONT LOWER BALL JOINTS REPLACED 449.99\nFRONT OUTER TIE ROD ENDS REPLACED 329.99\nWORK COMPLETED\nPAID IN FULL 1479.97",
+    "actions": {
+      "Shocks and Struts": "reviewCompletedService",
+      "Ball Joints": "reviewCompletedService",
+      "Tie Rod Ends": "reviewCompletedService"
+    },
+    "fields": {
+      "Shocks and Struts": {
+        "detailA": "Front",
+        "detailB": "Struts",
+        "serviceDate": "2026-07-27",
+        "serviceOdometer": 91000,
+        "completedServiceIndicated": true
+      },
+      "Ball Joints": {
+        "detailA": "Front",
+        "detailB": "Lower",
+        "serviceDate": "2026-07-27",
+        "serviceOdometer": 91000,
+        "completedServiceIndicated": true
+      },
+      "Tie Rod Ends": {
+        "detailA": "Front",
+        "detailB": "Outer",
+        "serviceDate": "2026-07-27",
+        "serviceOdometer": 91000,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": [
+      "Steering and Suspension Inspection",
+      "Wheel Alignment"
+    ]
+  }
+]

@@ -234,6 +234,10 @@ class _ReviewItemCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (_intervalSourceText != null) ...[
+              const SizedBox(height: 6),
+              _InlineEvidenceNotice(text: _intervalSourceText!),
+            ],
           ],
           if (_logsService &&
               item.source.productPurchased &&
@@ -311,4 +315,30 @@ class _ReviewItemCard extends StatelessWidget {
       ),
     );
   }
+
+  String? get _intervalSourceText => switch (item.intervalSource) {
+    MaintenanceReceiptIntervalSource.receiptEvidence =>
+      'Schedule source: receipt evidence. Confirm it against this vehicle or its OEM schedule.',
+    MaintenanceReceiptIntervalSource.appSuggestion =>
+      'Schedule source: editable app suggestion. The receipt did not provide an interval; confirm it against this vehicle or its OEM schedule.',
+    MaintenanceReceiptIntervalSource.userReviewed =>
+      'Schedule source: your reviewed values.',
+    MaintenanceReceiptIntervalSource.none => null,
+  };
+}
+
+class _InlineEvidenceNotice extends StatelessWidget {
+  const _InlineEvidenceNotice({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: const TextStyle(
+      color: Color(0xFFB9C9CF),
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+    ),
+  );
 }

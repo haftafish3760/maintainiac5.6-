@@ -1,0 +1,14 @@
+[
+  {
+    "id": "independent_egr_and_maf_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n08/06/2026\nREPAIR ORDER 1216\nODOMETER 105000\nEGR VALVE CLEANED 129.99\nMAF SENSOR REPLACED 219.99\nWORK COMPLETED\nPAID IN FULL 349.98",
+    "actions": {"EGR Valve": "reviewCompletedService", "Mass Air Flow Sensor": "reviewCompletedService"},
+    "fields": {
+      "EGR Valve": {"serviceDate": "2026-08-06", "serviceOdometer": 105000, "completedServiceIndicated": true},
+      "Mass Air Flow Sensor": {"serviceDate": "2026-08-06", "serviceOdometer": 105000, "completedServiceIndicated": true}
+    },
+    "forbiddenItems": ["Engine Air Filter", "Fuel System Service"]
+  }
+]

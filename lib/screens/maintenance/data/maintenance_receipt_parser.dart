@@ -11,9 +11,21 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
 part 'maintenance_receipt_parser_catalog.dart';
+part 'maintenance_receipt_parser_brake_details.dart';
+part 'maintenance_receipt_parser_cooling_details.dart';
 part 'maintenance_receipt_parser_dates.dart';
+part 'maintenance_receipt_parser_engine_electrical_details.dart';
 part 'maintenance_receipt_parser_engine.dart';
+part 'maintenance_receipt_parser_ignition_details.dart';
+part 'maintenance_receipt_parser_mount_details.dart';
+part 'maintenance_receipt_parser_renewal_catalog.dart';
+part 'maintenance_receipt_parser_json_helpers.dart';
+part 'maintenance_receipt_parser_signals.dart';
+part 'maintenance_receipt_parser_suspension_details.dart';
 part 'maintenance_receipt_parser_support.dart';
+part 'maintenance_receipt_parser_system_service_details.dart';
+part 'maintenance_receipt_parser_wheel_balancing_catalog.dart';
+part 'maintenance_receipt_parser_wheel_service_details.dart';
 
 enum MaintenanceReceiptKind { partsPurchase, serviceInvoice, mixed, unknown }
 

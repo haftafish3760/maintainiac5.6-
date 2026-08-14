@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 
+import '../maintenance_models.dart';
 import 'maintenance_receipt_parser.dart';
 
 part 'maintenance_receipt_review_commands.dart';
@@ -17,6 +18,13 @@ enum MaintenanceReceiptReviewDecision {
 }
 
 enum MaintenanceReceiptSetupMode { basic, advanced }
+
+enum MaintenanceReceiptIntervalSource {
+  receiptEvidence,
+  appSuggestion,
+  userReviewed,
+  none,
+}
 
 class MaintenanceReceiptReviewItem {
   const MaintenanceReceiptReviewItem({
@@ -74,10 +82,24 @@ class MaintenanceReceiptReviewItem {
       serviceDateEdited ? serviceDate : source.serviceDate;
   int? get effectiveServiceOdometer =>
       serviceOdometerEdited ? serviceOdometer : source.serviceOdometer;
-  int? get effectiveIntervalMiles =>
-      intervalMilesEdited ? intervalMiles : source.intervalMiles;
-  int? get effectiveIntervalMonths =>
-      intervalMonthsEdited ? intervalMonths : source.intervalMonths;
+  int? get effectiveIntervalMiles => intervalMilesEdited
+      ? intervalMiles
+      : source.intervalMiles ?? intervalMiles;
+  int? get effectiveIntervalMonths => intervalMonthsEdited
+      ? intervalMonths
+      : source.intervalMonths ?? intervalMonths;
+  MaintenanceReceiptIntervalSource get intervalSource {
+    if (intervalMilesEdited || intervalMonthsEdited) {
+      return MaintenanceReceiptIntervalSource.userReviewed;
+    }
+    if (source.intervalMiles != null || source.intervalMonths != null) {
+      return MaintenanceReceiptIntervalSource.receiptEvidence;
+    }
+    if (effectiveIntervalMiles != null || effectiveIntervalMonths != null) {
+      return MaintenanceReceiptIntervalSource.appSuggestion;
+    }
+    return MaintenanceReceiptIntervalSource.none;
+  }
 
   MaintenanceReceiptReviewDecision get recommendedDecision =>
       switch (source.action) {
@@ -180,6 +202,10 @@ class MaintenanceReceiptReviewItem {
     if (decision == null) {
       throw const FormatException('Receipt review decision is invalid.');
     }
+    final intervalMilesEdited = map['intervalMilesEdited'] == true;
+    final intervalMonthsEdited = map['intervalMonthsEdited'] == true;
+    final savedIntervalMiles = _reviewNonNegativeInt(map['intervalMiles']);
+    final savedIntervalMonths = _reviewNonNegativeInt(map['intervalMonths']);
     return MaintenanceReceiptReviewItem(
       source: source,
       decision: decision,
@@ -191,12 +217,16 @@ class MaintenanceReceiptReviewItem {
       detailB: _reviewNullableString(map['detailB']),
       serviceDate: _reviewDate(map['serviceDate']),
       serviceOdometer: _reviewNonNegativeInt(map['serviceOdometer']),
-      intervalMiles: _reviewNonNegativeInt(map['intervalMiles']),
-      intervalMonths: _reviewNonNegativeInt(map['intervalMonths']),
+      intervalMiles: intervalMilesEdited
+          ? savedIntervalMiles
+          : savedIntervalMiles ?? _catalogIntervalMiles(source.itemName),
+      intervalMonths: intervalMonthsEdited
+          ? savedIntervalMonths
+          : savedIntervalMonths ?? _catalogIntervalMonths(source.itemName),
       serviceDateEdited: map['serviceDateEdited'] == true,
       serviceOdometerEdited: map['serviceOdometerEdited'] == true,
-      intervalMilesEdited: map['intervalMilesEdited'] == true,
-      intervalMonthsEdited: map['intervalMonthsEdited'] == true,
+      intervalMilesEdited: intervalMilesEdited,
+      intervalMonthsEdited: intervalMonthsEdited,
       confirmedPurchasedItemWasInstalled:
           map['confirmedPurchasedItemWasInstalled'] == true,
       confirmedWorkWasCompleted: map['confirmedWorkWasCompleted'] == true,

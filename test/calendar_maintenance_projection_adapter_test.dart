@@ -13,7 +13,7 @@ void main() {
         vehicleName: 'Work Truck',
         itemName: 'Oil change',
         serviceDate: DateTime(2026, 7, 22),
-        odometer: 120000,
+        odometer: 0,
         totalCost: 79.95,
         receiptProofCount: 1,
         createdAt: DateTime(2026, 7, 28, 10),
@@ -32,6 +32,10 @@ void main() {
       );
       expect(events.single.deepLink.sourceRecordId, 'service-1');
       expect(events.single.evidence.summary, '1 receipt proof(s) attached.');
+      expect(
+        events.single.conciseDetail,
+        r'Work Truck · Odometer not recorded · $79.95',
+      );
     },
   );
 }

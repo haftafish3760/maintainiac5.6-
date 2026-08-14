@@ -1,0 +1,36 @@
+[
+  {
+    "id": "independent_alternator_and_starter_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/30/2026\nREPAIR ORDER 1209\nODOMETER 91800\nREMANUFACTURED ALTERNATOR REPLACED 629.99\nNEW STARTER INSTALLED 519.99\nWORK COMPLETED\nPAID IN FULL 1149.98",
+    "actions": {
+      "Alternator": "reviewCompletedService",
+      "Starter": "reviewCompletedService"
+    },
+    "fields": {
+      "Alternator": {
+        "detailA": "Remanufactured",
+        "serviceDate": "2026-07-30",
+        "serviceOdometer": 91800,
+        "completedServiceIndicated": true
+      },
+      "Starter": {
+        "detailA": "New",
+        "serviceDate": "2026-07-30",
+        "serviceOdometer": 91800,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": ["Battery", "Key Fob Battery"]
+  },
+  {
+    "id": "remote_starter_is_not_engine_starter_maintenance",
+    "merchant": "Accessory Pro Shop",
+    "kind": "serviceInvoice",
+    "sourceText": "ACCESSORY PRO SHOP\n07/30/2026\nREMOTE STARTER INSTALLED 499.99\nPAID IN FULL 499.99",
+    "actions": {},
+    "fields": {},
+    "forbiddenItems": ["Starter"]
+  }
+]

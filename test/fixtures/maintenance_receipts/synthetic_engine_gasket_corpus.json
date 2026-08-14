@@ -1,0 +1,14 @@
+[
+  {
+    "id": "independent_valve_cover_and_oil_pan_gasket_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n08/07/2026\nREPAIR ORDER 1217\nODOMETER 107000\nVALVE COVER GASKET REPLACED 189.99\nOIL PAN GASKET REPLACED 249.99\nWORK COMPLETED\nPAID IN FULL 439.98",
+    "actions": {"Valve Cover Gasket": "reviewCompletedService", "Oil Pan Gasket": "reviewCompletedService"},
+    "fields": {
+      "Valve Cover Gasket": {"serviceDate": "2026-08-07", "serviceOdometer": 107000, "completedServiceIndicated": true},
+      "Oil Pan Gasket": {"serviceDate": "2026-08-07", "serviceOdometer": 107000, "completedServiceIndicated": true}
+    },
+    "forbiddenItems": ["Engine Oil", "Oil Filter"]
+  }
+]

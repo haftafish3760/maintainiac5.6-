@@ -40,7 +40,7 @@ class _MaintenanceReceiptReviewScreenState
       widget.initialReview?.items.toList() ??
       [
         for (final candidate in widget.parserResult.candidates)
-          MaintenanceReceiptReviewItem(source: candidate),
+          createMaintenanceReceiptReviewItem(candidate),
       ];
   List<MaintenanceReceiptReviewIssue> _issues = const [];
   late bool _hasEdited = widget.initialReview != null;

@@ -363,16 +363,6 @@ String? _oilWeight(String text) {
       : '${match.group(1)!.toUpperCase()}-${match.group(2)}';
 }
 
-String? _brakeAxle(String text) {
-  if (RegExp(r'\bfront (?:disc )?(?:brake|pad|rotor)').hasMatch(text)) {
-    return 'Front';
-  }
-  if (RegExp(r'\brear (?:disc )?(?:brake|pad|rotor)').hasMatch(text)) {
-    return 'Rear';
-  }
-  return null;
-}
-
 String? _batteryGroup(String text) {
   final match = RegExp(
     r'\b(?:group|grp)\s*(\d{2,3}[a-z]?)\b|\b(\d{2,3}[a-z])\s+battery\b',

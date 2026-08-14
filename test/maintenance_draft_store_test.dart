@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:maintaniac/screens/maintenance/data/maintenance_receipt_parser.dart';
+import 'package:maintaniac/screens/maintenance/data/maintenance_receipt_review.dart';
 import 'package:maintaniac/screens/maintenance/maintenance_draft_store.dart';
 import 'package:maintaniac/shared/storage/app_storage_guard.dart';
 
@@ -130,6 +132,80 @@ void main() {
       isNull,
     );
   });
+
+  test('legacy review fields migrate without overriding explicit clears', () {
+    final source = createMaintenanceReceiptReview(
+      parserResult: _partsReceipt(),
+      currentOdometer: 101250,
+    );
+    final legacy = Map<String, Object?>.from(source.toDraftJson());
+    final legacyItems = (legacy['items']! as List<Object?>).map((raw) {
+      return Map<String, Object?>.from(raw! as Map)
+        ..remove('setupMode')
+        ..remove('intervalMiles')
+        ..remove('intervalMonths');
+    }).toList();
+    legacy['items'] = legacyItems;
+
+    final restored = MaintenanceReceiptReview.fromDraftJson(legacy);
+    expect(
+      restored.items.map((item) => item.setupMode),
+      everyElement(MaintenanceReceiptSetupMode.basic),
+    );
+    expect(
+      restored.items.map((item) => item.effectiveIntervalMiles),
+      everyElement(5000),
+    );
+    expect(
+      restored.items.map((item) => item.effectiveIntervalMonths),
+      everyElement(6),
+    );
+
+    final cleared = Map<String, Object?>.from(legacyItems.first)
+      ..['intervalMilesEdited'] = true
+      ..['intervalMonthsEdited'] = true;
+    legacy['items'] = [cleared, ...legacyItems.skip(1)];
+    final restoredClear = MaintenanceReceiptReview.fromDraftJson(legacy);
+    expect(restoredClear.items.first.effectiveIntervalMiles, isNull);
+    expect(restoredClear.items.first.effectiveIntervalMonths, isNull);
+  });
+
+  test('review draft rejects unsupported or mismatched schemas', () {
+    final source = createMaintenanceReceiptReview(
+      parserResult: _partsReceipt(),
+      currentOdometer: 101250,
+    );
+    final unsupported = Map<String, Object?>.from(source.toDraftJson())
+      ..['draftSchemaVersion'] = 999;
+    expect(
+      () => MaintenanceReceiptReview.fromDraftJson(unsupported),
+      throwsFormatException,
+    );
+
+    final mismatched = Map<String, Object?>.from(source.toDraftJson())
+      ..['items'] = const <Object?>[];
+    expect(
+      () => MaintenanceReceiptReview.fromDraftJson(mismatched),
+      throwsFormatException,
+    );
+  });
+}
+
+MaintenanceReceiptParserResult _partsReceipt() {
+  return parseMaintenanceReceipt(
+    const MaintenanceReceiptParserInput(
+      activeVehicleId: 'vehicle_work_truck_1',
+      activeVehicleName: 'Work Truck 1',
+      currentOdometer: 101250,
+      sourceText: '''
+ADVANCE AUTO PARTS
+07/23/2026
+FULL SYNTHETIC MOTOR OIL 5W-30 34.99
+OIL FILTER 12.99
+TOTAL 47.98
+''',
+    ),
+  );
 }
 
 Future<AppStorageCheck> _enoughStorage() async => const AppStorageCheck(

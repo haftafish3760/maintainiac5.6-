@@ -1,0 +1,27 @@
+[
+  {
+    "id": "independent_ignition_coil_and_wire_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/31/2026\nREPAIR ORDER 1210\nODOMETER 92000\nCOIL PACK REPLACED 349.99\nPERFORMANCE SPARK PLUG WIRES REPLACED 189.99\nWORK COMPLETED\nPAID IN FULL 539.98",
+    "actions": {
+      "Ignition Coils": "reviewCompletedService",
+      "Spark Plug Wires": "reviewCompletedService"
+    },
+    "fields": {
+      "Ignition Coils": {
+        "detailA": "Coil pack",
+        "serviceDate": "2026-07-31",
+        "serviceOdometer": 92000,
+        "completedServiceIndicated": true
+      },
+      "Spark Plug Wires": {
+        "detailA": "Performance",
+        "serviceDate": "2026-07-31",
+        "serviceOdometer": 92000,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": ["Spark Plugs", "Battery"]
+  }
+]

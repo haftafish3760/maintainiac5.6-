@@ -59,9 +59,31 @@ PAID IN FULL
 
   test('manual catalog separates adjacent maintenance families', () {
     final names = maintenanceCatalog.map((item) => item.name);
-    expect(names, containsAll(['Brake Pads', 'Brake Rotors']));
+    expect(
+      names,
+      containsAll([
+        'Brake Pads',
+        'Brake Rotors',
+        'Brake Shoes',
+        'Brake Drums',
+        'Brake Calipers',
+        'Brake Hoses and Lines',
+      ]),
+    );
+    expect(names, contains('Brake Inspection'));
     expect(names, containsAll(['Tires', 'Tire Rotation']));
+    expect(names, containsAll(['Wheel Alignment', 'Wheel Balancing']));
+    expect(names, contains('Steering and Suspension Inspection'));
+    expect(
+      names,
+      containsAll(['Shocks and Struts', 'Ball Joints', 'Tie Rod Ends']),
+    );
+    expect(names, containsAll(['Sway Bar Links', 'Wheel Bearings']));
+    expect(names, containsAll(['CV Axles', 'Engine Mounts']));
     expect(names, containsAll(['Serpentine Belt', 'Timing Belt']));
+    expect(names, containsAll(['Belt Tensioner', 'Idler Pulley']));
+    expect(names, containsAll(['Water Pump', 'Thermostat']));
+    expect(names, containsAll(['Radiator', 'Radiator Cap']));
     expect(
       names,
       containsAll([
@@ -71,6 +93,43 @@ PAID IN FULL
       ]),
     );
     expect(names, contains('PCV Valve'));
+    expect(names, contains('Oxygen Sensors'));
+    expect(names, contains('Catalytic Converter'));
+    expect(names, containsAll(['EGR Valve', 'Mass Air Flow Sensor']));
+    expect(names, containsAll(['Valve Cover Gasket', 'Oil Pan Gasket']));
+    expect(names, contains('Fuel Pump'));
+    expect(names, containsAll(['Ignition Coils', 'Spark Plug Wires']));
+    expect(names, containsAll(['Alternator', 'Starter']));
+    expect(
+      names,
+      containsAll(['Fuel System Service', 'Air Conditioning Service']),
+    );
+    for (final name in [
+      'Brake Pads',
+      'Brake Rotors',
+      'Brake Shoes',
+      'Brake Drums',
+      'Brake Calipers',
+      'Brake Hoses and Lines',
+    ]) {
+      final item = maintenanceCatalog.singleWhere((item) => item.name == name);
+      expect(
+        item.detailAOptions,
+        containsAll(['Front', 'Rear', 'Front and rear']),
+        reason: '$name axle options',
+      );
+    }
+    final alignment = maintenanceCatalog.singleWhere(
+      (item) => item.name == 'Wheel Alignment',
+    );
+    final balancing = maintenanceCatalog.singleWhere(
+      (item) => item.name == 'Wheel Balancing',
+    );
+    expect(alignment.detailAOptions, containsAll(['Four-wheel', 'Front-end']));
+    expect(
+      balancing.detailAOptions,
+      containsAll(['Road force', 'Computerized', 'Standard']),
+    );
   });
 
   test('new periodic families are representable in Basic manual setup', () {

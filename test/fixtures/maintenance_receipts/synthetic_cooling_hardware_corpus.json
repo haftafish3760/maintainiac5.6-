@@ -1,0 +1,27 @@
+[
+  {
+    "id": "independent_water_pump_and_thermostat_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/29/2026\nREPAIR ORDER 1208\nODOMETER 91500\nMECHANICAL WATER PUMP REPLACED 689.99\n195F THERMOSTAT REPLACED 189.99\nWORK COMPLETED\nPAID IN FULL 879.98",
+    "actions": {
+      "Water Pump": "reviewCompletedService",
+      "Thermostat": "reviewCompletedService"
+    },
+    "fields": {
+      "Water Pump": {
+        "detailA": "Mechanical",
+        "serviceDate": "2026-07-29",
+        "serviceOdometer": 91500,
+        "completedServiceIndicated": true
+      },
+      "Thermostat": {
+        "detailA": "195°F",
+        "serviceDate": "2026-07-29",
+        "serviceOdometer": 91500,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": ["Coolant", "Radiator Hose"]
+  }
+]

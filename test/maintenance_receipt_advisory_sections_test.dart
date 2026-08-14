@@ -2,11 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/maintenance/data/maintenance_receipt_parser.dart';
 
 void main() {
-  test('technician notes cannot inherit completed status', () {
-    final result = parseMaintenanceReceipt(
-      const MaintenanceReceiptParserInput(
-        activeVehicleId: 'vehicle_1',
-        sourceText: '''
+  test('advisory headings scope findings without claiming service', () {
+    final scenarios =
+        <
+          ({
+            String id,
+            String sourceText,
+            String completedItem,
+            String advisoryItem,
+          })
+        >[
+          (
+            id: 'technician notes after completed oil service',
+            sourceText: '''
 MAIN STREET AUTO
 07/23/2026
 REPAIR ORDER 233
@@ -16,29 +24,12 @@ TECHNICIAN NOTES
 FRONT BRAKE PADS WORN
 PAID IN FULL 59.99
 ''',
-      ),
-    );
-
-    final candidates = {
-      for (final candidate in result.candidates) candidate.itemName: candidate,
-    };
-    expect(
-      candidates['Engine Oil']!.action,
-      MaintenanceReceiptAction.reviewCompletedService,
-    );
-    expect(candidates['Engine Oil']!.notCompletedIndicated, isFalse);
-    expect(
-      candidates['Brake Pads']!.action,
-      MaintenanceReceiptAction.manualReview,
-    );
-    expect(candidates['Brake Pads']!.notCompletedIndicated, isTrue);
-  });
-
-  test('advisory section cannot imply battery installation', () {
-    final result = parseMaintenanceReceipt(
-      const MaintenanceReceiptParserInput(
-        activeVehicleId: 'vehicle_1',
-        sourceText: '''
+            completedItem: 'Engine Oil',
+            advisoryItem: 'Brake Pads',
+          ),
+          (
+            id: 'advisories after completed tire rotation',
+            sourceText: '''
 MAIN STREET AUTO
 07/23/2026
 REPAIR ORDER 234
@@ -48,28 +39,12 @@ ADVISORIES
 AUTOMOTIVE BATTERY WEAK
 PAID IN FULL 29.99
 ''',
-      ),
-    );
-
-    final candidates = {
-      for (final candidate in result.candidates) candidate.itemName: candidate,
-    };
-    expect(
-      candidates['Tire Rotation']!.action,
-      MaintenanceReceiptAction.reviewCompletedService,
-    );
-    expect(
-      candidates['Battery']!.action,
-      MaintenanceReceiptAction.manualReview,
-    );
-    expect(candidates['Battery']!.notCompletedIndicated, isTrue);
-  });
-
-  test('completed heading resets an observations section', () {
-    final result = parseMaintenanceReceipt(
-      const MaintenanceReceiptParserInput(
-        activeVehicleId: 'vehicle_1',
-        sourceText: '''
+            completedItem: 'Tire Rotation',
+            advisoryItem: 'Battery',
+          ),
+          (
+            id: 'completed heading resets observations',
+            sourceText: '''
 MAIN STREET AUTO
 07/23/2026
 REPAIR ORDER 235
@@ -79,21 +54,43 @@ WORK COMPLETED
 TIRE ROTATION 29.99
 PAID IN FULL 29.99
 ''',
-      ),
-    );
+            completedItem: 'Tire Rotation',
+            advisoryItem: 'Cabin Air Filter',
+          ),
+        ];
 
-    final candidates = {
-      for (final candidate in result.candidates) candidate.itemName: candidate,
-    };
-    expect(
-      candidates['Cabin Air Filter']!.action,
-      MaintenanceReceiptAction.manualReview,
-    );
-    expect(candidates['Cabin Air Filter']!.notCompletedIndicated, isTrue);
-    expect(
-      candidates['Tire Rotation']!.action,
-      MaintenanceReceiptAction.reviewCompletedService,
-    );
-    expect(candidates['Tire Rotation']!.notCompletedIndicated, isFalse);
+    for (final scenario in scenarios) {
+      final result = parseMaintenanceReceipt(
+        MaintenanceReceiptParserInput(
+          activeVehicleId: 'vehicle_1',
+          sourceText: scenario.sourceText,
+        ),
+      );
+      final candidates = {
+        for (final candidate in result.candidates)
+          candidate.itemName: candidate,
+      };
+
+      expect(
+        candidates[scenario.completedItem]!.action,
+        MaintenanceReceiptAction.reviewCompletedService,
+        reason: scenario.id,
+      );
+      expect(
+        candidates[scenario.completedItem]!.notCompletedIndicated,
+        isFalse,
+        reason: scenario.id,
+      );
+      expect(
+        candidates[scenario.advisoryItem]!.action,
+        MaintenanceReceiptAction.manualReview,
+        reason: scenario.id,
+      );
+      expect(
+        candidates[scenario.advisoryItem]!.notCompletedIndicated,
+        isTrue,
+        reason: scenario.id,
+      );
+    }
   });
 }

@@ -136,6 +136,43 @@ TOTAL 34.99
       expect(record.detailA, isEmpty);
       expect(record.detailB, isEmpty);
       expect(record.sourceCommandId, outcome.commands.single.commandId);
+
+      final renewal = parseMaintenanceReceipt(
+        MaintenanceReceiptParserInput(
+          activeVehicleId: vehicle.id,
+          activeVehicleName: vehicle.nickname,
+          sourceText: 'DMV\n08/05/2026\nVEHICLE REGISTRATION RENEWED 79.00',
+        ),
+      );
+      final renewalReview = createMaintenanceReceiptReview(
+        parserResult: renewal,
+        currentOdometer: 101250,
+      );
+      final renewalOutcome = buildMaintenanceReceiptCommands(
+        renewalReview.copyWith(
+          items: [
+            renewalReview.items.single.copyWith(
+              decision: MaintenanceReceiptReviewDecision.setupAndService,
+            ),
+          ],
+        ),
+      );
+      expect(renewalOutcome.commands.single.intervalMiles, isNull);
+      expect(renewalOutcome.commands.single.intervalMonths, 12);
+      final renewalResult = await applyMaintenanceReceiptOutcome(
+        state: state,
+        outcome: renewalOutcome,
+      );
+      expect(renewalResult.isApplied, isTrue);
+      final registration = state.maintenance.singleWhere(
+        (saved) => saved.itemName == 'Registration',
+      );
+      expect(registration.intervalMiles, 0);
+      expect(registration.intervalMonths, 12);
+      expect(registration.importance, 98);
+      expect(registration.timeOnly, isTrue);
+      expect(registration.setupComplete, isTrue);
+      expect(state.maintenanceEvents.single.odometer, 0);
     },
   );
 

@@ -1,0 +1,28 @@
+[
+  {
+    "id": "independent_fuel_and_air_conditioning_services",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/25/2026\nWORK ORDER 1204\nODOMETER 90500\nFUEL INJECTOR CLEANING SERVICE 149.99\nA/C EVACUATION AND R-1234YF RECHARGE 249.99\nWORK COMPLETED\nPAID IN FULL 399.98",
+    "actions": {
+      "Fuel System Service": "reviewCompletedService",
+      "Air Conditioning Service": "reviewCompletedService"
+    },
+    "fields": {
+      "Fuel System Service": {
+        "detailA": "Fuel injector cleaning",
+        "serviceDate": "2026-07-25",
+        "serviceOdometer": 90500,
+        "completedServiceIndicated": true
+      },
+      "Air Conditioning Service": {
+        "detailA": "Evacuation and recharge",
+        "detailB": "R-1234yf",
+        "serviceDate": "2026-07-25",
+        "serviceOdometer": 90500,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": ["Fuel Filter", "Coolant"]
+  }
+]

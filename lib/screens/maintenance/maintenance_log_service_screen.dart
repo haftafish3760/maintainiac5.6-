@@ -41,6 +41,8 @@ class _MaintenanceLogServiceScreenState
   final _provider = TextEditingController();
   final _notes = TextEditingController();
   var _seededOdometer = false;
+  var _odometerAutoSeeded = false;
+  var _updatingOdometerProgrammatically = false;
 
   @override
   void initState() {
@@ -64,9 +66,23 @@ class _MaintenanceLogServiceScreenState
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (_seededOdometer) return;
-    _odometer.text = GlobalOdometerScope.of(context).reading.toString();
+    _seedOdometerWhenRequired();
+  }
+
+  void _seedOdometerWhenRequired() {
+    if (_seededOdometer || !_requiresOdometer) return;
+    _setOdometerProgrammatically(
+      GlobalOdometerScope.of(context).reading.toString(),
+      autoSeeded: true,
+    );
     _seededOdometer = true;
+  }
+
+  void _setOdometerProgrammatically(String value, {required bool autoSeeded}) {
+    _updatingOdometerProgrammatically = true;
+    _odometer.text = value;
+    _updatingOdometerProgrammatically = false;
+    _odometerAutoSeeded = autoSeeded;
   }
 
   @override
@@ -79,6 +95,7 @@ class _MaintenanceLogServiceScreenState
   }
 
   void _refreshFormState() {
+    if (!_updatingOdometerProgrammatically) _odometerAutoSeeded = false;
     if (mounted) setState(() {});
   }
 
@@ -241,6 +258,12 @@ class _MaintenanceLogServiceScreenState
           ? _selected.remove(record)
           : _selected.add(record);
     });
+    if (!_requiresOdometer && _odometerAutoSeeded) {
+      _setOdometerProgrammatically('', autoSeeded: false);
+      _seededOdometer = false;
+    } else {
+      _seedOdometerWhenRequired();
+    }
   }
 
   Future<void> _pickServiceDate() async {
@@ -295,7 +318,7 @@ class _MaintenanceLogServiceScreenState
   Future<void> _save() async {
     final odometerText = _odometer.text.trim();
     final odometer = odometerText.isEmpty
-        ? GlobalOdometerScope.of(context).reading
+        ? (_requiresOdometer ? GlobalOdometerScope.of(context).reading : 0)
         : int.tryParse(odometerText);
     if (odometer == null || odometer < 0) {
       ScaffoldMessenger.of(context).showSnackBar(

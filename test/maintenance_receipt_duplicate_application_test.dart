@@ -43,7 +43,65 @@ void main() {
         contains('possible_duplicate_service_event'),
       );
       expect(state.maintenanceEvents, hasLength(1));
+
+      final firstRenewal = _timeOnlyOutcome(
+        state.activeVehicle!,
+        receiptLine: 'COUNTY RECEIPT 200',
+      );
+      final rescannedRenewal = _timeOnlyOutcome(
+        state.activeVehicle!,
+        receiptLine: 'COUNTY RECEIPT 200 RESCAN',
+      );
+      expect(
+        (await applyMaintenanceReceiptOutcome(
+          state: state,
+          outcome: firstRenewal,
+        )).isApplied,
+        isTrue,
+      );
+      final duplicateRenewal = await applyMaintenanceReceiptOutcome(
+        state: state,
+        outcome: rescannedRenewal,
+      );
+      expect(duplicateRenewal.isApplied, isFalse);
+      expect(
+        duplicateRenewal.issues.map((issue) => issue.code),
+        contains('possible_duplicate_service_event'),
+      );
+      expect(state.maintenanceEvents, hasLength(2));
     },
+  );
+}
+
+MaintenanceReceiptReviewOutcome _timeOnlyOutcome(
+  VehicleProfile vehicle, {
+  required String receiptLine,
+}) {
+  final parsed = parseMaintenanceReceipt(
+    MaintenanceReceiptParserInput(
+      activeVehicleId: vehicle.id,
+      activeVehicleName: vehicle.nickname,
+      sourceText:
+          '''
+COUNTY SERVICE CENTER
+08/05/2026
+$receiptLine
+VEHICLE REGISTRATION RENEWED 79.00
+''',
+    ),
+  );
+  final review = createMaintenanceReceiptReview(
+    parserResult: parsed,
+    currentOdometer: 101250,
+  );
+  return buildMaintenanceReceiptCommands(
+    review.copyWith(
+      items: [
+        review.items.single.copyWith(
+          decision: MaintenanceReceiptReviewDecision.setupAndService,
+        ),
+      ],
+    ),
   );
 }
 

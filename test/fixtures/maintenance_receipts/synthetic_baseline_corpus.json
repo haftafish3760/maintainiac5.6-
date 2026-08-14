@@ -8,16 +8,37 @@
       "Engine Oil": "reviewTrackingSetup",
       "Oil Filter": "reviewTrackingSetup"
     },
+    "fields": {
+      "Engine Oil": {
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30",
+        "productPurchased": true
+      },
+      "Oil Filter": {
+        "detailB": "PH8A",
+        "productPurchased": true
+      }
+    },
     "forbiddenItems": []
   },
   {
     "id": "oreilly_brake_purchase",
     "merchant": "O'Reilly Auto Parts",
     "kind": "partsPurchase",
-    "sourceText": "O'REILLY AUTO PARTS\n07/23/2026\nFRONT DISC BRAKE PADS 49.99\n2 BRAKE ROTORS 119.98\nTOTAL 169.97",
+    "sourceText": "O'REILLY AUTO PARTS\n07/23/2026\nFRONT CERAMIC DISC BRAKE PADS 49.99\n2 BRAKE ROTORS 119.98\nTOTAL 169.97",
     "actions": {
       "Brake Pads": "reviewTrackingSetup",
       "Brake Rotors": "reviewTrackingSetup"
+    },
+    "fields": {
+      "Brake Pads": {
+        "detailA": "Front",
+        "detailB": "Ceramic",
+        "productPurchased": true
+      },
+      "Brake Rotors": {
+        "productPurchased": true
+      }
     },
     "forbiddenItems": []
   },
@@ -28,6 +49,12 @@
     "sourceText": "NAPA AUTO PARTS\n07/23/2026\nAUTOMOTIVE BATTERY GROUP 65 189.99\nCORE CHARGE 22.00\nTOTAL 211.99",
     "actions": {
       "Battery": "reviewTrackingSetup"
+    },
+    "fields": {
+      "Battery": {
+        "detailB": "65",
+        "productPurchased": true
+      }
     },
     "forbiddenItems": []
   },
@@ -53,6 +80,17 @@
       "Tires": "reviewTrackingSetup",
       "Wiper Blades": "reviewTrackingSetup"
     },
+    "fields": {
+      "Tires": {
+        "detailA": "All-Season",
+        "detailB": "235/65R17",
+        "productPurchased": true
+      },
+      "Wiper Blades": {
+        "detailB": "24 in",
+        "productPurchased": true
+      }
+    },
     "forbiddenItems": []
   },
   {
@@ -63,6 +101,22 @@
     "actions": {
       "Engine Oil": "reviewCompletedService",
       "Oil Filter": "reviewCompletedService"
+    },
+    "fields": {
+      "Engine Oil": {
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30",
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 100000,
+        "dueOdometer": 105000,
+        "intervalMiles": 5000,
+        "completedServiceIndicated": true
+      },
+      "Oil Filter": {
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 100000,
+        "completedServiceIndicated": true
+      }
     },
     "forbiddenItems": []
   },
@@ -117,6 +171,17 @@
     "actions": {
       "Engine Oil": "reviewCompletedService"
     },
+    "fields": {
+      "Engine Oil": {
+        "detailA": "Full Synthetic",
+        "detailB": "0W-20",
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 78210,
+        "dueOdometer": 83210,
+        "intervalMiles": 5000,
+        "completedServiceIndicated": true
+      }
+    },
     "forbiddenItems": []
   },
   {
@@ -138,6 +203,17 @@
       "Engine Oil": "reviewTrackingSetup",
       "Oil Filter": "reviewTrackingSetup"
     },
+    "fields": {
+      "Engine Oil": {
+        "detailA": "Full Synthetic",
+        "detailB": "5W-30",
+        "productPurchased": true
+      },
+      "Oil Filter": {
+        "detailB": "PH8A",
+        "productPurchased": true
+      }
+    },
     "forbiddenItems": []
   },
   {
@@ -147,6 +223,17 @@
     "sourceText": "JIFFY LUBE\nJUL 23, 2026\nWORK ORDER 882\nODOMETER 90000\nSERVICE PERFORMED\nCONVENTIONAL OIL CHANGE 5W-30 49.99\nNEXT DUE 95000",
     "actions": {
       "Engine Oil": "reviewCompletedService"
+    },
+    "fields": {
+      "Engine Oil": {
+        "detailA": "Conventional",
+        "detailB": "5W-30",
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 90000,
+        "dueOdometer": 95000,
+        "intervalMiles": 5000,
+        "completedServiceIndicated": true
+      }
     },
     "forbiddenItems": []
   },
@@ -161,6 +248,24 @@
       "Engine Air Filter": "reviewTrackingSetup",
       "Cabin Air Filter": "reviewTrackingSetup"
     },
+    "fields": {
+      "Coolant": {
+        "detailA": "DEX-COOL",
+        "productPurchased": true
+      },
+      "Brake Fluid": {
+        "detailA": "DOT 4",
+        "productPurchased": true
+      },
+      "Engine Air Filter": {
+        "detailB": "AF1883",
+        "productPurchased": true
+      },
+      "Cabin Air Filter": {
+        "detailB": "CF12150",
+        "productPurchased": true
+      }
+    },
     "forbiddenItems": []
   },
   {
@@ -171,6 +276,16 @@
     "actions": {
       "Transmission Fluid and Filter": "reviewTrackingSetup",
       "Fuel Filter": "reviewTrackingSetup"
+    },
+    "fields": {
+      "Transmission Fluid and Filter": {
+        "detailA": "ATF+4",
+        "productPurchased": true
+      },
+      "Fuel Filter": {
+        "detailB": "FF7333",
+        "productPurchased": true
+      }
     },
     "forbiddenItems": [
       "Engine Oil"
@@ -186,6 +301,17 @@
       "Serpentine Belt": "reviewTrackingSetup",
       "Radiator Hose": "reviewTrackingSetup"
     },
+    "fields": {
+      "Spark Plugs": {
+        "productPurchased": true
+      },
+      "Serpentine Belt": {
+        "productPurchased": true
+      },
+      "Radiator Hose": {
+        "productPurchased": true
+      }
+    },
     "forbiddenItems": []
   },
   {
@@ -196,6 +322,19 @@
     "actions": {
       "Coolant": "reviewCompletedService",
       "Transmission Fluid and Filter": "reviewCompletedService"
+    },
+    "fields": {
+      "Coolant": {
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 66000,
+        "completedServiceIndicated": true
+      },
+      "Transmission Fluid and Filter": {
+        "detailA": "ATF+4",
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 66000,
+        "completedServiceIndicated": true
+      }
     },
     "forbiddenItems": []
   },

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "independent_catalytic_converter_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n08/08/2026\nREPAIR ORDER 1218\nODOMETER 109000\nCATALYTIC CONVERTER REPLACED 1199.99\nWORK COMPLETED\nPAID IN FULL 1199.99",
+    "actions": {"Catalytic Converter": "reviewCompletedService"},
+    "fields": {"Catalytic Converter": {"serviceDate": "2026-08-08", "serviceOdometer": 109000, "completedServiceIndicated": true}},
+    "forbiddenItems": ["Oxygen Sensors", "EGR Valve"]
+  }
+]

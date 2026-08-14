@@ -1,0 +1,11 @@
+[
+  {
+    "id": "independent_oxygen_sensor_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n08/05/2026\nREPAIR ORDER 1215\nODOMETER 103000\nOXYGEN SENSOR REPLACED 249.99\nWORK COMPLETED\nPAID IN FULL 249.99",
+    "actions": {"Oxygen Sensors": "reviewCompletedService"},
+    "fields": {"Oxygen Sensors": {"serviceDate": "2026-08-05", "serviceOdometer": 103000, "completedServiceIndicated": true}},
+    "forbiddenItems": ["Fuel System Service", "Spark Plugs"]
+  }
+]

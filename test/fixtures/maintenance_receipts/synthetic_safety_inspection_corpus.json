@@ -1,0 +1,29 @@
+[
+  {
+    "id": "independent_brake_and_suspension_inspections",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/23/2026\nWORK ORDER 1202\nODOMETER 90200\nBRAKE SYSTEM INSPECTION COMPLETED 49.99\nSTEERING AND SUSPENSION INSPECTION COMPLETED 69.99\nWORK COMPLETED\nPAID IN FULL 119.98",
+    "actions": {
+      "Brake Inspection": "reviewCompletedService",
+      "Steering and Suspension Inspection": "reviewCompletedService"
+    },
+    "fields": {
+      "Brake Inspection": {
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 90200,
+        "completedServiceIndicated": true
+      },
+      "Steering and Suspension Inspection": {
+        "serviceDate": "2026-07-23",
+        "serviceOdometer": 90200,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": [
+      "Brake Pads",
+      "Brake Rotors",
+      "Inspection"
+    ]
+  }
+]

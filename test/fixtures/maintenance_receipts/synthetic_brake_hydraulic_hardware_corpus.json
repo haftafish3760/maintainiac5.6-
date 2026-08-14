@@ -1,0 +1,33 @@
+[
+  {
+    "id": "independent_brake_caliper_and_hose_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/26/2026\nREPAIR ORDER 1205\nODOMETER 90750\nFRONT BRAKE CALIPERS REPLACED 389.99\nREAR BRAKE HOSES REPLACED 219.99\nWORK COMPLETED\nPAID IN FULL 609.98",
+    "actions": {
+      "Brake Calipers": "reviewCompletedService",
+      "Brake Hoses and Lines": "reviewCompletedService"
+    },
+    "fields": {
+      "Brake Calipers": {
+        "detailA": "Front",
+        "detailB": "Replacement",
+        "serviceDate": "2026-07-26",
+        "serviceOdometer": 90750,
+        "completedServiceIndicated": true
+      },
+      "Brake Hoses and Lines": {
+        "detailA": "Rear",
+        "serviceDate": "2026-07-26",
+        "serviceOdometer": 90750,
+        "completedServiceIndicated": true
+      }
+    },
+    "forbiddenItems": [
+      "Brake Pads",
+      "Brake Rotors",
+      "Brake Fluid",
+      "Brake Inspection"
+    ]
+  }
+]

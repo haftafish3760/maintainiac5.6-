@@ -1,15 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/screens/maintenance/data/maintenance_receipt_parser.dart';
 
+import 'support/maintenance_receipt_synthetic_corpus.dart';
+
 void main() {
-  final fixtureFile = File(
-    'test/fixtures/maintenance_receipts/synthetic_corpus.json',
-  );
-  final fixtures = (jsonDecode(fixtureFile.readAsStringSync()) as List<dynamic>)
-      .cast<Map<String, dynamic>>();
+  final fixtures = loadMaintenanceReceiptSyntheticCorpus();
 
   for (final fixture in fixtures) {
     test('synthetic corpus ${fixture['id']}', () {
@@ -57,6 +52,21 @@ void main() {
           reason: '${fixture['id']} ${entry.key}',
         );
       }
+      final fields = ((fixture['fields'] as Map?) ?? const <String, Object?>{})
+          .cast<String, dynamic>();
+      for (final entry in fields.entries) {
+        final expected = (entry.value as Map).cast<String, dynamic>();
+        final candidate = candidates[entry.key];
+        expect(candidate, isNotNull, reason: '${fixture['id']} ${entry.key}');
+        final actual = candidate!.toJson();
+        for (final field in expected.entries) {
+          expect(
+            actual[field.key],
+            field.value,
+            reason: '${fixture['id']} ${entry.key} ${field.key}',
+          );
+        }
+      }
       for (final forbidden in fixture['forbiddenItems'] as List<dynamic>) {
         expect(
           candidates,
@@ -103,11 +113,19 @@ void main() {
         expect(
           {
             for (final candidate in noisy.candidates)
-              candidate.itemName: candidate.action,
+              candidate.itemName: (
+                candidate.action,
+                candidate.detailA,
+                candidate.detailB,
+              ),
           },
           {
             for (final candidate in baseline.candidates)
-              candidate.itemName: candidate.action,
+              candidate.itemName: (
+                candidate.action,
+                candidate.detailA,
+                candidate.detailB,
+              ),
           },
         );
       },

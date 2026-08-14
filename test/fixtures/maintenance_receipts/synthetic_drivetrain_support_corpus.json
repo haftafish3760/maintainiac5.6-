@@ -1,0 +1,17 @@
+[
+  {
+    "id": "independent_cv_axle_and_engine_mount_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n08/01/2026\nREPAIR ORDER 1211\nODOMETER 94000\nFRONT CV AXLE REPLACED 289.99\nHYDRAULIC ENGINE MOUNT REPLACED 214.99\nWORK COMPLETED\nPAID IN FULL 504.98",
+    "actions": {
+      "CV Axles": "reviewCompletedService",
+      "Engine Mounts": "reviewCompletedService"
+    },
+    "fields": {
+      "CV Axles": {"detailA": "Front", "detailB": "New", "serviceDate": "2026-08-01", "serviceOdometer": 94000, "completedServiceIndicated": true},
+      "Engine Mounts": {"detailA": "Hydraulic", "serviceDate": "2026-08-01", "serviceOdometer": 94000, "completedServiceIndicated": true}
+    },
+    "forbiddenItems": ["Wheel Bearings", "Shocks and Struts"]
+  }
+]

@@ -172,7 +172,7 @@ extension AppStateMaintenanceController on AppStateController {
           lastServiceOdometer: normalized.odometer,
           setupComplete: true,
           lastServiceEstimated: false,
-          lastOdometerEstimated: false,
+          lastOdometerEstimated: normalized.odometer <= 0,
           updatedAt: now,
           revision: nextRecords[index].revision + 1,
         );
@@ -243,7 +243,7 @@ extension AppStateMaintenanceController on AppStateController {
           lastServiceOdometer: normalized.odometer,
           setupComplete: true,
           lastServiceEstimated: false,
-          lastOdometerEstimated: false,
+          lastOdometerEstimated: normalized.odometer <= 0,
           updatedAt: now,
           revision: nextRecords[recordIndex].revision + 1,
         );

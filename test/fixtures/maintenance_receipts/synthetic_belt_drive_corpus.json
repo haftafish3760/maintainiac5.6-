@@ -1,0 +1,17 @@
+[
+  {
+    "id": "independent_belt_tensioner_and_idler_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n08/02/2026\nREPAIR ORDER 1212\nODOMETER 96000\nBELT TENSIONER REPLACED 159.99\nIDLER PULLEY REPLACED 74.99\nWORK COMPLETED\nPAID IN FULL 234.98",
+    "actions": {
+      "Belt Tensioner": "reviewCompletedService",
+      "Idler Pulley": "reviewCompletedService"
+    },
+    "fields": {
+      "Belt Tensioner": {"serviceDate": "2026-08-02", "serviceOdometer": 96000, "completedServiceIndicated": true},
+      "Idler Pulley": {"serviceDate": "2026-08-02", "serviceOdometer": 96000, "completedServiceIndicated": true}
+    },
+    "forbiddenItems": ["Serpentine Belt", "Timing Belt"]
+  }
+]

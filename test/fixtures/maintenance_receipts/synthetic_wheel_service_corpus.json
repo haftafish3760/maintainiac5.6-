@@ -1,0 +1,24 @@
+[
+  {
+    "id": "independent_alignment_and_balancing_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n07/23/2026\nWORK ORDER 1201\nODOMETER 90100\nFOUR-WHEEL ALIGNMENT 129.99\nROAD FORCE BALANCING 89.99\nWORK COMPLETED\nPAID IN FULL 219.98",
+    "actions": {
+      "Wheel Alignment": "reviewCompletedService",
+      "Wheel Balancing": "reviewCompletedService"
+    },
+    "fields": {
+      "Wheel Alignment": {
+        "detailA": "Four-wheel"
+      },
+      "Wheel Balancing": {
+        "detailA": "Road force"
+      }
+    },
+    "forbiddenItems": [
+      "Tires",
+      "Tire Rotation"
+    ]
+  }
+]

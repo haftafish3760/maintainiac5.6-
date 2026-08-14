@@ -73,6 +73,7 @@ Future<MaintenanceReceiptApplicationResult> applyMaintenanceReceiptOutcome({
 
   final commandIds = <String>{};
   for (final command in outcome.commands) {
+    final catalogItem = maintenanceReceiptCatalogItem(command.itemName);
     final commandId = command.commandId.trim().toLowerCase();
     final fingerprint = command.sourceFingerprintSha256.trim().toLowerCase();
     if (activeVehicle != null && command.vehicleId.trim() != activeVehicle.id) {
@@ -191,20 +192,22 @@ Future<MaintenanceReceiptApplicationResult> applyMaintenanceReceiptOutcome({
         ),
       );
     }
+    final serviceOdometerRequired = catalogItem?.timeOnly != true;
     if (command.logCompletedService &&
-        (command.serviceDate == null || command.serviceOdometer == null)) {
+        (command.serviceDate == null ||
+            (serviceOdometerRequired && command.serviceOdometer == null))) {
       issues.add(
         MaintenanceReceiptApplicationIssue(
           code: 'service_evidence_required',
-          message:
-              'A completed service needs a confirmed date and odometer before it can be saved.',
+          message: serviceOdometerRequired
+              ? 'A completed service needs a confirmed date and odometer before it can be saved.'
+              : 'A completed time-only service needs a confirmed date before it can be saved.',
           commandId: commandId,
         ),
       );
     }
     if (command.logCompletedService &&
         command.serviceDate != null &&
-        command.serviceOdometer != null &&
         state.maintenanceEvents.any(
           (event) =>
               event.eventId.trim().toLowerCase() != commandId &&
@@ -212,7 +215,8 @@ Future<MaintenanceReceiptApplicationResult> applyMaintenanceReceiptOutcome({
               event.itemName.trim().toLowerCase() ==
                   command.itemName.trim().toLowerCase() &&
               _sameCalendarDate(event.serviceDate, command.serviceDate!) &&
-              event.odometer == command.serviceOdometer,
+              (command.serviceOdometer == null ||
+                  event.odometer == command.serviceOdometer),
         )) {
       issues.add(
         MaintenanceReceiptApplicationIssue(
@@ -239,6 +243,7 @@ Future<MaintenanceReceiptApplicationResult> applyMaintenanceReceiptOutcome({
   final events = <MaintenanceServiceEvent>[];
   for (final command in outcome.commands) {
     if (command.setupTracking) {
+      final catalogItem = maintenanceReceiptCatalogItem(command.itemName);
       records.add(
         MaintenanceRecord(
           itemName: command.itemName.trim(),
@@ -248,10 +253,11 @@ Future<MaintenanceReceiptApplicationResult> applyMaintenanceReceiptOutcome({
           milesSinceService: 0,
           intervalMonths: command.intervalMonths ?? 0,
           monthsSinceService: 0,
-          importance: 100,
+          importance: catalogItem?.importance ?? 100,
           detailA: command.detailA?.trim() ?? '',
           detailB: command.detailB?.trim() ?? '',
           setupComplete: false,
+          timeOnly: catalogItem?.timeOnly ?? false,
           sourceCommandId: command.commandId,
           sourceReceiptFingerprint: command.sourceFingerprintSha256,
           sourceParserSchemaVersion: command.parserSchemaVersion,
@@ -266,7 +272,7 @@ Future<MaintenanceReceiptApplicationResult> applyMaintenanceReceiptOutcome({
           vehicleId: activeVehicle.id,
           vehicleName: activeVehicle.nickname,
           serviceDate: command.serviceDate!,
-          odometer: command.serviceOdometer!,
+          odometer: command.serviceOdometer ?? 0,
           provider: command.merchantName.trim(),
           notes: 'Confirmed from maintenance receipt review.',
           sourceCommandId: command.commandId,

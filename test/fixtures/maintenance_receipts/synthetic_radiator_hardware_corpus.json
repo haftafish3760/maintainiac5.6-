@@ -1,0 +1,17 @@
+[
+  {
+    "id": "independent_radiator_and_cap_service",
+    "merchant": "Main Street Auto",
+    "kind": "serviceInvoice",
+    "sourceText": "MAIN STREET AUTO\n08/03/2026\nREPAIR ORDER 1213\nODOMETER 98000\nRADIATOR REPLACED 429.99\nRADIATOR CAP REPLACED 24.99\nWORK COMPLETED\nPAID IN FULL 454.98",
+    "actions": {
+      "Radiator": "reviewCompletedService",
+      "Radiator Cap": "reviewCompletedService"
+    },
+    "fields": {
+      "Radiator": {"serviceDate": "2026-08-03", "serviceOdometer": 98000, "completedServiceIndicated": true},
+      "Radiator Cap": {"serviceDate": "2026-08-03", "serviceOdometer": 98000, "completedServiceIndicated": true}
+    },
+    "forbiddenItems": ["Coolant", "Radiator Hose", "Thermostat"]
+  }
+]

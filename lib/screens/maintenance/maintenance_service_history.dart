@@ -255,13 +255,16 @@ class _ServiceHistoryRow extends StatelessWidget {
   }
 
   String _historyDetail(MaintenanceServiceEvent event) {
+    final odometer = event.odometer > 0
+        ? '${formatMiles(event.odometer)} miles'
+        : 'Odometer not recorded';
     final cost = event.totalCost > 0
         ? ' • ${_historyMoneyLabel(event.totalCost)}'
         : '';
     final proof = event.receiptProofCount > 0
         ? ' • ${event.receiptProofCount} proof'
         : '';
-    return '${formatMiles(event.odometer)} miles$cost$proof';
+    return '$odometer$cost$proof';
   }
 }
 

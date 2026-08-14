@@ -49,14 +49,62 @@ final _itemDefinitions = <_ItemDefinition>[
       r'\b(?:brake pads?|disc brake pads?|pads?) (?:replace|replaced|replacement|installed)\b',
     ),
     detailA: _brakeAxle,
+    detailB: _brakeFrictionMaterial,
   ),
   _ItemDefinition(
     itemName: 'Brake Rotors',
     pattern: RegExp(r'\b(?:brake rotors?|disc rotors?)\b'),
     servicePattern: RegExp(
-      r'\b(?:brake rotors?|disc rotors?|rotors?) (?:replace|replaced|replacement|installed)\b',
+      r'\b(?:brake rotors?|disc rotors?|rotors?) (?:replace|replaced|replacement|installed|resurfaced|machined|turned)\b',
     ),
     detailA: _brakeAxle,
+    detailB: _brakeHardwareServiceType,
+  ),
+  _ItemDefinition(
+    itemName: 'Brake Shoes',
+    pattern: RegExp(r'\b(?:brake shoes?|drum brake shoes?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:brake shoes?|drum brake shoes?|shoes?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _brakeAxle,
+    detailB: _brakeFrictionMaterial,
+  ),
+  _ItemDefinition(
+    itemName: 'Brake Drums',
+    pattern: RegExp(r'\b(?:brake drums?|drum brake drums?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:brake drums?|drum brake drums?|drums?) (?:replace|replaced|replacement|installed|resurfaced|machined|turned)\b',
+    ),
+    detailA: _brakeAxle,
+    detailB: _brakeHardwareServiceType,
+  ),
+  _ItemDefinition(
+    itemName: 'Brake Calipers',
+    pattern: RegExp(r'\b(?:brake calipers?|disc brake calipers?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:brake calipers?|disc brake calipers?|calipers?) (?:replace|replaced|replacement|installed|rebuilt)\b',
+    ),
+    detailA: _brakeAxle,
+    detailB: _brakeHardwareServiceType,
+  ),
+  _ItemDefinition(
+    itemName: 'Brake Hoses and Lines',
+    pattern: RegExp(
+      r'\b(?:brake hoses?|flex brake hoses?|brake lines?|brake hydraulic lines?)\b',
+    ),
+    servicePattern: RegExp(
+      r'\b(?:brake hoses?|flex brake hoses?|brake lines?|brake hydraulic lines?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _brakeAxle,
+  ),
+  _ItemDefinition(
+    itemName: 'Brake Inspection',
+    pattern: RegExp(
+      r'\b(?:brake inspection|brake system inspection|inspect(?:ed)? brakes?)\b',
+    ),
+    servicePattern: RegExp(
+      r'\b(?:brake inspection|brake system inspection|brakes? inspected)\b',
+    ),
   ),
   _ItemDefinition(
     itemName: 'Engine Air Filter',
@@ -76,10 +124,26 @@ final _itemDefinitions = <_ItemDefinition>[
   ),
   _ItemDefinition(
     itemName: 'Spark Plugs',
-    pattern: RegExp(r'\b(?:spark plugs?|ignition plugs?)\b'),
+    pattern: RegExp(r'\b(?:spark plugs?(?!\s+wires?)|ignition plugs?)\b'),
     servicePattern: RegExp(
       r'\b(?:spark plugs? (?:replace|replacement|installed)|tune[- ]?up)\b',
     ),
+  ),
+  _ItemDefinition(
+    itemName: 'Ignition Coils',
+    pattern: RegExp(r'\b(?:ignition coils?|coil packs?|coil-on-plug)\b'),
+    servicePattern: RegExp(
+      r'\b(?:ignition coils?|coil packs?|coil-on-plug) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _ignitionCoilType,
+  ),
+  _ItemDefinition(
+    itemName: 'Spark Plug Wires',
+    pattern: RegExp(r'\b(?:spark plug wires?|ignition wire sets?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:spark plug wires?|ignition wire sets?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _sparkPlugWireType,
   ),
   _ItemDefinition(
     itemName: 'PCV Valve',
@@ -89,10 +153,66 @@ final _itemDefinitions = <_ItemDefinition>[
     ),
   ),
   _ItemDefinition(
+    itemName: 'Oxygen Sensors',
+    pattern: RegExp(r'\b(?:oxygen sensors?|o2 sensors?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:oxygen sensors?|o2 sensors?) (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Catalytic Converter',
+    pattern: RegExp(r'\b(?:catalytic converters?|cat converters?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:catalytic converters?|cat converters?) (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'EGR Valve',
+    pattern: RegExp(r'\b(?:egr valve|exhaust gas recirculation valve)\b'),
+    servicePattern: RegExp(
+      r'\b(?:egr valve|exhaust gas recirculation valve) (?:replace|replaced|replacement|installed|cleaned)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Mass Air Flow Sensor',
+    pattern: RegExp(r'\b(?:mass air flow sensors?|maf sensors?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:mass air flow sensors?|maf sensors?) (?:replace|replaced|replacement|installed|cleaned)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Valve Cover Gasket',
+    pattern: RegExp(r'\b(?:valve cover gaskets?|rocker cover gaskets?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:valve cover gaskets?|rocker cover gaskets?) (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Oil Pan Gasket',
+    pattern: RegExp(r'\b(?:oil pan gaskets?|engine oil pan gaskets?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:oil pan gaskets?|engine oil pan gaskets?) (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
     itemName: 'Serpentine Belt',
     pattern: RegExp(r'\b(?:serpentine belt|drive belt)\b'),
     servicePattern: RegExp(
       r'\b(?:(?:serpentine|drive) belt (?:replace|replacement|installed))\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Belt Tensioner',
+    pattern: RegExp(r'\b(?:belt tensioners?|drive belt tensioners?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:belt tensioners?|drive belt tensioners?) (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Idler Pulley',
+    pattern: RegExp(r'\b(?:idler pulleys?|belt idler pulleys?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:idler pulleys?|belt idler pulleys?) (?:replace|replaced|replacement|installed)\b',
     ),
   ),
   _ItemDefinition(
@@ -112,6 +232,110 @@ final _itemDefinitions = <_ItemDefinition>[
     ),
   ),
   _ItemDefinition(
+    itemName: 'Radiator',
+    pattern: RegExp(r'\b(?:engine )?radiator\b(?!\s*(?:cap|hose|flush))'),
+    servicePattern: RegExp(
+      r'\b(?:engine )?radiator (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Radiator Cap',
+    pattern: RegExp(r'\bradiator caps?\b'),
+    servicePattern: RegExp(
+      r'\bradiator caps? (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Water Pump',
+    pattern: RegExp(r'\b(?:water pump|engine water pump|coolant pump)\b'),
+    servicePattern: RegExp(
+      r'\b(?:water pump|engine water pump|coolant pump) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _waterPumpType,
+  ),
+  _ItemDefinition(
+    itemName: 'Thermostat',
+    pattern: RegExp(r'\b(?:engine )?thermostat\b'),
+    servicePattern: RegExp(
+      r'\b(?:engine )?thermostat (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _thermostatTemperatureRating,
+  ),
+  _ItemDefinition(
+    itemName: 'Steering and Suspension Inspection',
+    pattern: RegExp(
+      r'\b(?:steering (?:and |& )?suspension inspection|suspension inspection|front[- ]end inspection)\b',
+    ),
+    servicePattern: RegExp(
+      r'\b(?:steering (?:and |& )?suspension inspection|suspension inspection|front[- ]end inspection|suspension inspected)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Shocks and Struts',
+    pattern: RegExp(r'\b(?:shock absorbers?|shocks?|struts?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:shock absorbers?|shocks?|struts?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _suspensionServicePosition,
+    detailB: _shockAndStrutComponent,
+  ),
+  _ItemDefinition(
+    itemName: 'Ball Joints',
+    pattern: RegExp(r'\bball joints?\b'),
+    servicePattern: RegExp(
+      r'\bball joints? (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _suspensionServicePosition,
+    detailB: _ballJointPosition,
+  ),
+  _ItemDefinition(
+    itemName: 'Tie Rod Ends',
+    pattern: RegExp(r'\b(?:tie rod ends?|inner tie rods?|outer tie rods?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:tie rod ends?|inner tie rods?|outer tie rods?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _suspensionServicePosition,
+    detailB: _tieRodPosition,
+  ),
+  _ItemDefinition(
+    itemName: 'Sway Bar Links',
+    pattern: RegExp(r'\b(?:sway bar links?|stabilizer bar links?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:sway bar links?|stabilizer bar links?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _suspensionServicePosition,
+  ),
+  _ItemDefinition(
+    itemName: 'Wheel Bearings',
+    pattern: RegExp(
+      r'\b(?:wheel bearings?|hub bearing assemblies?|wheel hub assemblies?)\b',
+    ),
+    servicePattern: RegExp(
+      r'\b(?:wheel bearings?|hub bearing assemblies?|wheel hub assemblies?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _suspensionServicePosition,
+    detailB: _wheelBearingComponent,
+  ),
+  _ItemDefinition(
+    itemName: 'CV Axles',
+    pattern: RegExp(
+      r'\b(?:cv axles?|constant[- ]velocity axles?|drive axles?)\b',
+    ),
+    servicePattern: RegExp(
+      r'\b(?:cv axles?|constant[- ]velocity axles?|drive axles?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _suspensionServicePosition,
+    detailB: _cvAxleType,
+  ),
+  _ItemDefinition(
+    itemName: 'Engine Mounts',
+    pattern: RegExp(r'\b(?:engine mounts?|motor mounts?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:engine mounts?|motor mounts?) (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _engineMountType,
+  ),
+  _ItemDefinition(
     itemName: 'Wiper Blades',
     pattern: RegExp(r'\b(?:wiper blades?|windshield wipers?)\b'),
     servicePattern: RegExp(
@@ -128,6 +352,22 @@ final _itemDefinitions = <_ItemDefinition>[
       r'\b(?<!key fob )(?<!remote key )(?<!keyless remote )battery (?:warranty )?(?:replace|replaced|replacement|installed|installation)\b',
     ),
     detailB: _batteryGroup,
+  ),
+  _ItemDefinition(
+    itemName: 'Alternator',
+    pattern: RegExp(r'\balternator\b'),
+    servicePattern: RegExp(
+      r'\balternator (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _engineElectricalComponentType,
+  ),
+  _ItemDefinition(
+    itemName: 'Starter',
+    pattern: RegExp(r'(?<!remote )\bstarter(?: motor| assembly)?\b'),
+    servicePattern: RegExp(
+      r'(?<!remote )\bstarter(?: motor| assembly)? (?:replace|replaced|replacement|installed)\b',
+    ),
+    detailA: _engineElectricalComponentType,
   ),
   _ItemDefinition(
     itemName: 'Power Steering Fluid',
@@ -162,6 +402,34 @@ final _itemDefinitions = <_ItemDefinition>[
     detailB: _fuelFilterPart,
   ),
   _ItemDefinition(
+    itemName: 'Fuel Pump',
+    pattern: RegExp(r'\b(?:fuel pumps?|gas pumps?)\b'),
+    servicePattern: RegExp(
+      r'\b(?:fuel pumps?|gas pumps?) (?:replace|replaced|replacement|installed)\b',
+    ),
+  ),
+  _ItemDefinition(
+    itemName: 'Fuel System Service',
+    pattern: RegExp(
+      r'\b(?:fuel system service|fuel injection service|fuel injector cleaning|induction service|throttle body cleaning)\b',
+    ),
+    servicePattern: RegExp(
+      r'\b(?:fuel system service|fuel injection service|fuel injector cleaning|induction service|throttle body cleaning)\b',
+    ),
+    detailA: _fuelSystemServiceType,
+  ),
+  _ItemDefinition(
+    itemName: 'Air Conditioning Service',
+    pattern: RegExp(
+      r'\b(?:a\/?c service|air conditioning service|a\/?c recharge|refrigerant recharge|r-?134a recharge|r-?1234yf recharge)\b',
+    ),
+    servicePattern: RegExp(
+      r'\b(?:a\/?c service|air conditioning service|a\/?c recharge|refrigerant recharge|r-?134a recharge|r-?1234yf recharge)\b',
+    ),
+    detailA: _airConditioningServiceType,
+    detailB: _airConditioningRefrigerant,
+  ),
+  _ItemDefinition(
     itemName: 'Tires',
     pattern: RegExp(
       r'\b(?:new tires?|replacement tires?|all[- ]season tires?|winter tires?|tire installation)\b',
@@ -187,161 +455,18 @@ final _itemDefinitions = <_ItemDefinition>[
     servicePattern: RegExp(r'\b(?:tire rotation|rotate tires?)\b'),
   ),
   _ItemDefinition(
-    itemName: 'Key Fob Battery',
+    itemName: 'Wheel Alignment',
     pattern: RegExp(
-      r'\b(?:key fob battery|remote key battery|keyless remote battery)\b',
+      r'\b(?:wheel alignment|front[- ]end alignment|alignment service)\b',
     ),
     servicePattern: RegExp(
-      r'\b(?:key fob|remote key|keyless remote) battery (?:replace|replaced|replacement|installed)\b',
+      r'\b(?:wheel alignment|front[- ]end alignment|alignment service|wheels? aligned)\b',
     ),
+    detailA: _wheelAlignmentType,
   ),
-  _ItemDefinition(
-    itemName: 'Registration',
-    pattern: RegExp(
-      r'\b(?:vehicle registration|registration renewal|license plate renewal)\b',
-    ),
-    servicePattern: RegExp(
-      r'\b(?:vehicle registration|registration|license plate) (?:renewed|renewal completed)\b',
-    ),
-  ),
-  _ItemDefinition(
-    itemName: 'Inspection',
-    pattern: RegExp(
-      r'\b(?:vehicle inspection|safety inspection|emissions inspection|state inspection)\b',
-    ),
-    servicePattern: RegExp(
-      r'\b(?:vehicle|safety|emissions|state) inspection (?:passed|completed|performed)\b',
-    ),
-  ),
+  ..._wheelBalancingItemDefinitions,
+  ..._renewalItemDefinitions,
 ];
 
 Set<String> get maintenanceReceiptSupportedItemNames =>
     Set.unmodifiable(_itemDefinitions.map((definition) => definition.itemName));
-
-final _maintenanceRetailMerchant = RegExp(
-  r"\b(?:advance\s*auto\s*parts|advanceautoparts|auto\s*zone|o\s*[’'`]?\s*reilly\s*auto\s*parts|napa\s*auto\s*parts|carquest|pep\s*boys|wal\s*-?\s*mart|costco(?:\s*wholesale)?|sam[’'`]?\s*s\s*club|tractor\s*supply(?:\s*co)?|rural\s*king)\b",
-);
-final _purchaseSignal = RegExp(
-  r'\b(?:amount paid|cashier|register|change due|retail sale|sku|part no|item price)\b',
-);
-final _serviceSignal = RegExp(
-  r'\b(?:service performed|work completed|completed services?|repair order|work order|technician|labor|vehicle mileage|customer vehicle|installed|replaced|replacement|oil change|tire rotation|flush service|registration renewed|renewal completed|inspection passed|inspection completed)\b',
-);
-final _strongServiceSignal = RegExp(
-  r'\b(?:service performed|work completed|repair order|work order|technician|labor|vehicle mileage|customer vehicle|installed|replaced|registration renewed|renewal completed|inspection passed|inspection completed)\b',
-);
-final _performedOnLine = RegExp(
-  r'\b(?:service|labor|installed|replaced|replacement|performed|change|rotation|flush|renewed|passed|completed)\b',
-);
-final _estimateOrQuoteSignal = RegExp(
-  r'\b(?:estimate|quotation|quote|proposed work)\b',
-);
-final _explicitCompletionSignal = RegExp(
-  r'\b(?:service performed|work completed|paid in full|installed|replaced|renewed|inspection passed)\b',
-);
-final _notCompletedLine = RegExp(
-  r'\b(?:declined|deferred|recommended|recommendation|estimate|estimated|quote|quoted|proposed|not performed|not authorized|not approved|cancel(?:ed|led)|customer refused|future service)\b',
-);
-final _notCompletedSectionHeading = RegExp(
-  r'^(?:(?:declined|deferred|recommended|recommendations|estimate|estimated|quoted|proposed)(?: services?| work| items?)?|requested services?|customer (?:request(?:s|ed)?(?: services?)?|concerns?|states?|declined|refused)|(?:authorized|approved)(?: services?| work| repairs?)|not (?:authorized|approved)|cancel(?:ed|led)(?: services?| work| repairs?)|no work performed|inspection (?:results?|findings?)|(?:pending|future)(?: services?| work| repairs?)|parts on order|awaiting parts|diagnos(?:is|tic (?:results?|findings?))|(?:technician|tech) (?:notes?|comments?)|observations?|advisories?|vehicle health (?:report|results?))\s*:?\s*$',
-);
-final _completedSectionHeading = RegExp(
-  r'^(?:service performed|performed services?|work completed|completed services?)\s*:?\s*$',
-);
-final _returnOrExchangeLine = RegExp(
-  r'\b(?:return(?:ed)?|refund(?:ed)?|exchange(?:d)?|voided item)\b',
-);
-final _coreAdjustmentLine = RegExp(
-  r'\b(?:core\s+(?:charge|deposit|credit|refund|return|exchange)|(?:credit|refund|return)\s+core)\b',
-);
-final _transactionPolicyLine = RegExp(r'\b(?:return|refund|exchange) policy\b');
-final _standaloneReturnHeading = RegExp(
-  r'^(?:return|refund|exchange)\s*:?\s*$',
-);
-final _purchaseLineSignal = RegExp(r'\b(?:sku|part|qty|item)\b');
-final _transactionCompletionSignal = RegExp(
-  r'\b(?:amount paid|retail sale|paid|payment|tender|cash|credit|debit|total)\b',
-);
-final _pricedLine = RegExp(r'(?:^|\s)[-+]?\$?\d+[.,]\d{2}(?:\s|$)');
-final _metadataLine = RegExp(
-  r'\b(?:store|date|time|receipt|invoice|phone|address|subtotal|tax|total|amount paid)\b',
-);
-final _serviceOdometerOutPattern = RegExp(
-  r'\b(?:odometer|odo|mileage)\s*out\s*[:#]?\s*(\d{3,8})\b',
-);
-final _serviceOdometerInPattern = RegExp(
-  r'(?:\b(?:odometer|odo|mileage)\s*in|\bmiles in)\s*[:#]?\s*(\d{3,8})\b',
-);
-final _serviceOdometerPattern = RegExp(
-  r'\b(?<!prior )(?<!previous )(?<!last )(?<!last recorded )(?:odometer|odo|vehicle mileage|mileage|current miles)\s*[:#]?\s*(\d{3,8})\b',
-);
-final _dueOdometerPattern = RegExp(
-  r'\b(?:next service due|next service|next due|due at|service due at|next oil change)\D{0,24}(\d{4,8})\b',
-);
-final _intervalMilesPattern = RegExp(
-  r'\b(?:due in|interval|every|next service in)\D{0,16}(\d{3,6})\s*(?:mi|mile|miles)\b',
-);
-final _serviceOdometerKilometersPattern = RegExp(
-  r'\b(?:odometer|odo|mileage)(?:\s*(?:in|out))?\s*[:#]?\s*\d{3,8}\s*(?:kms?|kilomet(?:er|re)s?)\b',
-);
-final _dueOdometerKilometersPattern = RegExp(
-  r'\b(?:next service due|next service|next due|due at|service due at|next oil change)\D{0,24}\d{4,8}\s*(?:kms?|kilomet(?:er|re)s?)\b',
-);
-final _intervalKilometersPattern = RegExp(
-  r'\b(?:due in|interval|every|next service in)\D{0,16}\d{3,6}\s*(?:kms?|kilomet(?:er|re)s?)\b',
-);
-final _intervalMonthsPattern = RegExp(
-  r'\b(?:due in|interval|every|next service in)\D{0,16}(\d{1,2})\s*(?:mo|month|months)\b',
-);
-
-T? _enumValue<T extends Enum>(List<T> values, Object? raw) {
-  final name = '$raw';
-  for (final value in values) {
-    if (value.name == name) return value;
-  }
-  return null;
-}
-
-int? _jsonInt(Object? raw) {
-  return raw is int ? raw : int.tryParse('$raw');
-}
-
-int? _jsonNonNegativeInt(Object? raw) {
-  if (raw == null) return null;
-  final value = _jsonInt(raw);
-  if (value == null || value < 0) {
-    throw const FormatException('Receipt integer field is invalid.');
-  }
-  return value;
-}
-
-double? _jsonDouble(Object? raw) {
-  final value = raw is num ? raw.toDouble() : double.tryParse('$raw');
-  return value != null && value.isFinite ? value : null;
-}
-
-DateTime? _jsonDate(Object? raw) {
-  if (raw == null) return null;
-  final value = DateTime.tryParse('$raw');
-  if (value == null) throw const FormatException('Receipt date is invalid.');
-  return value;
-}
-
-String? _jsonNullableString(Object? raw) {
-  if (raw == null) return null;
-  final value = '$raw'.trim();
-  return value.isEmpty ? null : value;
-}
-
-List<Map<dynamic, dynamic>> _jsonMaps(Object? raw) {
-  if (raw is! Iterable) {
-    throw const FormatException('Receipt list is invalid.');
-  }
-  return [
-    for (final value in raw)
-      if (value is Map)
-        value
-      else
-        throw const FormatException('Receipt list entry is invalid.'),
-  ];
-}
