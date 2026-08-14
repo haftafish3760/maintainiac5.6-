@@ -4,6 +4,7 @@
 // hardware behavior or create confirmed TripLog records; the controller UI
 // tests own proposal presentation and user review.
 import 'package:flutter_test/flutter_test.dart';
+import 'package:maintaniac/shared/trip_tracking/trip_tracking_engine.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_models.dart';
 
 import 'support/trip_tracking_qa/trip_tracking_scenarios.dart';
@@ -80,6 +81,39 @@ void main() {
       result.count(TripSampleDisposition.rejectedGap),
       greaterThanOrEqualTo(1),
     );
+  });
+
+  test('late walking evidence never rewrites accepted GPS distance', () {
+    final engine = TripTrackingEngine(
+      profile: TripTrackingProfile.deliveryVehicle,
+    );
+    final startedAt = DateTime.utc(2026, 8, 6, 12);
+    TripLocationSample sample(double longitude, int seconds) =>
+        TripLocationSample(
+          latitude: 35,
+          longitude: longitude,
+          recordedAt: startedAt.add(Duration(seconds: seconds)),
+          horizontalAccuracyMeters: 5,
+        );
+
+    engine.ingest(sample(-82, 0));
+    final accepted = engine.ingest(sample(-81.999, 20));
+    expect(accepted.disposition, TripSampleDisposition.acceptedDistance);
+    final metersBeforeWalking = engine.totalAcceptedMeters;
+    final diagnosticsBeforeWalking = engine.snapshot.diagnostics;
+
+    engine.recordActivityEvidence(
+      TripActivityObservation(
+        activity: TripActivity.walking,
+        confidence: 95,
+        recordedAt: startedAt.add(const Duration(seconds: 20)),
+      ),
+      observedAt: startedAt.add(const Duration(seconds: 20)),
+    );
+
+    expect(engine.totalAcceptedMeters, metersBeforeWalking);
+    expect(engine.snapshot.diagnostics, diagnosticsBeforeWalking);
+    expect(engine.motionState, isNot(TripMotionState.stopCandidate));
   });
 
   test(

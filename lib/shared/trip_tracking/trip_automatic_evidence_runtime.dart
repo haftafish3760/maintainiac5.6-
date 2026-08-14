@@ -32,7 +32,7 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
   final TripAutomaticStartAccessLevel accessLevel;
 
   StreamSubscription<TripTrackingPlatformEvent>? _subscription;
-  Future<void>? _pendingSync;
+  Future<void> _syncTail = Future<void>.value();
   bool _disposed = false;
   bool _observationRunning = false;
   String? _lastStatus;
@@ -42,19 +42,16 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
 
   Future<bool> synchronize() async {
     if (_disposed) return false;
-    final current = _pendingSync;
-    if (current != null) {
-      await current;
-      return _observationRunning;
-    }
-    final operation = _synchronize();
-    _pendingSync = operation;
-    try {
-      await operation;
-      return _observationRunning;
-    } finally {
-      if (identical(_pendingSync, operation)) _pendingSync = null;
-    }
+    // Queue every requested reconciliation. A disable, active-trip start, or
+    // permission change that arrives while an enable is in flight must run
+    // after that enable; merely awaiting the older operation can leave native
+    // collection in the opposite state from the latest user choice.
+    final operation = _syncTail.then((_) async {
+      if (!_disposed) await _synchronize();
+    });
+    _syncTail = operation.catchError((_) {});
+    await operation;
+    return _observationRunning;
   }
 
   Future<void> _synchronize() async {
@@ -64,7 +61,8 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
         settings.automaticStartAssistanceEnabled;
     if (!enabled || _tripTracking.isTracking) {
       _tripTracking.clearAutomaticEvidenceObservationWindow();
-      if (await _isNativeObservationRunning()) {
+      final nativeState = await _nativeObservationState();
+      if (nativeState != false) {
         await _stopNativeObservation();
       } else {
         _observationRunning = false;
@@ -77,7 +75,13 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
       onError: (error, stackTrace) =>
           _setStatus('automatic_evidence_stream_unavailable'),
     );
-    if (await _isNativeObservationRunning()) {
+    final nativeState = await _nativeObservationState();
+    if (nativeState == null) {
+      _observationRunning = false;
+      _setStatus('automatic_evidence_observation_state_unavailable');
+      return;
+    }
+    if (nativeState) {
       _observationRunning = true;
       _setStatus('automatic_evidence_observing');
       return;
@@ -86,9 +90,10 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
       final started = await _gateway.startAutomaticEvidenceObservation(
         activityRecognitionEnabled: settings.activityRecognitionEnabled,
       );
-      _observationRunning = started;
+      final confirmed = started && await _waitForNativeObservationStart();
+      _observationRunning = confirmed;
       _setStatus(
-        started
+        confirmed
             ? 'automatic_evidence_observing'
             : 'automatic_evidence_observation_unavailable',
       );
@@ -122,9 +127,20 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
           settings: settings,
           activity: activity,
         );
+      case TripTrackingPlatformEventType.automaticEvidenceStatus:
+        if (event.status == 'automatic_evidence_observing') {
+          _observationRunning = true;
+          _setStatus('automatic_evidence_observing');
+        } else if (event.status == 'automatic_evidence_stopped') {
+          _observationRunning = false;
+          _setStatus('automatic_evidence_observation_stopped');
+        }
+        return;
       case TripTrackingPlatformEventType.error:
         final code = event.errorCode;
-        if (code != null && code.startsWith('automatic_evidence_')) {
+        if (code != null && code.startsWith('automatic_evidence_activity_')) {
+          _setStatus('automatic_evidence_observing_without_activity');
+        } else if (code != null && code.startsWith('automatic_evidence_')) {
           _observationRunning = false;
           _setStatus('automatic_evidence_observation_unavailable');
         }
@@ -138,19 +154,44 @@ class TripAutomaticEvidenceRuntimeController extends ChangeNotifier {
     try {
       await _gateway.stopAutomaticEvidenceObservation();
     } catch (_) {
-      // Explicit opt-out still clears local transient evidence. Native state is
-      // retried at the next bootstrap/settings synchronization.
+      final nativeState = await _nativeObservationState();
+      // A failed stop or an unreadable native state can never be represented
+      // as a successful privacy opt-out.
+      _observationRunning = nativeState != false;
+      _setStatus('automatic_evidence_observation_stop_unconfirmed');
+      return;
     }
-    _observationRunning = false;
-    _setStatus('automatic_evidence_observation_stopped');
+    final nativeState = await _nativeObservationState();
+    if (nativeState == false) {
+      _observationRunning = false;
+      _setStatus('automatic_evidence_observation_stopped');
+    } else {
+      _observationRunning = true;
+      _setStatus('automatic_evidence_observation_stop_unconfirmed');
+    }
   }
 
-  Future<bool> _isNativeObservationRunning() async {
+  Future<bool?> _nativeObservationState() async {
     try {
       return await _gateway.isAutomaticEvidenceObservationRunning;
     } catch (_) {
-      return false;
+      return null;
     }
+  }
+
+  Future<bool> _waitForNativeObservationStart() async {
+    // Android foreground-service startup and provider registration are
+    // asynchronous. Never call the observer live until native code confirms
+    // registration; iOS normally confirms on the first check.
+    for (var attempt = 0; attempt < 20; attempt += 1) {
+      final state = await _nativeObservationState();
+      if (state == true) return true;
+      if (state == null) return false;
+      if (attempt < 19) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+    }
+    return false;
   }
 
   void _setStatus(String status) {

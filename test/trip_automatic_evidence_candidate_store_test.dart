@@ -29,17 +29,21 @@ void main() {
     await hiveDirectory.delete(recursive: true);
   });
 
-  TripAutomaticEvidenceCandidate candidate({int acceptedFreeUses = 0}) {
+  TripAutomaticEvidenceCandidate candidate({
+    int acceptedFreeUses = 0,
+    int offsetMinutes = 0,
+  }) {
+    final candidateStartedAt = startedAt.add(Duration(minutes: offsetMinutes));
     final decision = const TripAutomaticStartDetector().evaluate(
       enabled: true,
       accessLevel: TripAutomaticStartAccessLevel.free,
       hasActiveOrRecoverableSession: false,
       acceptedFreeUsesInPeriod: acceptedFreeUses,
-      evaluatedAt: startedAt.add(const Duration(seconds: 30)),
+      evaluatedAt: candidateStartedAt.add(const Duration(seconds: 30)),
       observations: List.generate(
         3,
         (index) => TripAutomaticStartObservation(
-          recordedAt: startedAt.add(Duration(seconds: index * 15)),
+          recordedAt: candidateStartedAt.add(Duration(seconds: index * 15)),
           speedMetersPerSecond: 8,
           displacementMeters: 30,
           horizontalAccuracyMeters: 8,
@@ -51,7 +55,7 @@ void main() {
     );
     return TripAutomaticEvidenceCandidate.fromDecision(
       decision: decision,
-      detectedAt: startedAt.add(const Duration(seconds: 31)),
+      detectedAt: candidateStartedAt.add(const Duration(seconds: 31)),
     );
   }
 
@@ -186,5 +190,64 @@ void main() {
     expect(store.reviewNeeded, hasLength(1));
     expect(store.reviewNeeded.single.id, proposed.id);
     expect(store.reviewNeeded.single.requiresUserReview, isTrue);
+  });
+
+  test('rejects an unknown audit action instead of rewriting history', () {
+    final serialized = candidate().toMap();
+    final audits = (serialized['auditHistory'] as List).cast<Map>();
+    audits.first['action'] = 'unexpected_action';
+
+    expect(TripAutomaticEvidenceCandidate.fromMap(serialized), isNull);
+  });
+
+  test('durably enforces the free monthly acceptance limit', () async {
+    final store = TripAutomaticEvidenceCandidateStore.memory();
+    for (var index = 0; index < 4; index += 1) {
+      final proposed = candidate(offsetMinutes: index);
+      await store.propose(proposed);
+      await store.decide(
+        candidateId: proposed.id,
+        expectedRevision: proposed.revision,
+        approved: true,
+        decidedAt: proposed.detectedAtUtc.add(const Duration(seconds: 1)),
+      );
+    }
+    final fifth = candidate(offsetMinutes: 5);
+    await store.propose(fifth);
+
+    await expectLater(
+      store.decide(
+        candidateId: fifth.id,
+        expectedRevision: fifth.revision,
+        approved: true,
+        decidedAt: fifth.detectedAtUtc.add(const Duration(seconds: 1)),
+      ),
+      throwsStateError,
+    );
+    expect(store.acceptedFreeUsesAt(startedAt), 4);
+    expect(store.candidateForId(fifth.id)?.requiresUserReview, isTrue);
+  });
+
+  test('retention expires pending evidence before later pruning it', () async {
+    final store = TripAutomaticEvidenceCandidateStore.memory();
+    final proposed = candidate();
+    await store.propose(proposed);
+
+    await store.maintainRetention(
+      nowUtc: proposed.detectedAtUtc.add(const Duration(days: 91)),
+    );
+    expect(
+      store.candidateForId(proposed.id)?.state,
+      TripAutomaticEvidenceCandidateState.expired,
+    );
+    expect(
+      store.candidateForId(proposed.id)?.auditHistory.last.action,
+      TripAutomaticEvidenceCandidateAction.expired,
+    );
+
+    await store.maintainRetention(
+      nowUtc: proposed.detectedAtUtc.add(const Duration(days: 457)),
+    );
+    expect(store.candidateForId(proposed.id), isNull);
   });
 }

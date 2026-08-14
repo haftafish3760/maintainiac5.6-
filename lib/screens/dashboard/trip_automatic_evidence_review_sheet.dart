@@ -88,7 +88,7 @@ class _TripAutomaticEvidenceReviewSheet extends StatelessWidget {
                 if (approved.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   const Text(
-                    'Kept for editable review',
+                    'Kept for later review',
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 6),
@@ -156,8 +156,14 @@ class _CandidateCard extends StatelessWidget {
               Text('Suggested vehicle: ${candidate.suggestedVehicleId}'),
             const SizedBox(height: 6),
             const Text(
-              'Keeping this only opens editable review. It does not confirm a trip or mileage.',
+              'Keeping this saves the evidence for later review. It does not create or confirm a trip or mileage.',
             ),
+            if (candidate.requiresPaidEntitlementOnAcceptance) ...[
+              const SizedBox(height: 6),
+              const Text(
+                'The included monthly allowance has been used. You can reject this evidence, but keeping it requires paid access.',
+              ),
+            ],
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -168,8 +174,10 @@ class _CandidateCard extends StatelessWidget {
                   child: const Text('NOT A TRIP'),
                 ),
                 FilledButton(
-                  onPressed: () => onDecide(true),
-                  child: const Text('KEEP FOR REVIEW'),
+                  onPressed: candidate.requiresPaidEntitlementOnAcceptance
+                      ? null
+                      : () => onDecide(true),
+                  child: const Text('KEEP FOR LATER REVIEW'),
                 ),
               ],
             ),

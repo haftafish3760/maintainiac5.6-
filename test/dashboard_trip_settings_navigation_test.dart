@@ -51,7 +51,11 @@ void main() {
       source,
       contains("const _SettingsSectionTitle('Vehicle recognition')"),
     );
-    expect(source, contains("'Paid feature'"));
+    expect(source, contains("title: 'Monthly App Assistant allowance'"));
+    expect(
+      source,
+      contains('Four kept reviews are included each calendar month.'),
+    );
     expect(source, contains("'Let App Assistant suggest possible drives'"));
     expect(source, contains('requestAutomaticEvidenceAuthorization'));
     expect(

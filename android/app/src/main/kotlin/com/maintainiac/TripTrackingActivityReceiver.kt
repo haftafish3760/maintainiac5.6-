@@ -8,6 +8,11 @@ import com.google.android.gms.location.DetectedActivity
 
 /** Converts Android motion classification into non-authoritative Dart evidence. */
 class TripTrackingActivityReceiver : BroadcastReceiver() {
+    companion object {
+        const val activityOwnerExtra = "activityOwner"
+        const val automaticEvidenceOwner = "automaticEvidence"
+    }
+
     override fun onReceive(context: Context, intent: Intent) {
         if (!ActivityRecognitionResult.hasResult(intent)) return
         val epoch = intent.getStringExtra(TripTrackingForegroundService.activityEpochExtra)
@@ -27,10 +32,20 @@ class TripTrackingActivityReceiver : BroadcastReceiver() {
             observedAtMillis > nowMillis + 120_000L) {
             return
         }
-        if (!TripTrackingForegroundService.isActivityEpochActive(epoch, observedAtMillis)) return
+        val automaticEvidence =
+            intent.getStringExtra(activityOwnerExtra) == automaticEvidenceOwner
+        val epochIsActive = if (automaticEvidence) {
+            TripAutomaticEvidenceForegroundService.isActivityEpochActive(
+                epoch,
+                observedAtMillis,
+            )
+        } else {
+            TripTrackingForegroundService.isActivityEpochActive(epoch, observedAtMillis)
+        }
+        if (!epochIsActive) return
         TripTrackingEventEmitter.emit(
             mapOf(
-                "type" to "activity",
+                "type" to if (automaticEvidence) "automaticEvidenceActivity" else "activity",
                 "activity" to when (activity.type) {
                     DetectedActivity.IN_VEHICLE -> "automotive"
                     DetectedActivity.WALKING, DetectedActivity.ON_FOOT -> "walking"

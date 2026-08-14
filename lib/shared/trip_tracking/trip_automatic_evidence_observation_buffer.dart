@@ -56,6 +56,12 @@ class TripAutomaticEvidenceObservationBuffer {
     }
 
     final previous = _previousLocation;
+    if (previous != null &&
+        !sample.recordedAt.toUtc().isAfter(previous.recordedAt.toUtc())) {
+      // A delayed native callback must not become the next displacement
+      // anchor or move the bounded evidence window backward in time.
+      return null;
+    }
     final displacement = previous == null
         ? 0.0
         : _distanceMeters(previous, sample);
@@ -132,7 +138,10 @@ double _distanceMeters(TripLocationSample left, TripLocationSample right) {
       math.cos(latitudeOne) *
           math.cos(latitudeTwo) *
           math.pow(math.sin(longitudeDelta / 2), 2);
-  return radiusMeters * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  final boundedA = a.clamp(0.0, 1.0).toDouble();
+  return radiusMeters *
+      2 *
+      math.atan2(math.sqrt(boundedA), math.sqrt(1 - boundedA));
 }
 
 double _radians(double degrees) => degrees * math.pi / 180;

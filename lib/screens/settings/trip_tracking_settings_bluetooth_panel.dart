@@ -11,9 +11,7 @@ extension _TripTrackingBluetoothPanel on _TripTrackingSettingsPanel {
   bool get _bluetoothRecognitionControlsEnabled =>
       bluetoothVehicleRecognitionAvailable;
 
-  bool get _automaticStartControlsEnabled =>
-      automaticStartAccess == TripAutomaticStartAccessLevel.paid &&
-      bluetoothVehicleRecognitionAvailable;
+  bool get _automaticStartControlsEnabled => tripTracking != null;
 
   Widget _bluetoothStatus(BuildContext context) {
     final (title, detail) = !bluetoothVehicleRecognitionAvailable
@@ -70,9 +68,9 @@ extension _TripTrackingBluetoothPanel on _TripTrackingSettingsPanel {
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
       decoration: _rowDecoration,
       child: const _SettingText(
-        title: 'Paid feature',
+        title: 'Monthly App Assistant allowance',
         detail:
-            'Bluetooth-triggered automatic tracking requires an active paid plan. Vehicle recognition, GPS, and manual odometer entry remain independently available.',
+            'Four kept reviews are included each calendar month. Bluetooth is optional supporting evidence and never starts tracking or changes the active vehicle.',
       ),
     ),
   );

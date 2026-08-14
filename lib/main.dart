@@ -176,6 +176,9 @@ Future<void> main() async {
   try {
     automaticEvidenceCandidateStore =
         await TripAutomaticEvidenceCandidateStore.create();
+    await automaticEvidenceCandidateStore.maintainRetention(
+      nowUtc: DateTime.now().toUtc(),
+    );
   } catch (_) {
     automaticEvidenceCandidateStore =
         TripAutomaticEvidenceCandidateStore.unavailable();

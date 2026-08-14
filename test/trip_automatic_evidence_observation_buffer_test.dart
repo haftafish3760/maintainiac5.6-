@@ -84,4 +84,17 @@ void main() {
       start.add(const Duration(seconds: 60)),
     );
   });
+
+  test('rejects a delayed callback without moving the displacement anchor', () {
+    final buffer = TripAutomaticEvidenceObservationBuffer();
+
+    buffer.recordLocation(sample(20, longitude: -82.0002));
+    expect(buffer.recordLocation(sample(10, longitude: -82.0001)), isNull);
+    final next = buffer.recordLocation(sample(30, longitude: -82.0003));
+
+    expect(buffer.observations, hasLength(2));
+    expect(next, isNotNull);
+    expect(next!.recordedAt, start.add(const Duration(seconds: 30)));
+    expect(next.displacementMeters, greaterThan(0));
+  });
 }

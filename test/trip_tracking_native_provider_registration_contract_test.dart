@@ -33,6 +33,38 @@ void main() {
     expect(source, contains('val isCollectorActive: Boolean'));
   });
 
+  test(
+    'Android automatic evidence reports running only after provider registration',
+    () {
+      final source = File(
+        'android/app/src/main/kotlin/com/maintainiac/'
+        'TripAutomaticEvidenceForegroundService.kt',
+      ).readAsStringSync();
+      final registration = source.indexOf('.addOnSuccessListener');
+      final running = source.indexOf('isRunning = true', registration);
+      final observingStatus = source.indexOf(
+        '"status" to "automatic_evidence_observing"',
+        running,
+      );
+
+      expect(source, contains('private var isStarting = false'));
+      expect(source, contains('get() = isRunning || isStarting'));
+      expect(registration, greaterThanOrEqualTo(0));
+      expect(running, greaterThan(registration));
+      expect(observingStatus, greaterThan(running));
+      expect(
+        source.substring(0, registration),
+        isNot(contains('isRunning = true')),
+      );
+      expect(
+        source,
+        contains(
+          'emitUnavailable("automatic_evidence_location_registration_failed")',
+        ),
+      );
+    },
+  );
+
   test('iOS waits for a credible Core Location callback before live status', () {
     final bridge = File(
       'ios/Runner/TripTrackingNativeBridge.swift',
@@ -49,12 +81,12 @@ void main() {
     expect(start, contains('"status", "status": "starting"'));
     expect(start, isNot(contains('"status", "status": "tracking"')));
     expect(bridge, contains('func confirmProviderRegistration()'));
+    expect(bridge, contains('"type": "automaticEvidenceStatus"'));
+    expect(bridge, contains('"status": "automatic_evidence_observing"'));
     expect(
       bridge,
       contains(
-        'let status = tracking\n'
-        '      ? (providerRegistered ? "tracking" : "starting")\n'
-        '      : automaticEvidenceObserving ? "automatic_evidence_observing" : "idle"',
+        '"status": tracking ? (providerRegistered ? "tracking" : "starting") : "idle"',
       ),
     );
     expect(

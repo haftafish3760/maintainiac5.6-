@@ -35,6 +35,7 @@ void main() {
     for (final event in [
       automaticEvidenceLocationEvent(),
       automaticEvidenceActivityEvent(),
+      automaticEvidenceStatusEvent(),
     ]) {
       final decision = TripNativeEventLifecyclePolicy.evaluate(
         currentState: TripTrackingSessionLifecycleState.active,
@@ -364,6 +365,14 @@ TripTrackingPlatformEvent automaticEvidenceActivityEvent() {
     'activity': 'walking',
     'confidence': 80,
     'recordedAt': DateTime.utc(2026, 7, 18, 12).toIso8601String(),
+  });
+}
+
+TripTrackingPlatformEvent automaticEvidenceStatusEvent() {
+  return TripTrackingPlatformEvent.fromMap({
+    'schemaVersion': 1,
+    'type': 'automaticEvidenceStatus',
+    'status': 'automatic_evidence_observing',
   });
 }
 

@@ -285,6 +285,105 @@ void main() {
     expect(tripTracking.isTracking, isFalse);
     expect(odometer.confirmedReading, 1000);
   });
+
+  test('a queued opt-out wins over an in-flight observer start', () async {
+    final gateway = _EvidenceGateway();
+    final startBarrier = Completer<void>();
+    gateway.startBarrier = startBarrier;
+    final tripTracking = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(),
+    );
+    var settings = const TripTrackingSettings(
+      gpsAssistedTrackingEnabled: true,
+      automaticStartAssistanceEnabled: true,
+    );
+    final runtime = TripAutomaticEvidenceRuntimeController(
+      gateway: gateway,
+      tripTracking: tripTracking,
+      settings: () => settings,
+    );
+    addTearDown(gateway.dispose);
+    addTearDown(tripTracking.dispose);
+    addTearDown(runtime.dispose);
+
+    final enabling = runtime.synchronize();
+    await Future<void>.delayed(Duration.zero);
+    expect(gateway.startCalls, 1);
+    settings = const TripTrackingSettings();
+    final disabling = runtime.synchronize();
+    startBarrier.complete();
+
+    await Future.wait([enabling, disabling]);
+    expect(gateway.stopCalls, 1);
+    expect(gateway.isRunning, isFalse);
+    expect(runtime.observationRunning, isFalse);
+    expect(runtime.lastStatus, 'automatic_evidence_observation_stopped');
+  });
+
+  test(
+    'a failed native stop is never reported as a successful opt-out',
+    () async {
+      final gateway = _EvidenceGateway();
+      final tripTracking = TripTrackingController(
+        sessionStore: TripTrackingSessionStore.memory(),
+        odometer: GlobalOdometerController(),
+      );
+      var settings = const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      );
+      final runtime = TripAutomaticEvidenceRuntimeController(
+        gateway: gateway,
+        tripTracking: tripTracking,
+        settings: () => settings,
+      );
+      addTearDown(gateway.dispose);
+      addTearDown(tripTracking.dispose);
+      addTearDown(runtime.dispose);
+
+      expect(await runtime.synchronize(), isTrue);
+      gateway.stopThrows = true;
+      settings = const TripTrackingSettings();
+
+      expect(await runtime.synchronize(), isTrue);
+      expect(runtime.observationRunning, isTrue);
+      expect(
+        runtime.lastStatus,
+        'automatic_evidence_observation_stop_unconfirmed',
+      );
+    },
+  );
+
+  test('optional activity failure keeps location observation active', () async {
+    final gateway = _EvidenceGateway();
+    final tripTracking = TripTrackingController(
+      sessionStore: TripTrackingSessionStore.memory(),
+      odometer: GlobalOdometerController(),
+    );
+    final runtime = TripAutomaticEvidenceRuntimeController(
+      gateway: gateway,
+      tripTracking: tripTracking,
+      settings: () => const TripTrackingSettings(
+        gpsAssistedTrackingEnabled: true,
+        automaticStartAssistanceEnabled: true,
+      ),
+    );
+    addTearDown(gateway.dispose);
+    addTearDown(tripTracking.dispose);
+    addTearDown(runtime.dispose);
+
+    expect(await runtime.synchronize(), isTrue);
+    gateway.emit({
+      'schemaVersion': 1,
+      'type': 'error',
+      'errorCode': 'automatic_evidence_activity_permission_removed',
+      'errorMessage': 'location only',
+    });
+
+    expect(runtime.observationRunning, isTrue);
+    expect(runtime.lastStatus, 'automatic_evidence_observing_without_activity');
+  });
 }
 
 class _EvidenceGateway implements TripAutomaticEvidenceNativeGateway {
@@ -293,7 +392,10 @@ class _EvidenceGateway implements TripAutomaticEvidenceNativeGateway {
   int startCalls = 0;
   int stopCalls = 0;
   bool startResult = true;
+  bool stopThrows = false;
+  Completer<void>? startBarrier;
   bool _running = false;
+  bool get isRunning => _running;
 
   @override
   Stream<TripTrackingPlatformEvent> get events => _events.stream;
@@ -303,6 +405,7 @@ class _EvidenceGateway implements TripAutomaticEvidenceNativeGateway {
     required bool activityRecognitionEnabled,
   }) async {
     startCalls++;
+    await startBarrier?.future;
     _running = startResult;
     return startResult;
   }
@@ -310,6 +413,7 @@ class _EvidenceGateway implements TripAutomaticEvidenceNativeGateway {
   @override
   Future<void> stopAutomaticEvidenceObservation() async {
     stopCalls++;
+    if (stopThrows) throw StateError('native stop failed');
     _running = false;
   }
 

@@ -269,7 +269,8 @@ _NativeTarget _targetState(
     // They must never mutate an active trip lifecycle or feed its distance
     // engine, even though both collectors share the native event channel.
     TripTrackingPlatformEventType.automaticEvidenceLocation ||
-    TripTrackingPlatformEventType.automaticEvidenceActivity => _NativeTarget(
+    TripTrackingPlatformEventType.automaticEvidenceActivity ||
+    TripTrackingPlatformEventType.automaticEvidenceStatus => _NativeTarget(
       state: currentState,
       action: TripNativeEventLifecycleAction.ignoreEvent,
       reason: TripNativeEventLifecycleReason

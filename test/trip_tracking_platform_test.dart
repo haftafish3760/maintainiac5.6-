@@ -72,6 +72,37 @@ void main() {
     expect(event.toSafeLogMap()['preciseLocationIncluded'], isFalse);
   });
 
+  test(
+    'automatic observer status remains isolated from active-trip status',
+    () {
+      final event = TripTrackingPlatformEvent.fromNativePayload({
+        'schemaVersion': 1,
+        'type': 'automaticEvidenceStatus',
+        'status': 'automatic_evidence_observing',
+      });
+
+      expect(event.type, TripTrackingPlatformEventType.automaticEvidenceStatus);
+      expect(event.status, 'automatic_evidence_observing');
+    },
+  );
+
+  test('malformed automatic evidence is namespaced for observer shutdown', () {
+    final location = TripTrackingPlatformEvent.fromNativePayload({
+      'schemaVersion': 1,
+      'type': 'automaticEvidenceLocation',
+      'latitude': 35.0,
+    });
+    final activity = TripTrackingPlatformEvent.fromNativePayload({
+      'schemaVersion': 1,
+      'type': 'automaticEvidenceActivity',
+      'activity': 'walking',
+      'confidence': 90,
+    });
+
+    expect(location.errorCode, 'automatic_evidence_invalid_location_payload');
+    expect(activity.errorCode, 'automatic_evidence_invalid_activity_payload');
+  });
+
   test('native automatic evidence remains a distinct review-only collector', () {
     final androidBridge = File(
       'android/app/src/main/kotlin/com/maintainiac/TripTrackingNativeBridge.kt',
@@ -110,6 +141,57 @@ void main() {
     expect(androidObserver, contains('isMocked(location) ||'));
     expect(iosBridge, contains('automaticEvidenceObserving'));
     expect(iosDelegate, contains('"automaticEvidenceLocation"'));
+  });
+
+  test(
+    'Android automatic motion evidence has isolated ownership and epochs',
+    () {
+      final observer = File(
+        'android/app/src/main/kotlin/com/maintainiac/'
+        'TripAutomaticEvidenceForegroundService.kt',
+      ).readAsStringSync();
+      final receiver = File(
+        'android/app/src/main/kotlin/com/maintainiac/'
+        'TripTrackingActivityReceiver.kt',
+      ).readAsStringSync();
+
+      expect(observer, contains('automaticEvidenceOwner'));
+      expect(observer, contains('isActivityEpochActive'));
+      expect(observer, contains('stopActivityRecognition()'));
+      expect(receiver, contains('automaticEvidenceActivity'));
+      expect(
+        receiver,
+        contains(
+          'TripAutomaticEvidenceForegroundService.isActivityEpochActive',
+        ),
+      );
+      expect(receiver, contains('if (!epochIsActive) return'));
+    },
+  );
+
+  test('iOS automatic failures cannot masquerade as active-trip failures', () {
+    final bridge = File(
+      'ios/Runner/TripTrackingNativeBridge.swift',
+    ).readAsStringSync();
+    final delegate = File(
+      'ios/Runner/TripTrackingLocationDelegate.swift',
+    ).readAsStringSync();
+
+    for (final code in const [
+      'automatic_evidence_activity_unavailable',
+      'automatic_evidence_gps_disabled',
+      'automatic_evidence_battery_critical',
+    ]) {
+      expect(bridge, contains(code), reason: code);
+    }
+    for (final code in const [
+      'automatic_evidence_location_denied',
+      'automatic_evidence_background_location_denied',
+      'automatic_evidence_location_error',
+    ]) {
+      expect(delegate, contains(code), reason: code);
+    }
+    expect(bridge, contains('"type": "automaticEvidenceStatus"'));
   });
 
   test('native request preserves the adaptive sampling recommendation', () {

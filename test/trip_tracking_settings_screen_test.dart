@@ -139,7 +139,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Automatically switch the active vehicle'), findsNothing);
-    expect(find.text('Paid feature'), findsOneWidget);
+    expect(find.text('Monthly App Assistant allowance'), findsOneWidget);
     expect(
       find.text('Let App Assistant suggest possible drives'),
       findsOneWidget,

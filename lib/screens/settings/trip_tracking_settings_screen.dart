@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../shared/trip_tracking/trip_tracking_models.dart';
+import '../../shared/trip_tracking/automatic_evidence_capture_allowance_policy.dart';
 import '../../shared/trip_tracking/trip_automatic_start_detector.dart';
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
 import '../../shared/trip_tracking/trip_tracking_bluetooth_runtime.dart';
@@ -314,9 +315,6 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
                       automaticVehicleSwitchEnabled: value
                           ? settings.automaticVehicleSwitchEnabled
                           : false,
-                      automaticStartAssistanceEnabled: value
-                          ? settings.automaticStartAssistanceEnabled
-                          : false,
                     ),
                   )
                 : null,
@@ -330,7 +328,9 @@ class _TripTrackingSettingsPanel extends StatelessWidget {
             title: 'Let App Assistant suggest possible drives',
             detail: !settings.gpsAssistedTrackingEnabled
                 ? 'Enable GPS-assisted tracking first. Manual mileage remains available.'
-                : 'Paid feature. App Assistant can save possible vehicle movement for your review. It never starts a workday or confirms mileage on its own.',
+                : automaticStartAccess == TripAutomaticStartAccessLevel.paid
+                ? 'App Assistant can save possible vehicle movement for your review. It never starts a workday or confirms mileage on its own.'
+                : 'Includes up to ${const AutomaticEvidenceCaptureAllowancePolicy().freeMonthlyLimit} kept reviews each calendar month. Detection and rejection do not use the allowance, and nothing starts or confirms mileage automatically.',
             value: settings.automaticStartAssistanceEnabled,
             onChanged:
                 _automaticStartControlsEnabled &&

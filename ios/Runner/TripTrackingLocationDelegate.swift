@@ -14,12 +14,17 @@ extension TripTrackingNativeBridge: CLLocationManagerDelegate {
       state == "restricted" ||
       !canKeepBackgroundTracking
     ) {
+      let automaticEvidenceOnly = automaticEvidenceObserving && !tracking
       stopNativeCollection()
       emit([
         "type": "error",
-        "errorCode": canKeepBackgroundTracking
-          ? "trip_tracking_location_denied"
-          : "trip_tracking_background_location_denied",
+        "errorCode": automaticEvidenceOnly
+          ? (canKeepBackgroundTracking
+              ? "automatic_evidence_location_denied"
+              : "automatic_evidence_background_location_denied")
+          : (canKeepBackgroundTracking
+              ? "trip_tracking_location_denied"
+              : "trip_tracking_background_location_denied"),
         "errorMessage": canKeepBackgroundTracking
           ? "Location permission was removed while tracking."
           : "Background location permission was removed while tracking.",
@@ -100,18 +105,24 @@ extension TripTrackingNativeBridge: CLLocationManagerDelegate {
       return
     }
     if let locationError = error as? CLError, locationError.code == .denied {
+      let automaticEvidenceOnly = automaticEvidenceObserving && !tracking
       stopNativeCollection()
       emit([
         "type": "error",
-        "errorCode": "trip_tracking_location_denied",
+        "errorCode": automaticEvidenceOnly
+          ? "automatic_evidence_location_denied"
+          : "trip_tracking_location_denied",
         "errorMessage": "Location permission was removed while tracking.",
       ])
       return
     }
+    let automaticEvidenceOnly = automaticEvidenceObserving && !tracking
     stopNativeCollection()
     emit([
       "type": "error",
-      "errorCode": "trip_tracking_location_error",
+      "errorCode": automaticEvidenceOnly
+        ? "automatic_evidence_location_error"
+        : "trip_tracking_location_error",
       "errorMessage": "Core Location could not continue trip tracking.",
     ])
   }

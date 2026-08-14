@@ -235,7 +235,12 @@ void main() {
       android,
       contains('activityPendingIntent == null || hasActivityRecognition()'),
     );
-    expect(androidActivity, contains('"type" to "activity"'));
+    expect(
+      androidActivity,
+      contains(
+        '"type" to if (automaticEvidence) "automaticEvidenceActivity" else "activity"',
+      ),
+    );
     expect(
       androidActivity,
       contains(
@@ -272,14 +277,24 @@ void main() {
     expect(androidActivity, contains('"recordedAt" to observedAtMillis'));
     expect(ios, contains('let observedAt = motion.startDate'));
     expect(ios, contains('let now = Date()'));
-    expect(ios, contains('let trackingStartedAt = self.trackingStartedAt'));
-    expect(ios, contains('guard observedAt >= trackingStartedAt,'));
+    expect(
+      ios,
+      contains(
+        'let collectionStartedAt = self.trackingStartedAt ?? self.automaticEvidenceStartedAt',
+      ),
+    );
+    expect(ios, contains('guard observedAt >= collectionStartedAt,'));
     expect(ios, contains('observedAt >= now.addingTimeInterval(-120)'));
     expect(
       ios,
       contains('"recordedAt": ISO8601DateFormatter().string(from: observedAt)'),
     );
-    expect(ios, contains('"type": "activity"'));
+    expect(
+      ios,
+      contains(
+        '"type": self.tracking ? "activity" : "automaticEvidenceActivity"',
+      ),
+    );
     expect(ios, contains('"mockedLocation": simulated'));
     expect(ios, contains('isSimulatedBySoftware'));
     final trackingEnabledIndex = ios.indexOf('tracking = true');
@@ -515,7 +530,7 @@ void main() {
     expect(
       ios,
       contains(
-        'stopNativeCollection()\n    emit([\n      "type": "error",\n      "errorCode": "trip_tracking_location_error"',
+        'stopNativeCollection()\n    emit([\n      "type": "error",\n      "errorCode": automaticEvidenceOnly\n        ? "automatic_evidence_location_error"\n        : "trip_tracking_location_error"',
       ),
     );
     expect(ios, contains('func stopNativeCollection()'));

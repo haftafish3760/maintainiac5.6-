@@ -65,10 +65,17 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
 
   func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
     eventSink = events
-    let status = tracking
-      ? (providerRegistered ? "tracking" : "starting")
-      : automaticEvidenceObserving ? "automatic_evidence_observing" : "idle"
-    emit(["type": "status", "status": status])
+    if automaticEvidenceObserving && !tracking {
+      emit([
+        "type": "automaticEvidenceStatus",
+        "status": "automatic_evidence_observing",
+      ])
+    } else {
+      emit([
+        "type": "status",
+        "status": tracking ? (providerRegistered ? "tracking" : "starting") : "idle",
+      ])
+    }
     return nil
   }
 
@@ -88,7 +95,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
     case "start":
       start(call, result: result)
     case "startAutomaticEvidence":
-      startAutomaticEvidence(result: result)
+      startAutomaticEvidence(call, result: result)
     case "stopAutomaticEvidence":
       stopAutomaticEvidenceObservation()
       result(nil)
@@ -193,7 +200,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
     result(true)
   }
 
-  private func startAutomaticEvidence(result: @escaping FlutterResult) {
+  private func startAutomaticEvidence(
+    _ call: FlutterMethodCall,
+    result: @escaping FlutterResult
+  ) {
     guard !tracking else {
       result(false)
       return
@@ -225,6 +235,10 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
     automaticEvidenceStartedAt = Date()
     automaticEvidenceObserving = true
     locationManager.startUpdatingLocation()
+    let arguments = call.arguments as? [String: Any]
+    setActivityRecognitionEnabled(
+      arguments?["activityRecognitionEnabled"] as? Bool ?? false
+    )
     result(true)
   }
 
@@ -233,6 +247,7 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
     automaticEvidenceObserving = false
     automaticEvidenceStartedAt = nil
     guard !tracking else { return }
+    setActivityRecognitionEnabled(false)
     locationManager.stopUpdatingLocation()
     if #available(iOS 9.0, *) {
       locationManager.allowsBackgroundLocationUpdates = false
@@ -288,7 +303,9 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
         activityRecognitionUnavailableReported = true
         emit([
           "type": "error",
-          "errorCode": "trip_tracking_activity_unavailable",
+          "errorCode": automaticEvidenceObserving && !tracking
+            ? "automatic_evidence_activity_unavailable"
+            : "trip_tracking_activity_unavailable",
           "errorMessage": "Motion activity permission is unavailable for GPS-assisted stop evidence.",
         ])
       }
@@ -313,16 +330,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
       guard let self,
             self.activityRecognitionEnabled,
             self.activityRecognitionGeneration == generation,
-            let trackingStartedAt = self.trackingStartedAt,
+            let collectionStartedAt = self.trackingStartedAt ?? self.automaticEvidenceStartedAt,
             let motion else { return }
       let observedAt = motion.startDate
       let now = Date()
-      guard observedAt >= trackingStartedAt,
+      guard observedAt >= collectionStartedAt,
             observedAt.timeIntervalSince1970 > 0,
             observedAt >= now.addingTimeInterval(-120),
             observedAt <= now.addingTimeInterval(120) else { return }
       self.emit([
-        "type": "activity",
+        "type": self.tracking ? "activity" : "automaticEvidenceActivity",
         "activity": self.tripActivity(for: motion),
         "confidence": self.confidence(for: motion.confidence),
         "recordedAt": ISO8601DateFormatter().string(from: observedAt),
@@ -347,7 +364,8 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
         guard let self,
               self.activityRecognitionEnabled,
               self.activityRecognitionGeneration == generation,
-              let trackingStartedAt = self.trackingStartedAt else { return }
+              let collectionStartedAt = self.trackingStartedAt ?? self.automaticEvidenceStartedAt
+              else { return }
         let totalSteps = data.numberOfSteps.intValue
         if self.pedometerBaselineSteps == nil {
           self.pedometerBaselineSteps = totalSteps
@@ -357,12 +375,12 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
         guard walkingSteps - self.lastPedometerEvidenceSteps >= 5 else { return }
         let observedAt = data.endDate
         let now = Date()
-        guard observedAt >= trackingStartedAt,
+        guard observedAt >= collectionStartedAt,
               observedAt >= now.addingTimeInterval(-120),
               observedAt <= now.addingTimeInterval(120) else { return }
         self.lastPedometerEvidenceSteps = walkingSteps
         self.emit([
-          "type": "activity",
+          "type": self.tracking ? "activity" : "automaticEvidenceActivity",
           "activity": "walking",
           "confidence": 90,
           "recordedAt": ISO8601DateFormatter().string(from: observedAt),
@@ -443,11 +461,16 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
   /// the Dart session falsely healthy until a future callback happens.
   func stopForLocationServicesDisabledIfNeeded() -> Bool {
     guard !CLLocationManager.locationServicesEnabled() else { return false }
+    let automaticEvidenceOnly = automaticEvidenceObserving && !tracking
     stopNativeCollection()
     emit([
       "type": "error",
-      "errorCode": "trip_tracking_gps_disabled",
-      "errorMessage": "Device location was turned off while tracking.",
+      "errorCode": automaticEvidenceOnly
+        ? "automatic_evidence_gps_disabled"
+        : "trip_tracking_gps_disabled",
+      "errorMessage": automaticEvidenceOnly
+        ? "Device location was turned off while App Assistant was observing."
+        : "Device location was turned off while tracking.",
     ])
     return true
   }
@@ -505,10 +528,13 @@ final class TripTrackingNativeBridge: NSObject, FlutterStreamHandler {
           let percent = snapshot["batteryPercent"] as? Int,
           percent >= 0,
           percent < 10 else { return false }
+    let automaticEvidenceOnly = automaticEvidenceObserving && !tracking
     stopNativeCollection()
     emit([
       "type": "error",
-      "errorCode": "trip_tracking_battery_critical",
+      "errorCode": automaticEvidenceOnly
+        ? "automatic_evidence_battery_critical"
+        : "trip_tracking_battery_critical",
       "errorMessage": "Battery is critically low. Plug in the phone or charge above 10% to resume GPS assistance.",
     ])
     return true

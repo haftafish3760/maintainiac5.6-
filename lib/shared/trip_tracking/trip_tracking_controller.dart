@@ -468,11 +468,23 @@ class TripTrackingController extends ChangeNotifier {
     required int acceptedFreeUsesInPeriod,
     required TripAutomaticStartDetector detector,
   }) async {
+    final observationList = observations.toList(growable: false);
+    final store = _automaticEvidenceCandidateStore;
+    var effectiveAcceptedFreeUses = acceptedFreeUsesInPeriod;
+    if (store != null && observationList.isNotEmpty) {
+      final latestAt = observationList
+          .map((item) => item.recordedAt.toUtc())
+          .reduce((left, right) => left.isAfter(right) ? left : right);
+      final durableAcceptedUses = store.acceptedFreeUsesAt(latestAt);
+      if (durableAcceptedUses > effectiveAcceptedFreeUses) {
+        effectiveAcceptedFreeUses = durableAcceptedUses;
+      }
+    }
     final decision = evaluateAutomaticStartAssistance(
       settings: settings,
       accessLevel: accessLevel,
-      observations: observations,
-      acceptedFreeUsesInPeriod: acceptedFreeUsesInPeriod,
+      observations: observationList,
+      acceptedFreeUsesInPeriod: effectiveAcceptedFreeUses,
       detector: detector,
     );
     if (!decision.shouldCreateReviewCandidate) {
@@ -481,7 +493,6 @@ class TripTrackingController extends ChangeNotifier {
         candidatePersisted: false,
       );
     }
-    final store = _automaticEvidenceCandidateStore;
     if (store == null || _automaticEvidenceCandidateProposalInFlight) {
       return _AutomaticEvidenceCaptureOutcome(
         decision: decision,

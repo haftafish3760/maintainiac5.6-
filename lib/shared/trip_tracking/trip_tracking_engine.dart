@@ -24,9 +24,6 @@ class TripTrackingEngine {
   final TripTrackingPolicy policy;
   final TripTrackingProfile profile;
   TripLocationSample? _lastAccepted;
-  TripLocationSample? _anchorBeforeLatestAcceptedDistance;
-  DateTime? _latestAcceptedDistanceAt;
-  var _latestAcceptedDistanceMeters = 0.0;
   DateTime? _lastObservedAt;
   DateTime? _lastContinuousAt;
   int? _lastObservedMonotonicElapsedNanos;
@@ -144,7 +141,7 @@ class TripTrackingEngine {
       _walkingReviewSuggested = false;
       return false;
     }
-    _discardLateWalkingDistance(activity, observedAt: referenceAt);
+    _blockLateWalkingSegmentFromStopEvidence(activity, observedAt: referenceAt);
     final priorCount = _walkingEvidence.length;
     final priorReview = _walkingReviewSuggested;
     _recordActivity(activity, observedAt: referenceAt);
@@ -219,19 +216,14 @@ class TripTrackingEngine {
             );
   }
 
-  void _discardLateWalkingDistance(
+  void _blockLateWalkingSegmentFromStopEvidence(
     TripActivityObservation activity, {
     required DateTime observedAt,
   }) {
     if (!activity.canSupportStopReview) return;
-    final distanceAt = _latestAcceptedDistanceAt;
     final latestAccepted = _lastAccepted;
-    if (distanceAt == null ||
-        latestAccepted == null ||
-        latestAccepted.recordedAt != distanceAt) {
-      return;
-    }
-    final delay = observedAt.difference(distanceAt);
+    if (latestAccepted == null) return;
+    final delay = observedAt.difference(latestAccepted.recordedAt);
     if (delay.isNegative ||
         delay >
             _safePositiveDuration(
@@ -240,17 +232,10 @@ class TripTrackingEngine {
             )) {
       return;
     }
-    // Android and iOS can deliver activity after the corresponding location
-    // callback. Remove that unconfirmed segment before it can support a
-    // vehicle stop or GPS mileage estimate; odometer truth is unaffected.
-    _totalAcceptedMeters =
-        (_totalAcceptedMeters - _latestAcceptedDistanceMeters)
-            .clamp(0, double.infinity)
-            .toDouble();
-    _lastAccepted = _anchorBeforeLatestAcceptedDistance;
-    _anchorBeforeLatestAcceptedDistance = null;
-    _latestAcceptedDistanceAt = null;
-    _latestAcceptedDistanceMeters = 0;
+    // Native motion classification can arrive immediately after its matching
+    // location callback. Keep the accepted GPS evidence and diagnostics
+    // immutable, but do not let a segment now identified as walking establish
+    // the continuous vehicle evidence required for an automatic stop proposal.
     _automaticStopEvidenceContinuous = false;
     _stopEvidenceBlockedByDiscontinuity = true;
   }
@@ -539,13 +524,10 @@ class TripTrackingEngine {
       );
     }
 
-    _anchorBeforeLatestAcceptedDistance = lastAccepted;
     _lastAccepted = sample;
     _totalAcceptedMeters += distance;
     _automaticStopEvidenceContinuous = true;
     _stopEvidenceBlockedByDiscontinuity = false;
-    _latestAcceptedDistanceAt = sample.recordedAt;
-    _latestAcceptedDistanceMeters = distance;
     return _finish(
       sample,
       activityForMileage,

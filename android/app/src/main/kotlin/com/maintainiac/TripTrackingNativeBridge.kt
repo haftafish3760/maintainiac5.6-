@@ -310,7 +310,7 @@ class TripTrackingNativeBridge(
             result.success(false)
             return
         }
-        if (TripAutomaticEvidenceForegroundService.isRunning) {
+        if (TripAutomaticEvidenceForegroundService.isCollectorActive) {
             result.success(true)
             return
         }
@@ -318,7 +318,12 @@ class TripTrackingNativeBridge(
             result.success(false)
             return
         }
-        val intent = Intent(activity, TripAutomaticEvidenceForegroundService::class.java)
+        val intent = Intent(activity, TripAutomaticEvidenceForegroundService::class.java).apply {
+            putExtra(
+                TripTrackingForegroundService.activityRecognitionEnabledExtra,
+                call.argument<Boolean>("activityRecognitionEnabled") == true,
+            )
+        }
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 activity.startForegroundService(intent)

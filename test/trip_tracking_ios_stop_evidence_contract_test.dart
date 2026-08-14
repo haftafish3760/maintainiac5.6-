@@ -45,7 +45,12 @@ void main() {
 
   test('iOS motion and pedometer callbacks remain bounded review evidence', () {
     expect(bridge, contains('motionManager.startActivityUpdates(to: .main)'));
-    expect(bridge, contains('"type": "activity"'));
+    expect(
+      bridge,
+      contains(
+        '"type": self.tracking ? "activity" : "automaticEvidenceActivity"',
+      ),
+    );
     expect(bridge, contains('"activity": self.tripActivity(for: motion)'));
     expect(
       bridge,
@@ -74,7 +79,8 @@ void main() {
       expect(automatic, contains('guard !tracking else'));
       expect(automatic, contains('automaticEvidenceObserving = true'));
       expect(automatic, contains('locationManager.startUpdatingLocation()'));
-      expect(automatic, isNot(contains('setActivityRecognitionEnabled')));
+      expect(automatic, contains('setActivityRecognitionEnabled'));
+      expect(automatic, contains('activityRecognitionEnabled'));
     },
   );
 }

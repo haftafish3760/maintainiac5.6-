@@ -66,6 +66,7 @@ enum TripTrackingPlatformEventType {
   automaticEvidenceLocation,
   activity,
   automaticEvidenceActivity,
+  automaticEvidenceStatus,
   authorization,
   status,
   error,
@@ -184,6 +185,9 @@ class TripTrackingPlatformEvent {
     final isActivity =
         declaredType == TripTrackingPlatformEventType.activity ||
         declaredType == TripTrackingPlatformEventType.automaticEvidenceActivity;
+    final isStatus =
+        declaredType == TripTrackingPlatformEventType.status ||
+        declaredType == TripTrackingPlatformEventType.automaticEvidenceStatus;
     final location = isLocation && !_hasInvalidNativeReportedSpeed(map)
         ? TripLocationSample.tryFromMap(map)
         : null;
@@ -194,9 +198,7 @@ class TripTrackingPlatformEvent {
         declaredType == TripTrackingPlatformEventType.authorization
         ? _tryAuthorizationEvent(map)
         : null;
-    final status = declaredType == TripTrackingPlatformEventType.status
-        ? _safePlatformStatus(map['status'])
-        : null;
+    final status = isStatus ? _safePlatformStatus(map['status']) : null;
     final type = isLocation && location == null
         ? TripTrackingPlatformEventType.error
         : isActivity && activity == null
@@ -204,7 +206,7 @@ class TripTrackingPlatformEvent {
         : declaredType == TripTrackingPlatformEventType.authorization &&
               authorization == null
         ? TripTrackingPlatformEventType.error
-        : declaredType == TripTrackingPlatformEventType.status && status == null
+        : isStatus && status == null
         ? TripTrackingPlatformEventType.error
         : declaredType;
     return TripTrackingPlatformEvent._(
@@ -214,17 +216,29 @@ class TripTrackingPlatformEvent {
       authorization: type == TripTrackingPlatformEventType.authorization
           ? authorization
           : null,
-      status: type == TripTrackingPlatformEventType.status ? status : null,
+      status:
+          type == TripTrackingPlatformEventType.status ||
+              type == TripTrackingPlatformEventType.automaticEvidenceStatus
+          ? status
+          : null,
       errorCode: type == TripTrackingPlatformEventType.error && isLocation
-          ? 'invalidLocationPayload'
+          ? declaredType ==
+                    TripTrackingPlatformEventType.automaticEvidenceLocation
+                ? 'automatic_evidence_invalid_location_payload'
+                : 'invalidLocationPayload'
           : type == TripTrackingPlatformEventType.error && isActivity
-          ? 'invalidActivityPayload'
+          ? declaredType ==
+                    TripTrackingPlatformEventType.automaticEvidenceActivity
+                ? 'automatic_evidence_invalid_activity_payload'
+                : 'invalidActivityPayload'
           : type == TripTrackingPlatformEventType.error &&
                 declaredType == TripTrackingPlatformEventType.authorization
           ? 'invalidAuthorizationPayload'
-          : type == TripTrackingPlatformEventType.error &&
-                declaredType == TripTrackingPlatformEventType.status
-          ? 'invalidStatusPayload'
+          : type == TripTrackingPlatformEventType.error && isStatus
+          ? declaredType ==
+                    TripTrackingPlatformEventType.automaticEvidenceStatus
+                ? 'automatic_evidence_invalid_status_payload'
+                : 'invalidStatusPayload'
           : type == TripTrackingPlatformEventType.error
           ? _safePlatformToken(map['errorCode']) ?? 'unknownNativeEvent'
           : null,
@@ -293,6 +307,8 @@ String? _safePlatformStatus(Object? value) {
     'backgroundRestricted' ||
     'permissionRequired' ||
     'providerUnavailable' ||
+    'automatic_evidence_observing' ||
+    'automatic_evidence_stopped' ||
     'stopped' => clean,
     _ => null,
   };

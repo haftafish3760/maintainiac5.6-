@@ -5,6 +5,7 @@
 /// ActiveWorkdayScreen so location state remains visible without a large panel.
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../shared/trip_tracking/trip_tracking_controller.dart';
@@ -177,33 +178,34 @@ class ActiveWorkdayTrackingStatusLine extends StatelessWidget {
                   ),
                 ),
               ],
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                childrenPadding: const EdgeInsets.only(bottom: 4),
-                collapsedIconColor: const Color(0xFF9CC7E8),
-                iconColor: const Color(0xFF9CC7E8),
-                title: const Text(
-                  'GPS test details',
-                  style: TextStyle(
-                    color: Color(0xFF9CC7E8),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      diagnosticSummary,
-                      style: const TextStyle(
-                        color: Color(0xFFCAD2D5),
-                        fontSize: 11,
-                        height: 1.3,
-                      ),
+              if (kDebugMode)
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  childrenPadding: const EdgeInsets.only(bottom: 4),
+                  collapsedIconColor: const Color(0xFF9CC7E8),
+                  iconColor: const Color(0xFF9CC7E8),
+                  title: const Text(
+                    'GPS test details',
+                    style: TextStyle(
+                      color: Color(0xFF9CC7E8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                ],
-              ),
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        diagnosticSummary,
+                        style: const TextStyle(
+                          color: Color(0xFFCAD2D5),
+                          fontSize: 11,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
         );

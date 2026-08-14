@@ -43,10 +43,16 @@ class TripAutomaticEvidenceCandidateAudit {
 
   static TripAutomaticEvidenceCandidateAudit? fromMap(Object? value) {
     if (value is! Map) return null;
-    final action = TripAutomaticEvidenceCandidateAction.values.firstWhere(
-      (item) => item.name == value['action'],
-      orElse: () => TripAutomaticEvidenceCandidateAction.detected,
-    );
+    final actionName = value['action'];
+    if (actionName is! String) return null;
+    TripAutomaticEvidenceCandidateAction? action;
+    for (final candidate in TripAutomaticEvidenceCandidateAction.values) {
+      if (candidate.name == actionName) {
+        action = candidate;
+        break;
+      }
+    }
+    if (action == null) return null;
     final recordedAt = DateTime.tryParse(
       value['recordedAtUtc']?.toString() ?? '',
     )?.toUtc();
@@ -73,6 +79,9 @@ class TripAutomaticEvidenceCandidate {
     required this.evidenceSources,
     required this.auditHistory,
     required this.requiresPaidEntitlementOnAcceptance,
+    required this.allowancePeriodKey,
+    required this.freeUseLimitAtDetection,
+    required this.consumesFreeUseIfAccepted,
     this.suggestedVehicleId,
   });
 
@@ -88,6 +97,9 @@ class TripAutomaticEvidenceCandidate {
   final List<String> evidenceSources;
   final List<TripAutomaticEvidenceCandidateAudit> auditHistory;
   final bool requiresPaidEntitlementOnAcceptance;
+  final String? allowancePeriodKey;
+  final int freeUseLimitAtDetection;
+  final bool consumesFreeUseIfAccepted;
   final String? suggestedVehicleId;
 
   bool get requiresUserReview =>
@@ -108,7 +120,7 @@ class TripAutomaticEvidenceCandidate {
       'Review it before creating any workday or trip record.';
 
   String get expectedResultIfApproved =>
-      'Opens an editable review. No odometer, trip, stop, vehicle, profile, or '
+      'Keeps this evidence for a later editable review. No odometer, trip, stop, vehicle, profile, or '
       'business classification is confirmed by this approval.';
 
   String get resultIfRejected =>
@@ -127,6 +139,10 @@ class TripAutomaticEvidenceCandidate {
     }
     final startedAt = decision.evidenceStartedAt!.toUtc();
     final endedAt = decision.evidenceEndedAt!.toUtc();
+    final detectedAtUtc = detectedAt.toUtc();
+    if (endedAt.isBefore(startedAt) || detectedAtUtc.isBefore(endedAt)) {
+      throw ArgumentError('Automatic evidence timestamps are inconsistent.');
+    }
     final sources = <String>[
       'currentVehicleMovement',
       if (decision.suggestedVehicleId != null) 'knownVehicleBluetooth',
@@ -143,7 +159,7 @@ class TripAutomaticEvidenceCandidate {
       id: id,
       revision: 1,
       state: TripAutomaticEvidenceCandidateState.reviewNeeded,
-      detectedAtUtc: detectedAt.toUtc(),
+      detectedAtUtc: detectedAtUtc,
       evidenceStartedAtUtc: startedAt,
       evidenceEndedAtUtc: endedAt,
       reasonCode: decision.reasonCode,
@@ -151,11 +167,15 @@ class TripAutomaticEvidenceCandidate {
       auditHistory: List<TripAutomaticEvidenceCandidateAudit>.unmodifiable([
         TripAutomaticEvidenceCandidateAudit(
           action: TripAutomaticEvidenceCandidateAction.detected,
-          recordedAtUtc: detectedAt.toUtc(),
+          recordedAtUtc: detectedAtUtc,
         ),
       ]),
       requiresPaidEntitlementOnAcceptance:
           decision.requiresPaidEntitlementOnAcceptance,
+      allowancePeriodKey: decision.allowanceDecision?.periodKey,
+      freeUseLimitAtDetection: decision.allowanceDecision?.freeLimit ?? 0,
+      consumesFreeUseIfAccepted:
+          decision.allowanceDecision?.consumesFreeUseIfAccepted ?? false,
       suggestedVehicleId: _safeId(decision.suggestedVehicleId),
     );
   }
@@ -166,6 +186,10 @@ class TripAutomaticEvidenceCandidate {
   }) {
     if (!requiresUserReview) {
       throw StateError('A candidate can only be decided once.');
+    }
+    final decidedAtUtc = decidedAt.toUtc();
+    if (decidedAtUtc.isBefore(detectedAtUtc)) {
+      throw ArgumentError('A candidate decision cannot predate detection.');
     }
     final action = approved
         ? TripAutomaticEvidenceCandidateAction.approved
@@ -185,10 +209,43 @@ class TripAutomaticEvidenceCandidate {
         ...auditHistory,
         TripAutomaticEvidenceCandidateAudit(
           action: action,
-          recordedAtUtc: decidedAt.toUtc(),
+          recordedAtUtc: decidedAtUtc,
         ),
       ]),
       requiresPaidEntitlementOnAcceptance: requiresPaidEntitlementOnAcceptance,
+      allowancePeriodKey: allowancePeriodKey,
+      freeUseLimitAtDetection: freeUseLimitAtDetection,
+      consumesFreeUseIfAccepted: consumesFreeUseIfAccepted,
+      suggestedVehicleId: suggestedVehicleId,
+    );
+  }
+
+  TripAutomaticEvidenceCandidate expire({required DateTime expiredAt}) {
+    if (!requiresUserReview) return this;
+    final expiredAtUtc = expiredAt.toUtc();
+    if (expiredAtUtc.isBefore(detectedAtUtc)) {
+      throw ArgumentError('Candidate expiration cannot predate detection.');
+    }
+    return TripAutomaticEvidenceCandidate._(
+      id: id,
+      revision: revision + 1,
+      state: TripAutomaticEvidenceCandidateState.expired,
+      detectedAtUtc: detectedAtUtc,
+      evidenceStartedAtUtc: evidenceStartedAtUtc,
+      evidenceEndedAtUtc: evidenceEndedAtUtc,
+      reasonCode: reasonCode,
+      evidenceSources: evidenceSources,
+      auditHistory: List<TripAutomaticEvidenceCandidateAudit>.unmodifiable([
+        ...auditHistory,
+        TripAutomaticEvidenceCandidateAudit(
+          action: TripAutomaticEvidenceCandidateAction.expired,
+          recordedAtUtc: expiredAtUtc,
+        ),
+      ]),
+      requiresPaidEntitlementOnAcceptance: requiresPaidEntitlementOnAcceptance,
+      allowancePeriodKey: allowancePeriodKey,
+      freeUseLimitAtDetection: freeUseLimitAtDetection,
+      consumesFreeUseIfAccepted: consumesFreeUseIfAccepted,
       suggestedVehicleId: suggestedVehicleId,
     );
   }
@@ -205,6 +262,9 @@ class TripAutomaticEvidenceCandidate {
     'evidenceSources': evidenceSources,
     'auditHistory': auditHistory.map((item) => item.toMap()).toList(),
     'requiresPaidEntitlementOnAcceptance': requiresPaidEntitlementOnAcceptance,
+    if (allowancePeriodKey != null) 'allowancePeriodKey': allowancePeriodKey,
+    'freeUseLimitAtDetection': freeUseLimitAtDetection,
+    'consumesFreeUseIfAccepted': consumesFreeUseIfAccepted,
     if (suggestedVehicleId != null) 'suggestedVehicleId': suggestedVehicleId,
     'canCreateConfirmedRecord': false,
     'canConfirmMileage': false,
@@ -218,10 +278,16 @@ class TripAutomaticEvidenceCandidate {
     final id = _safeId(value['id']?.toString());
     final reasonCode = _safeReasonCode(value['reasonCode']?.toString());
     final revision = value['revision'];
-    final state = TripAutomaticEvidenceCandidateState.values.firstWhere(
-      (item) => item.name == value['state'],
-      orElse: () => TripAutomaticEvidenceCandidateState.expired,
-    );
+    final stateName = value['state'];
+    TripAutomaticEvidenceCandidateState? state;
+    if (stateName is String) {
+      for (final candidate in TripAutomaticEvidenceCandidateState.values) {
+        if (candidate.name == stateName) {
+          state = candidate;
+          break;
+        }
+      }
+    }
     final detectedAt = DateTime.tryParse(
       value['detectedAtUtc']?.toString() ?? '',
     )?.toUtc();
@@ -235,12 +301,14 @@ class TripAutomaticEvidenceCandidate {
     final audits = value['auditHistory'];
     if (id == null ||
         reasonCode == null ||
+        state == null ||
         revision is! int ||
         revision < 1 ||
         detectedAt == null ||
         startedAt == null ||
         endedAt == null ||
         endedAt.isBefore(startedAt) ||
+        detectedAt.isBefore(endedAt) ||
         sources is! List ||
         audits is! List) {
       return null;
@@ -253,9 +321,33 @@ class TripAutomaticEvidenceCandidate {
         .map(TripAutomaticEvidenceCandidateAudit.fromMap)
         .whereType<TripAutomaticEvidenceCandidateAudit>()
         .toList(growable: false);
+    final suggestedVehicleId = _safeId(value['suggestedVehicleId']?.toString());
+    final hasAllowanceMetadata = value.containsKey('allowancePeriodKey');
+    final allowancePeriodKey = _safePeriodKey(
+      value['allowancePeriodKey']?.toString(),
+    );
+    final freeUseLimit = value['freeUseLimitAtDetection'];
+    final normalizedFreeUseLimit = freeUseLimit is int && freeUseLimit >= 0
+        ? freeUseLimit
+        : 0;
     if (safeSources.isEmpty ||
         safeSources.length != sources.length ||
-        safeAudits.isEmpty) {
+        safeAudits.isEmpty ||
+        safeAudits.length != audits.length ||
+        (hasAllowanceMetadata && allowancePeriodKey == null) ||
+        !_auditHistoryIsValid(
+          state: state,
+          revision: revision,
+          detectedAt: detectedAt,
+          audits: safeAudits,
+        ) ||
+        id !=
+            _candidateId(
+              startedAt: startedAt,
+              endedAt: endedAt,
+              reasonCode: reasonCode,
+              suggestedVehicleId: suggestedVehicleId,
+            )) {
       return null;
     }
     return TripAutomaticEvidenceCandidate._(
@@ -270,11 +362,51 @@ class TripAutomaticEvidenceCandidate {
       auditHistory: List<TripAutomaticEvidenceCandidateAudit>.unmodifiable(
         safeAudits,
       ),
+      // Legacy candidates predate the durable allowance meter. Fail closed on
+      // acceptance instead of granting an unmetered free use.
       requiresPaidEntitlementOnAcceptance:
+          !hasAllowanceMetadata ||
           value['requiresPaidEntitlementOnAcceptance'] == true,
-      suggestedVehicleId: _safeId(value['suggestedVehicleId']?.toString()),
+      allowancePeriodKey: allowancePeriodKey,
+      freeUseLimitAtDetection: normalizedFreeUseLimit,
+      consumesFreeUseIfAccepted: value['consumesFreeUseIfAccepted'] == true,
+      suggestedVehicleId: suggestedVehicleId,
     );
   }
+}
+
+bool _auditHistoryIsValid({
+  required TripAutomaticEvidenceCandidateState state,
+  required int revision,
+  required DateTime detectedAt,
+  required List<TripAutomaticEvidenceCandidateAudit> audits,
+}) {
+  if (audits.length != revision ||
+      audits.first.action != TripAutomaticEvidenceCandidateAction.detected ||
+      audits.first.recordedAtUtc.toUtc() != detectedAt.toUtc()) {
+    return false;
+  }
+  for (var index = 1; index < audits.length; index += 1) {
+    if (audits[index].recordedAtUtc.toUtc().isBefore(
+      audits[index - 1].recordedAtUtc.toUtc(),
+    )) {
+      return false;
+    }
+  }
+  final expectedFinalAction = switch (state) {
+    TripAutomaticEvidenceCandidateState.reviewNeeded =>
+      TripAutomaticEvidenceCandidateAction.detected,
+    TripAutomaticEvidenceCandidateState.approvedForEditableReview =>
+      TripAutomaticEvidenceCandidateAction.approved,
+    TripAutomaticEvidenceCandidateState.rejected =>
+      TripAutomaticEvidenceCandidateAction.rejected,
+    TripAutomaticEvidenceCandidateState.expired =>
+      TripAutomaticEvidenceCandidateAction.expired,
+  };
+  return audits.last.action == expectedFinalAction &&
+      (state == TripAutomaticEvidenceCandidateState.reviewNeeded
+          ? audits.length == 1
+          : audits.length == 2);
 }
 
 String _candidateId({
@@ -318,4 +450,9 @@ String? _safeSource(String value) {
           RegExp(r'^[A-Za-z0-9_]+$').hasMatch(clean)
       ? clean
       : null;
+}
+
+String? _safePeriodKey(String? value) {
+  final clean = value?.trim() ?? '';
+  return RegExp(r'^\d{4}-(0[1-9]|1[0-2])$').hasMatch(clean) ? clean : null;
 }

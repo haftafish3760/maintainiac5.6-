@@ -76,16 +76,16 @@ void main() {
     await tester.tap(find.text('Open review'));
     await tester.pumpAndSettle();
     expect(find.text('POSSIBLE DRIVE — REVIEW NEEDED'), findsOneWidget);
-    expect(find.text('KEEP FOR REVIEW'), findsOneWidget);
+    expect(find.text('KEEP FOR LATER REVIEW'), findsOneWidget);
 
     await tester.scrollUntilVisible(
-      find.text('KEEP FOR REVIEW'),
+      find.text('KEEP FOR LATER REVIEW'),
       160,
       scrollable: find.byType(Scrollable).last,
     );
-    await tester.tap(find.text('KEEP FOR REVIEW'));
+    await tester.tap(find.text('KEEP FOR LATER REVIEW'));
     await tester.pumpAndSettle();
-    expect(find.text('Kept for editable review'), findsOneWidget);
+    expect(find.text('Kept for later review'), findsOneWidget);
     expect(controller.pendingAutomaticEvidenceCandidates, isEmpty);
     expect(controller.isTracking, isFalse);
     expect(odometer.confirmedReading, 1000);
