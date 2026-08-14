@@ -262,12 +262,9 @@ final class TripStressEvaluator {
     );
     final freeAllowanceExhausted =
         !scenario.paidAccess && scenario.variant % 6 >= 4;
-    final blocked =
-        scenario.hasActiveSession ||
-        scenario.hasUnfinishedSession ||
-        freeAllowanceExhausted;
     final passed =
-        (!blocked || !decision.shouldSuggestStart) &&
+        !decision.shouldSuggestStart &&
+        !decision.canStartTrackingAutomatically &&
         (trustedBluetooth || decision.suggestedVehicleId == null);
     return _result(passed, {
       'bluetoothState': scenario.bluetoothState.name,

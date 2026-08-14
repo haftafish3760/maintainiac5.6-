@@ -11,6 +11,7 @@ void main() {
         acceptedMeters: meters,
         dispositions: const [TripSampleDisposition.acceptedAnchor],
         needsWalkingReview: stopReview,
+        sawReviewableStopEvidence: stopReview,
         motionState: TripMotionState.moving,
       );
 

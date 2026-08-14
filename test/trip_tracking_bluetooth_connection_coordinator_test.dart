@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/device_capabilities/device_bluetooth_capabilities.dart';
-import 'package:maintaniac/shared/trip_tracking/trip_automatic_start_detector.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_bluetooth.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_bluetooth_coordinator.dart';
 import 'package:maintaniac/shared/trip_tracking/trip_tracking_settings_store.dart';
