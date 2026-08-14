@@ -23,6 +23,7 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
   const _ReceiptStitchReviewActions({
     required this.ready,
     required this.fallback,
+    required this.manualAlignmentActive,
     required this.saving,
     required this.onUse,
     required this.onRedo,
@@ -31,6 +32,7 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
 
   final bool ready;
   final bool fallback;
+  final bool manualAlignmentActive;
   final bool saving;
   final VoidCallback onUse;
   final VoidCallback onRedo;
@@ -46,16 +48,27 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final textScale = MediaQuery.textScalerOf(context).scale(1);
-            final compact = constraints.maxWidth < 350 || textScale > 1.3;
+            // Three labelled actions cannot remain readable in one row on a
+            // phone. Keep the confirmation full-width and place recovery
+            // actions underneath instead of crushing their labels.
+            final compact = constraints.maxWidth < 480 || textScale > 1.0;
             final cancel = IconButton.outlined(
-              tooltip: 'Cancel receipt review',
+              tooltip: 'Review receipt sections',
               onPressed: enabled ? onCancel : null,
-              icon: const Icon(Icons.close_rounded),
+              icon: const Icon(Icons.photo_library_outlined),
             );
             final redo = OutlinedButton.icon(
               onPressed: enabled ? onRedo : null,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Redo'),
+              icon: Icon(
+                fallback ? Icons.open_with_rounded : Icons.refresh_rounded,
+              ),
+              label: Text(
+                fallback
+                    ? manualAlignmentActive
+                          ? 'Try alignment'
+                          : 'Align two photos'
+                    : 'Review photos',
+              ),
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
                 foregroundColor: const Color(0xFFE8ECEE),
@@ -72,13 +85,7 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.check_rounded),
-              label: Text(
-                saving
-                    ? 'Continuing'
-                    : fallback
-                    ? 'Use separate photos'
-                    : 'Use receipt',
-              ),
+              label: Text(saving ? 'Continuing' : 'Continue'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
                 backgroundColor: const Color(0xFF28A745),

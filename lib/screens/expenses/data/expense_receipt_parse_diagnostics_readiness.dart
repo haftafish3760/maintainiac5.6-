@@ -110,6 +110,8 @@ extension ExpenseReceiptParseDiagnosticsReadiness
       parserTaskCount('receipt_footer_seen_final_total_missing_review') > 0;
   bool get hasParserSplitTenderVisibleTotalReview =>
       parserTaskCount('receipt_split_tender_matches_visible_lines_review') > 0;
+  bool get hasCalculatedVisibleLineTotalReview =>
+      parserTaskCount('receipt_visible_lines_total_calculated_review') > 0;
   bool get hasParserPossibleLowerSectionMissing =>
       parserTaskCount('receipt_possible_lower_section_missing') > 0 ||
       (!hasParserFooterSeenTotalsMissingReview &&

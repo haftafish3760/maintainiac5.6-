@@ -2,8 +2,9 @@ part of 'receipt_attachment_panel.dart';
 
 extension _ReceiptAttachmentReviewReadActions
     on _SharedReceiptAttachmentPanelState {
-  Future<bool> reviewPickedPhotoPaths(
+  Future<ReceiptImportActionResult> reviewPickedPhotoPaths(
     List<String> paths, {
+    ReceiptNativeCaptureStagingResult? stagedCapture,
     Map<String, ReceiptPhotoQualityCheck> initialQualityChecksByPath = const {},
     Map<String, Map<String, Object?>> initialCaptureDiagnosticsByPath =
         const {},
@@ -12,7 +13,9 @@ extension _ReceiptAttachmentReviewReadActions
       existingPhotoPaths: _photoPaths,
       importedPhotoPaths: paths,
     );
-    if (!importOrder.hasNewPhotos) return true;
+    if (!importOrder.hasNewPhotos) {
+      return const ReceiptImportActionResult.completed();
+    }
     final previousPhotoIdByPath = {..._photoIdByPath};
     final previousPhotoReadStateByPath = {..._photoReadStateByPath};
     final result = await Navigator.of(context).push<ReceiptPhotoReviewResult>(
@@ -35,21 +38,69 @@ extension _ReceiptAttachmentReviewReadActions
         ),
       ),
     );
-    if (result == null || !mounted) return false;
-    final accepted = await _acceptReviewedPhotoResult(
+    if (result == null || !mounted) {
+      return const ReceiptImportActionResult.stayOnChooser();
+    }
+    final plan = ReceiptReviewHandoffPlan.forOutcome(
+      result.outcome,
+      assistedReceiptFill: _appAssistedReceiptFillEnabled,
+    );
+    if (plan.discardStagedPhotos && stagedCapture != null) {
+      try {
+        await stagedCapture.discardStagedPhotos();
+      } catch (_) {
+        if (mounted) {
+          showPickerError(
+            'The staged receipt copy could not be discarded safely. It remains recoverable on this device.',
+          );
+        }
+        return const ReceiptImportActionResult.stayOnChooser();
+      }
+    }
+    if (plan.retainReviewedSources && stagedCapture != null) {
+      try {
+        await const ReceiptNativeCaptureStaging().checkpointReviewedCapture(
+          stagedCapture,
+          result,
+        );
+      } catch (_) {
+        if (mounted) {
+          showPickerError(
+            'The reviewed receipt order could not be kept safely. Your staged photos remain recoverable; review them again before continuing.',
+          );
+        }
+        return const ReceiptImportActionResult.stayOnChooser();
+      }
+    }
+    final completed = await _completeReviewedPhotoResult(
       result,
       previousPhotoIdByPath: previousPhotoIdByPath,
       previousPhotoReadStateByPath: previousPhotoReadStateByPath,
     );
-    return accepted && mounted;
+    if (!completed || !mounted) {
+      return const ReceiptImportActionResult.stayOnChooser();
+    }
+    if (plan.retainReviewedSources && stagedCapture != null) {
+      widget.controller?._retainNativeRecoveryManifest(
+        stagedCapture.recoveryManifestPath,
+      );
+    }
+    return ReceiptImportActionResult.reviewCompleted(result);
   }
 
-  Future<bool> _acceptReviewedPhotoResult(
+  Future<bool> _completeReviewedPhotoResult(
     ReceiptPhotoReviewResult result, {
     Map<String, String>? previousPhotoIdByPath,
     Map<String, ReceiptAttachmentReadState>? previousPhotoReadStateByPath,
   }) async {
-    widget.controller?._retainAcceptedReceiptSources(result);
+    final plan = ReceiptReviewHandoffPlan.forOutcome(
+      result.outcome,
+      assistedReceiptFill: _appAssistedReceiptFillEnabled,
+    );
+    if (!plan.installReviewedPhotos) return true;
+    if (plan.retainReviewedSources) {
+      widget.controller?._retainAcceptedReceiptSources(result);
+    }
     final existingPhotoIdByPath = previousPhotoIdByPath ?? {..._photoIdByPath};
     final existingPhotoReadStateByPath =
         previousPhotoReadStateByPath ?? {..._photoReadStateByPath};
@@ -89,7 +140,9 @@ extension _ReceiptAttachmentReviewReadActions
       _needsBottomReceiptSection = false;
     });
     publishAttachmentChange();
+    if (!plan.notifyReceiptDetails) return true;
     if (!_notifyReviewedPhotoAccepted(result)) return false;
+    if (!plan.startReceiptRead) return true;
     if (_pauseReviewedPhotoReadUntilNextSection(result)) return true;
     final readResult = await _readAcceptedPhotosForReceiptForm(result);
     if (readResult == null) return true;
@@ -117,49 +170,32 @@ extension _ReceiptAttachmentReviewReadActions
       ),
     );
     if (result == null || !mounted) return;
-    updateAttachmentState(() {
-      _photoPaths
-        ..clear()
-        ..addAll(result.photoPaths);
-      _photoIdByPath
-        ..clear()
-        ..addEntries([
-          for (final path in result.photoPaths)
-            if (_previousReceiptPhotoMapValue(previousPhotoIdByPath, path)
-                case final photoId?)
-              MapEntry(path, photoId),
-        ]);
-      _photoQualityByPath
-        ..clear()
-        ..addAll(result.photoQualityChecksByPath);
-      _photoCaptureDiagnosticsByPath
-        ..clear()
-        ..addAll(result.captureDiagnosticsByPhotoPath);
-      _photoReadStateByPath
-        ..clear()
-        ..addEntries(
-          result.photoPaths.map(
-            (path) => MapEntry(
-              path,
-              _previousReceiptPhotoMapValue(
-                    previousPhotoReadStateByPath,
-                    path,
-                  ) ??
-                  ReceiptAttachmentReadState.notRead,
-            ),
-          ),
-        );
-      _dataSaverLevel = result.dataSaverLevel;
-      _needsBottomReceiptSection = false;
-    });
-    publishAttachmentChange();
-    if (!_notifyReviewedPhotoAccepted(result)) return;
-    if (_pauseReviewedPhotoReadUntilNextSection(result)) return;
-    final readResult = await _readAcceptedPhotosForReceiptForm(result);
-    if (readResult == null) return;
-    if (!mounted) return;
-    mergeOcrTotalsEvidenceIntoAcceptedPhotoDiagnostics(result, readResult);
-    markReviewedPhotosReadState(result, readResult);
+    final completed = await _completeReviewedPhotoResult(
+      result,
+      previousPhotoIdByPath: previousPhotoIdByPath,
+      previousPhotoReadStateByPath: previousPhotoReadStateByPath,
+    );
+    if (completed && mounted && result.exitsReceiptFlow) {
+      await _notifyReviewedPhotoExitRequested(result);
+    }
+  }
+
+  Future<bool> _notifyReviewedPhotoExitRequested(
+    ReceiptPhotoReviewResult result,
+  ) async {
+    if (!result.exitsReceiptFlow) return true;
+    final onExitRequested = widget.onReceiptPhotoReviewExitRequested;
+    if (onExitRequested == null) return true;
+    try {
+      await onExitRequested(result);
+      return true;
+    } catch (_) {
+      if (!mounted) return false;
+      showPickerError(
+        'The receipt could not close safely. Your receipt photos are still on this device.',
+      );
+      return false;
+    }
   }
 
   Future<_ReceiptAttachmentReadResult?> _readAcceptedPhotosForReceiptForm(
@@ -238,30 +274,24 @@ extension _ReceiptAttachmentReviewReadActions
   ) {
     if (!result.needsAnotherReceiptSectionBeforeDetails) return false;
     if (result.userConfirmedPossiblePartialReceiptComplete) return false;
-    final nextStep = result.acceptedPhotoHandoffNextStepLabel;
+    // Coverage detection is advisory evidence, never permission to withhold
+    // the editable receipt.  A person may have a complete long receipt whose
+    // footer is difficult to recognize, and the safe recovery is to show the
+    // existing proof and editable form while offering another section there.
     final evidence = result.finalReceiptSectionContinuationEvidenceLabel;
-    final route = result.acceptedPhotoHandoffRoute;
-    updateAttachmentState(() {
-      _readingForReview = false;
-      _needsBottomReceiptSection = true;
-      _receiptReadStatus = _ReceiptReadStatusKind.warning;
-      _receiptReadProgressPhase = _ReceiptReadProgressPhase.idle;
-      _receiptReadStatusMessage =
-          'Receipt photo saved. Add the bottom receipt section before receipt details open. $evidence $nextStep';
-    });
     _publishReceiptCaptureDiagnostic({
       'captureFlow': 'maintainiac_native_receipt_camera',
-      'receiptPhotoReviewPausedBeforeOcr': true,
-      'receiptPhotoReviewPauseRoute': route,
-      'receiptPhotoReviewPauseNextScreen':
-          result.acceptedPhotoHandoffNextScreen,
-      'receiptPhotoReviewPauseReason':
+      'receiptPhotoReviewCoverageWarningBeforeOcr': true,
+      'receiptPhotoReviewCoverageWarningReason':
           result.firstPossiblePartialReceiptReasonCode,
-      'receiptPhotoReviewPauseAction': result.acceptedPhotoHandoffUserAction,
-      'receiptPhotoReviewPauseNextStep': nextStep,
+      'receiptPhotoReviewCoverageWarningAction':
+          'open_editable_receipt_and_offer_next_section',
+      'receiptPhotoReviewCoverageEvidence': evidence,
       ...result.privacySafeReceiptReaderHandoffMetadata,
     });
-    return true;
+    // Returning false is intentional: every accepted receipt proceeds to the
+    // same editable review whether or not the app suggests another photo.
+    return false;
   }
 
   String _reviewedPhotoOcrSourceQualitySummary(

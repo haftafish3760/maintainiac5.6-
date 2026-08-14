@@ -39,16 +39,16 @@ void main() {
     expect(metadata['stitchFailedPairEndSectionNumber'], 3);
     expect(
       metadata['nextReviewMatchReadinessLabel'],
-      'Photo match needs review before receipt details can be filled, starting with Photo 2 to 3.',
+      'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 2 to 3 needs review.',
     );
     expect(
       metadata['nextReviewMatchReadinessOutcome'],
-      'ocr_source_review_required_before_assist',
+      'ordered_sections_fallback_ready',
     );
-    expect(metadata['nextReviewRequiresOcrSourceReviewBeforeAssist'], true);
+    expect(metadata['nextReviewRequiresOcrSourceReviewBeforeAssist'], false);
     expect(
       result
-          .receiptReaderHandoffCounts['stitch_requires_ocr_source_review_before_assist'],
+          .receiptReaderHandoffCounts['stitch_ready_for_assisted_read_without_extra_review'],
       1,
     );
     expect(metadata['stitchOverlapCoverageCode'], 'fallback_pair_2_to_3');
@@ -154,7 +154,7 @@ void main() {
     expect(metadata['stitchCandidatePixelCount'], 26400000);
     expect(
       metadata['nextReviewMatchReadinessOutcome'],
-      'ocr_source_review_required_before_assist',
+      'ordered_sections_fallback_ready',
     );
     expect(
       result.receiptReaderHandoffCounts,
@@ -187,7 +187,7 @@ void main() {
     );
     expect(
       result.receiptReaderHandoffCounts,
-      containsPair('stitch_requires_ocr_source_review_before_assist', 1),
+      containsPair('stitch_ready_for_assisted_read_without_extra_review', 1),
     );
     expect(metadata.toString(), isNot(contains('/private/')));
     expect(metadata.toString(), isNot(contains('ocr-middle')));

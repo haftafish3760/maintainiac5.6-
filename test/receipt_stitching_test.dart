@@ -113,6 +113,68 @@ void main() {
     expect(result.stitchedPixelCount, greaterThan(0));
     expect(result.confidence, greaterThanOrEqualTo(.50));
     expect(await File(result.ocrSourcePaths.single).exists(), isTrue);
+    final normalizedSectionHeight =
+        sectionA.height * result.stitchedWidth / sectionA.width;
+    final normalizedOverlap = 320 * result.stitchedWidth / sectionA.width;
+    final expectedUniqueContentHeight =
+        normalizedSectionHeight * 2 - normalizedOverlap;
+    expect(
+      result.stitchedHeight,
+      closeTo(expectedUniqueContentHeight, normalizedSectionHeight * .06),
+      reason:
+          'A materially taller result leaves overlapped receipt rows duplicated; a shorter result omits legitimate rows.',
+    );
+  });
+
+  test('uses positioned OCR anchors to bound overlap registration', () async {
+    final sectionA = receiptStitchingSection(seed: 3, topTextOffset: 0);
+    final sectionB = receiptStitchingSection(seed: 4, topTextOffset: 14);
+    copyReceiptStitchingOverlap(from: sectionA, to: sectionB, pixels: 320);
+    final first = await writeTempReceiptStitchingImage(sectionA, 'anchor_a');
+    final second = await writeTempReceiptStitchingImage(sectionB, 'anchor_b');
+
+    ReceiptStitchTextLineEvidence line(String text, double centerY) {
+      return ReceiptStitchTextLineEvidence(
+        text: text,
+        left: .10,
+        top: centerY - .01,
+        right: .90,
+        bottom: centerY + .01,
+      );
+    }
+
+    final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+      paths: [first.path, second.path],
+      textEvidence: [
+        ReceiptStitchTextEvidence(
+          path: first.path,
+          lines: const [],
+          positionedLines: [
+            line('Receipt item before overlap 4.25', .30),
+            line('Distinctive shared item 12.49', .82),
+            line('Second shared hardware item 8.75', .88),
+          ],
+        ),
+        ReceiptStitchTextEvidence(
+          path: second.path,
+          lines: const [],
+          positionedLines: [
+            line('Distinctive shared item 12.49', .033),
+            line('Second shared hardware item 8.75', .093),
+            line('Receipt total 25.49', .60),
+          ],
+        ),
+      ],
+    );
+
+    expect(result.didStitch, isTrue, reason: _stitchResultDiagnostics(result));
+    expect(result.pairs.single.hasTextPositionEvidence, isTrue);
+    final normalizedExpectedOverlap =
+        320 * result.stitchedWidth / sectionA.width;
+    expect(
+      result.pairs.single.overlapPixels,
+      closeTo(normalizedExpectedOverlap, 28),
+    );
   });
 
   test(
@@ -191,13 +253,10 @@ void main() {
       expect(result.usedFallback, isTrue);
       expect(result.didStitch, isFalse);
       expect(result.failedPairIndex, 1);
-      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.fallbackReasonCode, 'unreadable_section_image');
       expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
       expect(result.hasValidOcrSourceContract, isFalse);
-      expect(
-        result.ocrSourceContractCode,
-        'fallback_overlap_untrusted_sources',
-      );
+      expect(result.ocrSourceContractCode, 'fallback_unreadable_section_image');
       expect(result.pairs, hasLength(2));
       expect(result.pairs.first.hasTrustedOverlapEvidence, isTrue);
       expect(result.pairs.last.hasTrustedOverlapEvidence, isFalse);
@@ -225,12 +284,25 @@ void main() {
       );
       printOnFailure(_stitchResultDiagnostics(result));
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.hasValidOcrSourceContract, isTrue);
-      expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
-      expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(
+        result.ocrSourcePaths,
+        result.didStitch ? [result.stitchedPath] : [bottom.path, top.path],
+      );
+      // Source order is user-authoritative. Without OCR anchors, image-only
+      // evidence can support a composite but must never silently promote it.
+      if (result.didStitch) {
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+        expect(
+          result.assistedReadinessCode,
+          'stitched_overlap_review_required',
+        );
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+        expect(result.assistedReadinessCode, 'ordered_sections_ready');
+      }
     },
+    timeout: _stitchingHeavyTimeout,
   );
 
   test(
@@ -260,8 +332,10 @@ void main() {
       expect(result.pairs, hasLength(1));
       expect(result.fallbackReasonCode, 'overlap_confidence_low');
       expect(result.ocrSourcePaths, [top.path, bottom.path]);
-      expect(result.assistedReadinessCode, 'stitch_contract_review_required');
+      expect(result.assistedReadinessCode, 'ordered_sections_ready');
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
     },
+    timeout: _stitchingHeavyTimeout,
   );
 }
 

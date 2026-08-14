@@ -82,7 +82,7 @@ void main() {
       expect(boundedFallback.ocrSourcePaths, [first.path, second.path]);
       expect(
         boundedFallback.ocrSourceContractCode,
-        'fallback_derived_stitch_too_large',
+        'fallback_ordered_sources_ready',
       );
     },
     timeout: _stitchingHeavyTimeout,
@@ -296,13 +296,13 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
       expect(result.reviewFocusPairLabel, 'Photo 1 to 2');
       expect(
         result.privacySafeOcrHandoffSafety,
         containsPair('stitchReviewFocusPairLabel', 'Photo 1 to 2'),
       );
       if (result.didStitch) {
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
         expect(result.pairs.single.confidence, inInclusiveRange(.50, .69));
         expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
         expect(
@@ -311,11 +311,9 @@ void main() {
         );
       } else {
         expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
         expect(result.fallbackReasonCode, 'overlap_confidence_low');
-        expect(
-          result.ocrSourceContractCode,
-          'fallback_overlap_untrusted_sources',
-        );
+        expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
       }
     },
     timeout: _stitchingHeavyTimeout,
@@ -431,17 +429,14 @@ void main() {
       );
       expect(result.ocrSourcePaths, [first.path, second.path]);
       expect(result.failedPairIndex, 0);
-      expect(result.fallbackReasonCode, 'overlap_confidence_low');
-      expect(result.diagnosticReasonLabel, 'overlap_confidence_low');
+      expect(result.fallbackReasonCode, 'unreadable_section_image');
+      expect(result.diagnosticReasonLabel, 'unreadable_section_image');
       expect(result.warning, isNotEmpty);
       expect(result.pairs, hasLength(1));
       expect(result.pairs.single.confidence, lessThan(.50));
       expect(result.pairs.single.summaryLabel, contains('Photo 1 to 2'));
       expect(result.hasValidOcrSourceContract, isFalse);
-      expect(
-        result.ocrSourceContractCode,
-        'fallback_overlap_untrusted_sources',
-      );
+      expect(result.ocrSourceContractCode, 'fallback_unreadable_section_image');
       expect(
         result.privacySafeOcrHandoffSafety,
         containsPair('stitchOcrSourceContractReady', false),
@@ -488,9 +483,12 @@ void main() {
       );
 
       expect(result.usedFallback, isTrue, reason: result.detailLabel);
-      expect(result.fallbackReasonCode, 'overlap_confidence_low');
+      expect(result.fallbackReasonCode, 'unreadable_section_image');
       expect(result.ocrSourcePaths, [first.path, second.path]);
       expect(result.failedPairIndex, 0);
+      expect(result.hasValidOcrSourceContract, isFalse);
+      expect(result.ocrSourceContractCode, 'fallback_unreadable_section_image');
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
     },
     timeout: _stitchingHeavyTimeout,
   );

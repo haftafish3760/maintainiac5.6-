@@ -23,8 +23,10 @@ extension ReceiptDeviceCapabilityCamera on ReceiptDeviceCapability {
         maxTargetWidth: 900,
         comparisonWidth: 320,
         retryComparisonWidth: 280,
-        evidenceTimeout: Duration(seconds: 7),
-        processingTimeout: Duration(seconds: 12),
+        evidenceTimeout: Duration(seconds: 2),
+        nativeRegistrationAllowance: Duration(milliseconds: 1200),
+        totalPreviewTimeout: Duration(milliseconds: 8500),
+        processingTimeout: Duration(milliseconds: 5300),
       ),
       ReceiptCapabilityTier.medium => const ReceiptStitchDeviceLimits(
         maxOutputPixels: 14000000,
@@ -32,17 +34,28 @@ extension ReceiptDeviceCapabilityCamera on ReceiptDeviceCapability {
         maxTargetWidth: 1200,
         comparisonWidth: 360,
         retryComparisonWidth: 280,
-        evidenceTimeout: Duration(seconds: 10),
-        processingTimeout: Duration(seconds: 12),
+        evidenceTimeout: Duration(milliseconds: 2500),
+        nativeRegistrationAllowance: Duration(milliseconds: 1600),
+        totalPreviewTimeout: Duration(seconds: 9),
+        processingTimeout: Duration(milliseconds: 4900),
       ),
       ReceiptCapabilityTier.heavyweight => const ReceiptStitchDeviceLimits(
         maxOutputPixels: 18000000,
         maxOutputHeight: 24000,
-        maxTargetWidth: 1400,
+        // A 1240 px proof remains OCR-readable while avoiding the nonlinear
+        // transform and JPEG cost that made flagship previews miss the
+        // interaction deadline. It retains a quality step above the standard
+        // tier, and originals remain untouched at full quality.
+        maxTargetWidth: 1240,
         comparisonWidth: 400,
         retryComparisonWidth: 320,
-        evidenceTimeout: Duration(seconds: 12),
-        processingTimeout: Duration(seconds: 15),
+        evidenceTimeout: Duration(seconds: 3),
+        nativeRegistrationAllowance: Duration(milliseconds: 2200),
+        // Leave enough time to encode a validated full-resolution composite
+        // after registration while still keeping the complete preview under
+        // the ten-second interaction ceiling.
+        totalPreviewTimeout: Duration(milliseconds: 9800),
+        processingTimeout: Duration(seconds: 8),
       ),
     };
   }

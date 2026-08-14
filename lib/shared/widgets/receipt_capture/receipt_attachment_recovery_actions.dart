@@ -46,12 +46,26 @@ extension _ReceiptAttachmentRecoveryActions
         case ReceiptCaptureFlowStatus.accepted:
           final reviewResult = result.reviewResult;
           if (reviewResult == null) return;
-          final accepted = await _acceptReviewedPhotoResult(
+          final accepted = await _completeReviewedPhotoResult(
             reviewResult,
             previousPhotoIdByPath: previousPhotoIdByPath,
           );
           if (accepted && result.recoveryManifestPath.trim().isNotEmpty) {
-            await _retainAcceptedNativeRecoveryUntilReceiptSave(result);
+            await _retainNativeRecoveryUntilReceiptSave(result);
+          }
+          break;
+        case ReceiptCaptureFlowStatus.reviewCompleted:
+          final reviewResult = result.reviewResult;
+          if (reviewResult == null) break;
+          final completed = await _completeReviewedPhotoResult(
+            reviewResult,
+            previousPhotoIdByPath: previousPhotoIdByPath,
+          );
+          if (completed && reviewResult.keptForLater) {
+            await _retainNativeRecoveryUntilReceiptSave(result);
+          }
+          if (completed && mounted && reviewResult.exitsReceiptFlow) {
+            await _notifyReviewedPhotoExitRequested(reviewResult);
           }
           break;
         case ReceiptCaptureFlowStatus.stagingFailed:

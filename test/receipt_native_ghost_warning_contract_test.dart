@@ -18,6 +18,9 @@ void main() {
           'lib/shared/widgets/receipt_capture/receipt_native_camera_shell_ghost_guidance.dart',
         ).readAsString();
     final reviewActions = await readReceiptPhotoReviewSaveActionsSource();
+    final coverageLabels = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_coverage_decision_labels.dart',
+    ).readAsString();
 
     expect(
       nativeContract,
@@ -58,18 +61,16 @@ void main() {
     );
     expect(nativeGuidance, contains('Repeat 3-5 lines in this guide'));
     expect(
-      reviewActions,
-      contains('Put 3-5 repeated readable lines in the top ghost slice'),
+      coverageLabels,
+      contains('top reference strip and repeat 3-5 readable lines'),
     );
     expect(
-      reviewActions,
-      contains(
-        'bottom-section ghost guide. Put 3-5 repeated readable lines in the top ghost slice',
-      ),
-    );
-    expect(
-      reviewActions,
+      coverageLabels,
       contains('subtotal, total, and final lines can be matched'),
+    );
+    expect(
+      reviewActions,
+      contains('Start the next photo with the same 3-5 readable lines.'),
     );
   });
 
@@ -191,10 +192,9 @@ void main() {
     expect(qualityRecovery, contains('shouldEmphasizeAddSection'));
     expect(
       qualityRecovery,
-      contains('final actionButtons = shouldEmphasizeAddSection'),
+      contains('Use Add photo below if a receipt section is missing.'),
     );
-    expect(qualityRecovery, contains('[addButton, cropButton, retakeButton]'));
-    expect(qualityRecovery, contains('[retakeButton, cropButton, addButton]'));
+    expect(qualityRecovery, contains('the primary row own every action'));
     expect(qualityRecovery, contains('warning.parserImpactGuidance'));
     expect(qualityRecovery, contains('nativeCaptureWarning?.panelColor'));
     expect(qualityRecovery, contains('nativeCaptureWarning?.color'));
@@ -216,10 +216,15 @@ void main() {
     expect(models, contains('_isBrightReadablePaper'));
     expect(controls, isNot(contains("sharpnessBucket == 'captured_soft'")));
     expect(
-      qualityRecovery,
-      contains('label: coverageDecision.isMissingBottomEdgeAndTotals'),
+      previewControls,
+      contains(
+        'final addPhotoLabel = coverageDecision.isMissingBottomEdgeAndTotals',
+      ),
     );
-    expect(qualityRecovery, contains(': strings.addAnotherReceiptPhoto'));
+    expect(
+      previewControls,
+      contains(": uiConfig.labelFor('addPhoto', uiConfig.addPhotoLabel)"),
+    );
     expect(previewControls, isNot(contains("label: 'Add Section'")));
   });
 }

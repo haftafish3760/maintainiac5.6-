@@ -21,7 +21,12 @@ void main() {
     expect(fallback.failedPairLabel, 'Photo 2 to 3');
     expect(fallback.pairs.single.pairIndex, 0);
     expect(fallback.confidence, .42);
-    expect(fallback.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    // The person already reviewed and ordered these original sections before
+    // Continue. A derived-image failure must preserve that safe OCR handoff,
+    // not block assisted reading on another stitch review loop.
+    expect(fallback.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+    expect(fallback.assistedReadinessCode, 'ordered_sections_ready');
+    expect(fallback.hasValidOcrSourceContract, isTrue);
     expect(fallback.ocrSourcePaths, fallback.inputPaths);
   });
 }

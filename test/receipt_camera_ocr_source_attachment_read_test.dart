@@ -156,26 +156,14 @@ void main() {
     );
     expect(
       importActions,
-      contains('final keptReceiptPhotos = keptReceiptPhotoPaths'),
+      contains('ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles'),
     );
     expect(
       importActions,
       isNot(contains('_photoPaths.map(_normalizedCleanupPath).toSet()')),
     );
-    expect(
-      importActions,
-      contains('_shouldDeleteTemporaryOcrPhoto(sourcePath, keptReceiptPhotos)'),
-    );
-    expect(importActions, contains('_isProtectedReceiptStoragePath'));
-    expect(importActions, contains("'/receipt_proofs/'"));
-    expect(importActions, contains("'/receipt_proofs_staging/'"));
-    expect(importActions, contains("'/native_capture_recovery/'"));
-    expect(importActions, contains('Directory.systemTemp.path'));
-    expect(
-      importActions,
-      contains("fileName.startsWith('maintaniac_receipt_')"),
-    );
-    expect(importActions, contains("fileName.endsWith('.jpg')"));
+    expect(importActions, contains('keptPaths: keptReceiptPhotoPaths'));
+    expect(importActions, isNot(contains('file.delete()')));
     expect(importActions, contains('reviewedPhotoReadSuccessMessage'));
     expect(
       importActions,

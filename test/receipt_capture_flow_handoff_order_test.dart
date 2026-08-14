@@ -159,20 +159,18 @@ void main() {
       contains('not receive two competing "reading" transitions'),
     );
     final takePhotoBlock = importActions.substring(
-      importActions.indexOf('Future<void> takeReceiptPhoto() async'),
-      importActions.indexOf('Future<_MaintainiacNativeCameraPhotoOutcome>'),
-    );
-    expect(
-      takePhotoBlock,
-      contains(
-        'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
+      importActions.indexOf(
+        'Future<ReceiptImportActionResult> takeReceiptPhoto({',
       ),
+      importActions.indexOf('Future<_MaintainiacNativeCameraPhotoResult>'),
     );
+    expect(takePhotoBlock, contains('return nativeResult.sourceResult;'));
+    expect(takePhotoBlock, isNot(contains('returnToReceiptImportOptions')));
     final addedReturnIndex = takePhotoBlock.indexOf(
-      'if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;',
+      'return nativeResult.sourceResult;',
     );
     final canceledReturnIndex = takePhotoBlock.indexOf(
-      'await returnToReceiptImportOptions();',
+      'ReceiptImportActionResult.stayOnChooser()',
       addedReturnIndex,
     );
     final backupCaptureIndex = takePhotoBlock.indexOf(
@@ -206,18 +204,18 @@ void main() {
     );
     expect(
       recoveredCaptureBlock,
-      contains('await _acceptReviewedPhotoResult('),
+      contains('await _completeReviewedPhotoResult('),
     );
     expect(recoveredCaptureBlock, contains('final accepted = await'));
     expect(
       recoveredCaptureBlock,
-      contains('_retainAcceptedNativeRecoveryUntilReceiptSave(result)'),
+      contains('_retainNativeRecoveryUntilReceiptSave(result)'),
     );
     expect(
       recoveredCaptureBlock.indexOf('final accepted = await'),
       lessThan(
         recoveredCaptureBlock.indexOf(
-          '_retainAcceptedNativeRecoveryUntilReceiptSave(result)',
+          '_retainNativeRecoveryUntilReceiptSave(result)',
         ),
       ),
     );

@@ -8,6 +8,7 @@ void main() {
       receiptPhotoPipelineNextStep(
         sourcePhotoCount: 1,
         reviewingSavedImage: false,
+        reviewingLongReceipt: false,
         stitchResult: null,
       ),
       ReceiptPhotoPipelineNextStep.reviewSavedImage,
@@ -24,6 +25,7 @@ void main() {
       receiptPhotoPipelineNextStep(
         sourcePhotoCount: 2,
         reviewingSavedImage: false,
+        reviewingLongReceipt: false,
         stitchResult: null,
       ),
       ReceiptPhotoPipelineNextStep.reviewLongReceipt,
@@ -32,6 +34,7 @@ void main() {
       receiptPhotoPipelineNextStep(
         sourcePhotoCount: 2,
         reviewingSavedImage: false,
+        reviewingLongReceipt: true,
         stitchResult: fallback,
       ),
       ReceiptPhotoPipelineNextStep.reviewSavedImage,
@@ -60,6 +63,7 @@ void main() {
         receiptPhotoPipelineNextStep(
           sourcePhotoCount: 2,
           reviewingSavedImage: false,
+          reviewingLongReceipt: true,
           stitchResult: stitched,
         ),
         ReceiptPhotoPipelineNextStep.reviewSavedImage,
@@ -76,10 +80,31 @@ void main() {
         receiptPhotoPipelineNextStep(
           sourcePhotoCount: 2,
           reviewingSavedImage: true,
+          reviewingLongReceipt: false,
           stitchResult: stitched,
         ),
         ReceiptPhotoPipelineNextStep.finalizeReceiptImage,
       );
     },
   );
+
+  test('returning to source photos cannot skip combined receipt review', () {
+    final stitched = ReceiptStitchResult(
+      status: ReceiptStitchStatus.stitched,
+      inputPaths: const ['/tmp/top.jpg', '/tmp/bottom.jpg'],
+      ocrSourcePaths: const ['/tmp/combined.jpg'],
+      stitchedPath: '/tmp/combined.jpg',
+      confidence: .92,
+    );
+
+    expect(
+      receiptPhotoPipelineNextStep(
+        sourcePhotoCount: 2,
+        reviewingSavedImage: false,
+        reviewingLongReceipt: false,
+        stitchResult: stitched,
+      ),
+      ReceiptPhotoPipelineNextStep.reviewLongReceipt,
+    );
+  });
 }

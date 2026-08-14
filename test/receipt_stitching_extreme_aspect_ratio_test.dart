@@ -18,21 +18,23 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
+        maxOutputHeight: 9000,
       );
 
       expect(result.didStitch, isFalse, reason: result.detailLabel);
       expect(result.usedFallback, isTrue);
       expect(result.fallbackReasonCode, 'output_too_large');
       expect(result.stitchedPath, isNull);
-      expect(result.pairs, isEmpty);
+      expect(result.pairs, hasLength(files.length - 1));
       expect(result.ocrSourcePaths, [for (final file in files) file.path]);
       expect(
         result.sourcePreservationCode,
         'original_sections_preserved_ordered_ocr_sources',
       );
-      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
-      expect(result.stitchedHeight, greaterThan(20000));
+      expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+      expect(result.hasValidOcrSourceContract, isTrue);
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+      expect(result.stitchedHeight, greaterThan(9000));
     },
     timeout: _extremeAspectRatioTimeout,
   );

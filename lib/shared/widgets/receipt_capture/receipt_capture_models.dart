@@ -151,6 +151,12 @@ final class ReceiptNativeCoverageSignalValues {
   };
 }
 
+enum ReceiptPhotoReviewOutcome {
+  acceptedForReceiptDetails,
+  saveDraftAndExit,
+  discardAndExit,
+}
+
 class ReceiptPhotoReviewResult {
   ReceiptPhotoReviewResult({
     required List<String> photoPaths,
@@ -162,7 +168,7 @@ class ReceiptPhotoReviewResult {
         const {},
     Map<String, Map<String, Object?>> captureDiagnosticsByPhotoPath = const {},
     List<String> temporarySourcePhotoPaths = const [],
-    this.reviewExitAction = 'accepted_for_receipt_details',
+    this.outcome = ReceiptPhotoReviewOutcome.acceptedForReceiptDetails,
     bool allowSavedProofOcrFallback = true,
   }) : photoPaths = List.unmodifiable(_uniqueNonBlankPaths(photoPaths)),
        ocrSourcePhotoPaths = List.unmodifiable(
@@ -220,7 +226,7 @@ class ReceiptPhotoReviewResult {
         captureDiagnosticsByPhotoPath,
         paths,
       ),
-      reviewExitAction: 'kept_for_later',
+      outcome: ReceiptPhotoReviewOutcome.saveDraftAndExit,
       allowSavedProofOcrFallback: false,
     );
   }
@@ -240,7 +246,7 @@ class ReceiptPhotoReviewResult {
         inputPaths: [],
         ocrSourcePaths: [],
       ),
-      reviewExitAction: 'discarded_by_user',
+      outcome: ReceiptPhotoReviewOutcome.discardAndExit,
       allowSavedProofOcrFallback: false,
     );
   }
@@ -256,7 +262,21 @@ class ReceiptPhotoReviewResult {
   final bool photoPathInputWasSanitized;
   final bool ocrSourcePathInputWasSanitized;
   final bool usedSavedProofAsOcrSourceFallback;
-  final String reviewExitAction;
+  final ReceiptPhotoReviewOutcome outcome;
 
-  bool get discardedByUser => reviewExitAction == 'discarded_by_user';
+  String get reviewExitAction => switch (outcome) {
+    ReceiptPhotoReviewOutcome.acceptedForReceiptDetails =>
+      'accepted_for_receipt_details',
+    ReceiptPhotoReviewOutcome.saveDraftAndExit => 'kept_for_later',
+    ReceiptPhotoReviewOutcome.discardAndExit => 'discarded_by_user',
+  };
+
+  bool get acceptedForReceiptDetails =>
+      outcome == ReceiptPhotoReviewOutcome.acceptedForReceiptDetails;
+
+  bool get exitsReceiptFlow =>
+      outcome != ReceiptPhotoReviewOutcome.acceptedForReceiptDetails;
+
+  bool get discardedByUser =>
+      outcome == ReceiptPhotoReviewOutcome.discardAndExit;
 }

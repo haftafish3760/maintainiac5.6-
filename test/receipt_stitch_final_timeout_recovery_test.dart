@@ -20,7 +20,8 @@ void main() {
       result.userFallbackReasonLabel,
       'Putting photos together took too long',
     );
-    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+    expect(result.assistedReadinessCode, 'ordered_sections_ready');
   });
 
   test('receipt review turns a late final stitch into a bounded fallback', () async {
@@ -38,8 +39,8 @@ void main() {
       saveSource,
       contains('final stitchFuture = _finalStitchResultForOcr('),
     );
-    expect(handoffSource, contains('_stitchDeviceLimits.processingTimeout'));
-    expect(handoffSource, contains("timeoutReasonCode: 'stitch_timeout'"));
+    expect(handoffSource, isNot(contains('_stitchDeviceLimits.processingTimeout')));
+    expect(handoffSource, isNot(contains("timeoutReasonCode: 'stitch_timeout'")));
     expect(
       isolateSource,
       contains('isolate?.kill(priority: Isolate.immediate)'),
@@ -47,7 +48,7 @@ void main() {
     expect(isolateSource, contains('_deleteFileQuietly(request.outputPath)'));
     expect(
       handoffSource,
-      contains('Receipt details will use them from top to bottom.'),
+      contains('return ReceiptStitchResult.notNeeded(preparedOcrPaths);'),
     );
   });
 

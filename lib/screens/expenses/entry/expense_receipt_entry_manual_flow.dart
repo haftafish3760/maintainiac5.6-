@@ -1,47 +1,63 @@
 part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
-  /// Expenses and fuel receipts use one compact receipt form. Materials and
-  /// maintenance retain their lane-owned forms, including their specialized
-  /// inventory and repair controls.
+  /// Every new Expenses receipt starts on the same classification screen.
+  /// Specialized legacy forms remain available only when reopening their
+  /// existing records, where their lane-owned edit controls are still needed.
   bool get _usesRebuiltManualDetailedReceiptFlow =>
-      !_isMaterialsFlow && !_isMaintenanceRepairFlow;
-
-  bool get _startsWithAppAssistedReceiptCapture =>
-      ReceiptCaptureSettingsScope.maybeOf(
-        context,
-      )?.appAssistedEnabledFor(_receiptCaptureArea) ==
-      true;
+      !_isEditingReceipt || (!_isMaterialsFlow && !_isMaintenanceRepairFlow);
 
   Widget _buildManualDetailedReceiptFlow(BuildContext context) {
     return PopScope<Object?>(
-      // The classification screen is the entry point for this flow. Android
-      // Back must leave it normally for Expenses; intercept only in-flow Back.
+      // The classification screen is the entry point for every new Expense
+      // receipt. Android Back leaves Expenses until the person has confirmed
+      // that first receipt-wide choice and entered the receipt workflow.
       canPop:
-          _startsWithAppAssistedReceiptCapture ||
-          (!_receiptClassificationConfirmed &&
-              _manualReceiptStep == _ManualReceiptStep.details),
+          expenseReceiptBackActionFor(
+            stepToken: _manualReceiptStep.name,
+            hasRecoverableContent: _hasDraftContentWorthRecovering,
+          ) ==
+          ExpenseReceiptBackAction.popRoute,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _handleManualReceiptBack();
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF0B0D0F),
+        backgroundColor: _receiptReferencePage,
         body: SafeArea(
           child: Column(
             children: [
               _ReferenceReceiptAppBar(
-                entryModeLabel: _startsWithAppAssistedReceiptCapture
-                    ? 'App-assisted'
-                    : 'Manual',
+                title: _manualReceiptStep == _ManualReceiptStep.review
+                    ? 'Review Receipt'
+                    : 'Add Receipt',
+                entryModeLabel: _manualReceiptStep == _ManualReceiptStep.start
+                    ? _receiptEntryModeLabel
+                    : (_hasReceipt ||
+                          _receiptAttachments.isNotEmpty ||
+                          _receiptReviewFlowStarted)
+                    ? 'Receipt photos'
+                    : _receiptEntryModeLabel,
                 onBack: _handleManualReceiptBack,
                 onSettings: () => unawaited(
                   _manualReceiptAttachmentController.openSettings(
-                    screenContext:
-                        _ManualReceiptStep.details.settingsScreenContext,
+                    screenContext: _manualReceiptStep.settingsScreenContext,
                   ),
                 ),
               ),
-              Expanded(child: _buildManualReceiptDetailsStep(context)),
+              Expanded(
+                child: switch (_manualReceiptStep) {
+                  _ManualReceiptStep.start => _buildReceiptClassificationStep(),
+                  _ManualReceiptStep.details => _buildManualReceiptDetailsStep(
+                    context,
+                  ),
+                  _ManualReceiptStep.items => _buildManualReceiptItemsStep(
+                    context,
+                  ),
+                  _ManualReceiptStep.review => _buildManualReceiptReviewStep(
+                    context,
+                  ),
+                },
+              ),
               Offstage(
                 offstage: true,
                 child: Column(
@@ -76,9 +92,20 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     );
   }
 
+  /// The selected Expense receipt-assistance setting is context only. It
+  /// must never choose a different first screen or silently open a camera.
+  String get _receiptEntryModeLabel {
+    final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+    return switch (settings?.expenseReceiptAssistanceChoice) {
+      ExpenseReceiptAssistanceChoice.onDevice ||
+      ExpenseReceiptAssistanceChoice.maintainiacAi ||
+      ExpenseReceiptAssistanceChoice.chatGptAccount => 'App-assisted',
+      _ => 'Manual',
+    };
+  }
+
   Widget _buildManualReceiptDetailsStep(BuildContext context) {
-    if (!_receiptClassificationConfirmed &&
-        !_startsWithAppAssistedReceiptCapture) {
+    if (!_receiptClassificationConfirmed) {
       return _buildReceiptClassificationStep();
     }
     final localizations = MaterialLocalizations.of(context);
@@ -142,6 +169,19 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
           color: const Color(0xFFE8ECEE),
           referenceChevronOnly: true,
         ),
+        const SizedBox(height: 10),
+        _ManualReceiptActionTile(
+          icon: _receiptAttachments.isEmpty
+              ? Icons.attach_file_rounded
+              : Icons.verified_outlined,
+          label: 'Add image of your receipt',
+          value: _manualReceiptProofSummary,
+          onTap: () => unawaited(_openOptionalManualReceiptProof()),
+          color: _receiptAttachments.isEmpty
+              ? const Color(0xFFB7C8CE)
+              : const Color(0xFF8EF6A4),
+          referenceChevronOnly: true,
+        ),
         const SizedBox(height: 18),
         OutlinedButton.icon(
           onPressed: _openManualReceiptPreview,
@@ -166,103 +206,138 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     );
   }
 
-  Widget _buildReceiptClassificationStep() => ListView(
-    key: const ValueKey('receipt-classification-step'),
-    padding: const EdgeInsets.fromLTRB(20, 24, 20, 28),
-    children: [
-      const Text(
-        'Please classify this receipt',
-        style: TextStyle(
-          color: _receiptReferenceText,
-          fontSize: 23,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      const SizedBox(height: 8),
-      const Text(
-        'Choose Business, Personal, or Split. You can review and change every detail before saving.',
-        style: TextStyle(
-          color: _receiptReferenceMuted,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          height: 1.3,
-        ),
-      ),
-      const SizedBox(height: 22),
-      _ReferenceReceiptClassificationRow(
-        selected: _receiptUse,
-        onChanged: _setReceiptUse,
-      ),
-      const SizedBox(height: 30),
-      const Text(
-        'Choose a category for this receipt',
-        style: TextStyle(
-          color: _receiptReferenceText,
-          fontSize: 17,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      const SizedBox(height: 4),
-      const Text(
-        'Optional. Pick one category for the whole receipt, or leave it blank.',
-        style: TextStyle(
-          color: _receiptReferenceMuted,
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          height: 1.3,
-        ),
-      ),
-      const SizedBox(height: 12),
-      _ReferenceReceiptCategoryTile(
-        category: _receiptCategory,
-        onTap: _openReceiptCategoryPicker,
-      ),
-      const SizedBox(height: 12),
-      _ReceiptCategoryEntryOptions(
-        selected: _receiptCategoryEntryChoice,
-        onChanged: _setReceiptCategoryEntryChoice,
-      ),
-      const SizedBox(height: 24),
-      _ManualReceiptPrimaryButton(
-        label: 'Continue',
-        icon: Icons.arrow_forward_rounded,
-        onPressed: _confirmReceiptClassification,
-      ),
-    ],
+  Widget _buildReceiptClassificationStep() => LayoutBuilder(
+    builder: (context, viewport) {
+      final usesWideLayout = viewport.maxWidth >= 600;
+      return ListView(
+        key: const ValueKey('receipt-classification-step'),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 18),
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _ReceiptSetupSection(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'How should this receipt count?',
+                        style: TextStyle(
+                          color: _receiptReferenceText,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Choose whether this purchase was for work, personal use, or both. You can also decide during final review.',
+                        style: TextStyle(
+                          color: _receiptReferenceMuted,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _ReferenceReceiptClassificationRow(
+                        selected: _receiptUseSelectionMade ? _receiptUse : null,
+                        onChanged: _setReceiptUse,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _ReceiptSetupSection(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'Choose a category for this receipt',
+                        style: TextStyle(
+                          color: _receiptReferenceText,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _ReferenceReceiptCategoryTile(
+                        category: _receiptCategory,
+                        onTap: _openReceiptCategoryPicker,
+                      ),
+                      const SizedBox(height: 10),
+                      _ReceiptCategoryEntryOptions(
+                        selected: _receiptCategoryEntryChoice,
+                        onChanged: _setReceiptCategoryEntryChoice,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                if (usesWideLayout)
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: SizedBox(
+                      width: 280,
+                      child: _ManualReceiptPrimaryButton(
+                        label: 'Continue',
+                        icon: Icons.arrow_forward_rounded,
+                        onPressed: _confirmReceiptClassification,
+                      ),
+                    ),
+                  )
+                else
+                  _ManualReceiptPrimaryButton(
+                    label: 'Continue',
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: _confirmReceiptClassification,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      );
+    },
   );
 
   Future<void> _openReceiptCategoryPicker() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: const Color(0xFF101315),
-      isScrollControlled: true,
-      builder: (sheetContext) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 14, 24),
-          child: _ReceiptWholeCategoryPicker(
-            selectedCategory: _receiptCategory,
-            onCategorySelected: _setManualReceiptCategory,
-          ),
+    await Navigator.of(context).push<void>(
+      appNativeRoute<void>(
+        context,
+        _ReceiptWholeCategoryPicker(
+          selectedCategory: _receiptCategory,
+          onCategorySelected: _setManualReceiptCategory,
         ),
       ),
     );
   }
 
-  void _confirmReceiptClassification() {
-    if (_receiptUse == _ExpenseLineUse.unclassified) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Choose Business, Personal, or Split to continue.'),
-        ),
-      );
-      return;
-    }
-    _setReceiptEntryState(() => _receiptClassificationConfirmed = true);
-    _scheduleDraftSave();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _hasReceipt || _receiptAttachments.isNotEmpty) return;
-      unawaited(_manualReceiptAttachmentController.openImportOptions());
+  Future<void> _confirmReceiptClassification() async {
+    final choice =
+        ReceiptCaptureSettingsScope.maybeOf(
+          context,
+        )?.expenseReceiptAssistanceChoice ??
+        ExpenseReceiptAssistanceChoice.manual;
+    final destination = expenseReceiptEntryDestinationFor(choice);
+    _setReceiptEntryState(() {
+      _receiptClassificationConfirmed = true;
+      if (destination == ExpenseReceiptEntryDestination.manualDetails) {
+        _manualReceiptStep = _ManualReceiptStep.details;
+      }
     });
+    _scheduleDraftSave();
+    if (destination == ExpenseReceiptEntryDestination.manualDetails) return;
+    // App-assisted entry starts from a receipt source. Manual entry reaches the
+    // editable form first and may open this chooser later as optional proof.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted || !_receiptClassificationConfirmed) return;
+    final result = await _manualReceiptAttachmentController.openImportOptions();
+    if (!mounted) return;
+    final reviewResult = result?.reviewResult;
+    if (reviewResult?.exitsReceiptFlow == true) {
+      await _handleReceiptPhotoReviewExitRequested(reviewResult!);
+    }
   }
 
   void _setReceiptCategoryEntryChoice(_ReceiptCategoryEntryChoice choice) {
@@ -432,7 +507,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     );
   }
 
-  // ignore: unused_element
   Widget _buildManualReceiptItemsStep(BuildContext context) {
     return ListView(
       key: const ValueKey('manual-receipt-items'),
@@ -485,7 +559,6 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     );
   }
 
-  // ignore: unused_element
   Widget _buildManualReceiptReviewStep(BuildContext context) {
     return ListView(
       key: const ValueKey('manual-receipt-review'),
@@ -504,6 +577,22 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
           ),
         ),
         const SizedBox(height: 14),
+        if (_lines.isEmpty) ...[
+          const _ManualReceiptEmptyItems(),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _addManualReceiptItem,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Add first item'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF8FC9FF),
+              side: const BorderSide(color: Color(0xFF4A90C2)),
+              minimumSize: const Size.fromHeight(48),
+              textStyle: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+          ),
+          const SizedBox(height: 14),
+        ],
         for (var index = 0; index < _lines.length; index++) ...[
           _ManualReceiptItemCard(
             lineNumber: index + 1,
@@ -524,6 +613,7 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
           totalController: _receiptTotalController,
           businessTotal: _businessTotal,
           personalTotal: _personalTotal,
+          totalHelperText: _receiptTotalReviewHelperText,
         ),
         const SizedBox(height: 18),
         _ManualReceiptPrimaryButton(
@@ -559,25 +649,35 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
       };
 
   void _handleManualReceiptBack() {
-    if (_receiptClassificationConfirmed) {
-      _setReceiptEntryState(() => _receiptClassificationConfirmed = false);
-      return;
-    }
-    switch (_manualReceiptStep) {
-      case _ManualReceiptStep.details:
-        if (!_hasDraftContentWorthRecovering) {
-          Navigator.of(context).maybePop();
-          return;
-        }
+    switch (expenseReceiptBackActionFor(
+      stepToken: _manualReceiptStep.name,
+      hasRecoverableContent: _hasDraftContentWorthRecovering,
+    )) {
+      case ExpenseReceiptBackAction.popRoute:
+        Navigator.of(context).maybePop();
+        return;
+      case ExpenseReceiptBackAction.confirmExit:
         unawaited(_confirmLeaveManualReceipt());
-      case _ManualReceiptStep.items:
+        return;
+      case ExpenseReceiptBackAction.showStart:
+        _setReceiptEntryState(() {
+          _manualReceiptStep = _ManualReceiptStep.start;
+          _receiptClassificationConfirmed = false;
+        });
+        _scheduleDraftSave();
+        return;
+      case ExpenseReceiptBackAction.showDetails:
         _setReceiptEntryState(
           () => _manualReceiptStep = _ManualReceiptStep.details,
         );
-      case _ManualReceiptStep.review:
+        _scheduleDraftSave();
+        return;
+      case ExpenseReceiptBackAction.showItems:
         _setReceiptEntryState(
           () => _manualReceiptStep = _ManualReceiptStep.items,
         );
+        _scheduleDraftSave();
+        return;
     }
   }
 
@@ -626,13 +726,21 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
     );
     if (!mounted || decision == null) return;
     if (decision == _ManualReceiptExitDecision.saveDraft) {
-      if (await _saveDraftNow() && mounted) {
-        Navigator.of(context).maybePop();
-      }
+      await _saveReceiptDraftAndExit();
       return;
     }
-    await _drafts?.deleteDraft(_draftId);
-    if (mounted) Navigator.of(context).maybePop();
+    try {
+      await _discardReceiptAndExit();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not discard this receipt. Your receipt is still open.',
+          ),
+        ),
+      );
+    }
   }
 
   // ignore: unused_element
@@ -692,12 +800,21 @@ enum _ManualReceiptExitDecision { saveDraft, discard }
 extension _ManualReceiptStepSettings on _ManualReceiptStep {
   // ignore: unused_element
   String get vehicleHeaderLabel => switch (this) {
+    _ManualReceiptStep.start => 'ADD RECEIPT',
     _ManualReceiptStep.details => 'RECEIPT DETAILS',
     _ManualReceiptStep.items => 'RECEIPT ITEMS',
     _ManualReceiptStep.review => 'RECEIPT REVIEW',
   };
 
   ReceiptSettingsScreenContext get settingsScreenContext => switch (this) {
+    _ManualReceiptStep.start => const ReceiptSettingsScreenContext(
+      title: 'Add Receipt Settings',
+      subtitle: 'Preferences for receipt photos and files.',
+      description:
+          'Choose how to begin on the Add Receipt screen. You can always add photos or a file later, and all receipt details remain editable before saving.',
+      workflowNote:
+          'These preferences affect optional receipt photos and app-assisted suggestions. They never replace the editable receipt form.',
+    ),
     _ManualReceiptStep.details => const ReceiptSettingsScreenContext(
       title: 'Receipt Details Settings',
       subtitle: 'Preferences for the Details step.',

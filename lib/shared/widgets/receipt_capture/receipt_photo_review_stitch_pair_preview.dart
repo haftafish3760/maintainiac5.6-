@@ -21,6 +21,8 @@ class _ReceiptStitchWorkingSurface extends StatelessWidget {
     required this.onManualScaleChanged,
     required this.onManualRotationChanged,
     required this.onManualHorizontalOffsetChanged,
+    required this.onManualGestureChanged,
+    required this.onResetManualAlignment,
   });
 
   final List<String> photoPaths;
@@ -38,11 +40,48 @@ class _ReceiptStitchWorkingSurface extends StatelessWidget {
   final ValueChanged<double> onManualScaleChanged;
   final ValueChanged<double> onManualRotationChanged;
   final ValueChanged<double> onManualHorizontalOffsetChanged;
+  final ValueChanged<_ReceiptManualAlignmentUpdate> onManualGestureChanged;
+  final VoidCallback onResetManualAlignment;
 
   @override
   Widget build(BuildContext context) {
     final selected = pairIndex.clamp(0, photoPaths.length - 2).toInt();
     final sectionNumberLabel = 'Sections ${selected + 1} and ${selected + 2}';
+    if (!matching && photoPaths.length > 1) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          _ReceiptManualOverlapPanel(
+            previousPath: photoPaths[selected],
+            nextPath: photoPaths[selected + 1],
+            sectionNumberLabel: sectionNumberLabel,
+            value: manualOverlapFraction ?? .20,
+            noOverlap: manualZeroOverlap,
+            onChanged: onManualOverlapChanged,
+            onNoOverlapChanged: onManualZeroOverlapChanged,
+            scale: manualScaleCorrection,
+            rotationDegrees: manualRotationCorrectionDegrees,
+            horizontalOffsetFraction: manualHorizontalOffsetFraction,
+            onScaleChanged: onManualScaleChanged,
+            onRotationChanged: onManualRotationChanged,
+            onHorizontalOffsetChanged: onManualHorizontalOffsetChanged,
+            onGestureChanged: onManualGestureChanged,
+            onReset: onResetManualAlignment,
+          ),
+          if (photoPaths.length > 2)
+            Positioned(
+              top: 8,
+              left: 64,
+              right: 8,
+              child: _ReceiptStitchPairNavigator(
+                pairIndex: selected,
+                pairCount: photoPaths.length - 1,
+                onSelected: onPairSelected,
+              ),
+            ),
+        ],
+      );
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
       child: Column(
@@ -62,46 +101,6 @@ class _ReceiptStitchWorkingSurface extends StatelessWidget {
                 selected: true,
                 onSelected: () => onPhotoSelected(selected),
               ),
-            )
-          else if (photoPaths.length > 1)
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (photoPaths.length > 2) ...[
-                      _ReceiptStitchPairNavigator(
-                        pairIndex: selected,
-                        pairCount: photoPaths.length - 1,
-                        onSelected: onPairSelected,
-                      ),
-                      const SizedBox(height: 6),
-                    ],
-                    _ReceiptManualOverlapPanel(
-                      previousPath:
-                          photoPaths[selected
-                              .clamp(0, photoPaths.length - 2)
-                              .toInt()],
-                      nextPath:
-                          photoPaths[(selected + 1)
-                              .clamp(1, photoPaths.length - 1)
-                              .toInt()],
-                      sectionNumberLabel: sectionNumberLabel,
-                      value: manualOverlapFraction ?? .20,
-                      noOverlap: manualZeroOverlap,
-                      onChanged: onManualOverlapChanged,
-                      onNoOverlapChanged: onManualZeroOverlapChanged,
-                      scale: manualScaleCorrection,
-                      rotationDegrees: manualRotationCorrectionDegrees,
-                      horizontalOffsetFraction: manualHorizontalOffsetFraction,
-                      onScaleChanged: onManualScaleChanged,
-                      onRotationChanged: onManualRotationChanged,
-                      onHorizontalOffsetChanged:
-                          onManualHorizontalOffsetChanged,
-                    ),
-                  ],
-                ),
-              ),
             ),
         ],
       ),
@@ -109,7 +108,7 @@ class _ReceiptStitchWorkingSurface extends StatelessWidget {
   }
 }
 
-class _ReceiptManualOverlapPanel extends StatelessWidget {
+class _ReceiptManualOverlapPanel extends StatefulWidget {
   const _ReceiptManualOverlapPanel({
     required this.previousPath,
     required this.nextPath,
@@ -124,6 +123,8 @@ class _ReceiptManualOverlapPanel extends StatelessWidget {
     required this.onScaleChanged,
     required this.onRotationChanged,
     required this.onHorizontalOffsetChanged,
+    required this.onGestureChanged,
+    required this.onReset,
   });
 
   final String previousPath;
@@ -139,160 +140,77 @@ class _ReceiptManualOverlapPanel extends StatelessWidget {
   final ValueChanged<double> onScaleChanged;
   final ValueChanged<double> onRotationChanged;
   final ValueChanged<double> onHorizontalOffsetChanged;
+  final ValueChanged<_ReceiptManualAlignmentUpdate> onGestureChanged;
+  final VoidCallback onReset;
+
+  @override
+  State<_ReceiptManualOverlapPanel> createState() =>
+      _ReceiptManualOverlapPanelState();
+}
+
+class _ReceiptManualOverlapPanelState
+    extends State<_ReceiptManualOverlapPanel> {
+  bool _controlsVisible = true;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0xF211181B),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFFFD166)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Align $sectionNumberLabel',
-              style: const TextStyle(
-                color: Color(0xFFF0F4F2),
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'Keep these photos separate for now, or compare the bottom of the first photo with the top of the next photo and adjust the overlap. Maintainiac will try the combined image again. You can also retake only the section that is unclear.',
-              style: TextStyle(
-                color: Color(0xFFC8D0D3),
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 7),
-            _ReceiptGhostAlignmentPreview(
-              previousPath: previousPath,
-              nextPath: nextPath,
-              overlapFraction: value,
-              noOverlap: noOverlap,
-              scale: scale,
-              rotationDegrees: rotationDegrees,
-              horizontalOffsetFraction: horizontalOffsetFraction,
-            ),
-            OutlinedButton.icon(
-              onPressed: () => onNoOverlapChanged(!noOverlap),
-              icon: Icon(
-                noOverlap
-                    ? Icons.check_circle_rounded
-                    : Icons.vertical_align_center_rounded,
-              ),
-              label: Text(
-                noOverlap
-                    ? 'No shared lines selected'
-                    : 'These sections do not overlap',
-              ),
-            ),
-            if (!noOverlap)
-              Slider(
-                value: value.clamp(.08, .48),
-                min: .08,
-                max: .48,
-                divisions: 20,
-                label: '${(value * 100).round()}% overlap',
-                activeColor: const Color(0xFFFFD166),
-                onChanged: onChanged,
-              ),
-            Text(
-              noOverlap
-                  ? 'No shared lines  •  Size ${(scale * 100).round()}%  •  Straighten ${rotationDegrees.toStringAsFixed(1)}°'
-                  : 'Overlap ${(value * 100).round()}%  •  Size ${(scale * 100).round()}%  •  Straighten ${rotationDegrees.toStringAsFixed(1)}°',
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        _ReceiptGhostAlignmentPreview(
+          previousPath: widget.previousPath,
+          nextPath: widget.nextPath,
+          overlapFraction: widget.value,
+          noOverlap: widget.noOverlap,
+          scale: widget.scale,
+          rotationDegrees: widget.rotationDegrees,
+          horizontalOffsetFraction: widget.horizontalOffsetFraction,
+          onGestureChanged: widget.onGestureChanged,
+        ),
+        Positioned(
+          top: 10,
+          left: 62,
+          right: 10,
+          child: IgnorePointer(
+            child: Text(
+              'Align ${widget.sectionNumberLabel}',
               textAlign: TextAlign.center,
               style: const TextStyle(
-                color: Color(0xFFE8ECEE),
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w900,
+                shadows: [Shadow(color: Colors.black, blurRadius: 6)],
               ),
             ),
-            const SizedBox(height: 5),
-            Row(
-              children: [
-                Expanded(
-                  child: _ReceiptAlignmentButton(
-                    label: 'Move left',
-                    onPressed: () => onHorizontalOffsetChanged(
-                      horizontalOffsetFraction - .02,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: _ReceiptAlignmentButton(
-                    label: 'Move right',
-                    onPressed: () => onHorizontalOffsetChanged(
-                      horizontalOffsetFraction + .02,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: _ReceiptAlignmentButton(
-                    label: 'Smaller',
-                    onPressed: () => onScaleChanged(scale - .02),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: _ReceiptAlignmentButton(
-                    label: 'Larger',
-                    onPressed: () => onScaleChanged(scale + .02),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Expanded(
-                  child: _ReceiptAlignmentButton(
-                    label: 'Straighten left',
-                    onPressed: () => onRotationChanged(rotationDegrees - .5),
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: _ReceiptAlignmentButton(
-                    label: 'Straighten right',
-                    onPressed: () => onRotationChanged(rotationDegrees + .5),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
-      ),
+        if (!_controlsVisible)
+          Positioned(
+            right: 10,
+            bottom: 10,
+            child: FilledButton.icon(
+              onPressed: () => setState(() => _controlsVisible = true),
+              icon: const Icon(Icons.tune_rounded, size: 18),
+              label: const Text('Show controls'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xE611181B),
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+        if (_controlsVisible)
+          Positioned(
+            left: 8,
+            right: 8,
+            bottom: 8,
+            child: _ReceiptManualAlignmentControls(
+              onReset: widget.onReset,
+              onHide: () => setState(() => _controlsVisible = false),
+            ),
+          ),
+      ],
     );
   }
-}
-
-class _ReceiptAlignmentButton extends StatelessWidget {
-  const _ReceiptAlignmentButton({required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) => OutlinedButton(
-    onPressed: onPressed,
-    style: OutlinedButton.styleFrom(
-      foregroundColor: const Color(0xFFE8ECEE),
-      side: const BorderSide(color: Color(0xFF6D7B81)),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
-      minimumSize: const Size(0, 38),
-      textStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
-    ),
-    child: Text(label, textAlign: TextAlign.center),
-  );
 }
 
 class _ReceiptStitchWorkingHeader extends StatelessWidget {

@@ -19,7 +19,12 @@ void main() {
     expect(projectRules, contains(blueprintPath));
     expect(masterPlan, contains(blueprintPath));
     expect(blueprint, contains('Release-One Target'));
-    expect(blueprint, contains('80-90% solid release-one receipt camera'));
+    expect(blueprint, contains('commercial-grade receipt workflow'));
+    expect(blueprint, contains('A headline percentage cannot replace'));
+    expect(
+      blueprint,
+      isNot(contains('80-90% solid release-one receipt camera')),
+    );
     expect(blueprint, contains('Native Android camera path through CameraX'));
     expect(blueprint, contains('Native iOS camera path through AVFoundation'));
     expect(blueprint, contains('Flutter Capture Orchestrator'));

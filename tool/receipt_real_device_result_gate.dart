@@ -15,13 +15,23 @@ const _templateRequirements = <String>[
   '- Flutter devices snapshot log:',
   '- ADB devices snapshot log:',
   '- Xcode devices snapshot log:',
+  '## Required Target Evidence Matrix',
+  '- Galaxy S24 Ultra flagship:',
+  '- Galaxy S25 Ultra additional flagship:',
+  '- Galaxy S9 Plus older flagship:',
+  '- Constrained Android emulator:',
+  '- iPhone SE third generation:',
+  '- Future budget Android:',
+  'A newer flagship does not satisfy the S24 row',
+  'Do not copy results between rows.',
   '## Flow Results',
   '### Flow 1: Single Photo Receipt',
-  '### Flow 2: Multi-Photo Capture Handoff',
+  '### Flow 2: Multi-Photo Capture And Long-Receipt Reconstruction',
   '### Flow 3: Save-Space Preview',
   '### Flow 4: Receipt-Review Handoff',
   '### Flow 5: Manual Or No-Assist Photo Handoff',
   '### Flow 6: Interruption And Recovery',
+  '## Android Stitch Runtime Evidence',
   '## Failure Reports',
   '## Privacy And Diagnostics Check',
   '## Exit Summary',
@@ -37,16 +47,29 @@ const _runRequirements = <String>[
   '- Flutter devices snapshot log:',
   '- ADB devices snapshot log:',
   '- Xcode devices snapshot log:',
+  '## Required Target Evidence Matrix',
+  '- Galaxy S24 Ultra flagship:',
+  '- Galaxy S25 Ultra additional flagship:',
+  '- Galaxy S9 Plus older flagship:',
+  '- Constrained Android emulator:',
+  '- iPhone SE third generation:',
+  '- Future budget Android:',
   '## Flow Results',
   '### Flow 1: Single Photo Receipt',
   '### Flow 3: Save-Space Preview',
   '### Flow 6: Interruption And Recovery',
+  '## Android Stitch Runtime Evidence',
   '## Failure Reports',
   '## Privacy And Diagnostics Check',
   '## Exit Summary',
 ];
 
 const _acceptedRunFlowHeadingSets = <List<String>>[
+  [
+    '### Flow 2: Multi-Photo Capture And Long-Receipt Reconstruction',
+    '### Flow 4: Receipt-Review Handoff',
+    '### Flow 5: Manual Or No-Assist Photo Handoff',
+  ],
   [
     '### Flow 2: Multi-Photo Capture Handoff',
     '### Flow 4: Receipt-Review Handoff',
@@ -97,10 +120,10 @@ void main() {
   final runDir = Directory(_runsDir);
   final runFiles = runDir.existsSync()
       ? runDir
-          .listSync()
-          .whereType<File>()
-          .where((file) => file.path.endsWith('.md'))
-          .toList()
+            .listSync()
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.md'))
+            .toList()
       : <File>[];
 
   for (final runFile in runFiles) {

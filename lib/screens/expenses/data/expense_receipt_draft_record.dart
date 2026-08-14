@@ -30,6 +30,10 @@ class ExpenseReceiptDraftRecord {
     this.receiptReadHandoffCoverageWarning = '',
     this.receiptReviewMode = '',
     this.receiptReviewModeChangedByUser = false,
+    this.receiptManualStep = '',
+    this.receiptWholeUse = '',
+    this.receiptClassificationConfirmed = false,
+    this.receiptCategoryEntryChoice = '',
     this.receiptCategory = 'Uncategorized',
     this.receiptCategoryAppliesToAll = false,
     this.enteredSubtotal,
@@ -88,6 +92,14 @@ class ExpenseReceiptDraftRecord {
       receiptReviewMode: _expenseString(map['receiptReviewMode']),
       receiptReviewModeChangedByUser: _expenseBool(
         map['receiptReviewModeChangedByUser'],
+      ),
+      receiptManualStep: _expenseString(map['receiptManualStep']),
+      receiptWholeUse: _expenseString(map['receiptWholeUse']),
+      receiptClassificationConfirmed: _expenseBool(
+        map['receiptClassificationConfirmed'],
+      ),
+      receiptCategoryEntryChoice: _expenseString(
+        map['receiptCategoryEntryChoice'],
       ),
       receiptCategory: _expenseString(map['receiptCategory']).trim().isEmpty
           ? 'Uncategorized'
@@ -151,6 +163,13 @@ class ExpenseReceiptDraftRecord {
   final String receiptReadHandoffCoverageWarning;
   final String receiptReviewMode;
   final bool receiptReviewModeChangedByUser;
+
+  /// UI recovery state for the unified receipt form.  These values are plain
+  /// stable tokens so drafts remain readable across app versions.
+  final String receiptManualStep;
+  final String receiptWholeUse;
+  final bool receiptClassificationConfirmed;
+  final String receiptCategoryEntryChoice;
   final String receiptCategory;
   final bool receiptCategoryAppliesToAll;
   final double? enteredSubtotal;
@@ -168,7 +187,24 @@ class ExpenseReceiptDraftRecord {
   final List<ExpenseReceiptLineRecord> lines;
 
   bool get hasUserContent {
-    return merchantName.trim().isNotEmpty ||
+    final normalizedStep = receiptManualStep.trim();
+    final normalizedUse = receiptWholeUse.trim();
+    final normalizedCategoryChoice = receiptCategoryEntryChoice.trim();
+    final normalizedCategory = receiptCategory.trim().toLowerCase();
+    return receiptClassificationConfirmed ||
+        normalizedStep == 'details' ||
+        normalizedStep == 'items' ||
+        normalizedStep == 'review' ||
+        normalizedUse == 'business' ||
+        normalizedUse == 'personal' ||
+        normalizedUse == 'split' ||
+        normalizedCategoryChoice == 'wholeReceipt' ||
+        normalizedCategoryChoice == 'mixedItems' ||
+        normalizedCategoryChoice == 'notSureYet' ||
+        receiptCategoryAppliesToAll ||
+        (normalizedCategory.isNotEmpty &&
+            normalizedCategory != 'uncategorized') ||
+        merchantName.trim().isNotEmpty ||
         phone.trim().isNotEmpty ||
         street.trim().isNotEmpty ||
         city.trim().isNotEmpty ||
@@ -236,6 +272,10 @@ class ExpenseReceiptDraftRecord {
       'receiptReadHandoffCoverageWarning': receiptReadHandoffCoverageWarning,
       'receiptReviewMode': receiptReviewMode,
       'receiptReviewModeChangedByUser': receiptReviewModeChangedByUser,
+      'receiptManualStep': receiptManualStep,
+      'receiptWholeUse': receiptWholeUse,
+      'receiptClassificationConfirmed': receiptClassificationConfirmed,
+      'receiptCategoryEntryChoice': receiptCategoryEntryChoice,
       'receiptCategory': receiptCategory,
       'receiptCategoryAppliesToAll': receiptCategoryAppliesToAll,
       'enteredSubtotal': enteredSubtotal,

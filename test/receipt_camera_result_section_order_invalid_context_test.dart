@@ -301,16 +301,16 @@ void main() {
       'numbered_sections_with_ghost_guide',
     );
     expect(result.receiptSectionOrderNeedsReview, false);
-    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, false);
+    expect(result.acceptedPhotoHandoffMustOpenReceiptDetails, true);
     expect(
       result.receiptPhotoReviewHandoffPath,
-      'accepted_stitch_ocr_source_review_required',
+      'accepted_ordered_sections_fallback',
     );
     expect(
       result.acceptedPhotoHandoffRoute,
-      'photo_review_ocr_source_review_required',
+      'photo_review_accepted_to_receipt_details',
     );
-    expect(result.acceptedPhotoHandoffMustOpenFilledReview, false);
+    expect(result.acceptedPhotoHandoffMustOpenFilledReview, true);
     expect(
       result.receiptSectionOrderReviewActionCode,
       'review_long_receipt_order_with_ghost_guide',

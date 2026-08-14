@@ -64,8 +64,8 @@ void main() {
         paths: [topFile.path, continuationFile.path],
       );
 
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
       if (result.didStitch) {
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
         expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
         expect(
           result.assistedReadinessCode,
@@ -74,7 +74,8 @@ void main() {
       } else {
         expect(result.usedFallback, isTrue, reason: result.detailLabel);
         expect(result.ocrSourcePaths, [topFile.path, continuationFile.path]);
-        expect(result.assistedReadinessCode, 'stitch_contract_review_required');
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+        expect(result.assistedReadinessCode, 'ordered_sections_ready');
       }
     },
     timeout: _tornEdgeTimeout,

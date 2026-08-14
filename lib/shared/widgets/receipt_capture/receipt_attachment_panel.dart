@@ -15,6 +15,7 @@ import 'receipt_capture_settings_store.dart';
 import 'receipt_capture_ui_config.dart';
 import 'receipt_image_processor.dart';
 import 'receipt_image_picker.dart';
+import 'receipt_import_transaction.dart';
 import 'receipt_assistance_policy.dart';
 import 'receipt_native_capture_staging.dart';
 import 'receipt_native_camera_contract.dart';
@@ -27,6 +28,7 @@ import 'receipt_picker_status.dart';
 import 'receipt_pipeline_trace.dart';
 import 'receipt_proof_storage.dart';
 import 'receipt_scanner_service.dart';
+import 'receipt_session_artifact_tracker.dart';
 import 'receipt_storage_guard.dart';
 import 'receipt_temporary_artifact_cleanup.dart';
 
@@ -79,6 +81,7 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
     this.onAttachmentsChanged,
     this.onImportedText,
     this.onReceiptPhotoReviewAccepted,
+    this.onReceiptPhotoReviewExitRequested,
     this.onReceiptReadStarted,
     this.onReceiptOcrCompleted,
     this.onReceiptOcrResultForReview,
@@ -101,6 +104,8 @@ class SharedReceiptAttachmentPanel extends StatefulWidget {
   final ValueChanged<List<ReceiptAttachmentRecord>>? onAttachmentsChanged;
   final FutureOr<void> Function(String text)? onImportedText;
   final ValueChanged<ReceiptPhotoReviewResult>? onReceiptPhotoReviewAccepted;
+  final FutureOr<void> Function(ReceiptPhotoReviewResult result)?
+  onReceiptPhotoReviewExitRequested;
   final VoidCallback? onReceiptReadStarted;
   final ValueChanged<ReceiptOcrResult>? onReceiptOcrCompleted;
 
@@ -177,7 +182,10 @@ class _SharedReceiptAttachmentPanelState
   void initState() {
     super.initState();
     widget.controller?._bind(
-      openImportOptions: openReceiptImportOptions,
+      openImportOptions: (intent) => _openReceiptImportOptionsTransaction(
+        intent: intent,
+        notifyOwnerOnExit: false,
+      ),
       openSettings: (screenContext) async {
         await openReceiptCaptureSettings(screenContext: screenContext);
       },

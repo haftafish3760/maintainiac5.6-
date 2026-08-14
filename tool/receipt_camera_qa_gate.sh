@@ -22,6 +22,7 @@ camera_source_roots=(
   lib/shared/receipts
   android/app/src/main/kotlin/com/maintainiac/MainActivity.kt
   android/app/src/main/kotlin/com/maintainiac/ReceiptCamera*.kt
+  android/app/src/main/kotlin/com/maintainiac/ReceiptStitchRegistrationBridge.kt
   ios/Runner/AppDelegate.swift
   ios/Runner/ReceiptCamera*.swift
 )
@@ -68,9 +69,12 @@ phase5_tests=(
 
 phase6_tests=(
   test/receipt_camera_phase6_stitching_handoff_contract_test.dart
+  test/receipt_native_stitch_registration_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
+  test/receipt_stitching_native_guided_registration_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
+  test/receipt_stitching_text_guided_registration_test.dart
   test/receipt_stitching_variants_test.dart
 )
 
@@ -188,11 +192,17 @@ phase6_audit_paths=(
   lib/shared/widgets/receipt_capture/receipt_capture_stitch_model_helpers.dart
   lib/shared/widgets/receipt_capture/receipt_image_processor_stitch_api.dart
   lib/shared/widgets/receipt_capture/receipt_image_processor_storage_helpers.dart
+  lib/shared/widgets/receipt_capture/receipt_native_stitch_registration.dart
   lib/shared/widgets/receipt_capture/receipt_photo_review_exit_stitch_actions.dart
+  android/app/build.gradle.kts
+  android/app/src/main/kotlin/com/maintainiac/ReceiptStitchRegistrationBridge.kt
   test/receipt_camera_phase6_stitching_handoff_contract_test.dart
+  test/receipt_native_stitch_registration_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
+  test/receipt_stitching_native_guided_registration_test.dart
   test/receipt_stitching_manual_overlap_test.dart
   test/receipt_stitching_result_contract_test.dart
+  test/receipt_stitching_text_guided_registration_test.dart
   test/receipt_stitching_variants_test.dart
 )
 
@@ -269,6 +279,7 @@ core_remaining_audit_paths=(
 )
 
 quick_tests=(
+  test/receipt_ios_compile_warning_gate_test.dart
   test/receipt_camera_coverage_decision_test.dart
   test/receipt_attachment_panel_recovery_contract_test.dart
   test/receipt_native_shell_recovery_contract_test.dart
@@ -337,6 +348,7 @@ milestone_only_tests=(
   test/receipt_native_camera_contract_test.dart
   test/receipt_native_camera_phase8_storage_timing_test.dart
   test/receipt_native_camera_previous_section_channel_test.dart
+  test/receipt_native_stitch_registration_test.dart
   test/receipt_native_camera_privacy_diagnostics_test.dart
   test/receipt_native_camera_result_rejection_test.dart
   test/receipt_native_camera_service_basics_test.dart
@@ -359,8 +371,10 @@ milestone_only_tests=(
   test/receipt_photo_review_retake_order_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
   test/receipt_stitching_manual_overlap_test.dart
+  test/receipt_stitching_native_guided_registration_test.dart
   test/receipt_stitching_result_contract_test.dart
   test/receipt_stitching_test.dart
+  test/receipt_stitching_text_guided_registration_test.dart
   test/receipt_stitching_variants_test.dart
 )
 
@@ -385,12 +399,19 @@ stitch_tests=(
   test/receipt_ocr_source_relationship_test.dart
   test/receipt_native_camera_session_limits_test.dart
   test/receipt_native_camera_previous_section_channel_test.dart
+  test/receipt_native_stitch_registration_test.dart
   test/receipt_photo_section_labels_test.dart
   test/receipt_photo_review_retake_order_test.dart
   test/receipt_stitch_contract_health_script_test.dart
+  test/receipt_stitch_search_budget_contract_test.dart
+  test/receipt_stitch_acceptance_test.dart
   test/receipt_stitch_fallback_metadata_test.dart
+  test/receipt_stitch_final_timeout_recovery_test.dart
+  test/receipt_stitch_real_device_probe_test.dart
+  test/receipt_stitch_working_resolution_contract_test.dart
   test/receipt_stitching_artifact_copy_contract_test.dart
   test/receipt_stitching_bad_input_test.dart
+  test/receipt_stitching_coordinate_space_test.dart
   test/receipt_stitching_duplicate_safety_test.dart
   test/receipt_stitching_exception_fallback_contract_test.dart
   test/receipt_stitching_extreme_aspect_ratio_test.dart
@@ -398,6 +419,7 @@ stitch_tests=(
   test/receipt_stitching_horizontal_placement_test.dart
   test/receipt_stitching_long_stack_test.dart
   test/receipt_stitching_manual_overlap_test.dart
+  test/receipt_stitching_native_guided_registration_test.dart
   test/receipt_stitch_text_evidence_test.dart
   test/receipt_stitching_ocr_source_contract_test.dart
   test/receipt_stitching_passenger_seat_test.dart
@@ -410,6 +432,7 @@ stitch_tests=(
   test/receipt_stitching_size_cap_test.dart
   test/receipt_stitching_store_receipt_shape_test.dart
   test/receipt_stitching_test.dart
+  test/receipt_stitching_text_guided_registration_test.dart
   test/receipt_stitching_transformed_phone_window_test.dart
   test/receipt_stitching_ugly_long_receipt_test.dart
   test/receipt_stitching_uploaded_screenshot_test.dart

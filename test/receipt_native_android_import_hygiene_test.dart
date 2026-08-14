@@ -9,6 +9,7 @@ void main() {
         'android.app.Activity',
         'android.os.Bundle',
         'android.view.KeyEvent',
+        'android.view.MotionEvent',
         'android.view.ScaleGestureDetector',
         'android.view.View',
         'android.widget.Button',
@@ -58,9 +59,7 @@ void main() {
             'java.time.Instant',
           },
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraControls.kt': {
-        'android.view.MotionEvent',
         'android.view.ScaleGestureDetector',
-        'android.view.View',
         'kotlin.math.roundToInt',
       },
       'android/app/src/main/kotlin/com/maintainiac/ReceiptCameraDiagnosticsPayload.kt':

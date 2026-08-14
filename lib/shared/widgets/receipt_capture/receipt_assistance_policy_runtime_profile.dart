@@ -54,6 +54,8 @@ class ReceiptStitchDeviceLimits {
     required this.comparisonWidth,
     required this.retryComparisonWidth,
     required this.evidenceTimeout,
+    required this.nativeRegistrationAllowance,
+    required this.totalPreviewTimeout,
     required this.processingTimeout,
   });
 
@@ -63,6 +65,8 @@ class ReceiptStitchDeviceLimits {
   final int comparisonWidth;
   final int retryComparisonWidth;
   final Duration evidenceTimeout;
+  final Duration nativeRegistrationAllowance;
+  final Duration totalPreviewTimeout;
   final Duration processingTimeout;
 
   String get label {

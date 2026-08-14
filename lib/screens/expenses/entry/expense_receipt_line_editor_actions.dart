@@ -52,11 +52,14 @@ extension _ReceiptLineEditorActions on _ReceiptLineEditorSheetState {
         ? typedCategory
         : _category;
     final subtotal = _resolvedLineSubtotal ?? 0;
-    if (subtotal <= 0) {
+    // Discounts and returns are real receipt lines.  Reject only an empty or
+    // zero amount; a negative printed line total must remain editable and be
+    // included in the independent receipt math.
+    if (subtotal.abs() < .005) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Enter quantity and price, or enter the printed line total.',
+            'Enter quantity and price, or enter the printed line total. Use a negative amount for a discount or return.',
           ),
         ),
       );

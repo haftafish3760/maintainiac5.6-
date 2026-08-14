@@ -215,6 +215,7 @@ extension _ExpenseReceiptEntryScaffold on _ExpenseReceiptEntryScreenState {
               receiptSubtotalController: _receiptSubtotalController,
               salesTaxController: _salesTaxController,
               receiptTotalController: _receiptTotalController,
+              totalHelperText: _receiptTotalReviewHelperText,
             ),
             const SizedBox(height: 8),
             _ReceiptSavePanel(

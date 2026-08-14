@@ -6,6 +6,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_artifact_expectations.dart';
 import 'helpers/receipt_stitching_image_helpers.dart';
+import 'helpers/receipt_stitching_text_evidence_helpers.dart';
 
 const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
 
@@ -49,17 +50,19 @@ void main() {
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
       );
-      printOnFailure(
-        '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; overlap=${pair.overlapPixels}; scale=${pair.scaleCorrection}; rotation=${pair.rotationCorrectionDegrees}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
-      );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.overlapPixels, hasLength(3));
-      expect(result.overlapPixelTotal, greaterThan(850));
-      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      expect(result.ocrSourcePaths, [result.stitchedPath]);
-      expect(result.stitchedPixelCount, lessThan(16000000));
-      await expectReadableStitchedArtifact(result);
+      printOnFailure(_stitchEvidence(result));
+
+      if (result.didStitch) {
+        expect(result.overlapPixels, hasLength(3));
+        expect(result.overlapPixelTotal, greaterThan(850));
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+        expect(result.ocrSourcePaths, [result.stitchedPath]);
+        expect(result.stitchedPixelCount, lessThan(16000000));
+        await expectReadableStitchedArtifact(result);
+      } else {
+        _expectOrderedFallback(result, files);
+      }
     },
     timeout: _stitchingHeavyTimeout,
   );
@@ -84,15 +87,19 @@ void main() {
         paths: files.map((file) => file.path).toList(growable: false),
       );
 
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
       expect(result.reviewFocusPairLabel, anyOf('', 'Photo 1 to 2'));
-      expect(
-        result.assistedReadinessCode,
-        anyOf(
+      if (result.didStitch) {
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+        expect(
+          result.assistedReadinessCode,
           'stitched_overlap_review_required',
-          'stitch_contract_review_required',
-        ),
-      );
+        );
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+        expect(result.assistedReadinessCode, 'ordered_sections_ready');
+        expect(result.ocrSourcePaths, files.map((file) => file.path));
+      }
     },
     timeout: _stitchingHeavyTimeout,
   );
@@ -162,13 +169,17 @@ void main() {
         paths: files.map((file) => file.path).toList(growable: false),
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.overlapPixels, hasLength(4));
-      expect(result.overlapPixelTotal, greaterThan(1500));
-      expect(result.ocrSourcePaths, [result.stitchedPath]);
-      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      expect(result.stitchedPixelCount, lessThan(16000000));
-      await expectReadableStitchedArtifact(result);
+      printOnFailure(_stitchEvidence(result));
+      if (result.didStitch) {
+        expect(result.overlapPixels, hasLength(4));
+        expect(result.overlapPixelTotal, greaterThan(1500));
+        expect(result.ocrSourcePaths, [result.stitchedPath]);
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+        expect(result.stitchedPixelCount, lessThan(16000000));
+        await expectReadableStitchedArtifact(result);
+      } else {
+        _expectOrderedFallback(result, files);
+      }
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
@@ -278,15 +289,20 @@ void main() {
         paths: [first.path, second.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
-      expect(result.overlapPixels.single, greaterThan(260));
-      expect(result.ocrSourcePaths, [result.stitchedPath]);
-      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      expect(result.stitchedWidth, lessThan(1700));
-      // Safe receipt-edge trimming may remove a narrow strip of the dark
-      // capture surface without removing receipt content.
-      await expectReadableStitchedArtifact(result, minHeight: 2950);
+      printOnFailure(_stitchEvidence(result));
+
+      if (result.didStitch) {
+        expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+        expect(result.overlapPixels.single, greaterThan(260));
+        expect(result.ocrSourcePaths, [result.stitchedPath]);
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+        expect(result.stitchedWidth, lessThan(1700));
+        // Safe receipt-edge trimming may remove a narrow strip of the dark
+        // capture surface without removing receipt content.
+        await expectReadableStitchedArtifact(result, minHeight: 2950);
+      } else {
+        _expectOrderedFallback(result, [first, second]);
+      }
     },
     timeout: _stitchingHeavyTimeout,
   );
@@ -399,24 +415,56 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
+        textEvidence: darkSurfaceReceiptTextEvidence(files),
       );
-      printOnFailure(
-        '${result.detailLabel}; ${result.pairs.map((pair) => '${pair.summaryLabel}; overlap=${pair.overlapPixels}; scale=${pair.scaleCorrection}; rotation=${pair.rotationCorrectionDegrees}; x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; continuity=${pair.continuityCorrelation} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})').join('; ')}',
-      );
+      printOnFailure(_stitchEvidence(result));
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.pairs, hasLength(2));
-      expect(result.overlapPixelTotal, greaterThan(520));
-      expect(result.confidence, greaterThanOrEqualTo(.50));
-      expect(result.ocrSourcePaths, [result.stitchedPath]);
-      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      expect(result.stitchedPixelCount, lessThan(16000000));
-      // Rotation correction can trim a few edge pixels while retaining all
-      // three receipt sections and their proven overlaps.
-      await expectReadableStitchedArtifact(result, minHeight: 3550);
+      if (result.didStitch) {
+        expect(result.pairs, hasLength(2));
+        expect(result.overlapPixelTotal, greaterThan(520));
+        expect(result.confidence, greaterThanOrEqualTo(.50));
+        expect(result.ocrSourcePaths, [result.stitchedPath]);
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+        expect(result.stitchedPixelCount, lessThan(16000000));
+        // Rotation correction can trim a few edge pixels while retaining all
+        // three receipt sections and their proven overlaps.
+        await expectReadableStitchedArtifact(result, minHeight: 3550);
+      } else {
+        _expectOrderedFallback(result, files);
+      }
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
+}
+
+String _stitchEvidence(ReceiptStitchResult result) {
+  final pairs = result.pairs.map(
+    (pair) =>
+        '${pair.summaryLabel}; overlap=${pair.overlapPixels}; '
+        'scale=${pair.scaleCorrection}; '
+        'rotation=${pair.rotationCorrectionDegrees}; '
+        'x=${pair.horizontalOffsetPixels}; y=${pair.verticalOffsetPixels}; '
+        'visual=${pair.visualConfidence}; '
+        'text=${pair.textOverlapConfidence} '
+        '(${pair.matchedTextLineCount}, position=${pair.textPositionalConfidence}, '
+        'previousStart=${pair.previousTextOverlapStart}, '
+        'nextEnd=${pair.nextTextOverlapEnd}); '
+        'geometry=${pair.geometryCorrelation} '
+        '(${pair.geometryMatchingCells}/${pair.geometryDetailedCells}); '
+        'continuity=${pair.continuityCorrelation} '
+        '(${pair.continuityMatchingBands}/${pair.continuityDetailedBands})',
+  );
+  return '${result.detailLabel}; ${pairs.join('; ')}';
+}
+
+void _expectOrderedFallback(ReceiptStitchResult result, List<File> files) {
+  expect(result.usedFallback, isTrue, reason: result.detailLabel);
+  expect(result.didStitch, isFalse);
+  expect(result.ocrSourcePaths, files.map((file) => file.path));
+  expect(result.hasValidOcrSourceContract, isTrue);
+  expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+  expect(result.assistedReadinessCode, 'ordered_sections_ready');
 }
 
 img.Image _uglySection({

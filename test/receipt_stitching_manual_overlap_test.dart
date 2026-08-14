@@ -316,8 +316,8 @@ void main() {
       expect(result.fallbackReasonCode, 'output_too_large');
       expect(result.stitchedPath, isNull);
       expect(result.ocrSourcePaths, files);
-      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
       expect(result.pairs.length, lessThan(5));
       expect(result.failedPairIndex, result.pairs.last.pairIndex);
       expect(result.failedPairLabel, isNotEmpty);
@@ -421,11 +421,8 @@ void main() {
     expect(result.ocrSourcePaths, [first.path, second.path]);
     expect(result.hasValidOcrSourceContract, isTrue);
     expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
-    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
-    expect(
-      result.assistedReadinessCode,
-      'ordered_sections_stitch_fallback_review_required',
-    );
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+    expect(result.assistedReadinessCode, 'ordered_sections_ready');
   });
 
   test('unsafe later manual overlap preserves prior pair evidence', () async {
@@ -461,6 +458,6 @@ void main() {
     expect(result.pairs.single.usedManualAdjustment, isTrue);
     expect(result.pairs.single.overlapPixels, 260);
     expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
-    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
   });
 }

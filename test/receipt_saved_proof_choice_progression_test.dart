@@ -30,7 +30,10 @@ void main() {
       expect(saveActions, contains('await settings.setDefaultDataSaverLevel('));
       expect(savedImagePanel, contains('_ReceiptSavedImageSideRail'));
       expect(savedImagePanel, contains('Save space for this receipt'));
-      expect(savedImagePanel, contains('Use This Saved Image'));
+      expect(
+        savedImagePanel,
+        contains("saving ? 'Getting receipt ready' : 'Continue'"),
+      );
       expect(savedImagePanel, contains('ReceiptDataSaverLevel.original'));
       expect(
         savedImagePanel,

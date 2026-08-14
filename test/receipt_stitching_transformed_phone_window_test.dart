@@ -16,9 +16,10 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
+        textEvidence: _transformedPhoneWindowTextEvidence(files),
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isTrue, reason: _stitchFailureDetails(result));
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(result.overlapPixelTotal, greaterThan(820));
@@ -39,6 +40,101 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );
+}
+
+List<ReceiptStitchTextEvidence> _transformedPhoneWindowTextEvidence(
+  List<File> files,
+) {
+  const angles = [0.0, .6, -.6, 0.0];
+  const centers = [.50, .48, .52, .50];
+  const widths = [.54, .56, .52, .54];
+  final evidence = <ReceiptStitchTextEvidence>[];
+  for (var index = 0; index < files.length; index++) {
+    final lines = <ReceiptStitchTextLineEvidence>[];
+    if (index > 0) {
+      lines.addAll(
+        _sharedTextBlock(
+          pairIndex: index - 1,
+          top: .07,
+          center: centers[index],
+          width: widths[index],
+          angle: angles[index],
+        ),
+      );
+    }
+    if (index < files.length - 1) {
+      lines.addAll(
+        _sharedTextBlock(
+          pairIndex: index,
+          // The source windows advance 1120 rows through a 1500-row receipt,
+          // so the genuine 380-row overlap begins near 75% of the prior
+          // frame. Keep synthetic OCR anchors on that physical overlap; an
+          // earlier anchor fabricates a much larger join than the pixels.
+          top: .78,
+          center: centers[index],
+          width: widths[index],
+          angle: angles[index],
+        ),
+      );
+    }
+    evidence.add(
+      ReceiptStitchTextEvidence(
+        path: files[index].path,
+        lines: [for (final line in lines) line.text],
+        positionedLines: lines,
+      ),
+    );
+  }
+  return evidence;
+}
+
+List<ReceiptStitchTextLineEvidence> _sharedTextBlock({
+  required int pairIndex,
+  required double top,
+  required double center,
+  required double width,
+  required double angle,
+}) {
+  return [
+    ReceiptStitchTextLineEvidence(
+      text: 'Shared item $pairIndex copper elbow 2.49',
+      left: center - width / 2,
+      top: top,
+      right: center + width / 2,
+      bottom: top + .03,
+      angleDegrees: angle,
+    ),
+    ReceiptStitchTextLineEvidence(
+      text: 'Shared item $pairIndex exterior screws 12.40',
+      left: center - width * .46,
+      top: top + .065,
+      right: center + width * .46,
+      bottom: top + .095,
+      angleDegrees: angle,
+    ),
+  ];
+}
+
+String _stitchFailureDetails(ReceiptStitchResult result) {
+  final pairs = result.pairs
+      .map(
+        (pair) =>
+            'pair=${pair.pairIndex} confidence=${pair.confidence} '
+            'visual=${pair.visualConfidence} overlap=${pair.overlapPixels} '
+            'x=${pair.horizontalOffsetPixels} y=${pair.verticalOffsetPixels} '
+            'scale=${pair.scaleCorrection} '
+            'rotation=${pair.rotationCorrectionDegrees} '
+            'text=${pair.textOverlapConfidence} '
+            '${pair.matchedTextLineCount} '
+            'position=${pair.textPositionalConfidence} '
+            '${pair.hasTextPositionEvidence} '
+            'continuity=${pair.continuityCorrelation} '
+            '${pair.continuityMatchingBands}/${pair.continuityDetailedBands} '
+            'geometry=${pair.geometryCorrelation} '
+            '${pair.geometryMatchingCells}/${pair.geometryDetailedCells}',
+      )
+      .join(' | ');
+  return '${result.detailLabel}${pairs.isEmpty ? '' : ' $pairs'}';
 }
 
 Future<List<File>> _writeTransformedPhoneWindows(String prefix) async {

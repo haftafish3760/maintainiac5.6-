@@ -34,69 +34,87 @@ void main() {
     },
   );
 
-  test('Continue hides every source photo until assembly is terminal', () async {
-    final build = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_build.dart',
-    ).readAsString();
-    final stitchSurface = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_surface.dart',
-    ).readAsString();
-    final working = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_preview_widgets.dart',
-    ).readAsString();
-    final saveActions = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
-    ).readAsString();
+  test(
+    'automatic stitch assembly uses a dedicated source-free status surface',
+    () async {
+      final build = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_build.dart',
+      ).readAsString();
+      final stitchSurface = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_surface.dart',
+      ).readAsString();
+      final working = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_preview_widgets.dart',
+      ).readAsString();
+      final saveActions = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
+      ).readAsString();
 
-    expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.stitch;'));
-    expect(stitchSurface, contains('bool get _automaticStitchAssemblyVisible'));
-    expect(
-      stitchSurface,
-      contains('return const _ReceiptStitchAssemblySurface();'),
-    );
-    expect(working, contains('class _ReceiptStitchAssemblySurface'));
-    expect(working, contains('Putting your receipt together…'));
-    expect(
-      working,
-      isNot(contains('Image.file(')),
-      reason: 'The blocking assembly surface must never expose a source photo.',
-    );
-    expect(
-      build,
-      contains(
-        '_automaticStitchAssemblyVisible)\n                const SizedBox.shrink()',
-      ),
-      reason:
-          'Source-photo stitch actions stay hidden during automatic assembly.',
-    );
-  });
+      expect(saveActions, contains('receiptPhotoPipelineNextStep('));
+      expect(saveActions, contains('_savingPhotos = true'));
+      expect(
+        stitchSurface,
+        contains('bool get _automaticStitchAssemblyVisible'),
+      );
+      expect(
+        stitchSurface,
+        contains('return const _ReceiptStitchAssemblySurface();'),
+      );
+      expect(working, contains('class _ReceiptStitchAssemblySurface'));
+      expect(working, contains('Checking your receipt photos…'));
+      expect(working, isNot(contains('Putting your receipt together…')));
+      final controls = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
+      ).readAsString();
+      final topBar = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_top_bar.dart',
+      ).readAsString();
+      expect(controls, contains("return 'Checking receipt photos';"));
+      expect(controls, isNot(contains('Putting receipt together')));
+      expect(topBar, contains("? 'Checking receipt photos'"));
+      expect(topBar, isNot(contains('Putting Receipt Together')));
+      expect(
+        working,
+        isNot(contains('Image.file(')),
+        reason:
+            'The blocking assembly surface must never expose a source photo.',
+      );
+      expect(
+        build,
+        contains(
+          'else if (showingLongReceiptMatch &&\n'
+          '                        _automaticStitchAssemblyVisible)\n'
+          '                      const SizedBox.shrink()',
+        ),
+        reason:
+            'Source-photo stitch actions stay hidden during automatic assembly.',
+      );
+    },
+  );
 
-  test('unsafe automatic join offers explicit recovery choices', () async {
-    final screen = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
-    ).readAsString();
-    final build = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_build.dart',
-    ).readAsString();
-    final stitchSurface = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_surface.dart',
-    ).readAsString();
-    final widgets = await File(
-      'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_preview_widgets.dart',
-    ).readAsString();
+  test(
+    'unsafe automatic join keeps the receipt visible and non-blocking',
+    () async {
+      final screen = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
+      ).readAsString();
+      final build = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_build.dart',
+      ).readAsString();
+      final stitchActions = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_actions.dart',
+      ).readAsString();
 
-    expect(screen, contains('var _manualAlignmentRequested = false;'));
-    expect(
-      stitchSurface,
-      contains('preview?.usedFallback == true && !_manualAlignmentRequested'),
-    );
-    expect(stitchSurface, contains('_ReceiptStitchFailureSurface('));
-    expect(widgets, contains("label: const Text('Retake Photos')"));
-    expect(widgets, contains("label: const Text('Align Photos Myself')"));
-    expect(
-      build,
-      contains('_stitchPreviewResult?.usedFallback == true &&'),
-      reason: 'The old stitch action bar must not duplicate recovery choices.',
-    );
-  });
+      expect(screen, contains('var _manualAlignmentRequested = false;'));
+      expect(build, contains('? _buildPhotoReviewPager()'));
+      expect(stitchActions, contains("? 'Try alignment'"));
+      expect(stitchActions, contains(": 'Align two photos'"));
+      expect(stitchActions, contains(": 'Continue'"));
+      expect(
+        build,
+        contains('fallback: _stitchPreviewResult?.usedFallback == true'),
+        reason: 'The action bar receives the current safe-fallback state.',
+      );
+    },
+  );
 }

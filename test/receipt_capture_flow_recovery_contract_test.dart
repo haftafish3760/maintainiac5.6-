@@ -142,6 +142,9 @@ void main() {
     expect(flow, contains('nativeRecoveryOcrPending'));
     expect(flow, contains('nativeRecoveryOcrSourcePhotoCount'));
     expect(flow, contains('_withReviewOpeningDiagnostics'));
+    expect(flow, contains('if (reviewResult.discardedByUser)'));
+    expect(flow, contains('_staging.discardRecoveryRecord(record)'));
+    expect(flow, contains('_recoveryReviewDiscardedResult('));
     expect(flow, contains("route: 'native_capture_to_photo_review'"));
     expect(flow, contains("route: 'native_recovery_to_photo_review'"));
     expect(flow, contains("'receiptReviewOpeningPolicy':"));
@@ -150,23 +153,15 @@ void main() {
     expect(flow, contains("'next_or_add_photo_visible_before_scroll'"));
     expect(
       actions,
-      contains('_retainAcceptedNativeRecoveryUntilReceiptSave(flowResult)'),
+      contains('_retainNativeRecoveryUntilReceiptSave(flowResult)'),
     );
     expect(
       actions,
-      contains(
-        'if (!mounted) return _MaintainiacNativeCameraPhotoOutcome.canceled;',
-      ),
+      contains('if (review == null || review.photoPaths.isEmpty) return;'),
     );
     expect(
       actions,
-      contains('if (!result.accepted || result.reviewResult == null) return;'),
-    );
-    expect(
-      actions,
-      contains(
-        'review.photoPaths.isEmpty || review.ocrSourcePhotoPaths.isEmpty',
-      ),
+      contains('if (!result.accepted || review.ocrSourcePhotoPaths.isEmpty)'),
     );
     expect(actions, contains("stage: 'receipt_save_pending'"));
     expect(
@@ -205,11 +200,11 @@ void main() {
     );
     expect(
       actions.indexOf(
-        'final accepted = await _acceptReviewedPhotoResult(result)',
+        'final accepted = await _completeReviewedPhotoResult(result)',
       ),
       lessThan(
         actions.indexOf(
-          'await _retainAcceptedNativeRecoveryUntilReceiptSave(flowResult)',
+          'await _retainNativeRecoveryUntilReceiptSave(flowResult)',
         ),
       ),
     );

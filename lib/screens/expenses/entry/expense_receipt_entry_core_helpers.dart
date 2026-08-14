@@ -21,6 +21,31 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
   bool get _shouldShowReceiptReviewFields =>
       _hasAppAssistedReceiptReview && !_scanningReceiptPhotos;
 
+  String? get _receiptTotalReviewHelperText {
+    final liveEquationIssue = _receiptTotalEquationReadinessIssue();
+    if (liveEquationIssue != null) return liveEquationIssue.detail;
+    final diagnostics = _lastParseDiagnostics;
+    if (diagnostics != null &&
+        diagnostics.reconciliationDifference != null &&
+        !diagnostics.reconciled) {
+      final receiptLabel = diagnostics.hasExplicitSubtotal
+          ? 'receipt subtotal'
+          : 'receipt total';
+      return 'The items add up differently than the $receiptLabel by ${_money(diagnostics.reconciliationDifference!.abs())}. Review every item, discount, tax, and total before saving.';
+    }
+    if (diagnostics?.hasCalculatedVisibleLineTotalReview == true) {
+      return 'Calculated from the visible items. Check it before saving.';
+    }
+    if ((_lastParseDiagnostics?.parserTaskCount(
+              'receipt_final_total_missing_review',
+            ) ??
+            0) >
+        0) {
+      return 'The printed total was not found. Check this working total before saving.';
+    }
+    return null;
+  }
+
   bool get _shouldShowReceiptReadHandoffPanel {
     if (_scanningReceiptPhotos) return true;
     if (!_receiptReviewFlowStarted) return false;
@@ -139,6 +164,17 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
   }
 
   void _scrollToReceiptReview({int attempt = 0}) {
+    // The rebuilt Expenses flow is a real screen sequence, not the legacy
+    // single-page form.  A shared "Review Receipt" action previously only
+    // scrolled to a legacy anchor, leaving a photo user on the opening Add
+    // Receipt screen.  Always hand the person directly to the editable
+    // review form in this flow.
+    if (_usesRebuiltManualDetailedReceiptFlow &&
+        _manualReceiptStep != _ManualReceiptStep.review) {
+      _setReceiptEntryState(
+        () => _manualReceiptStep = _ManualReceiptStep.review,
+      );
+    }
     _scrollToReceiptFlowKey(_receiptReviewKey, attempt: attempt);
   }
 
@@ -238,6 +274,11 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
 
   void _markReceiptPhotoReviewAccepted(ReceiptPhotoReviewResult result) {
     if (!mounted) return;
+    final assistedReceiptFill =
+        ReceiptCaptureSettingsScope.maybeOf(
+          context,
+        )?.appAssistedEnabledFor(_receiptCaptureArea) ==
+        true;
     final handoffWarnings = <String>[
       if (result.usedSavedProofAsOcrSourceFallback)
         'Receipt reader is using the saved receipt image because a clearer photo was not available. Review the filled lines carefully before saving.',
@@ -255,12 +296,18 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
       _receiptReadAttemptedWithoutText = false;
       _receiptReadHandoffProofCount = result.photoPaths.length;
       _receiptReadHandoffOcrSourceCount = result.ocrSourcePhotoPaths.length;
-      _receiptReadHandoffDecision = 'Reading receipt';
-      _receiptReadHandoffAction =
-          'Extracting text from the accepted receipt photo. Receipt details will appear here automatically when the reader finishes.';
-      _receiptReadHandoffRouteResult =
-          'Accepted photo review is moving directly into receipt details. Add another section only if the reader later shows the bottom of the receipt is missing.';
-      _receiptReadHandoffStage = 'Extracting receipt text';
+      _receiptReadHandoffDecision = assistedReceiptFill
+          ? 'Reading receipt'
+          : 'Receipt proof ready';
+      _receiptReadHandoffAction = assistedReceiptFill
+          ? 'Extracting text from the accepted receipt photo. Receipt details will appear here automatically when the reader finishes.'
+          : 'The reviewed receipt photos are attached. Enter and review the receipt details manually.';
+      _receiptReadHandoffRouteResult = assistedReceiptFill
+          ? 'Accepted photo review is moving directly into receipt details. Add another section only if the reader later shows the bottom of the receipt is missing.'
+          : 'Accepted photo review opened the same editable receipt details without starting automatic reading.';
+      _receiptReadHandoffStage = assistedReceiptFill
+          ? 'Extracting receipt text'
+          : 'Receipt proof ready';
       _receiptReadHandoffCoverageWarning = handoffWarnings;
       _receiptBrainLowStorageDownloadRiskCounts =
           result.receiptBrainLowStorageDownloadRiskCounts;
@@ -285,6 +332,12 @@ extension _ExpenseReceiptEntryCoreHelpers on _ExpenseReceiptEntryScreenState {
     });
     _scheduleDraftSave();
     _recordReceiptPhotoPreparationTelemetry(result);
-    _scrollToReceiptReview();
+    if (assistedReceiptFill) {
+      _scrollToReceiptReview();
+    } else if (_usesRebuiltManualDetailedReceiptFlow) {
+      _setReceiptEntryState(
+        () => _manualReceiptStep = _ManualReceiptStep.details,
+      );
+    }
   }
 }

@@ -46,6 +46,10 @@ void main() {
       merchantName: 'Lowes',
       receiptReviewMode: 'basicReceipt',
       receiptReviewModeChangedByUser: true,
+      receiptManualStep: 'items',
+      receiptWholeUse: 'split',
+      receiptClassificationConfirmed: true,
+      receiptCategoryEntryChoice: 'wholeReceipt',
       receiptCategory: 'Materials',
       receiptCategoryAppliesToAll: true,
       enteredSubtotal: 42,
@@ -75,6 +79,10 @@ void main() {
     expect(loaded.rawOcrText, 'LOWES MATERIALS 42.00');
     expect(loaded.receiptReviewMode, 'basicReceipt');
     expect(loaded.receiptReviewModeChangedByUser, isTrue);
+    expect(loaded.receiptManualStep, 'items');
+    expect(loaded.receiptWholeUse, 'split');
+    expect(loaded.receiptClassificationConfirmed, isTrue);
+    expect(loaded.receiptCategoryEntryChoice, 'wholeReceipt');
     expect(loaded.receiptCategory, 'Materials');
     expect(loaded.receiptCategoryAppliesToAll, isTrue);
     expect(drafts.drafts.map((item) => item.id), ['draft-1']);
@@ -154,6 +162,55 @@ void main() {
     expect(draft.toMap()['editingReceiptId'], 'receipt-1');
   });
 
+  test('default receipt route tokens do not pretend the user made choices', () {
+    final draft = ExpenseReceiptDraftRecord(
+      id: 'default-route-tokens',
+      receiptDate: DateTime.utc(2026, 8, 14),
+      updatedAt: DateTime.utc(2026, 8, 14),
+      receiptManualStep: 'start',
+      receiptWholeUse: 'unclassified',
+    );
+
+    expect(draft.hasUserContent, isFalse);
+  });
+
+  test('classification-only receipt progress remains recoverable', () {
+    final draft = ExpenseReceiptDraftRecord(
+      id: 'classification-progress',
+      receiptDate: DateTime.utc(2026, 8, 14),
+      updatedAt: DateTime.utc(2026, 8, 14),
+      receiptManualStep: 'details',
+      receiptWholeUse: 'business',
+      receiptClassificationConfirmed: true,
+      receiptCategoryEntryChoice: 'wholeReceipt',
+      receiptCategory: 'Supplies',
+      receiptCategoryAppliesToAll: true,
+    );
+
+    expect(draft.hasUserContent, isTrue);
+    final restored = ExpenseReceiptDraftRecord.fromMap(draft.toMap());
+    expect(restored.receiptManualStep, 'details');
+    expect(restored.receiptWholeUse, 'business');
+    expect(restored.receiptClassificationConfirmed, isTrue);
+    expect(restored.receiptCategoryEntryChoice, 'wholeReceipt');
+    expect(restored.hasUserContent, isTrue);
+  });
+
+  test('mixed and undecided category choices survive draft serialization', () {
+    for (final choice in const ['mixedItems', 'notSureYet']) {
+      final draft = ExpenseReceiptDraftRecord(
+        id: 'category-choice-$choice',
+        receiptDate: DateTime.utc(2026, 8, 14),
+        updatedAt: DateTime.utc(2026, 8, 14),
+        receiptCategoryEntryChoice: choice,
+      );
+
+      final restored = ExpenseReceiptDraftRecord.fromMap(draft.toMap());
+      expect(restored.receiptCategoryEntryChoice, choice);
+      expect(restored.hasUserContent, isTrue);
+    }
+  });
+
   test(
     'receipt save shows the storage recovery message without losing a draft',
     () async {
@@ -205,26 +262,26 @@ void main() {
     expect(loaded.ocrReview.hasData, isTrue);
     expect(loaded.ocrReview.severity, ReceiptOcrReviewSeverity.review.name);
     expect(loaded.ocrReview.warningKinds, [
-      ReceiptOcrWarningKind.duplicateText.name,
+      ReceiptOcrWarningKind.probableOverlap.name,
     ]);
     expect(
       loaded.ocrReview.countForWarningKind(
-        ReceiptOcrWarningKind.duplicateText.name,
+        ReceiptOcrWarningKind.probableOverlap.name,
       ),
       1,
     );
-    expect(loaded.ocrReview.primaryWarningLabel, 'Duplicate lines ignored');
+    expect(loaded.ocrReview.primaryWarningLabel, 'Possible receipt overlap');
     expect(
       loaded.ocrReview.primaryWarningKind,
-      ReceiptOcrWarningKind.duplicateText.name,
+      ReceiptOcrWarningKind.probableOverlap.name,
     );
     expect(
       loaded.ocrReview.primaryWarningTargetLabel,
-      'Check long receipt overlap',
+      'Check overlapping line items',
     );
     expect(
       loaded.ocrReview.primaryWarningTargetInstruction,
-      contains('same charge was not counted twice'),
+      'Check the nearby line items around the overlap and confirm duplicates or missing charges.',
     );
     expect(loaded.ocrReview.recoveryAction, 'review_overlap');
     expect(loaded.ocrReview.recoveryTarget, 'receipt_overlap');

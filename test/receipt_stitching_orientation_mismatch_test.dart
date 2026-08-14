@@ -51,8 +51,8 @@ Future<void> _expectOrientationMismatchReview({
     paths: sourcePaths,
   );
 
-  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
   if (result.didStitch) {
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
     expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
     expect(result.assistedReadinessCode, 'stitched_overlap_review_required');
     expect(
@@ -61,11 +61,12 @@ Future<void> _expectOrientationMismatchReview({
     );
   } else {
     expect(result.usedFallback, isTrue, reason: result.detailLabel);
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
     expect(result.ocrSourcePaths, sourcePaths);
     expect(
       result.sourcePreservationCode,
       'original_sections_preserved_ordered_ocr_sources',
     );
-    expect(result.assistedReadinessCode, 'stitch_contract_review_required');
+    expect(result.assistedReadinessCode, 'ordered_sections_ready');
   }
 }

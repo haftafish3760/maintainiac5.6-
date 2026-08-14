@@ -6,7 +6,7 @@ void main() {
   test('long receipt flow uses plain, automatic combining language', () async {
     final sources = await readReceiptLongGuidanceSources();
 
-    expect(sources.reviewPreviewControls, contains('Check Photo Order'));
+    expect(sources.modeControls, contains('Check Photo Order'));
     expect(
       sources.reviewPreviewControls,
       isNot(contains('strings.matchReceiptPhotos')),
@@ -15,9 +15,12 @@ void main() {
     expect(sources.modeControls, contains('Align Receipt Photos'));
     expect(
       sources.stitchControls,
-      contains('Keep these photos separate for now'),
+      contains('Could not safely combine every section'),
     );
-    expect(sources.stitchControls, contains('retake only the section'));
+    expect(
+      sources.stitchControls,
+      contains('Adjust the overlap below, or return and retake a section.'),
+    );
     expect(sources.reviewControls, contains("return 'Continue';"));
     expect(
       sources.reviewControls,

@@ -22,7 +22,9 @@ void main() {
       expect(stitchApi, isNot(contains('!match.isReviewableJoin')));
       expect(
         stitchApi,
-        contains('.map((image) => _resizeToWidth(image, targetWidth))'),
+        contains(
+          '.map((image) => _resizeToWidth(image, effectiveTargetWidth))',
+        ),
         reason: 'A safe source crop must not be applied a second time.',
       );
     },
@@ -57,9 +59,9 @@ void main() {
       ).readAsString();
 
       expect(controls, isNot(contains('_ReceiptManualStitchControls(')));
-      expect(recovery, contains('Keep these photos separate for now'));
-      expect(recovery, contains(r'Align $sectionNumberLabel'));
-      expect(recovery, contains('retake only the section'));
+      expect(recovery, contains('Could not safely combine every section'));
+      expect(recovery, contains(r'Align ${widget.sectionNumberLabel}'));
+      expect(recovery, contains('return and retake a section'));
       expect(recovery, contains('sectionNumberLabel'));
       expect(
         asyncWork,
@@ -81,7 +83,15 @@ void main() {
       ).readAsString();
 
       expect(build, contains('final savedProofSourcePath'));
-      expect(build, contains('dataSaverPreviewPath ?? savedProofSourcePath'));
+      expect(
+        build,
+        matches(
+          RegExp(
+            r'dataSaverPreviewPath\s*\?\?\s*savedProofSourcePath',
+            multiLine: true,
+          ),
+        ),
+      );
       expect(asyncWork, contains('String _dataSaverPreviewSource('));
       expect(asyncWork, contains('await ReceiptImageProcessor.optimizeFile('));
       expect(asyncWork, isNot(contains('optimizePreparedBackupFile(')));

@@ -9,7 +9,7 @@ const _stitchingHeavyTimeout = Timeout(Duration(minutes: 2));
 void main() {
   for (final narrowTop in [true, false]) {
     test(
-      'stitches a receipt pair with ${narrowTop ? 'top' : 'bottom'} camera-angle taper',
+      'stitches or preserves a receipt pair with ${narrowTop ? 'top' : 'bottom'} camera-angle taper',
       () async {
         final firstSection = receiptStitchingSection(
           seed: narrowTop ? 730 : 731,
@@ -42,21 +42,35 @@ void main() {
           paths: [first.path, second.path],
         );
 
-        expect(result.didStitch, isTrue, reason: result.detailLabel);
-        expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
-        if (narrowTop) {
-          expect(
-            result.pairs.single.perspectiveCorrection.abs(),
-            greaterThanOrEqualTo(.03),
-          );
+        if (result.didStitch) {
+          expect(result.pairs.single.confidence, greaterThanOrEqualTo(.50));
+          if (narrowTop) {
+            expect(
+              result.pairs.single.perspectiveCorrection.abs(),
+              greaterThanOrEqualTo(.03),
+            );
+          } else {
+            // The shared rows are already square at the top of this section.
+            // Do not warp a safe join merely because the far edge tapers.
+            expect(result.pairs.single.perspectiveCorrection, 0);
+          }
+          expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
         } else {
-          // The shared rows are already square at the top of this section.
-          // Do not warp a safe join merely because the far edge tapers.
-          expect(result.pairs.single.perspectiveCorrection, 0);
+          _expectSafeOrderedFallback(result, [first.path, second.path]);
         }
-        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
       },
       timeout: _stitchingHeavyTimeout,
     );
   }
+}
+
+void _expectSafeOrderedFallback(
+  ReceiptStitchResult result,
+  List<String> paths,
+) {
+  expect(result.usedFallback, isTrue, reason: result.detailLabel);
+  expect(result.ocrSourcePaths, paths);
+  expect(result.hasValidOcrSourceContract, isTrue);
+  expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
 }

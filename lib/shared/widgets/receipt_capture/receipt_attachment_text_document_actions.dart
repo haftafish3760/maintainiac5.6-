@@ -32,7 +32,6 @@ extension _ReceiptAttachmentTextDocumentActions
         withData: false,
       );
       if (result == null || result.files.isEmpty || !mounted) {
-        await returnToReceiptImportOptions();
         return;
       }
       final file = result.files.single;

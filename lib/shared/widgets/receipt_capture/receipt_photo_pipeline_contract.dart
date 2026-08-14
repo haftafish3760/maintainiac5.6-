@@ -9,6 +9,7 @@ enum ReceiptPhotoPipelineNextStep {
 ReceiptPhotoPipelineNextStep receiptPhotoPipelineNextStep({
   required int sourcePhotoCount,
   required bool reviewingSavedImage,
+  required bool reviewingLongReceipt,
   required ReceiptStitchResult? stitchResult,
 }) {
   if (reviewingSavedImage) {
@@ -17,8 +18,10 @@ ReceiptPhotoPipelineNextStep receiptPhotoPipelineNextStep({
   // A multi-photo receipt must be assembled and reviewed before the saved
   // proof choice. If assembly cannot be verified, that review state supplies
   // the recovery path while preserving every original section.
-  if (sourcePhotoCount > 1 && stitchResult == null) {
-    return ReceiptPhotoPipelineNextStep.reviewLongReceipt;
+  if (sourcePhotoCount > 1) {
+    if (!reviewingLongReceipt || stitchResult == null) {
+      return ReceiptPhotoPipelineNextStep.reviewLongReceipt;
+    }
   }
   return ReceiptPhotoPipelineNextStep.reviewSavedImage;
 }

@@ -204,11 +204,12 @@ CASH TENDER 1.00
 ''');
 
     expect(parsed.lines, hasLength(2));
-    expect(parsed.enteredTotal, isNull);
+    expect(parsed.enteredTotal, 10.00);
+    expect(parsed.totalCalculatedFromVisibleLines, isTrue);
     expect(parsed.diagnostics.reconciled, isFalse);
     expect(
       parsed.warnings.any(
-        (warning) => warning.contains('add the lower receipt section'),
+        (warning) => warning.contains('add the lower section'),
       ),
       isTrue,
     );
@@ -230,7 +231,8 @@ THANK YOU FOR SHOPPING
 ''');
 
     expect(parsed.lines, hasLength(2));
-    expect(parsed.enteredTotal, isNull);
+    expect(parsed.enteredTotal, 10.00);
+    expect(parsed.totalCalculatedFromVisibleLines, isTrue);
     expect(
       parsed.warnings,
       contains(

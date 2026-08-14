@@ -104,10 +104,12 @@ extension ReceiptCaptureFlowRecoveryResults on ReceiptCaptureFlow {
     ReceiptCaptureFlowOptions options,
     ReceiptPhotoReviewResult reviewResult,
   ) {
-    return ReceiptCaptureFlowResult.canceled(
+    return ReceiptCaptureFlowResult.reviewCompleted(
+      reviewResult: reviewResult,
       message:
           'Recovered receipt photos were kept on this device. Resume the saved review when you are ready.',
       nativeCapabilities: nativeCapabilities,
+      recoveryManifestPath: record.manifestPath,
       diagnostics: _diagnostics(
         stage: 'native_capture_recovery',
         reason: 'recovery_review_closed_kept_for_later',
@@ -124,6 +126,32 @@ extension ReceiptCaptureFlowRecoveryResults on ReceiptCaptureFlow {
           'receiptReviewKeptForLater': true,
           ..._nativeRecoveryMetadata(record),
           ..._receiptReaderHandoffDiagnosticsFor(reviewResult),
+        },
+      ),
+    );
+  }
+
+  ReceiptCaptureFlowResult _recoveryReviewDiscardedResult(
+    ReceiptNativeCaptureRecoveryRecord record,
+    ReceiptNativeCameraCapabilities nativeCapabilities,
+    ReceiptCaptureFlowOptions options,
+    ReceiptPhotoReviewResult reviewResult,
+  ) {
+    return ReceiptCaptureFlowResult.reviewCompleted(
+      reviewResult: reviewResult,
+      message: 'Recovered receipt photos were discarded.',
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: _diagnostics(
+        stage: 'native_capture_recovery',
+        reason: 'user_discarded_recovered_receipt_photos',
+        action: 'discard_recovered_receipt_photos',
+        nativeCapabilities: nativeCapabilities,
+        options: options,
+        extraMetadata: {
+          'nativeRecoveryOutcome': 'recovery_review_discarded_by_user',
+          'nativeRecoveryUserNextStep': 'return_to_receipt_entry',
+          'receiptReviewExitAction': reviewResult.reviewExitAction,
+          ..._nativeRecoveryMetadata(record),
         },
       ),
     );

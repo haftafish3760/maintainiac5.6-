@@ -80,7 +80,36 @@ extension _ExpenseReceiptSaveReadinessHelpers
     final subtotalIssue = _receiptSubtotalReadinessIssue();
     if (subtotalIssue != null) issues.add(subtotalIssue);
 
+    // This check intentionally does not depend on OCR diagnostics.  It is
+    // the same arithmetic a person would perform on a paper receipt: all
+    // entered item lines (including negative discounts and returns), then
+    // printed subtotal, tax, and the final amount paid.
+    final totalEquationIssue = _receiptTotalEquationReadinessIssue();
+    if (totalEquationIssue != null) issues.add(totalEquationIssue);
+
+    final parsedMathIssue = _parsedReceiptMathReadinessIssue();
+    if (parsedMathIssue != null) issues.add(parsedMathIssue);
+
     return issues;
+  }
+
+  _ReceiptSaveReadinessIssue? _parsedReceiptMathReadinessIssue() {
+    final diagnostics = _lastParseDiagnostics;
+    final expected = diagnostics?.expectedSubtotalOrTotal;
+    final difference = diagnostics?.reconciliationDifference;
+    if (diagnostics == null ||
+        expected == null ||
+        difference == null ||
+        diagnostics.reconciled ||
+        _lines.isEmpty) {
+      return null;
+    }
+    return _ReceiptSaveReadinessIssue(
+      kind: 'receipt_ocr_line_math_mismatch',
+      title: 'The item total needs a check',
+      detail:
+          'The items add up to ${_money(_lineSubtotal)}, but the receipt ${diagnostics.hasExplicitSubtotal ? 'subtotal' : 'total'} is ${_money(expected)} (difference ${_money(difference.abs())}). Check every item, discount, return, tax, and total before saving.',
+    );
   }
 
   _ReceiptSaveReadinessIssue? _receiptSubtotalReadinessIssue() {
@@ -94,6 +123,25 @@ extension _ExpenseReceiptSaveReadinessHelpers
       title: 'Receipt subtotal does not match the lines',
       detail:
           'Line subtotal is ${_money(_lineSubtotal)}, but the receipt subtotal is ${_money(enteredSubtotal)}. Check for missing items, discounts, fees, or returns.',
+    );
+  }
+
+  _ReceiptSaveReadinessIssue? _receiptTotalEquationReadinessIssue() {
+    final printedTotal = _enteredReceiptTotal;
+    if (printedTotal == null || _lines.isEmpty) return null;
+    final printedSubtotal = _enteredReceiptSubtotal;
+    final tax = _enteredReceiptTax ?? 0;
+    // A printed subtotal is the strongest evidence.  When it is absent, the
+    // independent item calculation is the best available pre-tax amount.
+    final preTaxAmount = printedSubtotal ?? _lineSubtotal;
+    final calculatedTotal = preTaxAmount + tax;
+    final difference = printedTotal - calculatedTotal;
+    if (difference.abs() < .02) return null;
+    return _ReceiptSaveReadinessIssue(
+      kind: 'receipt_total_equation_mismatch',
+      title: 'Final total does not match the receipt math',
+      detail:
+          'Items${printedSubtotal == null ? '' : ' / printed subtotal'} plus tax add up to ${_money(calculatedTotal)}, but the final total is ${_money(printedTotal)} (difference ${_money(difference.abs())}). Check discounts, returns, fees, tips, tax, and every line before saving.',
     );
   }
 

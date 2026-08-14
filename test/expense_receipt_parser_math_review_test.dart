@@ -30,6 +30,29 @@ Total 12.80
     );
   });
 
+  test('calculates visible line math independently of an OCR total', () {
+    final parsed = parseExpenseReceiptText('''
+LOCAL HARDWARE
+06/12/2026
+PIPE STRAP 8.00
+COUPON -1.00
+TOTAL 12.00
+''');
+
+    expect(parsed.lineSubtotal, 7.00);
+    expect(parsed.enteredTotal, 12.00);
+    expect(parsed.diagnostics.reconciled, isFalse);
+    expect(parsed.diagnostics.reconciliationDifference, closeTo(-5.00, .001));
+    expect(parsed.diagnostics.lineSubtotal, 7.00);
+    expect(parsed.diagnostics.expectedSubtotalOrTotal, 12.00);
+    expect(
+      parsed.warnings.singleWhere(
+        (warning) => warning.contains('Parsed line totals'),
+      ),
+      contains('discounts, and OCR mistakes'),
+    );
+  });
+
   test(
     'marks inferred receipt math as incomplete instead of overconfident',
     () {

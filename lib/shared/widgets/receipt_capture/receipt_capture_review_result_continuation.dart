@@ -14,7 +14,8 @@ extension ReceiptPhotoReviewResultContinuation on ReceiptPhotoReviewResult {
 
   bool get hasReceiptDetailsHandoff => hasReceiptReaderHandoff;
 
-  bool get keptForLater => reviewExitAction == 'kept_for_later';
+  bool get keptForLater =>
+      outcome == ReceiptPhotoReviewOutcome.saveDraftAndExit;
 
   bool get hasPreviousSectionContinuationRequest =>
       receiptContinuationSignalCounts.isNotEmpty;

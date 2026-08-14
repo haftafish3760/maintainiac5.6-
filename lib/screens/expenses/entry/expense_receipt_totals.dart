@@ -55,6 +55,7 @@ class _ReceiptTotalsPanel extends StatelessWidget {
     required this.receiptSubtotalController,
     required this.salesTaxController,
     required this.receiptTotalController,
+    this.totalHelperText,
   });
 
   final _ReceiptDetailEntryMode detailMode;
@@ -62,6 +63,7 @@ class _ReceiptTotalsPanel extends StatelessWidget {
   final TextEditingController receiptSubtotalController;
   final TextEditingController salesTaxController;
   final TextEditingController receiptTotalController;
+  final String? totalHelperText;
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +138,8 @@ class _ReceiptTotalsPanel extends StatelessWidget {
           label: 'Final Total After Tax',
           controller: receiptTotalController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          helperText: 'Final amount paid, including sales tax.',
+          helperText:
+              totalHelperText ?? 'Final amount paid, including sales tax.',
         ),
       ],
     );

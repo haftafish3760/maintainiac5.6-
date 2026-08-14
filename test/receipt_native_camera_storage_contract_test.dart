@@ -90,7 +90,6 @@ void main() {
     expect(sentArguments['parserPackLocalFirstCategoryCodes'], [
       'fuel',
       'general_expense',
-      'materials_inventory',
     ]);
     expect(sentArguments['parserPackOptionalLocalCategoryCodes'], [
       'general_expense',
@@ -105,11 +104,8 @@ void main() {
       'general_expense',
       'materials_inventory',
     ]);
-    expect(
-      sentArguments['parserDepth'],
-      ReceiptParserDepth.inventoryMatching.name,
-    );
-    expect(sentArguments['localParserScope'], 'inventory_matching_local');
+    expect(sentArguments['parserDepth'], ReceiptParserDepth.lineItems.name);
+    expect(sentArguments['localParserScope'], 'line_items_local');
     expect(sentArguments['localCatalogMatchLimit'], 250);
     expect(sentArguments['localInventoryCacheLimit'], 1000);
     expect(sentArguments['bestShotCandidateCount'], 3);
@@ -133,10 +129,7 @@ void main() {
     expect(result.captureDiagnostics['localOcrAvailable'], isTrue);
     expect(result.captureDiagnostics['localOcrMode'], 'lean_local_ocr');
     expect(result.captureDiagnostics['localOcrDefault'], isTrue);
-    expect(
-      result.captureDiagnostics['localParserScope'],
-      'inventory_matching_local',
-    );
+    expect(result.captureDiagnostics['localParserScope'], 'line_items_local');
     expect(result.captureDiagnostics['cloudOcrOptional'], isTrue);
     expect(result.captureDiagnostics['cloudInventoryOptional'], isTrue);
     expect(

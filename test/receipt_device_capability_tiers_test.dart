@@ -73,7 +73,7 @@ void main() {
       );
 
       expect(capability.tier, ReceiptCapabilityTier.heavyweight);
-      expect(capability.parserDepth, ReceiptParserDepth.inventoryMatching);
+      expect(capability.parserDepth, ReceiptParserDepth.lineItems);
       expect(capability.cameraResolutionTier, ReceiptCameraResolutionTier.max);
       expect(capability.assistedCameraShotCount, 5);
       expect(capability.readyHoldMs, lessThan(650));
@@ -109,6 +109,145 @@ void main() {
     expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.entry);
     expect(capability.maxLiveAnalysisPixels, 1100000);
     expect(capability.parserDepth, ReceiptParserDepth.lineItems);
+  });
+
+  test('representative S24-class flagship receives flagship workload', () {
+    final capability = ReceiptDeviceCapability.fromHardware(
+      hardware: const ReceiptHardwareProfile(
+        platformName: 'android',
+        availableRamMb: 12288,
+        cpuCores: 8,
+        androidSdk: 34,
+        androidPerformanceClass: 34,
+        freeStorageMb: 12000,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+        supportsContinuousFocus: true,
+        supportsExposureCompensation: true,
+        supportsZoom: true,
+        supportsYuvLiveFrames: true,
+        supportsNativeEdgeSignals: true,
+        hasOnDeviceAcceleration: true,
+        maxStillWidth: 12000,
+        maxStillHeight: 9000,
+      ),
+    );
+
+    expect(capability.tier, ReceiptCapabilityTier.heavyweight);
+    expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.flagship);
+    expect(capability.stitchLimits.maxTargetWidth, 1240);
+    expect(capability.stitchLimits.maxOutputPixels, 18000000);
+  });
+
+  test(
+    'representative S9 Plus-class former flagship stays medium with a safe generation cap',
+    () {
+      final capability = ReceiptDeviceCapability.fromHardware(
+        hardware: const ReceiptHardwareProfile(
+          platformName: 'android',
+          availableRamMb: 6144,
+          cpuCores: 8,
+          androidSdk: 28,
+          freeStorageMb: 8000,
+          cameraPermissionGranted: true,
+          hasRearCamera: true,
+          supportsContinuousFocus: true,
+          supportsExposureCompensation: true,
+          supportsZoom: true,
+          supportsYuvLiveFrames: true,
+          maxStillWidth: 4032,
+          maxStillHeight: 3024,
+        ),
+      );
+
+      expect(capability.tier, ReceiptCapabilityTier.medium);
+      expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.light);
+      expect(capability.parserDepth, ReceiptParserDepth.lineItems);
+      expect(capability.stitchLimits.maxTargetWidth, 1200);
+    },
+  );
+
+  test('representative iPhone SE-class resources choose safe local limits', () {
+    final capability = ReceiptDeviceCapability.fromHardware(
+      hardware: const ReceiptHardwareProfile(
+        platformName: 'ios',
+        availableRamMb: 4096,
+        cpuCores: 6,
+        freeStorageMb: 4000,
+        cameraPermissionGranted: true,
+        hasRearCamera: true,
+        supportsContinuousFocus: true,
+        supportsExposureCompensation: true,
+        supportsZoom: true,
+        maxStillWidth: 4032,
+        maxStillHeight: 3024,
+      ),
+    );
+
+    expect(capability.tier, ReceiptCapabilityTier.light);
+    expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.light);
+    expect(capability.stitchLimits.maxTargetWidth, 900);
+    expect(
+      capability.stitchLimits.processingTimeout,
+      const Duration(milliseconds: 5300),
+    );
+    expect(
+      capability.stitchLimits.totalPreviewTimeout,
+      lessThan(const Duration(seconds: 10)),
+    );
+  });
+
+  test('every device tier has one bounded automatic stitch preview budget', () {
+    const capabilities = [
+      ReceiptDeviceCapability.olderPhone(),
+      ReceiptDeviceCapability.standard(),
+      ReceiptDeviceCapability.highCapacity(),
+    ];
+
+    for (final capability in capabilities) {
+      final limits = capability.stitchLimits;
+      expect(limits.totalPreviewTimeout, lessThan(const Duration(seconds: 10)));
+      expect(limits.evidenceTimeout, lessThan(limits.totalPreviewTimeout));
+      expect(limits.processingTimeout, lessThan(limits.totalPreviewTimeout));
+      expect(
+        limits.nativeRegistrationAllowance,
+        lessThan(limits.processingTimeout),
+      );
+    }
+  });
+
+  test('flagship receipt preview retains bounded composition headroom', () {
+    final limits = const ReceiptDeviceCapability.highCapacity().stitchLimits;
+
+    expect(limits.totalPreviewTimeout, const Duration(milliseconds: 9800));
+    expect(limits.processingTimeout, const Duration(seconds: 8));
+    expect(
+      limits.totalPreviewTimeout -
+          limits.evidenceTimeout -
+          const Duration(milliseconds: 300),
+      const Duration(milliseconds: 6500),
+      reason:
+          'The dynamic preview budget must still cap processing when OCR uses its full allowance.',
+    );
+  });
+
+  test('future low-RAM budget Android cannot be promoted by other specs', () {
+    final capability = ReceiptDeviceCapability.fromHardware(
+      hardware: const ReceiptHardwareProfile(
+        platformName: 'android',
+        availableRamMb: 8192,
+        cpuCores: 8,
+        androidSdk: 35,
+        androidPerformanceClass: 34,
+        isLowRamDevice: true,
+        freeStorageMb: 12000,
+        hasOnDeviceAcceleration: true,
+      ),
+    );
+
+    expect(capability.tier, ReceiptCapabilityTier.light);
+    expect(capability.cameraWorkloadTier, ReceiptCameraWorkloadTier.light);
+    expect(capability.stitchLimits.maxOutputPixels, 9000000);
   });
 
   test('Android low-RAM declaration always selects the safe tier', () {

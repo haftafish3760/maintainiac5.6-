@@ -7,7 +7,9 @@ extension ReceiptStitchResultLabels on ReceiptStitchResult {
       'stitchOcrHandoffSafetyLabel': ocrHandoffSafetyLabel,
       'stitchOcrHandoffUsesCombinedImage': didStitch,
       'stitchOcrHandoffUsesOrderedSections':
-          usedFallback || status == ReceiptStitchStatus.notNeeded,
+          usedFallback ||
+          status == ReceiptStitchStatus.notNeeded ||
+          status == ReceiptStitchStatus.stacked,
       'stitchOcrHandoffSourceCount': ocrSourcePaths.length,
       'stitchOcrSourceContractCode': ocrSourceContractCode,
       'stitchOcrSourceContractReady': hasValidOcrSourceContract,
@@ -29,6 +31,7 @@ extension ReceiptStitchResultLabels on ReceiptStitchResult {
         usedManualAdjustment
             ? 'Manual overlap accepted'
             : 'Repeated lines matched',
+      ReceiptStitchStatus.stacked => 'Photos kept together without removing rows',
       ReceiptStitchStatus.fallback =>
         'Stitch skipped; order still controls OCR review',
     };
@@ -57,6 +60,8 @@ extension ReceiptStitchResultLabels on ReceiptStitchResult {
             : 'Receipt details open from these receipt sections in order.',
       ReceiptStitchStatus.stitched =>
         'Receipt details open from one combined receipt image.',
+      ReceiptStitchStatus.stacked =>
+        'Receipt details open from these receipt sections in order.',
       ReceiptStitchStatus.fallback =>
         'Receipt details open from each section, top to bottom.',
     };
@@ -69,6 +74,7 @@ extension ReceiptStitchResultLabels on ReceiptStitchResult {
         usedManualAdjustment
             ? 'Manual match accepted'
             : 'Automatic match accepted',
+      ReceiptStitchStatus.stacked => 'Full receipt view ready',
       ReceiptStitchStatus.fallback => 'Stitch not trusted',
     };
   }
@@ -82,6 +88,8 @@ extension ReceiptStitchResultLabels on ReceiptStitchResult {
             : 'Receipt sections ready for review.',
       ReceiptStitchStatus.stitched =>
         'Receipt sections combined for app-assisted review.',
+      ReceiptStitchStatus.stacked =>
+        'Full receipt view ready; original photos stay in order for reading.',
       ReceiptStitchStatus.fallback =>
         'Receipt sections will be reviewed separately.',
     };
@@ -103,6 +111,10 @@ extension ReceiptStitchResultLabels on ReceiptStitchResult {
             '${stitchedSizeLabel.isEmpty ? '' : ' ($stitchedSizeLabel)'}. '
             '${usedManualAdjustment ? 'Manual match was used.' : 'Photo match confidence ${(_safeStitchUnitInterval(confidence) * 100).round()}%.'}'
             '${pairDiagnosticsLabel.isEmpty ? '' : ' $pairDiagnosticsLabel'}',
+      ReceiptStitchStatus.stacked =>
+        warning.trim().isEmpty
+            ? '${inputPaths.length} receipt sections are shown together without removing any rows.'
+            : warning,
       ReceiptStitchStatus.fallback =>
         warning.trim().isEmpty
             ? '${inputPaths.length} receipt sections stayed separate because stitching confidence was too low.'

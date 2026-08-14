@@ -1,19 +1,49 @@
 part of 'expense_receipt_entry_screen.dart';
 
 const _receiptReferenceSurface = Color(0xFF0E1112);
+const _receiptReferencePage = Color(0xFF2A3337);
+const _receiptSetupPanel = Color(0xFF1A2226);
+const _receiptSetupPanelBorder = Color(0xFF445159);
+const _receiptSetupChoiceSurface = Color(0xFF101719);
 const _receiptReferenceBorder = Color(0xFF3D474D);
 const _receiptReferenceText = Color(0xFFF5F7F8);
 const _receiptReferenceMuted = Color(0xFFADB5BA);
 const _receiptReferenceOrange = Color(0xFFFF7D00);
+const _receiptReferenceBlue = Color(0xFF2E78B7);
 const _receiptReferenceGreen = Color(0xFF2B9947);
+
+class _ReceiptSetupSection extends StatelessWidget {
+  const _ReceiptSetupSection({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: _receiptSetupPanel,
+      borderRadius: BorderRadius.circular(8),
+      border: Border.all(color: _receiptSetupPanelBorder, width: 1.25),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x66000000),
+          blurRadius: 6,
+          offset: Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Padding(padding: const EdgeInsets.all(10), child: child),
+  );
+}
 
 class _ReferenceReceiptAppBar extends StatelessWidget {
   const _ReferenceReceiptAppBar({
+    required this.title,
     required this.entryModeLabel,
     required this.onBack,
     required this.onSettings,
   });
 
+  final String title;
   final String entryModeLabel;
   final VoidCallback onBack;
   final VoidCallback onSettings;
@@ -35,8 +65,8 @@ class _ReferenceReceiptAppBar extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
-                  'Add Receipt',
+                Text(
+                  title,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _receiptReferenceText,
@@ -356,56 +386,78 @@ class _ReferenceReceiptClassificationRow extends StatelessWidget {
     required this.onChanged,
   });
 
-  final _ExpenseLineUse selected;
+  final _ExpenseLineUse? selected;
   final ValueChanged<_ExpenseLineUse> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 2, bottom: 8),
-          child: Text(
-            'HOW SHOULD THIS RECEIPT COUNT?',
-            style: TextStyle(
-              color: _receiptReferenceMuted,
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
+    final options = <Widget>[
+      _ReferenceReceiptClassificationButton(
+        label: 'Business',
+        icon: Icons.business_center_outlined,
+        selected: selected == _ExpenseLineUse.business,
+        onTap: () => onChanged(_ExpenseLineUse.business),
+      ),
+      _ReferenceReceiptClassificationButton(
+        label: 'Personal',
+        icon: Icons.person_outline_rounded,
+        selected: selected == _ExpenseLineUse.personal,
+        onTap: () => onChanged(_ExpenseLineUse.personal),
+      ),
+      _ReferenceReceiptClassificationButton(
+        label: 'Split',
+        icon: Icons.call_split_rounded,
+        selected: selected == _ExpenseLineUse.split,
+        onTap: () => onChanged(_ExpenseLineUse.split),
+      ),
+      _ReferenceReceiptClassificationButton(
+        label: 'Not sure yet',
+        icon: Icons.help_outline_rounded,
+        selected: selected == _ExpenseLineUse.unclassified,
+        onTap: () => onChanged(_ExpenseLineUse.unclassified),
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 600) {
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                for (var index = 0; index < options.length; index++) ...[
+                  if (index > 0) const SizedBox(width: 8),
+                  Expanded(child: options[index]),
+                ],
+              ],
             ),
-          ),
-        ),
-        Row(
+          );
+        }
+        return Column(
           children: [
-            Expanded(
-              child: _ReferenceReceiptClassificationButton(
-                label: 'Business',
-                icon: Icons.business_center_outlined,
-                selected: selected == _ExpenseLineUse.business,
-                onTap: () => onChanged(_ExpenseLineUse.business),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: options[0]),
+                  const SizedBox(width: 8),
+                  Expanded(child: options[1]),
+                ],
               ),
             ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: _ReferenceReceiptClassificationButton(
-                label: 'Personal',
-                icon: Icons.person_outline_rounded,
-                selected: selected == _ExpenseLineUse.personal,
-                onTap: () => onChanged(_ExpenseLineUse.personal),
-              ),
-            ),
-            const SizedBox(width: 7),
-            Expanded(
-              child: _ReferenceReceiptClassificationButton(
-                label: 'Split',
-                icon: Icons.call_split_rounded,
-                selected: selected == _ExpenseLineUse.split,
-                onTap: () => onChanged(_ExpenseLineUse.split),
+            const SizedBox(height: 8),
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(child: options[2]),
+                  const SizedBox(width: 8),
+                  Expanded(child: options[3]),
+                ],
               ),
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -420,22 +472,37 @@ class _ReceiptCategoryEntryOptions extends StatelessWidget {
   final ValueChanged<_ReceiptCategoryEntryChoice> onChanged;
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      _ReceiptCategoryEntryOption(
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final mixed = _ReceiptCategoryEntryOption(
         label: 'Mixed items',
-        helper: 'Choose a category separately for each item.',
+        helper: 'Choose a category for each item.',
+        icon: Icons.category_outlined,
         selected: selected == _ReceiptCategoryEntryChoice.mixedItems,
         onTap: () => onChanged(_ReceiptCategoryEntryChoice.mixedItems),
-      ),
-      const SizedBox(height: 8),
-      _ReceiptCategoryEntryOption(
+      );
+      final undecided = _ReceiptCategoryEntryOption(
         label: 'Not sure yet',
-        helper: 'Leave categories open and decide later if you need them.',
+        helper: 'Decide the category later.',
+        icon: Icons.help_outline_rounded,
         selected: selected == _ReceiptCategoryEntryChoice.notSureYet,
         onTap: () => onChanged(_ReceiptCategoryEntryChoice.notSureYet),
-      ),
-    ],
+      );
+      final scaledLabelSize = MediaQuery.textScalerOf(context).scale(15);
+      if (constraints.maxWidth >= 300 && scaledLabelSize <= 21) {
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(child: mixed),
+              const SizedBox(width: 8),
+              Expanded(child: undecided),
+            ],
+          ),
+        );
+      }
+      return Column(children: [mixed, const SizedBox(height: 8), undecided]);
+    },
   );
 }
 
@@ -443,70 +510,74 @@ class _ReceiptCategoryEntryOption extends StatelessWidget {
   const _ReceiptCategoryEntryOption({
     required this.label,
     required this.helper,
+    required this.icon,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
   final String helper;
+  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Material(
-    color: Colors.transparent,
-    child: InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF172126) : _receiptReferenceSurface,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: selected ? _receiptReferenceOrange : _receiptReferenceBorder,
-            width: selected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              color: selected
-                  ? _receiptReferenceOrange
-                  : _receiptReferenceMuted,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: _receiptReferenceText,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    helper,
-                    style: const TextStyle(
-                      color: _receiptReferenceMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      height: 1.25,
-                    ),
-                  ),
-                ],
+  Widget build(BuildContext context) {
+    final color = selected ? _receiptReferenceBlue : _receiptReferenceText;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 72),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: _receiptSetupChoiceSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: selected ? color : _receiptReferenceBorder,
+                width: selected ? 2 : 1,
               ),
             ),
-          ],
+            child: Row(
+              children: [
+                Icon(icon, color: color, size: 24),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        helper,
+                        style: const TextStyle(
+                          color: _receiptReferenceMuted,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          height: 1.25,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _ReferenceReceiptClassificationButton extends StatelessWidget {
@@ -524,32 +595,37 @@ class _ReferenceReceiptClassificationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? _receiptReferenceOrange : _receiptReferenceText;
+    final color = selected ? _receiptReferenceBlue : _receiptReferenceText;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(7),
-        child: Ink(
-          height: 82,
-          decoration: BoxDecoration(
-            color: selected ? const Color(0xFF28190C) : const Color(0xFF15191B),
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(
-              color: selected ? color : _receiptReferenceBorder,
-              width: selected ? 2 : 1,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: color, size: 28),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(color: color, fontWeight: FontWeight.w800),
+        borderRadius: BorderRadius.circular(10),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 72),
+          child: Ink(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: _receiptSetupChoiceSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: selected ? color : _receiptReferenceBorder,
+                width: selected ? 2 : 1,
               ),
-            ],
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 24),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: TextStyle(color: color, fontWeight: FontWeight.w800),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -577,7 +653,7 @@ class _ReferenceReceiptCategoryTile extends StatelessWidget {
         child: Ink(
           padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
           decoration: BoxDecoration(
-            color: _receiptReferenceSurface,
+            color: _receiptSetupChoiceSurface,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(color: _receiptReferenceBorder),
           ),

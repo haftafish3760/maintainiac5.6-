@@ -107,23 +107,26 @@ void main() {
     );
   });
 
-  test('insert-after plan rejects ambiguous or stale receipt section anchors', () {
-    final duplicatePlan = ReceiptPhotoInsertAfterOrderPlan.build(
-      currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'middle.jpg'],
-      anchorIndex: 1,
-      anchorPhotoPath: 'middle.jpg',
-      insertedPhotoPaths: const ['middle-extra.jpg'],
-    );
-    final stalePlan = ReceiptPhotoInsertAfterOrderPlan.build(
-      currentPhotoPaths: const ['top.jpg', 'changed.jpg', 'bottom.jpg'],
-      anchorIndex: 1,
-      anchorPhotoPath: 'middle.jpg',
-      insertedPhotoPaths: const ['middle-extra.jpg'],
-    );
+  test(
+    'insert-after plan rejects ambiguous or stale receipt section anchors',
+    () {
+      final duplicatePlan = ReceiptPhotoInsertAfterOrderPlan.build(
+        currentPhotoPaths: const ['top.jpg', 'middle.jpg', 'middle.jpg'],
+        anchorIndex: 1,
+        anchorPhotoPath: 'middle.jpg',
+        insertedPhotoPaths: const ['middle-extra.jpg'],
+      );
+      final stalePlan = ReceiptPhotoInsertAfterOrderPlan.build(
+        currentPhotoPaths: const ['top.jpg', 'changed.jpg', 'bottom.jpg'],
+        anchorIndex: 1,
+        anchorPhotoPath: 'middle.jpg',
+        insertedPhotoPaths: const ['middle-extra.jpg'],
+      );
 
-    expect(duplicatePlan, isNull);
-    expect(stalePlan, isNull);
-  });
+      expect(duplicatePlan, isNull);
+      expect(stalePlan, isNull);
+    },
+  );
 
   test('remove plan removes the selected receipt section by stable slot', () {
     final plan = ReceiptPhotoRemovalOrderPlan.build(

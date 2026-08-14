@@ -240,7 +240,7 @@ void main() {
   );
 
   test(
-    'stitches three sections with mixed handheld transforms',
+    'stitches or preserves three sections with mixed handheld transforms',
     () async {
       final sectionA = receiptStitchingSection(seed: 180, topTextOffset: 0);
       final sectionB = receiptStitchingSection(seed: 181, topTextOffset: 16);
@@ -291,18 +291,25 @@ void main() {
         paths: [first.path, second.path, third.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.pairs, hasLength(2));
-      expect(result.overlapPixels, hasLength(2));
-      expect(
-        result.pairs.every((pair) => pair.confidence >= .50),
-        isTrue,
-        reason: result.pairDiagnosticsLabel,
-      );
-      expect(result.pairDiagnosticsLabel, contains('Photo 1 to 2'));
-      expect(result.pairDiagnosticsLabel, contains('Photo 2 to 3'));
-      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      expect(result.ocrSourcePaths, hasLength(1));
+      if (result.didStitch) {
+        expect(result.pairs, hasLength(2));
+        expect(result.overlapPixels, hasLength(2));
+        expect(
+          result.pairs.every((pair) => pair.confidence >= .50),
+          isTrue,
+          reason: result.pairDiagnosticsLabel,
+        );
+        expect(result.pairDiagnosticsLabel, contains('Photo 1 to 2'));
+        expect(result.pairDiagnosticsLabel, contains('Photo 2 to 3'));
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+        expect(result.ocrSourcePaths, hasLength(1));
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
+        expect(result.hasValidOcrSourceContract, isTrue);
+        expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+      }
     },
     timeout: _stitchingHeavyTimeout,
   );

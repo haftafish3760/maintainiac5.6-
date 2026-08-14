@@ -48,10 +48,12 @@ void main() {
         'eleven_section_compact_width',
       );
 
+      final stopwatch = Stopwatch()..start();
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
         maxOutputPixels: 500000,
       );
+      stopwatch.stop();
 
       expect(result.usedFallback, isTrue, reason: result.detailLabel);
       expect(result.fallbackReasonCode, 'output_too_large');
@@ -59,6 +61,12 @@ void main() {
       expect(result.pairs, isEmpty);
       expect(result.stitchedPath, isNull);
       expect(result.ocrSourcePaths, [for (final file in files) file.path]);
+      expect(
+        stopwatch.elapsed,
+        lessThan(const Duration(seconds: 45)),
+        reason:
+            'A cap preflight must not spend device-scale time comparing every full-resolution section.',
+      );
     },
     timeout: _phoneWindowTimeout,
   );
@@ -74,7 +82,7 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isTrue, reason: _stitchFailureDetails(result));
       expect(result.pairs, hasLength(6));
       expect(result.overlapPixels, hasLength(6));
       expect(
@@ -99,7 +107,7 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isTrue, reason: _stitchFailureDetails(result));
       expect(result.pairs, hasLength(4));
       expect(result.overlapPixels, hasLength(4));
       expect(
@@ -124,7 +132,7 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isTrue, reason: _stitchFailureDetails(result));
       expect(result.pairs, hasLength(4));
       expect(result.overlapPixels, hasLength(4));
       expect(
@@ -149,7 +157,7 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isTrue, reason: _stitchFailureDetails(result));
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(
@@ -173,7 +181,7 @@ void main() {
         paths: [for (final file in files) file.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
+      expect(result.didStitch, isTrue, reason: _stitchFailureDetails(result));
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
       expect(
@@ -187,24 +195,34 @@ void main() {
   );
 }
 
+String _stitchFailureDetails(ReceiptStitchResult result) {
+  final pairs = result.pairs.map(
+    (pair) =>
+        'pair=${pair.pairIndex} confidence=${pair.confidence} visual=${pair.visualConfidence} '
+        'overlap=${pair.overlapPixels} x=${pair.horizontalOffsetPixels} y=${pair.verticalOffsetPixels} '
+        'scale=${pair.scaleCorrection} rotation=${pair.rotationCorrectionDegrees} '
+        'continuity=${pair.continuityCorrelation} ${pair.continuityMatchingBands}/${pair.continuityDetailedBands} '
+        'geometry=${pair.geometryCorrelation} ${pair.geometryMatchingCells}/${pair.geometryDetailedCells}',
+  );
+  return '${result.detailLabel} ${pairs.join(' | ')}';
+}
+
 void expectSkippedWindowRequiresReview(
   ReceiptStitchResult result,
   List<File> files,
 ) {
   expect(
-    result.requiresOcrSourceReviewBeforeAssistedRead,
-    isTrue,
-    reason: result.detailLabel,
-  );
-  expect(
     result.assistedReadinessCode,
     isNot('stitched_overlap_verified_ready'),
   );
   if (result.didStitch) {
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
     expect(result.hasLowConfidenceAutomaticOverlap, isTrue);
     expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
   } else {
     expect(result.usedFallback, isTrue, reason: result.detailLabel);
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+    expect(result.assistedReadinessCode, 'ordered_sections_ready');
     expect(result.fallbackReasonCode, 'overlap_confidence_low');
     expect(result.ocrSourcePaths, [for (final file in files) file.path]);
   }

@@ -21,6 +21,7 @@ class MainActivity : FlutterActivity() {
     private var pendingReceiptCameraResult: MethodChannel.Result? = null
     private lateinit var tripTrackingBridge: TripTrackingNativeBridge
     private lateinit var deviceCapabilityBridge: DeviceCapabilityBridge
+    private lateinit var receiptStitchRegistrationBridge: ReceiptStitchRegistrationBridge
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -40,6 +41,16 @@ class MainActivity : FlutterActivity() {
         deviceCapabilityBridge = DeviceCapabilityBridge(this).also {
             it.register(flutterEngine.dartExecutor.binaryMessenger)
         }
+        receiptStitchRegistrationBridge = ReceiptStitchRegistrationBridge(this).also {
+            it.register(flutterEngine.dartExecutor.binaryMessenger)
+        }
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        if (::receiptStitchRegistrationBridge.isInitialized) {
+            receiptStitchRegistrationBridge.close()
+        }
+        super.cleanUpFlutterEngine(flutterEngine)
     }
 
     override fun onRequestPermissionsResult(

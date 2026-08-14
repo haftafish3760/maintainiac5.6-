@@ -46,17 +46,9 @@ void main() {
     expect(cropAndProofControls, contains('Use Clear Photo'));
     expect(cropAndProofControls, contains('Save Small Copy'));
     expect(controls, contains('selectedReviewGuidance'));
-    expect(controls, contains('selectedReviewAction'));
-    expect(controls, contains('String get multiPhotoMatchStatusCopy'));
-    expect(controls, contains('Putting your receipt photos together.'));
-    expect(
-      controls,
-      contains(
-        'Continue when these receipt sections are in top-to-bottom order.',
-      ),
-    );
-    expect(controls, contains('Your receipt is ready as one combined image.'));
-    expect(controls, contains('top-to-bottom order'));
+    expect(controls, isNot(contains('selectedReviewAction')));
+    expect(controls, isNot(contains('String get multiPhotoMatchStatusCopy')));
+    expect(controls, isNot(contains('Check the order, then continue.')));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));
     expect(models, isNot(contains("readIntoForm('Read into form')")));
@@ -92,7 +84,7 @@ void main() {
     );
     expect(
       sectionLabels,
-      contains('Confirm the bottom section, then continue.'),
+      contains('Continue when the sections are in the right order.'),
     );
   });
 
@@ -118,6 +110,9 @@ void main() {
     final cropControls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_crop_controls.dart',
     ).readAsString();
+    final editActions = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_image_edit_actions.dart',
+    ).readAsString();
 
     expect(cropper, contains('static const _hitSize = 56.0'));
     expect(cropper, contains('static const _edgeVisibleSize = 8.0'));
@@ -127,24 +122,21 @@ void main() {
     expect(cropper, contains('.clamp(1.0, 3.0)'));
     expect(cropper, contains('details.delta.dx / viewportScale'));
     expect(cropper, contains('details.delta.dy / viewportScale'));
-    expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
+    expect(cropControls, contains('class _ReceiptStraightenSlider'));
+    expect(cropControls, contains('receipt-review-straighten-slider'));
+    expect(cropControls, contains('The crop frame stays fixed.'));
+    expect(cropControls, isNot(contains('Move Left')));
+    expect(cropControls, isNot(contains('Move Right')));
+    expect(controls, isNot(contains('editedPhotoCopyForSelectedPhoto')));
     expect(
-      cropControls,
-      contains(
-        'Drag the yellow edges until the full receipt is inside the frame.',
-      ),
+      editActions,
+      contains("updatedDiagnostics['userEditedPhoto'] = true"),
     );
-    expect(
-      cropControls,
-      contains('label: Text(cropProcessing ? \'Cropping\' : \'Apply Crop\')'),
-    );
-    expect(controls, contains('String get editedPhotoCopyForSelectedPhoto'));
-    expect(controls, contains("diagnostics['userEditedPhoto'] != true"));
-    expect(controls, contains("'manual_crop' => 'Crop edit'"));
-    expect(controls, contains("'manual_rotate' => 'Rotation edit'"));
+    expect(editActions, contains("editAction: 'manual_crop'"));
+    expect(editActions, contains("editAction: 'manual_rotate'"));
     expect(
       controls,
-      contains('This edited copy is the one Maintainiac will read.'),
+      isNot(contains('This edited copy is the one Maintainiac will read.')),
     );
   });
 }

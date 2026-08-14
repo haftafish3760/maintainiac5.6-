@@ -16,6 +16,9 @@ void main() {
     final capture = File(
       'lib/shared/widgets/receipt_capture/receipt_attachment_panel_controller.dart',
     ).readAsStringSync();
+    final manualProof = File(
+      'lib/screens/expenses/entry/expense_receipt_entry_manual_proof.dart',
+    ).readAsStringSync();
     final captureSettings = File(
       'lib/shared/widgets/receipt_capture/receipt_capture_settings_sheet.dart',
     ).readAsStringSync();
@@ -32,30 +35,37 @@ void main() {
     final contextActions = flow.indexOf('_ReferenceReceiptContextRow(');
     final dateTime = flow.indexOf('_ManualReceiptDateTimeStrip(');
     final storeAction = flow.indexOf("label: 'Store information'");
-    final attachment = flow.indexOf(
-      "label: attachmentCount == 0 ? 'Add receipt photo' : 'Receipt photos'",
-    );
 
     expect(contextActions, greaterThanOrEqualTo(0));
     expect(dateTime, greaterThan(contextActions));
     expect(storeAction, greaterThan(dateTime));
-    expect(attachment, greaterThan(storeAction));
     expect(flow, contains('_ManualReceiptStoreBinding('));
     expect(flow, isNot(contains('Add any details you have.')));
     expect(flow, contains('onSettings: () => unawaited('));
     expect(
       flow,
-      contains(
-        'screenContext:\n'
-        '                      _ManualReceiptStep.details.settingsScreenContext',
-      ),
+      contains('screenContext: _manualReceiptStep.settingsScreenContext'),
     );
     expect(flow, contains("title: 'Receipt Details Settings'"));
-    expect(flow, isNot(contains('Receipt proof')));
+    expect(flow, contains("label: 'Add image of your receipt'"));
+    expect(
+      flow.indexOf("label: 'Add image of your receipt'"),
+      greaterThan(storeAction),
+    );
+    expect(flow, isNot(contains("label: 'Receipt proof'")));
+    expect(
+      manualProof,
+      contains('ReceiptImportEntryIntent.optionalManualProof'),
+    );
+    expect(
+      manualProof,
+      contains('Optional. Take a photo or choose an image, PDF, or text'),
+    );
     expect(flow, isNot(contains("_receiptAttachments.isEmpty) {")));
     expect(save, contains('!_usesRebuiltManualDetailedReceiptFlow'));
     expect(store, contains('this.storeRequired = false'));
     expect(capture, contains('openSettings'));
+    expect(capture, contains('optionalManualProof'));
     expect(capture, contains('ReceiptSettingsScreenContext'));
     expect(captureSettings, contains('screenContext?.title'));
     expect(captureSettings, contains('screenContext?.subtitle'));
@@ -63,7 +73,7 @@ void main() {
     expect(captureSettings, contains('screenContext?.workflowNote'));
     expect(flow, contains('_ReferenceReceiptContextRow('));
     expect(dateTimeSource, contains("label: 'DATE'"));
-    expect(dateTimeSource, contains("label: 'TIME · OPTIONAL'"));
+    expect(dateTimeSource, contains("label: 'TIME (OPTIONAL)'"));
     expect(dateTimeSource, contains('return Row('));
     expect(storeSheet, contains('MediaQuery.paddingOf(context).bottom'));
     expect(storeSheet, contains('backgroundColor: const Color(0xFFC62828)'));

@@ -24,7 +24,7 @@ void main() {
         result.didStitch,
         isTrue,
         reason:
-            '${result.detailLabel} ${result.pairs.map((pair) => '${pair.summaryLabel} continuity=${pair.continuityCorrelation.toStringAsFixed(2)} bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands}').join(' | ')}',
+            '${result.detailLabel} ${result.pairs.map((pair) => '${pair.summaryLabel} visual=${pair.visualConfidence.toStringAsFixed(2)} geometry=${pair.geometryCorrelation.toStringAsFixed(2)} cells=${pair.geometryMatchingCells}/${pair.geometryDetailedCells} continuity=${pair.continuityCorrelation.toStringAsFixed(2)} bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands} x=${pair.horizontalOffsetPixels} y=${pair.verticalOffsetPixels} scale=${pair.scaleCorrection.toStringAsFixed(3)} rotation=${pair.rotationCorrectionDegrees.toStringAsFixed(2)} text=${pair.textOverlapConfidence.toStringAsFixed(2)} position=${pair.textPositionalConfidence.toStringAsFixed(2)}').join(' | ')}',
       );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
@@ -49,14 +49,14 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
-        textEvidence: _uploadedTextEvidence(files),
+        textEvidence: _uploadedTextEvidence(files, darkMode: true),
       );
 
       expect(
         result.didStitch,
         isTrue,
         reason:
-            '${result.detailLabel} ${result.pairs.map((pair) => '${pair.summaryLabel} continuity=${pair.continuityCorrelation.toStringAsFixed(2)} bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands}').join(' | ')}',
+            '${result.detailLabel} ${result.pairs.map((pair) => '${pair.summaryLabel} overlap=${pair.overlapPixels} seam=${pair.selectedSeamCropPixels} visual=${pair.visualConfidence.toStringAsFixed(2)} geometry=${pair.geometryCorrelation.toStringAsFixed(2)} cells=${pair.geometryMatchingCells}/${pair.geometryDetailedCells} continuity=${pair.continuityCorrelation.toStringAsFixed(2)} bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands} x=${pair.horizontalOffsetPixels} y=${pair.verticalOffsetPixels} scale=${pair.scaleCorrection.toStringAsFixed(3)} rotation=${pair.rotationCorrectionDegrees.toStringAsFixed(2)} text=${pair.textOverlapConfidence.toStringAsFixed(2)} position=${pair.textPositionalConfidence.toStringAsFixed(2)}').join(' | ')}',
       );
       expect(result.pairs, hasLength(3));
       expect(result.overlapPixels, hasLength(3));
@@ -76,16 +76,78 @@ void main() {
   );
 }
 
-List<ReceiptStitchTextEvidence> _uploadedTextEvidence(List<File> files) {
+List<ReceiptStitchTextEvidence> _uploadedTextEvidence(
+  List<File> files, {
+  bool darkMode = false,
+}) {
   const lines = [
-    ['ITEM 100 ALPHA 1.25', 'ITEM 101 BETA 2.50', 'ITEM 102 GAMMA 3.75'],
-    ['ITEM 101 BETA 2.50', 'ITEM 102 GAMMA 3.75', 'ITEM 103 DELTA 4.20'],
-    ['ITEM 102 GAMMA 3.75', 'ITEM 103 DELTA 4.20', 'ITEM 104 EPSILON 5.10'],
-    ['ITEM 103 DELTA 4.20', 'ITEM 104 EPSILON 5.10', 'TOTAL 16.80'],
+    [
+      'ITEM 100 ALPHA 1.25',
+      'ITEM 101 BETA 2.50',
+      'ITEM 102 GAMMA 3.75',
+      'ITEM 103 DELTA 4.20',
+    ],
+    [
+      'ITEM 102 GAMMA 3.75',
+      'ITEM 103 DELTA 4.20',
+      'ITEM 104 EPSILON 5.10',
+      'ITEM 105 ZETA 6.20',
+    ],
+    [
+      'ITEM 104 EPSILON 5.10',
+      'ITEM 105 ZETA 6.20',
+      'ITEM 106 ETA 7.30',
+      'ITEM 107 THETA 8.40',
+    ],
+    [
+      'ITEM 106 ETA 7.30',
+      'ITEM 107 THETA 8.40',
+      'ITEM 108 IOTA 9.50',
+      'TOTAL 45.70',
+    ],
   ];
   return [
     for (var index = 0; index < files.length; index++)
-      ReceiptStitchTextEvidence(path: files[index].path, lines: lines[index]),
+      ReceiptStitchTextEvidence(
+        path: files[index].path,
+        lines: lines[index],
+        positionedLines: _uploadedPositionedLines(
+          lines[index],
+          index: index,
+          darkMode: darkMode,
+        ),
+      ),
+  ];
+}
+
+List<ReceiptStitchTextLineEvidence> _uploadedPositionedLines(
+  List<String> lines, {
+  required int index,
+  required bool darkMode,
+}) {
+  final left = darkMode ? (index.isEven ? 116 : 88) : (index.isEven ? 86 : 72);
+  final top = darkMode ? (index.isEven ? 132 : 108) : (index.isEven ? 118 : 96);
+  const receiptWidth = 900.0;
+  const receiptHeight = 1500.0;
+  const screenshotWidth = 1080.0;
+  const screenshotHeight = 1840.0;
+  // Adjacent 1500 px receipt windows advance 1090 px, leaving a 410 px
+  // (27.3%) overlap. The shared tail lines therefore reappear near the head
+  // of the next screenshot at the same document coordinates.
+  const centers = [.08, .18, .807, .907];
+  return [
+    for (var lineIndex = 0; lineIndex < lines.length; lineIndex++)
+      ReceiptStitchTextLineEvidence(
+        text: lines[lineIndex],
+        left: (left + receiptWidth * .12) / screenshotWidth,
+        top:
+            (top + receiptHeight * (centers[lineIndex] - .018)) /
+            screenshotHeight,
+        right: (left + receiptWidth * .88) / screenshotWidth,
+        bottom:
+            (top + receiptHeight * (centers[lineIndex] + .018)) /
+            screenshotHeight,
+      ),
   ];
 }
 

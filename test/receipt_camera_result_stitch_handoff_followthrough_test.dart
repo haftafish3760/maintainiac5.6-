@@ -124,7 +124,7 @@ void main() {
     },
   );
 
-  test('unsafe manual overlap fallback stays blocked for receipt assist', () {
+  test('unsafe manual overlap rejects the join but preserves OCR sources', () {
     final result = ReceiptPhotoReviewResult(
       photoPaths: const ['/tmp/top-proof.jpg', '/tmp/bottom-proof.jpg'],
       ocrSourcePhotoPaths: const ['/tmp/top-ocr.jpg', '/tmp/bottom-ocr.jpg'],
@@ -139,20 +139,20 @@ void main() {
 
     expect(
       result.receiptPhotoReviewHandoffPath,
-      'accepted_stitch_ocr_source_review_required',
+      'accepted_ordered_sections_fallback',
     );
     expect(result.nextReviewUsesOrderedSections, isTrue);
     expect(
       result.nextReviewMatchReadinessOutcome,
-      'ocr_source_review_required_before_assist',
+      'ordered_sections_fallback_ready',
     );
     expect(
       result.nextReviewMatchReadinessLabel,
-      'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
+      'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 1 to 2 needs review.',
     );
     expect(
       result.stitchResult.assistedReadinessCode,
-      'ordered_sections_stitch_fallback_review_required',
+      'ordered_sections_ready',
     );
     expect(
       result.stitchResult.ocrHandoffSafetyCode,
@@ -171,7 +171,7 @@ void main() {
     );
     expect(
       result.privacySafeReceiptReaderHandoffMetadata,
-      containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', true),
+      containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', false),
     );
 
     final attachments = ReceiptCaptureFlow.attachmentsFromReviewResult(

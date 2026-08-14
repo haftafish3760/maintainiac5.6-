@@ -1,12 +1,6 @@
 part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
-  void _requestStitchPreview() {
-    if (!_reviewInteractiveControlsActive || _photoPaths.length <= 1) return;
-    _updateReviewState(() => _stitchPreviewRequested = true);
-    unawaited(_ensureStitchPreview(force: true));
-  }
-
   Future<void> continueReceiptPhotoReview() async {
     if (_savingPhotos || _closingReview) return;
     if (_photoPaths.isEmpty) return;
@@ -15,63 +9,50 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         !_reviewWorkActive) {
       return;
     }
-    if (_reviewMode != _ReceiptReviewMode.dataSaver &&
-        _needsStitchReviewBeforeSave) {
-      if (_reviewMode != _ReceiptReviewMode.stitch) {
-        _setReviewMode(_ReceiptReviewMode.stitch);
-        _requestStitchPreview();
-        return;
-      }
-      if (_stitchPreviewResult == null) {
-        await _ensureStitchPreview(force: true);
-        return;
-      }
-      if (_stitchPreviewInFlight && _stitchPreviewResult == null) {
-        _showCameraError(
-          'Your receipt photos are still being combined. This can take a moment.',
-        );
-        return;
-      }
-      final stitchPreview = _stitchPreviewResult;
-      if (stitchPreview != null &&
-          (stitchPreview.fallbackReasonCode == 'duplicate_section_image' ||
-              stitchPreview.fallbackReasonCode == 'duplicate_input_paths')) {
-        final duplicateIndex = ((stitchPreview.failedPairIndex ?? 0) + 1).clamp(
-          0,
-          _photoPaths.length - 1,
-        );
-        _updateReviewState(() {
-          _selectedIndex = duplicateIndex;
-          _reviewMode = _ReceiptReviewMode.order;
-        });
-        _showCameraError(
-          'These photos appear identical. Remove or replace the highlighted duplicate before continuing.',
-        );
-        return;
-      }
-    }
+    final nextStep = receiptPhotoPipelineNextStep(
+      sourcePhotoCount: _photoPaths.length,
+      reviewingSavedImage: _reviewMode == _ReceiptReviewMode.dataSaver,
+      reviewingLongReceipt: _reviewMode == _ReceiptReviewMode.stitch,
+      stitchResult: _stitchPreviewResult,
+    );
     // Every receipt gets a visible saved-image choice.  Lighting, faded ink,
     // and fine print differ from one receipt to the next, so a remembered
     // size is only the starting selection—not permission to skip its preview.
     if (!mounted || _reviewDisposed || _closingReview) return;
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (_reviewMode != _ReceiptReviewMode.dataSaver) {
+    if (nextStep == ReceiptPhotoPipelineNextStep.reviewLongReceipt) {
+      _setReviewMode(_ReceiptReviewMode.stitch);
+      return;
+    }
+    if (nextStep == ReceiptPhotoPipelineNextStep.reviewSavedImage) {
       _updateReviewState(() {
         _reviewMode = _ReceiptReviewMode.dataSaver;
         _dataSaverOptionsVisible = true;
       });
       return;
     }
-    if (_reviewMode == _ReceiptReviewMode.dataSaver && settings != null) {
+    if (nextStep == ReceiptPhotoPipelineNextStep.finalizeReceiptImage &&
+        settings != null) {
+      // Move to a dedicated, visible progress surface before any storage or
+      // image work starts. A tap on Continue must never look like a dead UI.
+      _updateReviewState(() => _savingPhotos = true);
       // Retain the last choice as a convenient starting point for the next
       // preview; it never suppresses the next saved-image step.
       await settings.setDefaultDataSaverLevel(_dataSaverLevel);
       if (!_reviewWorkActive || _closingReview) return;
     }
-    _updateReviewState(() => _savingPhotos = true);
+    if (!_savingPhotos) _updateReviewState(() => _savingPhotos = true);
     final pathsToSave = widget.bestShotCandidateMode
         ? [_photoPaths[_selectedIndex]]
         : List<String>.of(_photoPaths);
+    final preparationStopwatch = Stopwatch()..start();
+    traceReceiptPipelineStage(
+      'receipt_photo_preparation_started',
+      traceId: _receiptStitchTraceId,
+      sourceCount: pathsToSave.length,
+      deviceTier: _deviceCapability.tier.name,
+      destination: 'editable_receipt_review',
+    );
     final generatedPrepArtifacts = <String>{};
     try {
       final storage = await ReceiptStorageGuard.check(
@@ -97,15 +78,15 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       final savedQualityChecks = <String, ReceiptPhotoQualityCheck>{};
       final preparationDiagnostics = <String, Map<String, Object?>>{};
       final captureDiagnostics = <String, Map<String, Object?>>{};
-      for (final path in pathsToSave) {
-        final cleanupSettings = ReceiptImageCleanupSettings.fromDiagnostics(
-          _captureDiagnosticsByPath[path],
-        );
-        final prepared = await ReceiptImageProcessor.prepareForOcrAndBackup(
-          path: path,
-          level: _dataSaverLevel,
-          cleanupSettings: cleanupSettings,
-        ).timeout(const Duration(seconds: 20));
+      final receiptImagePathsToPrepare = _receiptImagePathsForAcceptedSave(
+        pathsToSave,
+      );
+      final preparedImages = await _prepareAcceptedReceiptImages(
+        receiptImagePathsToPrepare,
+      );
+      for (var index = 0; index < receiptImagePathsToPrepare.length; index++) {
+        final path = receiptImagePathsToPrepare[index];
+        final prepared = preparedImages[index];
         if (!_reviewWorkActive || _closingReview) {
           _stopReceiptReviewSave();
           unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
@@ -131,6 +112,14 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         preparedOcrPaths: ocrSourcePaths,
       );
       final stitch = await stitchFuture;
+      traceReceiptPipelineStage(
+        'receipt_photo_preparation_ready_for_review',
+        traceId: _receiptStitchTraceId,
+        elapsedMs: preparationStopwatch.elapsedMilliseconds,
+        sourceCount: pathsToSave.length,
+        deviceTier: _deviceCapability.tier.name,
+        destination: stitch.ocrSourceContractCode,
+      );
       final finalPreparationDiagnostics =
           _preparationDiagnosticsForFinalOcrSources(
             stitch: stitch,
@@ -166,6 +155,14 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
         if (stitch.stitchedPath != null) stitch.stitchedPath!,
       });
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
+      traceReceiptPipelineStage(
+        'receipt_photo_review_result_ready',
+        traceId: _receiptStitchTraceId,
+        elapsedMs: preparationStopwatch.elapsedMilliseconds,
+        sourceCount: pathsToSave.length,
+        deviceTier: _deviceCapability.tier.name,
+        destination: 'close_photo_review',
+      );
       await finishReceiptReview(
         ReceiptPhotoReviewResult(
           photoPaths: savedPaths,
@@ -180,6 +177,14 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       );
     } on TimeoutException {
       if (!_reviewWorkActive || _closingReview) return;
+      traceReceiptPipelineStage(
+        'receipt_photo_preparation_timeout',
+        traceId: _receiptStitchTraceId,
+        elapsedMs: preparationStopwatch.elapsedMilliseconds,
+        sourceCount: pathsToSave.length,
+        deviceTier: _deviceCapability.tier.name,
+        destination: 'return_to_photo_review',
+      );
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       _updateReviewState(() => _savingPhotos = false);
       _showCameraError(
@@ -187,6 +192,14 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
       );
     } catch (_) {
       if (!_reviewWorkActive) return;
+      traceReceiptPipelineStage(
+        'receipt_photo_preparation_failed',
+        traceId: _receiptStitchTraceId,
+        elapsedMs: preparationStopwatch.elapsedMilliseconds,
+        sourceCount: pathsToSave.length,
+        deviceTier: _deviceCapability.tier.name,
+        destination: 'return_to_photo_review',
+      );
       unawaited(_cleanupFailedReceiptPrepArtifacts(generatedPrepArtifacts));
       _updateReviewState(() => _savingPhotos = false);
       _showCameraError(
@@ -198,5 +211,64 @@ extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
   void _stopReceiptReviewSave() {
     if (!_reviewWorkActive) return;
     _updateReviewState(() => _savingPhotos = false);
+  }
+
+  Future<List<ReceiptPreparedImage>> _prepareAcceptedReceiptImages(
+    List<String> paths,
+  ) async {
+    if (paths.isEmpty) return const [];
+    // Scanner cleanup is CPU-heavy. Running it on the UI isolate made the
+    // progress screen appear frozen, while preparing every section serially
+    // made a two-photo receipt inherit two separate 20-second waits. A low
+    // capability device stays sequential; standard and flagship devices use
+    // two bounded workers and retain the input order through Future.wait.
+    final concurrentWorkers =
+        _deviceCapability.tier == ReceiptCapabilityTier.light ? 1 : 2;
+    final dataSaverLevel = _dataSaverLevel;
+    final prepared = <ReceiptPreparedImage>[];
+    for (var start = 0; start < paths.length; start += concurrentWorkers) {
+      final end = math.min(start + concurrentWorkers, paths.length);
+      var retainBatchResults = true;
+      final completedArtifacts = <String>{};
+      final tasks = <Future<ReceiptPreparedImage>>[];
+      for (var index = start; index < end; index++) {
+        final path = paths[index];
+        final cleanupSettings = ReceiptImageCleanupSettings.fromDiagnostics(
+          _captureDiagnosticsByPath[path],
+        );
+        final task = Isolate.run(
+          () => ReceiptImageProcessor.prepareForOcrAndBackup(
+            path: path,
+            level: dataSaverLevel,
+            cleanupSettings: cleanupSettings,
+          ),
+        );
+        unawaited(
+          task.then((result) async {
+            final artifacts = {result.backupPath, result.ocrSourcePath};
+            if (retainBatchResults) {
+              completedArtifacts.addAll(artifacts);
+              return;
+            }
+            await const ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles(
+              artifacts,
+              keptPaths: paths,
+            );
+          }, onError: (_) {}),
+        );
+        tasks.add(task.timeout(const Duration(seconds: 20)));
+      }
+      try {
+        prepared.addAll(await Future.wait(tasks));
+      } catch (_) {
+        retainBatchResults = false;
+        await const ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles(
+          completedArtifacts,
+          keptPaths: paths,
+        );
+        rethrow;
+      }
+    }
+    return prepared;
   }
 }

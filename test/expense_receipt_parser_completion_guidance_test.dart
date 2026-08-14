@@ -13,11 +13,13 @@ PAINTERS TAPE 5.99
     expect(parsed.merchantName, "Lowe's");
     expect(parsed.lines, hasLength(2));
     expect(parsed.enteredSubtotal, isNull);
-    expect(parsed.enteredTotal, isNull);
+    expect(parsed.enteredTotal, 13.98);
+    expect(parsed.totalCalculatedFromVisibleLines, isTrue);
+    expect(parsed.diagnostics.hasExplicitTotal, isFalse);
     expect(
       parsed.warnings,
       contains(
-        'Subtotal and total were not found. If this is a long receipt, add the lower receipt section before saving; otherwise enter the total manually.',
+        'The printed total was not found. A working total was calculated from the visible items. If the receipt continues, add the lower section before saving.',
       ),
     );
     expect(
@@ -33,6 +35,12 @@ PAINTERS TAPE 5.99
     expect(
       parsed.diagnostics.parserTaskCount(
         'receipt_possible_lower_section_missing',
+      ),
+      1,
+    );
+    expect(
+      parsed.diagnostics.parserTaskCount(
+        'receipt_visible_lines_total_calculated_review',
       ),
       1,
     );
@@ -94,18 +102,19 @@ VISIT COUNTYLINE.EXAMPLE
 
     expect(parsed.lines, hasLength(2));
     expect(parsed.enteredSubtotal, isNull);
-    expect(parsed.enteredTotal, isNull);
+    expect(parsed.enteredTotal, 14.96);
+    expect(parsed.totalCalculatedFromVisibleLines, isTrue);
     expect(
       parsed.warnings,
       contains(
-        'Receipt footer was found, but subtotal and total were not. Review OCR/crop or enter the total manually before saving.',
+        'The printed total was not found. A working total was calculated from the visible items; check it before saving.',
       ),
     );
     expect(
       parsed.warnings,
       isNot(
         contains(
-          'Subtotal and total were not found. If this is a long receipt, add the lower receipt section before saving; otherwise enter the total manually.',
+          'The printed total was not found. A working total was calculated from the visible items. If the receipt continues, add the lower section before saving.',
         ),
       ),
     );
@@ -219,7 +228,7 @@ TAX 1.12
     expect(
       parsed.warnings,
       contains(
-        'Final receipt total was not found. Check the lower receipt section or confirm the inferred total before saving.',
+        'The final printed total was not found. Check the working total, and add the lower section if the receipt continues.',
       ),
     );
     expect(
@@ -261,5 +270,21 @@ TAX 1.12
       ),
       1,
     );
+  });
+
+  test('keeps repeated visible items when calculating a working total', () {
+    final parsed = parseExpenseReceiptText('''
+LOCAL HARDWARE
+06/20/2026
+HALF INCH ELBOW 1.25
+HALF INCH ELBOW 1.25
+HALF INCH ELBOW 1.25
+''');
+
+    expect(parsed.lines, hasLength(3));
+    expect(parsed.enteredTotal, 3.75);
+    expect(parsed.totalCalculatedFromVisibleLines, isTrue);
+    expect(parsed.diagnostics.hasExplicitTotal, isFalse);
+    expect(parsed.quality.needsReview, isTrue);
   });
 }

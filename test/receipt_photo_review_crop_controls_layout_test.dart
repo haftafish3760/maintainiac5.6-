@@ -45,33 +45,29 @@ void main() {
       editActions,
       contains('suggestReceiptCropNormalizedForDecodedImage'),
     );
-    expect(
-      editActions,
-      contains("['autoCropSuggestionEnabled'] !=\n        false"),
-    );
+    expect(editActions, contains("['autoCropSuggestionEnabled']"));
     expect(
       surfaces,
       contains('suggestedNormalizedCrop: _suggestedCropNormalized'),
     );
-    expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
+    expect(cropControls, contains('class _ReceiptStraightenSlider'));
+    expect(cropper, isNot(contains('Move receipt within crop window')));
+    expect(cropControls, contains('The crop frame stays fixed.'));
+    expect(topBar, contains('Crop and straighten receipt'));
     expect(
       cropControls,
-      contains(
-        'Drag the yellow edges until the full receipt is inside the frame.',
-      ),
+      contains("label: Text(cropProcessing ? 'Working' : 'Apply')"),
     );
-    expect(topBar, contains('Crop receipt — drag the yellow edges'));
+    expect(controls, isNot(contains('editedPhotoCopyForSelectedPhoto')));
     expect(
-      cropControls,
-      contains('label: Text(cropProcessing ? \'Cropping\' : \'Apply Crop\')'),
+      editActions,
+      contains("updatedDiagnostics['userEditedPhoto'] = true"),
     );
-    expect(controls, contains('String get editedPhotoCopyForSelectedPhoto'));
-    expect(controls, contains("diagnostics['userEditedPhoto'] != true"));
-    expect(controls, contains("'manual_crop' => 'Crop edit'"));
-    expect(controls, contains("'manual_rotate' => 'Rotation edit'"));
+    expect(editActions, contains("editAction: 'manual_crop'"));
+    expect(editActions, contains("editAction: 'manual_rotate'"));
     expect(
       controls,
-      contains('This edited copy is the one Maintainiac will read.'),
+      isNot(contains('This edited copy is the one Maintainiac will read.')),
     );
   });
 }

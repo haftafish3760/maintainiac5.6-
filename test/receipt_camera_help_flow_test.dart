@@ -211,15 +211,14 @@ void main() {
     );
     expect(
       reviewPreviewActionTray,
-      contains('receipt sections are saved locally.'),
+      contains('Check the order, then continue.'),
     );
-    expect(reviewPreviewActionTray, contains('Use this receipt'));
     expect(
       reviewPreviewActionTray,
-      contains('Your receipt is ready as one combined image.'),
+      contains('Add the bottom section if this receipt continues.'),
     );
     expect(sectionLabels, contains(r'Section ${index + 1} of $total'));
-    expect(reviewPreviewControls, contains("label: 'Check Photo Order'"));
+    expect(modeControls, contains("'Check Photo Order'"));
     expect(contextControls, contains('Saved image'));
     expect(
       contextControls,
@@ -234,11 +233,14 @@ void main() {
     );
     expect(reviewScreen, contains('Widget _buildReviewBottomControls'));
     expect(reviewScreen, contains('return controls;'));
-    expect(reviewScreen, contains('if (!didPop) handleReceiptReviewBack();'));
-    expect(reviewActions, contains('final navigator = Navigator.of(context);'));
+    expect(
+      reviewScreen,
+      contains('if (!didPop && !_closingReview) handleReceiptReviewBack();'),
+    );
+    expect(reviewActions, contains('Navigator.of(context).pop(result);'));
     expect(reviewActions, contains('ReceiptPhotoReviewResult.keptForLater'));
     expect(reviewActions, contains('ReceiptPhotoReviewResult.discardedByUser'));
-    expect(reviewActions, contains('navigator.pop(reviewResult);'));
+    expect(reviewActions, contains('await finishReceiptReview(reviewResult);'));
     expect(
       reviewActions,
       isNot(contains('Future<void> _cleanupAbandonedReceiptReview()')),
@@ -258,7 +260,7 @@ void main() {
     expect(dataSaverPanel, contains("label: 'Receipt assistance'"));
     expect(dataSaverPanel, contains("value: 'Uses clear photo first'"));
     expect(dataSaverPanel, contains('Capture source size'));
-    expect(dataSaverPanel, isNot(contains('Original photo')));
+    expect(dataSaverPanel, contains('ReceiptDataSaverLevel.original'));
     expect(dataSaverPanel, contains('Image kept after reading'));
     expect(
       dataSaverPanel,
@@ -273,7 +275,7 @@ void main() {
     expect(dataSaverPanel, isNot(contains('Cloud backup copy')));
     expect(dataSaverPanel, isNot(contains('Saved copy')));
     expect(reviewControls, contains('_ReceiptPreviewActionTray'));
-    expect(reviewPreviewControls, contains("message: 'Crop receipt photo'"));
+    expect(reviewPreviewControls, contains("semanticLabel: 'Crop receipt photo'"));
     expect(reviewControls, contains('Scrollbar('));
     expect(reviewControls, contains('SingleChildScrollView('));
     expect(reviewControls, isNot(contains('_ReceiptPreviewStatusPill')));

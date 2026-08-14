@@ -6,6 +6,13 @@ Future<ReceiptCaptureFlowResult> _captureAndReview(
   required ReceiptCaptureFlowOptions options,
 }) async {
   final settings = ReceiptCaptureSettingsScope.maybeOf(context);
+  // Read the phone's current conditions immediately before opening the
+  // camera. A flagship under memory, heat, or storage pressure must choose
+  // the same safe receipt workload as a modest phone.
+  if (settings != null) {
+    await settings.refreshDeviceCapability();
+    if (!context.mounted) return ReceiptCaptureFlowResult.canceled();
+  }
   final permission = await const ReceiptCameraPermission().ensureReady();
   if (!context.mounted) return ReceiptCaptureFlowResult.canceled();
   if (!permission.canUseCamera) {

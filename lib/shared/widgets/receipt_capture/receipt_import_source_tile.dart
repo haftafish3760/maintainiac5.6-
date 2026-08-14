@@ -1,9 +1,10 @@
 part of 'receipt_attachment_panel.dart';
 
 class _ReceiptImportTile extends StatelessWidget {
-  const _ReceiptImportTile({required this.source});
+  const _ReceiptImportTile({required this.source, required this.onSelected});
 
   final _ReceiptImportSource source;
+  final VoidCallback onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +13,7 @@ class _ReceiptImportTile extends StatelessWidget {
       label: source.label,
       hint: source.detail,
       child: InkWell(
-        onTap: () => Navigator.of(context).pop(source.action),
+        onTap: onSelected,
         borderRadius: BorderRadius.circular(8),
         child: Ink(
           decoration: BoxDecoration(

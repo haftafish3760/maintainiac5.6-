@@ -128,11 +128,11 @@ void main() {
     );
     expect(
       attachment.riskFlags,
-      contains('ocr_source_small_proof_copy_review_required'),
+      isNot(contains('ocr_source_small_proof_copy_review_required')),
     );
     expect(
       attachment.riskFlags,
-      contains('ocr_source_proof_data_saver_strong'),
+      isNot(contains('ocr_source_proof_data_saver_strong')),
     );
     expect(
       attachment.riskFlags,

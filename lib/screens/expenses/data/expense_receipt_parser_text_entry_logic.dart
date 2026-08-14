@@ -4,7 +4,7 @@ ExpenseReceiptParseResult parseExpenseReceiptText(
   String sourceText, {
   DateTime? fallbackDate,
   ReceiptParserLearningMemory? materialCatalogMemory,
-  ReceiptParserDepth parserDepth = ReceiptParserDepth.inventoryMatching,
+  ReceiptParserDepth parserDepth = ReceiptParserDepth.lineItems,
   int maxCatalogCandidates = 80,
   String? targetCategory,
 }) {
@@ -50,6 +50,10 @@ ExpenseReceiptParseResult parseExpenseReceiptText(
           maxCatalogCandidates,
         );
   final lineRows = parsedLines.map((line) => line.record).toList();
+  final reviewTotal = _receiptReviewTotalFromAvailableEvidence(
+    totals: totals,
+    lines: lineRows,
+  );
   final duplicateLinePairs = _adjacentDuplicateParsedLinePairs(lineRows);
   final warnings = <String>[];
 
@@ -71,21 +75,21 @@ ExpenseReceiptParseResult parseExpenseReceiptText(
   } else if (_hasPricedLinesMissingSummaryTotals(lineRows, totals)) {
     if (_hasLocalFooterOrBarcodeEvidence(layoutMap.signalCounts)) {
       warnings.add(
-        'Receipt footer was found, but subtotal and total were not. Review OCR/crop or enter the total manually before saving.',
+        'The printed total was not found. A working total was calculated from the visible items; check it before saving.',
       );
     } else {
       warnings.add(
-        'Subtotal and total were not found. If this is a long receipt, add the lower receipt section before saving; otherwise enter the total manually.',
+        'The printed total was not found. A working total was calculated from the visible items. If the receipt continues, add the lower section before saving.',
       );
     }
   } else if (_hasPricedLinesMissingFinalTotal(lineRows, totals)) {
     if (_hasLocalFooterOrBarcodeEvidence(layoutMap.signalCounts)) {
       warnings.add(
-        'Receipt footer was found, but the final total was not. Review OCR/crop or confirm the inferred total before saving.',
+        'The final printed total was not found. Check the working total before saving.',
       );
     } else {
       warnings.add(
-        'Final receipt total was not found. Check the lower receipt section or confirm the inferred total before saving.',
+        'The final printed total was not found. Check the working total, and add the lower section if the receipt continues.',
       );
     }
   }
@@ -164,7 +168,7 @@ ExpenseReceiptParseResult parseExpenseReceiptText(
     receiptTimeMinutes: time,
     enteredSubtotal: totals.subtotal,
     enteredTax: totals.tax,
-    enteredTotal: totals.total,
+    enteredTotal: reviewTotal,
     lines: lineRows,
     lineReviews: lineReviews,
     maintenanceHints: maintenanceHints,
@@ -173,4 +177,22 @@ ExpenseReceiptParseResult parseExpenseReceiptText(
     warnings: warnings,
     diagnostics: diagnostics,
   );
+}
+
+double? _receiptReviewTotalFromAvailableEvidence({
+  required _ReceiptTotals totals,
+  required List<ExpenseReceiptLineRecord> lines,
+}) {
+  if (totals.total != null) return totals.total;
+  final pricedLines = lines.where((line) => line.subtotal != 0).toList();
+  if (pricedLines.isEmpty ||
+      pricedLines.any((line) => !line.subtotal.isFinite)) {
+    return null;
+  }
+  final visibleTotal = pricedLines.fold<double>(
+    0,
+    (sum, line) => sum + line.subtotal,
+  );
+  if (!visibleTotal.isFinite || visibleTotal.abs() < .005) return null;
+  return _roundMoney(visibleTotal);
 }

@@ -33,11 +33,11 @@ void main() {
       expect(result.stitchedHeight, greaterThan(100));
       expect(result.pairs, isEmpty);
       expect(result.failedPairIndex, isNull);
-      expect(result.hasValidOcrSourceContract, isFalse);
-      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
+      expect(result.hasValidOcrSourceContract, isTrue);
+      expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
       expect(
         result.privacySafeOcrHandoffSafety,
-        containsPair('stitchOcrSourceContractReady', false),
+        containsPair('stitchOcrSourceContractReady', true),
       );
     },
   );
@@ -71,8 +71,8 @@ void main() {
       expect(result.stitchedPixelCount, greaterThan(500000));
       expect(result.stitchedPath, isNull);
       expect(result.warning, contains('too long'));
-      expect(result.hasValidOcrSourceContract, isFalse);
-      expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
+      expect(result.hasValidOcrSourceContract, isTrue);
+      expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
     },
   );
 

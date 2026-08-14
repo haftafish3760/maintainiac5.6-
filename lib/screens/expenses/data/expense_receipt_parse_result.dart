@@ -61,6 +61,12 @@ class ExpenseReceiptParseResult {
 
   double get receiptTotal => enteredTotal ?? receiptSubtotal + receiptTax;
 
+  bool get totalCalculatedFromVisibleLines =>
+      diagnostics.parserTaskCount(
+        'receipt_visible_lines_total_calculated_review',
+      ) >
+      0;
+
   double get receiptAdjustment => receiptTotal - lineSubtotal;
 
   double? get effectiveTaxRate {

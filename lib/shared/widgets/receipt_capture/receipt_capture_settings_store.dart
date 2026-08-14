@@ -253,6 +253,18 @@ class ReceiptCaptureSettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Re-check the current phone conditions before starting receipt camera
+  /// work. This lets a phone temporarily use a lighter workload when memory,
+  /// storage, battery saving, or heat make its normal profile unsuitable.
+  Future<void> refreshDeviceCapability() async {
+    _hardwareProfile = await _capabilityService.detectHardwareProfile();
+    _deviceCapability = ReceiptDeviceCapability.fromHardware(
+      hardware: _hardwareProfile,
+      mode: receiptPerformanceMode,
+    );
+    notifyListeners();
+  }
+
   Future<void> setDefaultDataSaverLevel(ReceiptDataSaverLevel level) async {
     await _box.put(_Keys.defaultDataSaverLevel, level.name);
     notifyListeners();

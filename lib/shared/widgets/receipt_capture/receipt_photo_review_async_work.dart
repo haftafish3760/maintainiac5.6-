@@ -66,17 +66,28 @@ extension _ReceiptPhotoReviewAsyncWork on _ReceiptPhotoReviewScreenState {
   String _previewKey(String photoPath) => '$photoPath|${_dataSaverLevel.name}';
 
   void _schedulePostFrameReviewWork(String photoPath) {
-    final workKey = '${_previewKey(photoPath)}|quality';
+    if (_qualityChecksByPath.containsKey(photoPath) ||
+        _qualityCheckKeysInFlight.contains(photoPath)) {
+      return;
+    }
+    final workKey = '$photoPath|quality';
     if (_postFrameReviewWorkKeys.contains(workKey)) return;
     _postFrameReviewWorkKeys.add(workKey);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _postFrameReviewWorkKeys.remove(workKey);
       final generation = _reviewWorkGeneration;
-      if (!_reviewWorkTokenActive(generation, photoPath)) return;
+      if (!_reviewWorkTokenActive(generation, photoPath)) {
+        _postFrameReviewWorkKeys.remove(workKey);
+        return;
+      }
       // Quality feedback must never hold up capture, photo review, or the
       // clear proof image. Run it after the screen is visible and ignore it if
       // the person has already moved on.
-      unawaited(_deferQualityCheck(photoPath, generation));
+      unawaited(
+        _deferQualityCheck(
+          photoPath,
+          generation,
+        ).whenComplete(() => _postFrameReviewWorkKeys.remove(workKey)),
+      );
     });
   }
 

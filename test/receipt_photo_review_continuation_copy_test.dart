@@ -36,17 +36,16 @@ void main() {
     );
     expect(cropAndProofControls, contains('Use Clear Photo'));
     expect(cropAndProofControls, contains('Save Small Copy'));
-    expect(controls, contains('selectedReviewGuidance'));
-    expect(controls, contains('selectedReviewAction'));
-    expect(controls, contains('String get multiPhotoMatchStatusCopy'));
     expect(
       controls,
-      contains(
-        'Continue when these receipt sections are in top-to-bottom order',
-      ),
+      contains('full receipt guidance already shown in the decision card'),
     );
-    expect(controls, contains('Your receipt is ready as one combined image.'));
-    expect(controls, contains('Keep the photos in order.'));
+    expect(controls, contains('Check the order, then continue.'));
+    expect(
+      controls,
+      contains('Add the bottom section if this receipt continues.'),
+    );
+    expect(controls, contains('Add another photo if this receipt continues.'));
     expect(controls, isNot(contains('Read First')));
     expect(models, contains("readIntoForm('Ready for receipt review')"));
     expect(models, isNot(contains("readIntoForm('Read into form')")));
@@ -82,7 +81,7 @@ void main() {
     );
     expect(
       sectionLabels,
-      contains('Confirm the bottom section, then continue.'),
+      contains('Continue when the sections are in the right order.'),
     );
   });
 }

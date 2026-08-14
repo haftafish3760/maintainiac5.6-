@@ -18,7 +18,7 @@ class ReceiptPhotoReviewUiConfig {
     this.topBarBottomSpacing = 4,
     this.previewControlsSinglePhotoHeight = 144,
     this.previewControlsMultiPhotoHeight = 178,
-    this.cropControlsHeight = 120,
+    this.cropControlsHeight = 70,
     this.orderControlsHeight = 142,
     this.stitchControlsHeight = 164,
     this.dataSaverControlsHeight = 168,

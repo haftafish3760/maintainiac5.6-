@@ -3,21 +3,8 @@ part of 'receipt_photo_review_screen.dart';
 extension _ReceiptPhotoReviewStitchPreviewAsync
     on _ReceiptPhotoReviewScreenState {
   void _syncManualOverlapSlots() {
-    final needed = (_photoPaths.length - 1).clamp(0, 1000000);
-    while (_manualOverlapFractions.length < needed) {
-      _manualOverlapFractions.add(null);
-      _manualScaleCorrections.add(1);
-      _manualRotationCorrectionsDegrees.add(0);
-      _manualHorizontalOffsetFractions.add(0);
-      _manualZeroOverlapPairs.add(false);
-    }
-    while (_manualOverlapFractions.length > needed) {
-      _manualOverlapFractions.removeLast();
-      _manualScaleCorrections.removeLast();
-      _manualRotationCorrectionsDegrees.removeLast();
-      _manualHorizontalOffsetFractions.removeLast();
-      _manualZeroOverlapPairs.removeLast();
-    }
+    _manualStitchAdjustments.syncForPhotoCount(_photoPaths.length);
+    final needed = _manualStitchAdjustments.pairCount;
     if (needed == 0) {
       _selectedStitchPairIndex = 0;
     } else if (_selectedStitchPairIndex < 0) {
@@ -142,7 +129,10 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
           .clamp(-.20, .20)
           .toDouble();
     });
-    _scheduleStitchPreviewRefresh();
+    // Direct manipulation must stay on the GPU/UI path. Re-running image
+    // registration after every finger movement causes visible stutter and
+    // wastes work on lower-capability phones. The person explicitly chooses
+    // "Try alignment" when the current placement looks right.
   }
 
   void _resetManualAlignment() {
@@ -157,7 +147,6 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
       _manualRotationCorrectionsDegrees[index] = 0;
       _manualHorizontalOffsetFractions[index] = 0;
     });
-    _scheduleStitchPreviewRefresh();
   }
 
   void _invalidateStitchPreview() {
@@ -184,12 +173,9 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
   Future<void> _ensureStitchPreview({bool force = false}) async {
     if (!_reviewWorkActive) return;
     if (_photoPaths.length <= 1 || _stitchPreviewInFlight) return;
-    if (await _applyAutomaticStitchOrderIfConfident()) {
-      if (_reviewWorkActive && _reviewMode == _ReceiptReviewMode.stitch) {
-        await _ensureStitchPreview(force: true);
-      }
-      return;
-    }
+    final previewStopwatch = Stopwatch()..start();
+    await _collectStitchOrderEvidence();
+    if (!_reviewWorkActive || _stitchPreviewInFlight) return;
     final generation = _reviewWorkGeneration;
     final key = _currentStitchPreviewKey();
     if (!force && _stitchPreviewKey == key && _stitchPreviewResult != null) {
@@ -204,11 +190,19 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
       return;
     }
     try {
+      final remainingPreviewBudget =
+          _stitchDeviceLimits.totalPreviewTimeout - previewStopwatch.elapsed;
+      final processingBudget =
+          remainingPreviewBudget - const Duration(milliseconds: 300);
+      if (processingBudget <= const Duration(milliseconds: 300)) {
+        throw TimeoutException('Receipt stitch preview budget exhausted.');
+      }
       final manualOverlapFractions = _manualOverlapFractions
           .map((value) => value ?? 0)
           .toList(growable: false);
       final stitchFuture = ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: _photoPaths,
+        traceId: _receiptStitchTraceId,
         textEvidence: _stitchEvidenceForPaths(_photoPaths),
         manualZeroOverlapPairs: _manualZeroOverlapPairs.any((value) => value)
             ? List<bool>.of(_manualZeroOverlapPairs)
@@ -228,12 +222,15 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
         maxTargetWidth: _stitchDeviceLimits.maxTargetWidth,
         comparisonWidth: _stitchDeviceLimits.comparisonWidth,
         retryComparisonWidth: _stitchDeviceLimits.retryComparisonWidth,
-        processingTimeout: _stitchDeviceLimits.processingTimeout,
+        processingTimeout:
+            processingBudget < _stitchDeviceLimits.processingTimeout
+            ? processingBudget
+            : _stitchDeviceLimits.processingTimeout,
         timeoutReasonCode: 'stitch_preview_timeout',
         timeoutWarning:
             'Putting these photos together took too long. They will stay in order as separate photos so you can continue.',
       );
-      final result = await stitchFuture;
+      final result = await stitchFuture.timeout(remainingPreviewBudget);
       if (!_reviewWorkTokenActive(generation) ||
           _currentStitchPreviewKey() != key) {
         await _deleteStitchPreviewPath(result.stitchedPath);

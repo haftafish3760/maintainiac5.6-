@@ -52,14 +52,14 @@ void main() {
       decision.guidance,
       contains('subtotal/total words plus the total amount'),
     );
-    expect(decision.guidance, contains('top ghost-slice guide'));
+    expect(decision.guidance, contains('top reference strip'));
     expect(
       decision.guidance,
       contains('subtotal, total, and final lines can be matched'),
     );
     expect(
       decision.continuationCaptureContractLabel,
-      contains('top ghost-slice guide'),
+      contains('top reference strip'),
     );
     expect(
       decision.continuationCaptureContractLabel,
@@ -136,7 +136,7 @@ void main() {
     expect(
       result.acceptedPhotoHandoffActionLabel,
       contains(
-        'Add the bottom receipt section and repeat 3-5 readable lines in the top ghost slice',
+        'Add the bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
     expect(

@@ -169,47 +169,9 @@ extension _ReceiptAttachmentNativeSignalHelpers
     List<String> paths, {
     required List<String> keptReceiptPhotoPaths,
   }) async {
-    final keptReceiptPhotos = keptReceiptPhotoPaths
-        .map(_normalizedCleanupPath)
-        .toSet();
-    for (final sourcePath in paths) {
-      if (!_shouldDeleteTemporaryOcrPhoto(sourcePath, keptReceiptPhotos)) {
-        continue;
-      }
-      try {
-        final file = File(sourcePath);
-        if (await file.exists()) await file.delete();
-      } catch (_) {
-        // Best effort cleanup for generated OCR artifacts after OCR.
-      }
-    }
-  }
-
-  bool _shouldDeleteTemporaryOcrPhoto(
-    String sourcePath,
-    Set<String> keptReceiptPhotos,
-  ) {
-    final normalized = _normalizedCleanupPath(sourcePath);
-    if (normalized.isEmpty || keptReceiptPhotos.contains(normalized)) {
-      return false;
-    }
-    if (_isProtectedReceiptStoragePath(normalized)) return false;
-    final systemTemp = _normalizedCleanupPath(Directory.systemTemp.path);
-    if (systemTemp.isEmpty || !normalized.startsWith('$systemTemp/')) {
-      return false;
-    }
-    final fileName = normalized.split('/').last;
-    return fileName.startsWith('maintaniac_receipt_') &&
-        fileName.endsWith('.jpg');
-  }
-
-  bool _isProtectedReceiptStoragePath(String normalizedPath) {
-    return normalizedPath.contains('/receipt_proofs/') ||
-        normalizedPath.contains('/receipt_proofs_staging/') ||
-        normalizedPath.contains('/native_capture_recovery/');
-  }
-
-  String _normalizedCleanupPath(String sourcePath) {
-    return sourcePath.trim().replaceAll('\\', '/');
+    await const ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles(
+      paths,
+      keptPaths: keptReceiptPhotoPaths,
+    );
   }
 }

@@ -5,6 +5,10 @@ extension ReceiptNativeCaptureStagingRecoveryActions
   Future<void> discard(ReceiptNativeCaptureStagingResult result) async {
     await _storage.deleteStagedAttachments(result.stagedAttachments);
     await _deleteRecoveryManifest(result.recoveryManifestPath);
+    await _confirmNativeRecoveryDiscarded(
+      result.stagedAttachments,
+      result.recoveryManifestPath,
+    );
   }
 
   Future<void> cleanOldAbandonedNativeStaging({
@@ -126,6 +130,7 @@ extension ReceiptNativeCaptureStagingRecoveryActions
         : _attachmentsFromStagedPaths(record);
     await _storage.deleteStagedAttachments(attachments);
     await _deleteRecoveryManifest(record.manifestPath);
+    await _confirmNativeRecoveryDiscarded(attachments, record.manifestPath);
   }
 
   Future<void> _updateRecoveryManifestDiagnostics(
@@ -155,5 +160,40 @@ extension ReceiptNativeCaptureStagingRecoveryActions
       };
       await file.writeAsString(jsonEncode(payload), flush: true);
     } catch (_) {}
+  }
+}
+
+Future<void> _confirmNativeRecoveryDiscarded(
+  Iterable<ReceiptAttachmentRecord> stagedAttachments,
+  String manifestPath,
+) async {
+  final remainingPaths = <String>[];
+  for (final attachment in stagedAttachments) {
+    if (attachment.storageState != ReceiptAttachmentStorageState.staged) {
+      continue;
+    }
+    final candidate = attachment.path.trim();
+    if (candidate.isNotEmpty && await _nativeRecoveryEntityExists(candidate)) {
+      remainingPaths.add(candidate);
+    }
+  }
+  final normalizedManifest = manifestPath.trim();
+  if (normalizedManifest.isNotEmpty &&
+      await _nativeRecoveryEntityExists(normalizedManifest)) {
+    remainingPaths.add(normalizedManifest);
+  }
+  if (remainingPaths.isEmpty) return;
+  throw StateError(
+    'Maintainiac could not confirm removal of its staged receipt recovery files.',
+  );
+}
+
+Future<bool> _nativeRecoveryEntityExists(String entityPath) async {
+  try {
+    return await FileSystemEntity.type(entityPath, followLinks: false) !=
+        FileSystemEntityType.notFound;
+  } catch (_) {
+    // An unreadable path is not proof that private recovery data is gone.
+    return true;
   }
 }

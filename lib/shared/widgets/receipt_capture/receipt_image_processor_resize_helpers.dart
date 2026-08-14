@@ -11,7 +11,7 @@ img.Image _resizeToMaxSide(img.Image source, int maxLongSide) {
 
 int _stitchTargetWidth(int photoCount, {int maxTargetWidth = 1400}) {
   final desired = switch (photoCount) {
-    <= 2 => 1400,
+    <= 3 => 1400,
     <= 5 => 1200,
     <= 10 => 1000,
     _ => 820,

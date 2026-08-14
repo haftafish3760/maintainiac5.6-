@@ -78,7 +78,8 @@ String _safeStitchFallbackReasonCode(String value) {
     'overlap_confidence_low' ||
     'output_too_large' ||
     'stitch_exception' ||
-    'stitch_timeout' => token,
+    'stitch_timeout' ||
+    'unreadable_section_image' => token,
     _ => 'unknown',
   };
 }

@@ -12,8 +12,8 @@ map, update the evidence, then answer from the current completion state.
 - For quick answers, state that the number is a quick estimate.
 - For verified answers, inspect current source, tests, docs, native contracts,
   and device evidence before answering.
-- The release target is 90-93% reliability for core receipt workflow paths, not
-  99% scanner-app or pro-camera perfection.
+- Reliability is proven per workflow and target; a forecast percentage never
+  substitutes for measured fixture and physical-device evidence.
 - Passes are app-work passes only. Clarifying questions, git status, or
   push-only activity are not passes.
 - Real receipt/device testing can move the estimate up or down.
@@ -62,58 +62,43 @@ Receipt workflow scope excludes:
 | --- | --- | --- | --- |
 | Native camera baseline | CameraX/AVFoundation use device defaults for core camera behavior while Maintainiac owns receipt UI/review/stitching only. | Contract docs/tests exist; production code now has a native-baseline policy. | Strong |
 | Receipt control priority | Manual shutter, torch, brightness guidance, settings, and receipt review are prioritized over pro-camera controls. | Native Android/iOS torch exists; contract now states torch and optional focus policy. | Strong |
-| Shared entry and permissions | User can start receipt capture from shared flow with safe fallback. | Phase 2 source and tests are green for chooser options, assist opt-in/manual path, and camera-launch routing without compression setup. `tool/receipt_camera_qa_gate.sh phase2` passed on 2026-07-08. Real-device launch proof is still required. | Partial |
-| Native camera contract | Android CameraX and iOS AVFoundation expose matching high-level settings and capture metadata. | Flutter contract and native bridge tests are green, including the bundled milestone gate. `tool/receipt_camera_qa_gate.sh phase3` passed on 2026-07-08. Real-device proof still required. | Partial |
+| Shared entry and permissions | User can start receipt capture from shared flow with safe fallback. | Chooser, assistance opt-in/manual path, permission, camera-launch, import, and recovery contracts are included in the Pass 26 host milestone. Real-device launch proof is still required. | Partial |
+| Native camera contract | Android CameraX and iOS AVFoundation expose matching high-level settings and capture metadata. | Flutter/native bridge contracts are green. Android packaging and iOS simulator compilation pass; first-party iOS warnings are gate failures after Pass 30. Real-device proof is still required. | Partial |
 | No preview tap focus | Preview/screen tap focus is banned; phone-native continuous autofocus is primary. Any manual focus control must be explicit, reversible, device-supported, and separately approved. | Active docs and regression tests exist. | Strong |
-| Single photo capture | Manual capture works, review opens, retake/use actions are stable. | Phase 3 and Phase 4 source/tests are green, the milestone gate re-ran those contracts successfully, and `tool/receipt_camera_qa_gate.sh phase3` passed on 2026-07-08. Real-device proof still required. | Partial |
+| Single photo capture | Manual capture works, review opens, retake/use actions are stable. | Capture, review, retake, use, staging, recovery, and OCR-source contracts are green in the current host milestone. Real-device proof is still required. | Partial |
 | Quality guidance | Release-one live guidance stays conservative: neutral receipt framing/readability guidance, small-text/distance, and edge visibility can guide capture; blur, glare, shadow, dirty-lens, low-light, and steadiness claims stay disabled by default unless separately proven. Post-capture review may surface saved-photo quality risks as advisory review prompts. | Quality model/tests exist; unproven live quality claims are default-off and need real receipt calibration before promotion. Experimental live warnings now also wait for a reliable framed receipt target instead of any vague bounds hit. Optional experimental blur/focus scoring stays out of the default flow. | Partial |
 | Long receipt ordering | Add Photo creates ordered segments; retake preserves index and context. | Phase 5 contracts are green for numbering, continuation ordering, retake slot preservation, and section-order regressions. Real-device UI/interruption proof is still required. | Partial |
 | Ghost/overlap guidance | Previous segment bottom 15-20% guides the next capture; middle retake can use previous/next context. | Ghost-guide contracts are green through Phase 5 and the milestone gate. Real-device visual proof is still missing. | Partial |
-| Stitch/fallback | Strong overlap stitches; weak overlap falls back to ordered OCR handoff without corrupting sources. | Phase 6 synthetic stitching, overlap removal, low-confidence fallback, and source-preservation tests are green. `tool/receipt_camera_qa_gate.sh core_remaining` also passed on 2026-07-07, so the remaining gap is fixture expansion plus real-device proof, not late non-UI gate uncertainty. | Partial |
-| OCR source handoff | OCR gets temporary full-quality source or ordered segments; saved compressed proof is separate. | Phase 7 handoff, privacy, source-count, and stitch-followthrough contracts are green. `tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07 for the stitched, fallback, and imported-photo handoff lane. Final app-flow and real-device proof are still required. | Partial |
+| Stitch/fallback | Strong overlap stitches; weak overlap falls back to ordered OCR handoff without corrupting sources. | Registration, coordinate-space, positional OCR, native proposal, seam, transformed-stack, fallback, cancellation, and source-preservation host regressions are green through Pass 31. Physical saved-composite proof remains required. | Partial |
+| OCR source handoff | OCR gets temporary full-quality source or ordered segments; saved compressed proof is separate. | Handoff, privacy, source-count, stitch-followthrough, durable-save, and artifact-cleanup contracts are green through Pass 26. Final app-flow and real-device proof are still required. | Partial |
 | Review mode handoff | Camera output carries price-only versus detailed-line review intent; parser owns final line extraction/numbering. | Review-depth contracts and expense line numbering already exist; needs app-flow proof. | Partial |
 | Barcode/QR handoff | Receipt capture can hand barcode/QR evidence forward without owning inventory work. | Service files and camera summary tests exist; flow proof can wait behind capture/stitch. | Partial |
-| Device/storage safety | Older devices reduce heavy work; low storage avoids unsafe processing. | Capability/storage and Phase 8 storage-proof timing contracts are green, and `tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07 after analyzer cleanup. Real-device proof is still missing. | Partial |
-| Fixture QA | Synthetic and real receipt fixtures cover camera failure families. | Many camera tests exist; release-one camera fixture matrix exists and needs real receipt additions. | Partial |
-| Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, and real-device notes pass together. | Phase 2 through Phase 9 targeted gates are green, the source/line-count/scope/regression gates are green, and `tool/receipt_camera_qa_gate.sh milestone` passed on 2026-07-07. The real-device note template and gate now exist, so the remaining gap is not report structure; it is real-device capture proof plus the remaining Flutter debug/native-assets run-mode blocker and manual device flows. | Partial |
+| Device/storage safety | Older devices reduce heavy work; low storage avoids unsafe processing. | Capability-derived registration/search limits, storage-proof timing, cancellation, and representative S24/S9 Plus/iPhone SE/budget profiles are green through Pass 27. Runtime memory, latency, and thermal proof are still missing. | Partial |
+| Fixture QA | External versioned receipt fixtures cover parser, damage, long-receipt, device-tier, privacy, maintenance, fuel, retail, contractor-supply, and adjustment families. | All ten packs load through the external JSON contract: 34 fixtures and 993/993 deterministic checks passed in Pass 25. Real redacted physical captures remain a separate evidence tier. | Strong (host) |
+| Milestone quality gate | Targeted camera tests, source audit, doc gate, analyzer, compile gates, and real-device notes pass together. | Pass 26 closed 374/374 deterministic milestone tests with analyzer/schema/source gates green. Passes 29-31 removed first-party iOS compile warnings and added warning enforcement to the authoritative QA plan. The shared wrapper still honors its unrelated-dirty-work ownership fence. Physical target rows remain `NOT RUN`. | Partial |
 
 ## Forecast Method
 
-Use this formula for pass forecasts:
+Use this evidence-based method:
 
-1. Count only remaining receipt workflow packages, not generic camera-app work.
-2. Weight each package:
-   - `Strong`: 0-15 passes for regression maintenance.
-   - `Partial`: 20-70 passes depending on UI/native/test depth.
-   - `Missing`: 70-140 passes because implementation and proof are absent.
-3. Add 15-25% contingency for real-device camera behavior and stitching.
-4. Do not count unrelated PDF, inventory, maintenance, maps, invoices, or parser
-   work against this estimate.
-5. Do not count normal user context as parser work. If the user starts from
-   Fuel, Maintenance, Materials, or another category, that selected context is
-   already parser evidence.
+1. Count only unsatisfied receipt requirements, not generic camera-app work.
+2. Identify the exact proof target for each requirement: source contract,
+   deterministic fixture, compile/package gate, virtual-device measurement, or
+   named physical-device run.
+3. Add a repair pass only for a reproduced defect or a directly missing proof
+   mechanism; add a regression before closing that pass.
+4. Re-run the affected deterministic bundle after every repair and the full
+   milestone at defined handoffs.
+5. Keep unavailable physical rows as `NOT RUN`; never turn a device-class guess
+   into a pass estimate or copied result.
 
 ## Current Forecast
 
-From the current evidence table, the strongest single-number planning forecast
-is:
-
-**400 to 550 focused receipt workflow passes from this remap.**
-
-That range comes from:
-
-- the existing native camera/review foundation already being substantial
-- remaining single-photo app-flow proof
-- long-receipt order/retake polish
-- stitching/fallback hardening as the main technical risk
-- real-device proof on the available phones
-
-If a single planning anchor is required, use:
-
-**450 focused receipt workflow passes.**
-
-Do not treat `450` as a promise. Treat it as the working anchor until the
-evidence table is updated.
+The deterministic engine is ready for controlled target evidence, but the
+remaining repair count cannot be known before those measurements exist. The
+minimum is one independently recorded execution for each available required
+target, followed by a bounded repair-and-regression pass for every reproduced
+defect. Do not manufacture a fixed pass count or copy evidence between targets.
 
 ## Current Non-UI Punch List
 
@@ -125,21 +110,25 @@ Use this punch list before any new camera UI polish:
    device-proof work lands.
 3. Keep Phase 8 storage-proof timing verification green while device/UI proof
    is added.
-4. `tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07, so
-   the non-UI lane is ready for live device/UI proof.
+4. Deterministic host work is green through Pass 31. Keep it green while exact
+   physical and constrained-runtime evidence is collected.
 
-## Four-Phone Real-Device Proof
+## Exact Physical and Virtual Target Proof
 
-The real-device path should use the user's available phones as the proof set:
+The target rows are non-substitutable:
 
-- Galaxy S9 Plus: older Android baseline, memory pressure, lower-camera margin.
 - Galaxy S24 Ultra: current Android flagship baseline.
-- Additional Android phone: brand/device variation when available.
-- iPhone: iOS AVFoundation route parity when available.
+- Galaxy S25 Ultra: additional flagship evidence only; it does not satisfy the
+  S24 row.
+- Galaxy S9 Plus: former flagship and older Android baseline; do not label it a
+  budget or low-tier phone.
+- Constrained Android emulator: deterministic low-resource virtual evidence.
+- iPhone SE third generation: exact iOS AVFoundation target; another iPhone or
+  simulator does not satisfy it.
+- Future budget Android: physical budget-device evidence when available.
 
-If fewer than four phones are connected during a QA window, test the available
-phones and record the missing device class as a remaining risk instead of
-inflating pass estimates.
+Record unavailable rows as `NOT RUN`. Never copy timing, memory, camera, OCR,
+or stitching results from another row.
 
 `tool/receipt_camera_real_device_snapshot.sh` is metadata-only environment
 evidence. Do not treat that snapshot as receipt capture proof. Real-device proof

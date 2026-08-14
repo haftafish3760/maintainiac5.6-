@@ -5,6 +5,26 @@ ReceiptStitchTextEvidence section(String path, List<String> lines) {
   return ReceiptStitchTextEvidence(path: path, lines: lines);
 }
 
+ReceiptStitchTextEvidence positionedSection(
+  String path,
+  List<(String, double)> lines,
+) {
+  return ReceiptStitchTextEvidence(
+    path: path,
+    lines: [for (final line in lines) line.$1],
+    positionedLines: [
+      for (final line in lines)
+        ReceiptStitchTextLineEvidence(
+          text: line.$1,
+          left: .08,
+          top: line.$2,
+          right: .92,
+          bottom: line.$2 + .04,
+        ),
+    ],
+  );
+}
+
 void main() {
   group('long receipt OCR overlap evidence', () {
     test('finds repeated suffix and prefix lines without merchant rules', () {
@@ -203,6 +223,166 @@ void main() {
         receiptStitchTextSafelyAcceleratesGeometry(previous, next, match),
         isFalse,
       );
+    });
+
+    test('keeps normalized line positions with the overlap decision', () {
+      final match = matchReceiptStitchTextOverlap(
+        positionedSection('top', [
+          ('Independent Supply Receipt', .08),
+          ('Copper elbow half inch 2.49', .76),
+          ('Exterior screws three inch 12.40', .86),
+        ]),
+        positionedSection('bottom', [
+          ('Copper elbow half inch 2.49', .06),
+          ('Exterior screws three inch 12.40', .16),
+          ('Subtotal 14.89', .82),
+        ]),
+      );
+
+      expect(match.isStrong, isTrue);
+      expect(match.hasPositionalEvidence, isTrue);
+      expect(match.positionalConfidence, greaterThan(.75));
+      expect(match.previousOverlapStart, closeTo(.76, .001));
+      expect(match.nextOverlapEnd, closeTo(.20, .001));
+      expect(match.nextContinuationStart, closeTo(.82, .001));
+      expect(match.nextContinuationEnd, closeTo(.86, .001));
+    });
+
+    test('matches a long OCR overlap even when one read inserts a line', () {
+      final shared = [
+        for (var index = 0; index < 12; index++)
+          'Hardware item $index code ${410000 + index} ${index + 1}.49',
+      ];
+      final previous = positionedSection('top', [
+        ('Independent Supply Receipt', .08),
+        for (var index = 0; index < shared.length; index++)
+          (shared[index], .42 + index * .04),
+        ('Subtotal 149.88', .91),
+        ('Total 161.12', .95),
+      ]);
+      final next = positionedSection('bottom', [
+        for (var index = 0; index < shared.length; index++) ...[
+          (shared[index], .02 + index * .035),
+          if (index == 4) ('Wrinkle read as an extra line', .18),
+        ],
+        ('Subtotal 149.88', .45),
+        ('Total 161.12', .49),
+        ('Card payment approved', .78),
+      ]);
+
+      final match = matchReceiptStitchTextOverlap(previous, next);
+
+      expect(match.isStrong, isTrue);
+      expect(match.usesSparsePositionAnchors, isTrue);
+      expect(match.matchedLineCount, greaterThanOrEqualTo(10));
+      expect(
+        receiptStitchTextSafelyAcceleratesGeometry(previous, next, match),
+        isTrue,
+      );
+    });
+
+    test(
+      'keeps the fuller overlap when a shorter match scores slightly higher',
+      () {
+        final previous = section('top', [
+          'Merchant heading 4411',
+          'Copper elbow half inch 2.49',
+          'Exterior screws three inch 12.40',
+          'Arm hammer detergent 14.97',
+          'Diet mountain dew 6.48',
+        ]);
+        final next = section('bottom', [
+          'Copper elbow half in 2.49',
+          'Exterior screws three in 12.40',
+          'Arm hammer detergent 14.97',
+          'Diet mountain dew 6.48',
+          'Subtotal 36.34',
+        ]);
+
+        final match = matchReceiptStitchTextOverlap(previous, next);
+
+        expect(match.isStrong, isTrue);
+        expect(match.matchedLineCount, 4);
+      },
+    );
+
+    test('keeps horizontal, width, and angle anchors for registration', () {
+      ReceiptStitchTextEvidence evidence(
+        String path,
+        List<ReceiptStitchTextLineEvidence> lines,
+      ) {
+        return ReceiptStitchTextEvidence(
+          path: path,
+          lines: [for (final line in lines) line.text],
+          positionedLines: lines,
+        );
+      }
+
+      final match = matchReceiptStitchTextOverlap(
+        evidence('top', const [
+          ReceiptStitchTextLineEvidence(
+            text: 'Copper elbow half inch 2.49',
+            left: .16,
+            top: .76,
+            right: .76,
+            bottom: .80,
+            angleDegrees: 1.4,
+          ),
+          ReceiptStitchTextLineEvidence(
+            text: 'Exterior screws three inch 12.40',
+            left: .20,
+            top: .86,
+            right: .84,
+            bottom: .90,
+            angleDegrees: 1.2,
+          ),
+        ]),
+        evidence('bottom', const [
+          ReceiptStitchTextLineEvidence(
+            text: 'Copper elbow half inch 2.49',
+            left: .10,
+            top: .06,
+            right: .66,
+            bottom: .10,
+            angleDegrees: -.4,
+          ),
+          ReceiptStitchTextLineEvidence(
+            text: 'Exterior screws three inch 12.40',
+            left: .14,
+            top: .16,
+            right: .74,
+            bottom: .20,
+            angleDegrees: -.6,
+          ),
+        ]),
+      );
+
+      expect(match.hasPositionalEvidence, isTrue);
+      expect(match.previousAnchorCentersX, [.46, .52]);
+      expect(match.nextAnchorCentersX, [.38, .44]);
+      expect(match.previousAnchorWidths[0], closeTo(.60, .0001));
+      expect(match.previousAnchorWidths[1], closeTo(.64, .0001));
+      expect(match.nextAnchorWidths[0], closeTo(.56, .0001));
+      expect(match.nextAnchorWidths[1], closeTo(.60, .0001));
+      expect(match.previousAnchorAngles, [1.4, 1.2]);
+      expect(match.nextAnchorAngles, [-.4, -.6]);
+    });
+
+    test('rejects text overlap that runs backward through the document', () {
+      final match = matchReceiptStitchTextOverlap(
+        positionedSection('top', [
+          ('Copper elbow half inch 2.49', .05),
+          ('Exterior screws three inch 12.40', .15),
+          ('Later unique item 9.99', .85),
+        ]),
+        positionedSection('bottom', [
+          ('Earlier unique item 8.99', .10),
+          ('Copper elbow half inch 2.49', .80),
+          ('Exterior screws three inch 12.40', .90),
+        ]),
+      );
+
+      expect(match.isStrong, isFalse);
     });
 
     test('orders eight sections with bounded path search', () {

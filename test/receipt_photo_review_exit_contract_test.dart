@@ -4,15 +4,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 void main() {
-  test('explicit review discard is distinct from a resumable receipt draft', () {
-    final discarded = ReceiptPhotoReviewResult.discardedByUser(
-      dataSaverLevel: ReceiptDataSaverLevel.balanced,
-    );
+  test(
+    'explicit review discard is distinct from a resumable receipt draft',
+    () {
+      final discarded = ReceiptPhotoReviewResult.discardedByUser(
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+      );
 
-    expect(discarded.discardedByUser, isTrue);
-    expect(discarded.keptForLater, isFalse);
-    expect(discarded.photoPaths, isEmpty);
-  });
+      expect(discarded.discardedByUser, isTrue);
+      expect(discarded.keptForLater, isFalse);
+      expect(discarded.photoPaths, isEmpty);
+    },
+  );
 
   test('photo review exposes honest exit, draft, and continue choices', () {
     final source = File(

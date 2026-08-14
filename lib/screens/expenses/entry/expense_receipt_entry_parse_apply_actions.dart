@@ -26,6 +26,11 @@ extension _ExpenseReceiptEntryParseApplyActions
         ..clear()
         ..addAll(parsed.maintenanceHints);
       _applyDefaultReviewModeForParsedReceipt(parsed);
+      if (_usesRebuiltManualDetailedReceiptFlow) {
+        // OCR has produced editable values. This is a forward handoff into
+        // Review, never a return to the generic Add Receipt surface.
+        _manualReceiptStep = _ManualReceiptStep.review;
+      }
       final parsedMerchant = (parsed.merchantName ?? '').trim();
       if (_shouldApplyParsedMerchantValue(parsedMerchant)) {
         _storeController.text = parsedMerchant;
@@ -107,10 +112,7 @@ extension _ExpenseReceiptEntryParseApplyActions
       return;
     }
     _appAssistedReceiptPreviewPresented = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      unawaited(_openManualReceiptPreview());
-    });
+    _setReceiptEntryState(() => _manualReceiptStep = _ManualReceiptStep.review);
   }
 
   List<ExpenseReceiptLineRecord> _mergeParsedReceiptLines(
@@ -215,7 +217,8 @@ extension _ExpenseReceiptEntryParseApplyActions
         widget.mode != ExpenseReceiptFlowMode.general ||
         diagnostics.hasOcrInventoryPrepSignals ||
         diagnostics.materialLineCount > 0 ||
-        parsed.maintenanceHints.isNotEmpty;
+        parsed.maintenanceHints.isNotEmpty ||
+        parsed.lines.isNotEmpty;
     if (shouldUseDetailedReview) {
       _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;
     }

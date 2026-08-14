@@ -77,7 +77,10 @@ class ReceiptDeviceCapability {
     : this(
         profileName: 'High-capacity device',
         tier: ReceiptCapabilityTier.heavyweight,
-        parserDepth: ReceiptParserDepth.inventoryMatching,
+        // Receipt capture must remain responsive even on a flagship. Full
+        // inventory matching is an explicit follow-up operation, not a
+        // synchronous requirement for reading and reviewing a receipt.
+        parserDepth: ReceiptParserDepth.lineItems,
         maxLocalPdfBytes: ReceiptPdfLimits.localAssistedReadBytes,
         maxLocalPdfPages: ReceiptPdfLimits.maxPdfPagesForReceiptOcrLater,
         maxLocalPhotoBytes: 20 * 1024 * 1024,

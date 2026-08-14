@@ -39,9 +39,8 @@ void main() {
     expect(models, contains('String get reviewScoreMeaningLabel'));
     expect(models, contains('class ReceiptPhotoCoverageDecision'));
     expect(models, contains('needsAnotherReceiptSectionBeforeDetails'));
-    expect(models, contains('add_next_section_or_confirm_complete_receipt'));
-    expect(models, contains('photo_review_add_next_receipt_section'));
-    expect(models, contains('receipt_photo_capture_bottom_section'));
+    expect(models, contains('needs_next_receipt_section'));
+    expect(models, contains('ocr_requested_bottom_section'));
     expect(models, contains('Receipt details stay paused'));
     expect(models, contains('acceptedPhotoHandoffMustOpenFilledReview =>'));
     expect(models, contains('acceptedPhotoHandoffMustOpenReceiptDetails =>'));
@@ -79,9 +78,9 @@ void main() {
     expect(controls, contains('coverageDecision.shouldPromptForMorePhotos'));
     expect(controls, contains('coverageDecision.isMissingBottomEdgeAndTotals'));
     expect(
-      controls,
+      previewControls,
       contains(
-        'add the bottom receipt section and repeat 3-5 readable lines in the top reference strip',
+        'Add bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
     expect(controls, contains("'Choose Saved Image Size'"));

@@ -237,9 +237,9 @@ void main() {
 
       final finalResult = preview.copyForFinalOcr(
         inputPaths: const [
-          '/private/top.jpg',
-          '/private/middle.jpg',
-          '/private/bottom.jpg',
+          '/private/ocr-top.jpg',
+          '/private/ocr-middle.jpg',
+          '/private/ocr-bottom.jpg',
         ],
         ocrSourcePaths: const [
           '/private/ocr-top.jpg',
@@ -267,17 +267,17 @@ void main() {
       ]);
       expect(
         finalResult.ocrSourceContractCode,
-        'fallback_overlap_untrusted_sources',
+        'fallback_ordered_sources_ready',
       );
-      expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
       expect(review.ocrSourcePathsMatchStitchContract, isTrue);
       expect(
         review.ocrSourceReviewRiskCode,
-        'stitch_ocr_source_contract_review_required',
+        'ocr_source_ready',
       );
       expect(
         review.ocrSourceReviewRequirement,
-        'manual_review_required_before_saving_receipt',
+        'standard_user_confirmation_required',
       );
       expect(
         review.privacySafeReceiptReaderHandoffMetadata,

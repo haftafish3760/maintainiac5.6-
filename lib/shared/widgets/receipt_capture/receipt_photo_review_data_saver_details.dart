@@ -30,14 +30,62 @@ class _ReceiptSavedImageContinueBar extends StatelessWidget {
                   ),
                 )
               : const Icon(Icons.arrow_forward_rounded),
-          label: Text(
-            saving ? 'Opening receipt details' : 'Use This Saved Image',
-          ),
+          label: Text(saving ? 'Getting receipt ready' : 'Continue'),
           style: FilledButton.styleFrom(
             minimumSize: const Size.fromHeight(50),
             backgroundColor: const Color(0xFF249D62),
             foregroundColor: Colors.white,
             textStyle: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ReceiptPreparationProgressView extends StatelessWidget {
+  const _ReceiptPreparationProgressView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const ColoredBox(
+      color: Color(0xFF050607),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 34,
+                height: 34,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Color(0xFF8EF6A4),
+                ),
+              ),
+              SizedBox(height: 18),
+              Text(
+                'Getting your receipt ready',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFF0F4F2),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Saving the receipt image and preparing editable details.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFFC8D0D3),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  height: 1.3,
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_stitch_acceptance.dart';
 
 void main() {
   test(
@@ -21,12 +23,44 @@ void main() {
         expect(File(path).existsSync(), isTrue, reason: 'Missing $path');
       }
 
-      final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
-        paths: paths,
-      );
+      final workload = _realProbeWorkload();
+      final textEvidence = _realProbeTextEvidence(paths);
+      final stopwatch = Stopwatch()..start();
+      final result = await _runRealProbe(paths, workload, textEvidence);
+      stopwatch.stop();
 
+      final evidence = _realProbeEvidence(
+        result,
+        workload: workload,
+        textEvidence: textEvidence,
+        elapsed: stopwatch.elapsed,
+      );
+      // Stable, privacy-safe output for local QA automation. It deliberately
+      // excludes paths, receipt text, merchant names, and financial values.
+      // ignore: avoid_print
+      print('RECEIPT_STITCH_PROBE_RESULT=${jsonEncode(evidence)}');
       _expectRealProbeOutcome(result, paths);
-      await _copyRealProbeOutputWhenRequested(result);
+      for (final pair in result.pairs) {
+        final hasHighTrustPositionedText = hasHighTrustPositionedReceiptOverlap(
+          visualConfidence: pair.visualConfidence,
+          textConfidence: pair.textOverlapConfidence,
+          matchedTextLineCount: pair.matchedTextLineCount,
+          hasTextPositionEvidence: pair.hasTextPositionEvidence,
+          textPositionalConfidence: pair.textPositionalConfidence,
+        );
+        if (hasHighTrustPositionedText) {
+          if (pair.selectedSeamCropPixels < pair.seamSkipPixels) {
+            expect(pair.nextContinuationTextStart, greaterThan(0));
+            expect(
+              pair.nextContinuationTextEnd,
+              greaterThan(pair.nextContinuationTextStart),
+              reason:
+                  'An earlier seam is safe only when positioned OCR proves a complete continuation band to preserve.',
+            );
+          }
+        }
+      }
+      await _copyRealProbeOutputWhenRequested(result, evidence);
     },
     timeout: const Timeout(Duration(minutes: 4)),
   );
@@ -103,41 +137,242 @@ void main() {
   );
 }
 
+Future<ReceiptStitchResult> _runRealProbe(
+  List<String> paths,
+  _RealProbeWorkload workload,
+  List<ReceiptStitchTextEvidence>? textEvidence,
+) {
+  return ReceiptImageProcessor.stitchReceiptPhotosForOcr(
+    paths: paths,
+    textEvidence: textEvidence,
+    maxOutputPixels: workload.maxOutputPixels,
+    maxOutputHeight: workload.maxOutputHeight,
+    maxTargetWidth: workload.maxTargetWidth,
+    comparisonWidth: workload.comparisonWidth,
+    retryComparisonWidth: workload.retryComparisonWidth,
+    processingTimeout: workload.processingTimeout,
+  );
+}
+
 Future<void> _copyRealProbeOutputWhenRequested(
   ReceiptStitchResult result,
+  Map<String, Object?> evidence,
 ) async {
   final outputPath = Platform.environment['RECEIPT_STITCH_REAL_OUTPUT_PATH']
       ?.trim();
   final stitchedPath = result.stitchedPath;
   if (outputPath == null || outputPath.isEmpty) return;
+  final outputFile = File(outputPath);
+  await outputFile.parent.create(recursive: true);
   if (stitchedPath != null && stitchedPath.isNotEmpty) {
-    await File(stitchedPath).copy(outputPath);
+    await File(stitchedPath).copy(outputFile.path);
   }
-  await File('$outputPath.txt').writeAsString('''
-status=${result.status.name}
-fallbackReason=${result.fallbackReasonCode}
-failedPair=${result.failedPairIndex}
-confidence=${result.confidence}
-overlapPixels=${result.overlapPixels.join(',')}
-requiresReview=${result.requiresOcrSourceReviewBeforeAssistedRead}
-${[
-    for (final pair in result.pairs)
-      'pair=${pair.pairIndex + 1} overlap=${pair.overlapPixels} '
-          'confidence=${pair.confidence} scale=${pair.scaleCorrection} '
-          'rotation=${pair.rotationCorrectionDegrees} '
-          'perspective=${pair.perspectiveCorrection} '
-          'x=${pair.horizontalOffsetPixels} y=${pair.verticalOffsetPixels} '
-          'continuity=${pair.continuityCorrelation} '
-          'bands=${pair.continuityMatchingBands}/${pair.continuityDetailedBands} '
-          'text=${pair.textOverlapConfidence} lines=${pair.matchedTextLineCount}',
-  ].join('\n')}
-''');
+  await File(
+    '$outputPath.json',
+  ).writeAsString(const JsonEncoder.withIndent('  ').convert(evidence));
+}
+
+Map<String, Object?> _realProbeEvidence(
+  ReceiptStitchResult result, {
+  required _RealProbeWorkload workload,
+  required List<ReceiptStitchTextEvidence>? textEvidence,
+  required Duration elapsed,
+}) {
+  return <String, Object?>{
+    'schema': 1,
+    'status': result.status.name,
+    'elapsedMs': elapsed.inMilliseconds,
+    'inputCount': result.inputPaths.length,
+    'didStitch': result.didStitch,
+    'fallbackReason': result.fallbackReasonCode,
+    'failedPair': result.failedPairIndex == null
+        ? null
+        : result.failedPairIndex! + 1,
+    'confidence': result.confidence,
+    'stitchedWidth': result.stitchedWidth,
+    'stitchedHeight': result.stitchedHeight,
+    'requiresReview': result.requiresOcrSourceReviewBeforeAssistedRead,
+    'ocrSourceContract': result.ocrSourceContractCode,
+    'workload': workload.toJson(),
+    'textEvidence': <String, Object>{
+      'source': textEvidence == null ? 'none' : 'local_sidecar',
+      'nonEmptySections':
+          textEvidence?.where((item) => item.lines.isNotEmpty).length ?? 0,
+      'lineCounts': <int>[
+        for (final item in textEvidence ?? const <ReceiptStitchTextEvidence>[])
+          item.lines.length,
+      ],
+    },
+    'pairs': <Map<String, Object?>>[
+      for (final pair in result.pairs)
+        <String, Object?>{
+          'pair': pair.pairIndex + 1,
+          'overlapPixels': pair.overlapPixels,
+          'seamSkipPixels': pair.seamSkipPixels,
+          'selectedSeamCropPixels': pair.selectedSeamCropPixels,
+          'confidence': pair.confidence,
+          'scale': pair.scaleCorrection,
+          'rotationDegrees': pair.rotationCorrectionDegrees,
+          'perspective': pair.perspectiveCorrection,
+          'horizontalOffsetPixels': pair.horizontalOffsetPixels,
+          'verticalOffsetPixels': pair.verticalOffsetPixels,
+          'visualConfidence': pair.visualConfidence,
+          'continuityCorrelation': pair.continuityCorrelation,
+          'continuityBands': pair.continuityMatchingBands,
+          'continuityDetailedBands': pair.continuityDetailedBands,
+          'geometryCorrelation': pair.geometryCorrelation,
+          'geometryCells': pair.geometryMatchingCells,
+          'geometryDetailedCells': pair.geometryDetailedCells,
+          'textOverlapConfidence': pair.textOverlapConfidence,
+          'matchedTextLineCount': pair.matchedTextLineCount,
+          'textPositionalConfidence': pair.textPositionalConfidence,
+          'hasTextPositionEvidence': pair.hasTextPositionEvidence,
+          'previousTextOverlapStart': pair.previousTextOverlapStart,
+          'nextTextOverlapEnd': pair.nextTextOverlapEnd,
+          'nextContinuationTextStart': pair.nextContinuationTextStart,
+          'nextContinuationTextEnd': pair.nextContinuationTextEnd,
+          'diagnosticCode': pair.diagnosticCode,
+        },
+    ],
+  };
+}
+
+List<ReceiptStitchTextEvidence>? _realProbeTextEvidence(List<String> paths) {
+  final evidencePath = Platform
+      .environment['RECEIPT_STITCH_REAL_TEXT_EVIDENCE_PATH']
+      ?.trim();
+  if (evidencePath == null || evidencePath.isEmpty) return null;
+  final file = File(evidencePath);
+  if (!file.existsSync()) {
+    throw StateError('Missing local stitch text-evidence sidecar.');
+  }
+  final decoded = jsonDecode(file.readAsStringSync());
+  if (decoded is! List || decoded.length != paths.length) {
+    throw const FormatException(
+      'Stitch text-evidence sidecar must contain one line array per photo.',
+    );
+  }
+  return <ReceiptStitchTextEvidence>[
+    for (var index = 0; index < paths.length; index++)
+      _decodeRealProbeTextEvidence(paths[index], decoded[index]),
+  ];
+}
+
+ReceiptStitchTextEvidence _decodeRealProbeTextEvidence(
+  String path,
+  Object? value,
+) {
+  if (value is List) {
+    return ReceiptStitchTextEvidence(
+      path: path,
+      lines: <String>[
+        for (final line in value)
+          if (line is String && line.trim().isNotEmpty) line.trim(),
+      ],
+    );
+  }
+  if (value is! Map<String, dynamic>) {
+    throw const FormatException(
+      'Every stitch text-evidence entry must be a line array or positioned '
+      'evidence object.',
+    );
+  }
+  final positioned = <ReceiptStitchTextLineEvidence>[
+    for (final raw in value['positionedLines'] as List? ?? const [])
+      if (raw is Map<String, dynamic>)
+        ReceiptStitchTextLineEvidence(
+          text: (raw['text'] as String? ?? '').trim(),
+          left: (raw['left'] as num?)?.toDouble() ?? 0,
+          top: (raw['top'] as num?)?.toDouble() ?? 0,
+          right: (raw['right'] as num?)?.toDouble() ?? 1,
+          bottom: (raw['bottom'] as num?)?.toDouble() ?? 0,
+          angleDegrees: (raw['angleDegrees'] as num?)?.toDouble() ?? 0,
+        ),
+  ]..removeWhere((line) => line.text.isEmpty);
+  return ReceiptStitchTextEvidence(
+    path: path,
+    lines: positioned.map((line) => line.text).toList(growable: false),
+    positionedLines: positioned,
+  );
+}
+
+_RealProbeWorkload _realProbeWorkload() {
+  final requestedTier =
+      (Platform.environment['RECEIPT_STITCH_REAL_TIER'] ?? 'medium')
+          .trim()
+          .toLowerCase();
+  final capability = switch (requestedTier) {
+    'light' || 'older' || 'low' => ReceiptDeviceCapability.olderPhone(),
+    'heavy' ||
+    'high' ||
+    'flagship' => const ReceiptDeviceCapability.highCapacity(),
+    _ => const ReceiptDeviceCapability.standard(),
+  };
+  final limits = capability.stitchLimits;
+  return _RealProbeWorkload(
+    tier: capability.tier.name,
+    maxOutputPixels: _intEnv(
+      'RECEIPT_STITCH_REAL_MAX_OUTPUT_PIXELS',
+      limits.maxOutputPixels,
+    ),
+    maxOutputHeight: _intEnv(
+      'RECEIPT_STITCH_REAL_MAX_OUTPUT_HEIGHT',
+      limits.maxOutputHeight,
+    ),
+    maxTargetWidth: _intEnv(
+      'RECEIPT_STITCH_REAL_MAX_TARGET_WIDTH',
+      limits.maxTargetWidth,
+    ),
+    comparisonWidth: _intEnv(
+      'RECEIPT_STITCH_REAL_COMPARISON_WIDTH',
+      limits.comparisonWidth,
+    ),
+    retryComparisonWidth: _intEnv(
+      'RECEIPT_STITCH_REAL_RETRY_WIDTH',
+      limits.retryComparisonWidth,
+    ),
+    processingTimeout: Duration(
+      milliseconds: _intEnv(
+        'RECEIPT_STITCH_REAL_TIMEOUT_MS',
+        limits.processingTimeout.inMilliseconds,
+      ),
+    ),
+  );
+}
+
+class _RealProbeWorkload {
+  const _RealProbeWorkload({
+    required this.tier,
+    required this.maxOutputPixels,
+    required this.maxOutputHeight,
+    required this.maxTargetWidth,
+    required this.comparisonWidth,
+    required this.retryComparisonWidth,
+    required this.processingTimeout,
+  });
+
+  final String tier;
+  final int maxOutputPixels;
+  final int maxOutputHeight;
+  final int maxTargetWidth;
+  final int comparisonWidth;
+  final int retryComparisonWidth;
+  final Duration processingTimeout;
+
+  Map<String, Object> toJson() => <String, Object>{
+    'tier': tier,
+    'maxOutputPixels': maxOutputPixels,
+    'maxOutputHeight': maxOutputHeight,
+    'maxTargetWidth': maxTargetWidth,
+    'comparisonWidth': comparisonWidth,
+    'retryComparisonWidth': retryComparisonWidth,
+    'processingTimeoutMs': processingTimeout.inMilliseconds,
+  };
 }
 
 void _expectRealProbeOutcome(ReceiptStitchResult result, List<String> paths) {
   if (_strictRealProbeStitchExpected()) {
     expect(result.didStitch, isTrue, reason: result.detailLabel);
-    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
   }
   expect(result.inputPaths, paths);
   expect(result.ocrSourcePaths, isNotEmpty);

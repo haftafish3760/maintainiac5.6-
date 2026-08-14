@@ -215,10 +215,10 @@ void main() {
     );
 
     final takePhotoStart = cameraActions.indexOf(
-      'Future<void> takeReceiptPhoto',
+      'Future<ReceiptImportActionResult> takeReceiptPhoto',
     );
     final takePhotoEnd = cameraActions.indexOf(
-      'Future<_MaintainiacNativeCameraPhotoOutcome>',
+      'Future<_MaintainiacNativeCameraPhotoResult>',
       takePhotoStart,
     );
     final takePhotoBlock = cameraActions.substring(
@@ -231,24 +231,19 @@ void main() {
       ),
       lessThan(
         takePhotoBlock.indexOf(
-          'final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);',
+          'final nativeResult = await _takeMaintainiacNativeCameraPhoto(settings);',
         ),
       ),
     );
     expect(
       takePhotoBlock,
       contains(
-        'if (!ready) {\n          await returnToReceiptImportOptions();\n          return;\n        }',
+        'if (!ready) {\n'
+        '          return const ReceiptImportActionResult.stayOnChooser();\n'
+        '        }',
       ),
     );
-    expect(
-      takePhotoBlock.indexOf('await returnToReceiptImportOptions();'),
-      lessThan(
-        takePhotoBlock.indexOf(
-          'final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);',
-        ),
-      ),
-    );
+    expect(takePhotoBlock, isNot(contains('returnToReceiptImportOptions')));
   });
 }
 

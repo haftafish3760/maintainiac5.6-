@@ -1,19 +1,24 @@
 part of 'receipt_attachment_panel.dart';
 
+enum ReceiptImportEntryIntent { standardReceiptEntry, optionalManualProof }
+
 /// Lets a purpose-built receipt form open the shared capture/import pipeline
 /// without inheriting this panel's legacy visual layout.
 class ReceiptAttachmentPanelController {
-  Future<void> Function()? _openImportOptions;
+  Future<ReceiptImportActionResult?> Function(ReceiptImportEntryIntent)?
+  _openImportOptions;
   Future<void> Function(ReceiptSettingsScreenContext?)? _openSettings;
-  final Set<String> _temporaryReceiptArtifactPaths = {};
-  final Set<String> _nativeRecoveryManifestPaths = {};
+  final _artifactTracker = ReceiptSessionArtifactTracker();
 
   bool get isAttached => _openImportOptions != null;
 
-  Future<void> openImportOptions() async {
+  Future<ReceiptImportActionResult?> openImportOptions({
+    ReceiptImportEntryIntent intent =
+        ReceiptImportEntryIntent.standardReceiptEntry,
+  }) async {
     final open = _openImportOptions;
-    if (open == null) return;
-    await open();
+    if (open == null) return null;
+    return open(intent);
   }
 
   Future<void> openSettings({
@@ -29,32 +34,29 @@ class ReceiptAttachmentPanelController {
   Future<void> finalizeSuccessfulReceiptSave({
     required Iterable<String> keptReceiptPhotoPaths,
   }) async {
-    await const ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles(
-      _temporaryReceiptArtifactPaths,
-      keptPaths: keptReceiptPhotoPaths,
+    await _artifactTracker.finalizeSuccessfulSave(
+      keptReceiptPhotoPaths: keptReceiptPhotoPaths,
     );
-    _temporaryReceiptArtifactPaths.clear();
-    final staging = const ReceiptNativeCaptureStaging();
-    for (final manifestPath in _nativeRecoveryManifestPaths.toList()) {
-      final finalized = await staging.finalizeAcceptedCapture(manifestPath);
-      if (finalized) _nativeRecoveryManifestPaths.remove(manifestPath);
-    }
+  }
+
+  /// Deletes only tracked Maintainiac-owned staging after an explicit discard.
+  Future<void> discardReceiptSession() {
+    return _artifactTracker.discardSession();
   }
 
   void _retainAcceptedReceiptSources(ReceiptPhotoReviewResult result) {
-    _temporaryReceiptArtifactPaths
-      ..addAll(result.photoPaths)
-      ..addAll(result.ocrSourcePhotoPaths)
-      ..addAll(result.temporarySourcePhotoPaths);
+    _artifactTracker.retainReviewSources(result);
   }
 
   void _retainNativeRecoveryManifest(String manifestPath) {
-    final normalized = manifestPath.trim();
-    if (normalized.isNotEmpty) _nativeRecoveryManifestPaths.add(normalized);
+    _artifactTracker.retainRecoveryManifest(manifestPath);
   }
 
   void _bind({
-    required Future<void> Function() openImportOptions,
+    required Future<ReceiptImportActionResult?> Function(
+      ReceiptImportEntryIntent,
+    )
+    openImportOptions,
     required Future<void> Function(ReceiptSettingsScreenContext?) openSettings,
   }) {
     _openImportOptions = openImportOptions;

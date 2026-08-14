@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -21,6 +22,8 @@ import 'receipt_native_camera_preference_mapper.dart';
 import 'receipt_native_camera_service.dart';
 import 'receipt_picker_status.dart';
 import 'receipt_photo_pipeline_contract.dart';
+import 'receipt_pipeline_trace.dart';
+import 'receipt_photo_review_edit_state.dart';
 import 'receipt_photo_review_retake_order.dart';
 import 'receipt_photo_path_identity.dart';
 import 'receipt_photo_review_ui_config.dart';
@@ -150,18 +153,28 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   final _previewKeysInFlight = <String>{};
   final _qualityCheckKeysInFlight = <String>{};
   final _postFrameReviewWorkKeys = <String>{};
-  final _completionPromptedPhotoPaths = <String>{};
-  final _completionDecisionsByPath = <String, Map<String, Object?>>{};
+  final _reviewDecisionState = ReceiptPhotoReviewDecisionState();
+  Set<String> get _completionPromptedPhotoPaths =>
+      _reviewDecisionState.promptedPhotoPaths;
+  Map<String, Map<String, Object?>> get _completionDecisionsByPath =>
+      _reviewDecisionState.decisionsByPath;
   final _dataSaverPreviewPaths = <String, String>{};
   final _dataSaverPreviewKeysInFlight = <String>{};
   final _generatedEditPaths = <String>{};
   late final _captureDiagnosticsByPath = _initialCaptureDiagnosticsByPath();
-  final _manualOverlapFractions = <double?>[];
-  final _manualScaleCorrections = <double>[];
-  final _manualRotationCorrectionsDegrees = <double>[];
-  final _manualHorizontalOffsetFractions = <double>[];
-  final _manualZeroOverlapPairs = <bool>[];
+  final _manualStitchAdjustments = ReceiptPhotoPairAdjustmentState();
+  List<double?> get _manualOverlapFractions =>
+      _manualStitchAdjustments.overlapFractions;
+  List<double> get _manualScaleCorrections =>
+      _manualStitchAdjustments.scaleCorrections;
+  List<double> get _manualRotationCorrectionsDegrees =>
+      _manualStitchAdjustments.rotationCorrectionsDegrees;
+  List<double> get _manualHorizontalOffsetFractions =>
+      _manualStitchAdjustments.horizontalOffsetFractions;
+  List<bool> get _manualZeroOverlapPairs =>
+      _manualStitchAdjustments.zeroOverlapPairs;
   final _stitchTextEvidenceByPath = <String, ReceiptStitchTextEvidence>{};
+  late final String _receiptStitchTraceId = newReceiptPipelineTraceId();
   var _closingReview = false;
   var _confirmingReviewExit = false;
   late final _qualityChecksByPath = _initialQualityChecksByPath();
@@ -169,7 +182,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   String? _stitchPreviewKey;
   String? _stitchOrderEvidenceKey;
   bool _stitchPreviewInFlight = false;
-  Future<bool>? _stitchOrderWork;
+  Future<void>? _stitchOrderWork;
   var _stitchOrderUserAdjusted = false;
   var _stitchPreviewRequested = false;
   var _manualAlignmentRequested = false;
@@ -186,6 +199,9 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   Rect? _cropDisplayRect;
   Rect? _suggestedCropNormalized;
   String? _cropSourcePath;
+  String? _cropLoadInFlightPath;
+  var _straightenControlsVisible = false;
+  var _straightenAngleDegrees = 0.0;
   final _toolControlsScrollController = ScrollController();
   final _photoPreviewTransformController = TransformationController();
   late final _photoReviewPageController = PageController(

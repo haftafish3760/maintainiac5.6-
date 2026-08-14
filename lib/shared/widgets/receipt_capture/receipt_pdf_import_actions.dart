@@ -18,7 +18,6 @@ extension _ReceiptPdfImportActions on _SharedReceiptAttachmentPanelState {
         dialogTitle: 'Choose Receipt PDF',
       );
       if (result == null || result.files.isEmpty || !mounted) {
-        await returnToReceiptImportOptions();
         return;
       }
       final selectedFiles = result.files;

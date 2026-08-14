@@ -187,7 +187,7 @@ void main() {
     );
   });
 
-  test('possible partial receipt records decision without a second prompt', () async {
+  test('possible partial receipt requires an explicit completion decision', () async {
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
     final saveActions = await readReceiptPhotoReviewSaveActionsSource();
     final completionActions = await File(
@@ -212,48 +212,37 @@ void main() {
     expect(completionActions, contains('return _photoPaths.last;'));
     expect(
       completionActions,
-      isNot(contains('_showSinglePhotoCompletionDialog')),
-    );
-    expect(
-      completionActions,
-      isNot(
-        contains(
-          '_completionPromptedPhotoPaths.add(photoPath);\n    final userDecision',
-        ),
-      ),
-    );
-    expect(
-      completionActions,
       contains(
-        '_completionPromptedPhotoPaths.add(photoPath);\n    _recordReceiptCompletionDecision(',
+        'final userDecision = await showDialog<_ReceiptContinueDecision>',
       ),
     );
     expect(
       completionActions,
-      contains('decision: _ReceiptContinueDecision.continueAnyway'),
+      contains('userDecision ?? _ReceiptContinueDecision.keepReviewing'),
     );
+    expect(
+      completionActions,
+      contains('confirmedDecision == _ReceiptContinueDecision.continueAnyway'),
+    );
+    expect(
+      completionActions,
+      contains('_completionPromptedPhotoPaths.add(photoPath);'),
+    );
+    expect(completionActions, contains('decision: confirmedDecision'));
     expect(
       saveActions.indexOf('await _confirmReceiptCompleteIfNeeded()'),
       lessThan(
         saveActions.indexOf(
-          'if (_reviewMode != _ReceiptReviewMode.dataSaver &&',
+          'if (nextStep == ReceiptPhotoPipelineNextStep.reviewSavedImage)',
         ),
       ),
     );
     expect(completionActions, contains('decision.shouldPromptForMorePhotos'));
-    expect(
-      completionActions,
-      isNot(contains('decision.completionDialogTitle')),
-    );
-    expect(
-      completionActions,
-      isNot(contains('decision.continueAnywayButtonLabel')),
-    );
+    expect(completionActions, contains('decision.completionDialogTitle'));
+    expect(completionActions, contains('decision.continueAnywayButtonLabel'));
     expect(saveActions, isNot(contains('Next: Review Details')));
-    expect(
-      completionActions,
-      isNot(contains('decision.addSectionButtonLabel')),
-    );
+    expect(completionActions, contains('decision.addSectionButtonLabel'));
+    expect(completionActions, contains('await addAnotherReceiptPhoto();'));
     expect(controls, contains("'Add Bottom Section'"));
     expect(controls, contains('uiConfig.addPhotoLabel'));
     final models = await readReceiptCaptureModelsSource();
@@ -261,10 +250,7 @@ void main() {
     expect(models, contains('Add Bottom Section'));
     expect(completionActions, isNot(contains('Back to Photos')));
     expect(saveActions, isNot(contains('Stay In Review')));
-    expect(
-      completionActions,
-      isNot(contains('await addAnotherReceiptPhoto();')),
-    );
+    expect(completionActions, contains('await addAnotherReceiptPhoto();'));
     expect(
       completionActions,
       contains('return _ReceiptContinueDecision.continueAnyway;'),
@@ -310,8 +296,11 @@ void main() {
       stitchControls,
       contains('Combining \$total receipt sections automatically'),
     );
-    expect(stitchControls, contains('Keep these photos separate for now'));
-    expect(stitchControls, contains('retake only the section'));
+    expect(stitchControls, contains('Could not safely combine every section'));
+    expect(
+      stitchControls,
+      contains('Adjust the overlap below, or return and retake a section.'),
+    );
     expect(modeControls, contains('Align Receipt Photos'));
     expect(modeControls, isNot(contains('match guide')));
     final reviewScreen = await readReceiptPhotoReviewScreenSource();
@@ -362,12 +351,14 @@ void main() {
       ),
     );
     expect(importActions, contains('_ReceiptAttachmentReadOutcome.skipped'));
-    expect(importActions, contains('receiptPhotoReviewPausedBeforeOcr'));
     expect(
       importActions,
-      contains(
-        'Receipt photo saved. Add the bottom receipt section before receipt details open.',
-      ),
+      contains('receiptPhotoReviewCoverageWarningBeforeOcr'),
+    );
+    expect(importActions, isNot(contains('receiptPhotoReviewPausedBeforeOcr')));
+    expect(
+      importActions,
+      contains('open_editable_receipt_and_offer_next_section'),
     );
     expect(
       importActions,

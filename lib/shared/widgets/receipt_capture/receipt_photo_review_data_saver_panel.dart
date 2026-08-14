@@ -11,6 +11,7 @@ class _ReceiptSavedImageSideRail extends StatelessWidget {
     required this.visible,
     required this.onSelected,
     required this.onPreview,
+    required this.onDismiss,
   });
 
   final ReceiptDataSaverLevel selected;
@@ -19,6 +20,7 @@ class _ReceiptSavedImageSideRail extends StatelessWidget {
   final bool visible;
   final ValueChanged<ReceiptDataSaverLevel> onSelected;
   final VoidCallback onPreview;
+  final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -49,122 +51,136 @@ class _ReceiptSavedImageSideRail extends StatelessWidget {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(9, 10, 9, 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Save space for this receipt',
-                    style: TextStyle(
-                      color: Color(0xFFF0F4F2),
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      height: 1.1,
+            child: GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if ((details.primaryVelocity ?? 0) > 250) onDismiss();
+              },
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(9, 10, 9, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Save space for this receipt',
+                            style: TextStyle(
+                              color: Color(0xFFF0F4F2),
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              height: 1.1,
+                            ),
+                          ),
+                        ),
+                        Tooltip(
+                          message:
+                              'Hide size options and show the full receipt',
+                          child: TextButton.icon(
+                            onPressed: onDismiss,
+                            icon: const Icon(
+                              Icons.visibility_off_rounded,
+                              size: 16,
+                            ),
+                            label: const Text('Hide'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: const Color(0xFF8EF6A4),
+                              textStyle: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Choose how clear the saved copy should be. You can hide this panel and check the full receipt before continuing.',
-                    style: TextStyle(
-                      color: Color(0xFFC8D0D3),
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w700,
-                      height: 1.18,
-                    ),
-                  ),
-                  const SizedBox(height: 9),
-                  for (final level in _levels) ...[
-                    _SavedImageSizeChoice(
-                      level: level,
-                      selected: level == selected,
-                      enabled: enabled,
-                      onTap: () => onSelected(level),
-                    ),
-                    const SizedBox(height: 7),
-                  ],
-                  const SizedBox(height: 2),
-                  Text(
-                    previewLabel,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFF8EF6A4),
-                      fontSize: 10.5,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    selected.proofTargetSizePolicy.earlyAccessProofCapacityLabel
-                        .replaceFirst('About ', 'At this size, about '),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFF9FB0B8),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      height: 1.15,
-                    ),
-                  ),
-                  const SizedBox(height: 9),
-                  _DataSaverDeviceSpaceSummary(
-                    key: ValueKey(preview?.estimatedBytes ?? 0),
-                    savedImageBytes: preview?.estimatedBytes,
-                  ),
-                  const SizedBox(height: 9),
-                  OutlinedButton.icon(
-                    onPressed: enabled ? onPreview : null,
-                    icon: const Icon(
-                      Icons.keyboard_double_arrow_right_rounded,
-                      size: 18,
-                    ),
-                    label: const Text('Hide panel & view full receipt'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0D2216),
-                      backgroundColor: const Color(0xFF8EF6A4),
-                      side: const BorderSide(color: Color(0xFF8EF6A4)),
-                      textStyle: const TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                  if (settings != null) ...[
-                    const Divider(height: 20, color: Color(0xFF526168)),
+                    const SizedBox(height: 4),
                     const Text(
-                      'SAVED ON THIS DEVICE',
-                      style: TextStyle(
-                        color: Color(0xFFF0F4F2),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 3),
-                    const Text(
-                      'You stay in control of whether receipt images are backed up.',
+                      'Choose how clear the saved copy should be. You can hide this panel and check the full receipt before continuing.',
                       style: TextStyle(
                         color: Color(0xFFC8D0D3),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        height: 1.18,
+                      ),
+                    ),
+                    const SizedBox(height: 9),
+                    for (final level in _levels) ...[
+                      _SavedImageSizeChoice(
+                        level: level,
+                        selected: level == selected,
+                        enabled: enabled,
+                        onTap: () => onSelected(level),
+                      ),
+                      const SizedBox(height: 7),
+                    ],
+                    const SizedBox(height: 2),
+                    Text(
+                      previewLabel,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF8EF6A4),
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      selected
+                          .proofTargetSizePolicy
+                          .earlyAccessProofCapacityLabel
+                          .replaceFirst('About ', 'At this size, about '),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Color(0xFF9FB0B8),
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                         height: 1.15,
                       ),
                     ),
-                    _DataSaverSettingToggle(
-                      label: 'Ask me for each receipt',
-                      value: settings.askSavedProofSizeEachReceipt,
-                      enabled: enabled,
-                      onChanged: settings.setAskSavedProofSizeEachReceipt,
+                    const SizedBox(height: 9),
+                    _DataSaverDeviceSpaceSummary(
+                      key: ValueKey(preview?.estimatedBytes ?? 0),
+                      savedImageBytes: preview?.estimatedBytes,
                     ),
-                    _DataSaverSettingToggle(
-                      label: 'Back up receipt photos',
-                      value: settings.receiptPhotoBackupEnabled,
-                      enabled: enabled,
-                      onChanged: settings.setReceiptPhotoBackupEnabled,
-                    ),
-                    _DataSaverBackupStatus(
-                      backupRequested: settings.receiptPhotoBackupEnabled,
-                    ),
+                    const SizedBox(height: 9),
+                    if (settings != null) ...[
+                      const Divider(height: 20, color: Color(0xFF526168)),
+                      const Text(
+                        'SAVED ON THIS DEVICE',
+                        style: TextStyle(
+                          color: Color(0xFFF0F4F2),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      const Text(
+                        'You stay in control of whether receipt images are backed up.',
+                        style: TextStyle(
+                          color: Color(0xFFC8D0D3),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          height: 1.15,
+                        ),
+                      ),
+                      _DataSaverSettingToggle(
+                        label: 'Ask me for each receipt',
+                        value: settings.askSavedProofSizeEachReceipt,
+                        enabled: enabled,
+                        onChanged: settings.setAskSavedProofSizeEachReceipt,
+                      ),
+                      _DataSaverSettingToggle(
+                        label: 'Back up receipt photos',
+                        value: settings.receiptPhotoBackupEnabled,
+                        enabled: enabled,
+                        onChanged: settings.setReceiptPhotoBackupEnabled,
+                      ),
+                      _DataSaverBackupStatus(
+                        backupRequested: settings.receiptPhotoBackupEnabled,
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),

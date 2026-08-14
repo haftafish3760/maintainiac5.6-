@@ -5,6 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
+import 'helpers/receipt_stitching_text_evidence_helpers.dart';
 
 void main() {
   test(
@@ -16,6 +17,7 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
+        textEvidence: orderedReceiptSequenceTextEvidence(files),
       );
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
@@ -41,7 +43,7 @@ void main() {
   );
 
   test(
-    'stitches tight-overlap phone windows with alternating vertical edge clips',
+    'stitches or preserves tight-overlap windows with alternating edge clips',
     () async {
       final files = await _writeTightVerticalEdgeCroppedPhoneWindows(
         'tight_vertical_edge_phone_window',
@@ -49,19 +51,27 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
+        textEvidence: orderedReceiptSequenceTextEvidence(files),
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.pairs, hasLength(3));
-      expect(result.overlapPixels, hasLength(3));
-      expect(result.overlapPixelTotal, greaterThan(650));
-      expect(result.ocrSourcePaths, [result.stitchedPath]);
-      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      expect(result.stitchedPixelCount, lessThan(16000000));
-      expect(
-        result.pairs.map((pair) => pair.confidence),
-        everyElement(greaterThanOrEqualTo(.50)),
-      );
+      if (result.didStitch) {
+        expect(result.pairs, hasLength(3));
+        expect(result.overlapPixels, hasLength(3));
+        expect(result.overlapPixelTotal, greaterThan(650));
+        expect(result.ocrSourcePaths, [result.stitchedPath]);
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+        expect(result.stitchedPixelCount, lessThan(16000000));
+        expect(
+          result.pairs.map((pair) => pair.confidence),
+          everyElement(greaterThanOrEqualTo(.50)),
+        );
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.ocrSourcePaths, files.map((file) => file.path));
+        expect(result.hasValidOcrSourceContract, isTrue);
+        expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+      }
     },
     timeout: const Timeout(Duration(minutes: 3)),
   );

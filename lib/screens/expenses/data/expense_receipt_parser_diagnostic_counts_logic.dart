@@ -124,6 +124,7 @@ Map<String, int> _parserTaskCountsFor({
   if (_hasPricedLinesMissingSummaryTotals(lines, totals)) {
     add('receipt_missing_totals_manual_review');
     add('receipt_totals_text_missing_review');
+    add('receipt_visible_lines_total_calculated_review');
     if (_hasSplitTenderReconciledVisibleTotal(lines, totals)) {
       add('receipt_split_tender_matches_visible_lines_review');
     } else if (_hasLocalFooterOrBarcodeEvidence(layoutSignalCounts)) {

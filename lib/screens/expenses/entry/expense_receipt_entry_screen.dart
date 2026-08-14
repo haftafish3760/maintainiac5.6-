@@ -33,6 +33,7 @@ import '../data/expense_receipt_privacy_event_store.dart';
 import '../data/expense_receipt_user_review_merge.dart';
 import '../data/expense_screen_telemetry.dart';
 import '../data/expense_screen_telemetry_recorder.dart';
+import 'expense_receipt_entry_route_policy.dart';
 import '../../../shared/odometer/odometer_correction_review.dart';
 import '../../../shared/odometer/open_odometer_entry.dart';
 import '../../../shared/odometer/odometer_mileage_review.dart';
@@ -114,10 +115,12 @@ part 'expense_receipt_entry_capture_diagnostic_helpers.dart';
 part 'expense_receipt_entry_line_mode_helpers.dart';
 part 'expense_receipt_category_scope_panel.dart';
 part 'expense_receipt_entry_lifecycle_helpers.dart';
+part 'expense_receipt_entry_exit_actions.dart';
 part 'expense_receipt_entry_attachment_panel.dart';
 part 'expense_receipt_entry_start_guide.dart';
 part 'expense_receipt_entry_scaffold.dart';
 part 'expense_receipt_entry_manual_flow.dart';
+part 'expense_receipt_entry_manual_proof.dart';
 part 'expense_receipt_entry_manual_widgets.dart';
 part 'expense_receipt_entry_manual_details_widgets.dart';
 part 'expense_receipt_entry_manual_summary_widgets.dart';
@@ -135,7 +138,10 @@ enum ExpenseReceiptFlowMode { general, materials, maintenanceRepair }
 // reopened safely. New receipts always use the unified editable form.
 enum _ReceiptDetailEntryMode { basicReceipt, quickClassify, detailedItems }
 
-enum _ManualReceiptStep { details, items, review }
+/// The receipt method belongs before any receipt fields.  A person must be
+/// able to start a real manual receipt without being sent through camera or
+/// import setup first.
+enum _ManualReceiptStep { start, details, items, review }
 
 /// This only controls the first receipt screen.  It makes the user's choice
 /// visible while keeping the saved category contract unchanged.
@@ -237,11 +243,12 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   var _trackMaterialsInInventory = false;
   int? _expenseOdometerReading;
   var _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;
-  var _manualReceiptStep = _ManualReceiptStep.details;
+  var _manualReceiptStep = _ManualReceiptStep.start;
   // This is the receipt-wide default chosen before the user starts adding
   // items. Individual items may still be corrected in their editor, which is
   // especially important for a split receipt.
   var _receiptUse = _ExpenseLineUse.unclassified;
+  var _receiptUseSelectionMade = false;
   var _receiptClassificationConfirmed = false;
   var _receiptCategory = 'Uncategorized';
   var _receiptCategoryAppliesToAll = false;
@@ -285,6 +292,8 @@ class _ExpenseReceiptEntryScreenState extends State<ExpenseReceiptEntryScreen>
   ExpenseDraftController? _drafts;
   var _draftLoaded = false;
   var _savedReceipt = false;
+  var _receiptReviewExitInFlight = false;
+  var _receiptExitResolved = false;
   var _draftSaveFailureShown = false;
   late final DateTime _screenOpenedAtUtc;
   ExpenseScreenTelemetrySnapshot? _telemetrySnapshot;

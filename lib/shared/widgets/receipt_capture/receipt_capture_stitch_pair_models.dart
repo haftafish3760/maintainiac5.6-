@@ -5,6 +5,8 @@ class ReceiptStitchPairResult {
     required this.pairIndex,
     required this.overlapPixels,
     required this.confidence,
+    this.seamSkipPixels = 0,
+    this.selectedSeamCropPixels = 0,
     this.usedManualAdjustment = false,
     this.scaleCorrection = 1,
     this.rotationCorrectionDegrees = 0,
@@ -13,6 +15,12 @@ class ReceiptStitchPairResult {
     this.verticalOffsetPixels = 0,
     this.textOverlapConfidence = 0,
     this.matchedTextLineCount = 0,
+    this.textPositionalConfidence = 0,
+    this.hasTextPositionEvidence = false,
+    this.previousTextOverlapStart = 0,
+    this.nextTextOverlapEnd = 0,
+    this.nextContinuationTextStart = 0,
+    this.nextContinuationTextEnd = 0,
     this.usedZeroOverlapJoin = false,
     this.continuityCorrelation = 0,
     this.continuityDetailedBands = 0,
@@ -21,11 +29,19 @@ class ReceiptStitchPairResult {
     this.geometryDetailedCells = 0,
     this.geometryMatchingCells = 0,
     this.visualConfidence = 0,
+    this.usedNativeRegistration = false,
   });
 
   final int pairIndex;
   final int overlapPixels;
   final double confidence;
+
+  /// Rows used to place the continuation in the shared proof coordinate space.
+  /// Delayed overlap includes leading continuation rows in this value.
+  final int seamSkipPixels;
+
+  /// Actual continuation rows removed at the selected low-ink seam.
+  final int selectedSeamCropPixels;
   final bool usedManualAdjustment;
   final double scaleCorrection;
   final double rotationCorrectionDegrees;
@@ -34,6 +50,12 @@ class ReceiptStitchPairResult {
   final int verticalOffsetPixels;
   final double textOverlapConfidence;
   final int matchedTextLineCount;
+  final double textPositionalConfidence;
+  final bool hasTextPositionEvidence;
+  final double previousTextOverlapStart;
+  final double nextTextOverlapEnd;
+  final double nextContinuationTextStart;
+  final double nextContinuationTextEnd;
   final bool usedZeroOverlapJoin;
   final double continuityCorrelation;
   final int continuityDetailedBands;
@@ -42,6 +64,40 @@ class ReceiptStitchPairResult {
   final int geometryDetailedCells;
   final int geometryMatchingCells;
   final double visualConfidence;
+  final bool usedNativeRegistration;
+
+  ReceiptStitchPairResult withSelectedSeamCrop(int value) {
+    return ReceiptStitchPairResult(
+      pairIndex: pairIndex,
+      overlapPixels: overlapPixels,
+      confidence: confidence,
+      seamSkipPixels: seamSkipPixels,
+      selectedSeamCropPixels: value,
+      usedManualAdjustment: usedManualAdjustment,
+      scaleCorrection: scaleCorrection,
+      rotationCorrectionDegrees: rotationCorrectionDegrees,
+      perspectiveCorrection: perspectiveCorrection,
+      horizontalOffsetPixels: horizontalOffsetPixels,
+      verticalOffsetPixels: verticalOffsetPixels,
+      textOverlapConfidence: textOverlapConfidence,
+      matchedTextLineCount: matchedTextLineCount,
+      textPositionalConfidence: textPositionalConfidence,
+      hasTextPositionEvidence: hasTextPositionEvidence,
+      previousTextOverlapStart: previousTextOverlapStart,
+      nextTextOverlapEnd: nextTextOverlapEnd,
+      nextContinuationTextStart: nextContinuationTextStart,
+      nextContinuationTextEnd: nextContinuationTextEnd,
+      usedZeroOverlapJoin: usedZeroOverlapJoin,
+      continuityCorrelation: continuityCorrelation,
+      continuityDetailedBands: continuityDetailedBands,
+      continuityMatchingBands: continuityMatchingBands,
+      geometryCorrelation: geometryCorrelation,
+      geometryDetailedCells: geometryDetailedCells,
+      geometryMatchingCells: geometryMatchingCells,
+      visualConfidence: visualConfidence,
+      usedNativeRegistration: usedNativeRegistration,
+    );
+  }
 
   String get pairLabel => 'Photo ${pairIndex + 1} to ${pairIndex + 2}';
   double get _safeConfidence => _safeStitchUnitInterval(confidence);

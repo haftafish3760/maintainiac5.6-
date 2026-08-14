@@ -25,7 +25,7 @@ VISIT COUNTYLINE.EXAMPLE
       expect(
         parsed.warnings,
         contains(
-          'Receipt footer was found, but the final total was not. Review OCR/crop or confirm the inferred total before saving.',
+          'The final printed total was not found. Check the working total before saving.',
         ),
       );
       expect(
@@ -88,6 +88,7 @@ TOTAL 17.48
           sourceHandoffSummary: sourceHandoff,
         ),
         capability: const ReceiptDeviceCapability.highCapacity(),
+        parserDepth: ReceiptParserDepth.lineItems,
       );
 
       expect(parsed.diagnostics.hasOcrPhotoQualityActionReview, isTrue);
@@ -149,6 +150,7 @@ GENERAL MDSE 17.48
           sourceHandoffSummary: sourceHandoff,
         ),
         capability: const ReceiptDeviceCapability.highCapacity(),
+        parserDepth: ReceiptParserDepth.lineItems,
       );
 
       expect(parsed.diagnostics.hasOcrPhotoQualityActionReview, isTrue);
@@ -209,6 +211,7 @@ TOTAL 7.99
         sourceHandoffSummary: sourceHandoff,
       ),
       capability: const ReceiptDeviceCapability.highCapacity(),
+      parserDepth: ReceiptParserDepth.lineItems,
     );
 
     expect(parsed.diagnostics.hasOcrPhotoQualityActionReview, isTrue);
@@ -310,6 +313,7 @@ TOTAL 14.50
           ],
         ),
         capability: const ReceiptDeviceCapability.highCapacity(),
+        parserDepth: ReceiptParserDepth.lineItems,
       );
 
       expect(

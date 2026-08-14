@@ -64,40 +64,6 @@ img.Image _materializeRawStitchImage(
   return transformed;
 }
 
-img.Image _stripVerifiedTopCaptureArtifact(img.Image source) {
-  // This deliberately accepts an extremely narrow case: a sustained,
-  // full-width, almost-black band flush with the top edge. That is a capture
-  // artifact, not receipt content. Faded paper, shadows, dark logos, and
-  // ordinary printed rules do not meet this threshold and are preserved.
-  if (source.width < 48 || source.height < 80) return source;
-  final maximumBandHeight = math.min(240, (source.height * .12).round());
-  final minimumBandHeight = math.max(12, (source.height * .01).round());
-  final stepX = math.max(4, (source.width / 72).round());
-  var artifactRows = 0;
-  for (var y = 0; y < maximumBandHeight; y += 2) {
-    var samples = 0;
-    var nearBlackSamples = 0;
-    for (var x = source.width ~/ 20; x < source.width * 19 ~/ 20; x += stepX) {
-      final pixel = source.getPixel(x, y);
-      final luma = (pixel.r + pixel.g + pixel.b) / 3;
-      samples++;
-      if (luma <= 12) nearBlackSamples++;
-    }
-    if (samples == 0 || nearBlackSamples / samples < .98) break;
-    artifactRows = y + 2;
-  }
-  if (artifactRows < minimumBandHeight || artifactRows >= source.height - 24) {
-    return source;
-  }
-  return img.copyCrop(
-    source,
-    x: 0,
-    y: artifactRows,
-    width: source.width,
-    height: source.height - artifactRows,
-  );
-}
-
 img.Image _transformForStitchComparison(
   img.Image source, {
   required int targetWidth,
@@ -267,7 +233,9 @@ _receiptStitchSeamRowEvidence({
   // Prefer a visually agreeing, low-ink gap so the join does not cut through
   // printed receipt text, a barcode, or a handwritten annotation.
   final averageDifference = difference / samples;
-  final inkRatio = ink / samples;
+  // Each spatial sample contributes one ink value from each image. Normalize
+  // by both observations so the ratio remains on the documented 0–1 scale.
+  final inkRatio = ink / (samples * 2);
   return (
     score: averageDifference + inkRatio * 42,
     difference: averageDifference,

@@ -2,29 +2,37 @@ part of 'receipt_attachment_panel.dart';
 
 extension _ReceiptAttachmentCameraActions
     on _SharedReceiptAttachmentPanelState {
-  Future<void> takeReceiptPhoto() async {
-    if (_openingPicker) return;
+  Future<ReceiptImportActionResult> takeReceiptPhoto({
+    bool skipFirstUseReceiptAssistIntro = false,
+  }) async {
+    if (_openingPicker) {
+      return const ReceiptImportActionResult.stayOnChooser();
+    }
     updateAttachmentState(() => _openingPicker = true);
     try {
       final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-      if (settings != null &&
+      if (!skipFirstUseReceiptAssistIntro &&
+          settings != null &&
           !settings.hasReceiptAssistChoiceFor(widget.area)) {
         final ready = await _showFirstUseReceiptAssistIntro(settings);
-        if (!mounted) return;
+        if (!mounted) return const ReceiptImportActionResult.stayOnChooser();
         if (!ready) {
-          await returnToReceiptImportOptions();
-          return;
+          return const ReceiptImportActionResult.stayOnChooser();
         }
       }
-      final nativeOutcome = await _takeMaintainiacNativeCameraPhoto(settings);
-      if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.added) return;
-      if (nativeOutcome == _MaintainiacNativeCameraPhotoOutcome.canceled) {
-        await returnToReceiptImportOptions();
-        return;
+      final nativeResult = await _takeMaintainiacNativeCameraPhoto(settings);
+      if (nativeResult.outcome == _MaintainiacNativeCameraPhotoOutcome.added ||
+          nativeResult.outcome ==
+              _MaintainiacNativeCameraPhotoOutcome.reviewCompleted) {
+        return nativeResult.sourceResult;
       }
-      await _openReceiptBackupCaptureAfterNativeUnavailable(settings);
+      if (nativeResult.outcome ==
+          _MaintainiacNativeCameraPhotoOutcome.canceled) {
+        return const ReceiptImportActionResult.stayOnChooser();
+      }
+      return _openReceiptBackupCaptureAfterNativeUnavailable(settings);
     } on MissingPluginException {
-      if (!mounted) return;
+      if (!mounted) return const ReceiptImportActionResult.stayOnChooser();
       _notifyReceiptCaptureDiagnostic(
         stage: 'native_camera_plugin',
         reason: 'native_camera_plugin_missing',
@@ -38,17 +46,18 @@ extension _ReceiptAttachmentCameraActions
       showPickerError(
         'Maintainiac receipt camera is not installed in this build. Opening the phone camera as backup capture; the photo still returns to Maintainiac receipt review.',
       );
-      await _takePhoneCameraBackupPhoto();
+      return _takePhoneCameraBackupPhoto();
     } on PlatformException catch (error) {
-      if (!mounted) return;
+      if (!mounted) return const ReceiptImportActionResult.stayOnChooser();
       _notifyReceiptCaptureDiagnostic(
         stage: 'native_camera_platform',
         reason: _platformCameraFailureReason(error),
         action: 'retry_or_import_existing_photo',
       );
       showPickerError(_nativeCameraOpenErrorMessage(error));
+      return const ReceiptImportActionResult.stayOnChooser();
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return const ReceiptImportActionResult.stayOnChooser();
       _notifyReceiptCaptureDiagnostic(
         stage: 'native_camera_unknown',
         reason: 'native_camera_unexpected_failure',
@@ -57,13 +66,13 @@ extension _ReceiptAttachmentCameraActions
       showPickerError(
         'The receipt camera did not open. Try Capture Receipt Photo again, or choose an existing receipt image instead.',
       );
+      return const ReceiptImportActionResult.stayOnChooser();
     } finally {
       if (mounted) updateAttachmentState(() => _openingPicker = false);
     }
   }
 
-  Future<_MaintainiacNativeCameraPhotoOutcome>
-  _takeMaintainiacNativeCameraPhoto(
+  Future<_MaintainiacNativeCameraPhotoResult> _takeMaintainiacNativeCameraPhoto(
     ReceiptCaptureSettingsController? settings,
   ) async {
     final continuationGuide =
@@ -90,26 +99,63 @@ extension _ReceiptAttachmentCameraActions
         ),
       ),
     );
-    if (!mounted) return _MaintainiacNativeCameraPhotoOutcome.canceled;
+    if (!mounted) {
+      return const _MaintainiacNativeCameraPhotoResult(
+        _MaintainiacNativeCameraPhotoOutcome.canceled,
+      );
+    }
     _publishSharedReceiptCaptureDiagnostic(flowResult);
     switch (flowResult.status) {
       case ReceiptCaptureFlowStatus.accepted:
         final result = flowResult.reviewResult;
         if (result == null) {
-          return _MaintainiacNativeCameraPhotoOutcome.canceled;
+          return const _MaintainiacNativeCameraPhotoResult(
+            _MaintainiacNativeCameraPhotoOutcome.canceled,
+          );
         }
-        final accepted = await _acceptReviewedPhotoResult(result);
+        final accepted = await _completeReviewedPhotoResult(result);
         if (!accepted || !mounted) {
-          return _MaintainiacNativeCameraPhotoOutcome.canceled;
+          return const _MaintainiacNativeCameraPhotoResult(
+            _MaintainiacNativeCameraPhotoOutcome.canceled,
+          );
         }
-        await _retainAcceptedNativeRecoveryUntilReceiptSave(flowResult);
-        if (!mounted) return _MaintainiacNativeCameraPhotoOutcome.canceled;
-        return _MaintainiacNativeCameraPhotoOutcome.added;
+        await _retainNativeRecoveryUntilReceiptSave(flowResult);
+        if (!mounted) {
+          return const _MaintainiacNativeCameraPhotoResult(
+            _MaintainiacNativeCameraPhotoOutcome.canceled,
+          );
+        }
+        return _MaintainiacNativeCameraPhotoResult(
+          _MaintainiacNativeCameraPhotoOutcome.added,
+          sourceResult: ReceiptImportActionResult.reviewCompleted(result),
+        );
+      case ReceiptCaptureFlowStatus.reviewCompleted:
+        final result = flowResult.reviewResult;
+        if (result == null) {
+          return const _MaintainiacNativeCameraPhotoResult(
+            _MaintainiacNativeCameraPhotoOutcome.canceled,
+          );
+        }
+        final completed = await _completeReviewedPhotoResult(result);
+        if (!completed || !mounted) {
+          return const _MaintainiacNativeCameraPhotoResult(
+            _MaintainiacNativeCameraPhotoOutcome.canceled,
+          );
+        }
+        if (result.keptForLater) {
+          await _retainNativeRecoveryUntilReceiptSave(flowResult);
+        }
+        return _MaintainiacNativeCameraPhotoResult(
+          _MaintainiacNativeCameraPhotoOutcome.reviewCompleted,
+          sourceResult: ReceiptImportActionResult.reviewCompleted(result),
+        );
       case ReceiptCaptureFlowStatus.canceled:
         if (flowResult.message.trim().isNotEmpty) {
           showPickerError(flowResult.message);
         }
-        return _MaintainiacNativeCameraPhotoOutcome.canceled;
+        return const _MaintainiacNativeCameraPhotoResult(
+          _MaintainiacNativeCameraPhotoOutcome.canceled,
+        );
       case ReceiptCaptureFlowStatus.reviewUnavailable:
         _notifyReceiptCaptureDiagnostic(
           stage: 'receipt_photo_review',
@@ -124,12 +170,16 @@ extension _ReceiptAttachmentCameraActions
         showPickerError(
           'Receipt photo review did not open. Try Capture Receipt Photo again, or choose an existing receipt image instead.',
         );
-        return _MaintainiacNativeCameraPhotoOutcome.canceled;
+        return const _MaintainiacNativeCameraPhotoResult(
+          _MaintainiacNativeCameraPhotoOutcome.canceled,
+        );
       case ReceiptCaptureFlowStatus.permissionDenied:
         if (flowResult.message.trim().isNotEmpty) {
           showPickerError(flowResult.message);
         }
-        return _MaintainiacNativeCameraPhotoOutcome.canceled;
+        return const _MaintainiacNativeCameraPhotoResult(
+          _MaintainiacNativeCameraPhotoOutcome.canceled,
+        );
       case ReceiptCaptureFlowStatus.nativeUnavailable:
         if (flowResult.message.trim().isNotEmpty &&
             flowResult.nativeCapabilities?.available == true) {
@@ -137,12 +187,16 @@ extension _ReceiptAttachmentCameraActions
             '${flowResult.message.trim()} Opening the phone camera as backup capture; the photo still returns to Maintainiac receipt review.',
           );
         }
-        return _MaintainiacNativeCameraPhotoOutcome.unavailable;
+        return const _MaintainiacNativeCameraPhotoResult(
+          _MaintainiacNativeCameraPhotoOutcome.unavailable,
+        );
       case ReceiptCaptureFlowStatus.stagingFailed:
         if (flowResult.message.trim().isNotEmpty) {
           showPickerError(flowResult.message);
         }
-        return _MaintainiacNativeCameraPhotoOutcome.canceled;
+        return const _MaintainiacNativeCameraPhotoResult(
+          _MaintainiacNativeCameraPhotoOutcome.canceled,
+        );
     }
   }
 
@@ -180,17 +234,15 @@ extension _ReceiptAttachmentCameraActions
     _publishReceiptCaptureDiagnostic(result.diagnostics);
   }
 
-  Future<void> _retainAcceptedNativeRecoveryUntilReceiptSave(
+  Future<void> _retainNativeRecoveryUntilReceiptSave(
     ReceiptCaptureFlowResult result,
   ) async {
-    if (!result.accepted || result.reviewResult == null) return;
-    final review = result.reviewResult!;
-    if (review.photoPaths.isEmpty || review.ocrSourcePhotoPaths.isEmpty) {
-      return;
-    }
+    final review = result.reviewResult;
+    if (review == null || review.photoPaths.isEmpty) return;
     final manifestPath = result.recoveryManifestPath.trim();
     if (manifestPath.isEmpty) return;
     widget.controller?._retainNativeRecoveryManifest(manifestPath);
+    if (!result.accepted || review.ocrSourcePhotoPaths.isEmpty) return;
     await const ReceiptNativeCaptureStaging().markRecoveryStage(
       manifestPath,
       stage: 'receipt_save_pending',
@@ -261,6 +313,17 @@ extension _ReceiptAttachmentCameraActions
     _ReceiptFirstUseCameraAction action,
   ) async {
     final useAssist = action == _ReceiptFirstUseCameraAction.useReceiptAssist;
+    if (widget.area == ReceiptCaptureArea.expenses) {
+      // Expense entry has a richer settings screen, but first use is one
+      // question. Persist the same canonical preference now so that screen
+      // never presents a second, conflicting setup wall.
+      await settings.setExpenseReceiptAssistanceChoice(
+        useAssist
+            ? ExpenseReceiptAssistanceChoice.onDevice
+            : ExpenseReceiptAssistanceChoice.manual,
+      );
+      return;
+    }
     await settings.setAppAssistedFor(widget.area, useAssist);
   }
 

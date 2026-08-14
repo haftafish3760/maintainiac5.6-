@@ -30,10 +30,11 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     required this.onClearManualOverlap,
     required this.onMoveEarlier,
     required this.onMoveLater,
-    required this.onStraightenLeft,
-    required this.onStraightenRight,
-    required this.onRotateLeft,
-    required this.onRotateRight,
+    required this.straightenControlsVisible,
+    required this.straightenAngleDegrees,
+    required this.onToggleStraighten,
+    required this.onStraightenAngleChanged,
+    required this.onApplyStraighten,
     required this.onResetCrop,
     required this.onApplyCrop,
     required this.onCancelCrop,
@@ -71,10 +72,11 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
   final VoidCallback onClearManualOverlap;
   final VoidCallback onMoveEarlier;
   final VoidCallback onMoveLater;
-  final VoidCallback onStraightenLeft;
-  final VoidCallback onStraightenRight;
-  final VoidCallback onRotateLeft;
-  final VoidCallback onRotateRight;
+  final bool straightenControlsVisible;
+  final double straightenAngleDegrees;
+  final VoidCallback onToggleStraighten;
+  final ValueChanged<double> onStraightenAngleChanged;
+  final VoidCallback onApplyStraighten;
   final VoidCallback onResetCrop;
   final VoidCallback onApplyCrop;
   final VoidCallback onCancelCrop;
@@ -106,10 +108,11 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
             child: _ReceiptCropActions(
               cropProcessing: cropProcessing,
-              onStraightenLeft: onStraightenLeft,
-              onStraightenRight: onStraightenRight,
-              onRotateLeft: onRotateLeft,
-              onRotateRight: onRotateRight,
+              straightenControlsVisible: straightenControlsVisible,
+              straightenAngleDegrees: straightenAngleDegrees,
+              onToggleStraighten: onToggleStraighten,
+              onStraightenAngleChanged: onStraightenAngleChanged,
+              onApplyStraighten: onApplyStraighten,
               onResetCrop: onResetCrop,
               onApplyCrop: onApplyCrop,
               onCancelCrop: onCancelCrop,
@@ -129,10 +132,12 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
         stitchPreviewInFlight: stitchPreviewInFlight,
         openingCamera: openingCamera || effectiveSavingPhotos,
         savingPhotos: effectiveSavingPhotos,
+        canRemove: canRemove,
         continueLabel: continueLabel,
         onModeChanged: onModeChanged,
         onAddPhoto: onAddPhoto,
         onRetake: onRetake,
+        onRemove: onRemove,
         onContinue: continueEnabled ? onContinue : null,
       );
     }
@@ -281,11 +286,11 @@ class _ReceiptReviewBottomControls extends StatelessWidget {
     }
     if (reviewMode == _ReceiptReviewMode.stitch &&
         stitchPreview?.usedFallback == true) {
-      return 'Use receipt sections';
+      return 'Align receipt sections';
     }
     if (reviewMode == _ReceiptReviewMode.stitch &&
         (stitchPreviewInFlight || stitchPreview == null)) {
-      return 'Putting receipt together';
+      return 'Checking receipt photos';
     }
     return 'Continue';
   }

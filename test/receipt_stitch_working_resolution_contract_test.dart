@@ -24,14 +24,26 @@ void main() {
     ).readAsString();
 
     expect(api, contains('maxTargetWidth: maxTargetWidth'));
-    expect(
-      api,
-      contains('allowUprightFastPath: textPlan.safelyAcceleratesGeometry'),
-    );
+    expect(api, contains('allowUprightFastPath: true'));
     expect(support, contains('receiptStitchTextSafelyAcceleratesGeometry('));
     expect(helpers, contains('bool allowUprightFastPath = false'));
     expect(helpers, contains('final uprightFastPath = allowUprightFastPath'));
     expect(fastPath, contains('continuity.isProven'));
+    expect(
+      fastPath,
+      contains('_receiptGeometryEvidenceSupportsCandidate(geometry)'),
+    );
+    expect(fastPath, contains('final materializedGeometry ='));
+    expect(
+      fastPath,
+      contains(
+        '_receiptGeometryEvidenceSupportsCandidate(materializedGeometry)',
+      ),
+    );
+    expect(
+      api,
+      contains('final evidenceDecision = evaluateReceiptStitchEvidence('),
+    );
     expect(
       sources,
       contains('final workingWidth = _stitchWorkingWidth(targetWidth);'),
@@ -39,6 +51,13 @@ void main() {
     expect(
       sources,
       contains('_resizeForStitchWorkingWidth(upright, workingWidth)'),
+    );
+    expect(sources, contains('final effectiveTargetWidth = decoded'));
+    expect(sources, contains('.fold(targetWidth, math.min)'));
+    expect(
+      sources,
+      contains('_resizeToWidth(image, effectiveTargetWidth)'),
+      reason: 'The stitcher must never enlarge a lower-resolution receipt.',
     );
     expect(sources, contains('final sourceHashes = <String>[];'));
     expect(sources, isNot(contains('decodedSources.add(upright)')));

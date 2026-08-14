@@ -251,9 +251,9 @@ void main() {
 }
 
 void expectWeakOverlapRequiresReview(ReceiptStitchResult result) {
-  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
   expect(result.reviewFocusPairLabel, anyOf('', 'Photo 1 to 2'));
   if (result.didStitch) {
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
     final reviewPairs = result.pairs
         .where(
           (pair) =>
@@ -279,8 +279,9 @@ void expectWeakOverlapRequiresReview(ReceiptStitchResult result) {
     );
   } else {
     expect(result.usedFallback, isTrue, reason: result.detailLabel);
+    expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
     expect(result.fallbackReasonCode, 'overlap_confidence_low');
     expect(result.failedPairLabel, 'Photo 1 to 2');
-    expect(result.assistedReadinessCode, 'stitch_contract_review_required');
+    expect(result.assistedReadinessCode, 'ordered_sections_ready');
   }
 }

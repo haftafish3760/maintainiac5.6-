@@ -53,7 +53,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
                 child: const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Text(
-                    'Crop receipt — drag the yellow edges',
+                    'Crop and straighten receipt',
                     style: TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 13,
@@ -74,7 +74,7 @@ class _ReceiptReviewTopBar extends StatelessWidget {
     final title = isStitchedReceipt
         ? 'Review Complete Receipt'
         : stitchWorking
-        ? 'Putting Receipt Together'
+        ? 'Checking receipt photos'
         : stitchNeedsAlignment
         ? 'Align Receipt Photos'
         : switch (reviewMode) {

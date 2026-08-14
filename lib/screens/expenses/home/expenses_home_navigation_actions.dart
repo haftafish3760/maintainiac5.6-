@@ -116,12 +116,12 @@ List<_LedgerEntryData> _categoryEntriesForRange(
       .toList(growable: false);
 }
 
-void _openMaterialReceipt(BuildContext context) {
-  Navigator.of(context).push(
-    appNativeRoute<void>(
-      context,
-      const ExpenseReceiptEntryScreen(mode: ExpenseReceiptFlowMode.materials),
-    ),
+void _openMaterialReceipt(BuildContext context, {DateTime? initialDate}) {
+  _openReceipt(
+    context,
+    initialCategory: 'Materials',
+    initialDate: initialDate,
+    mode: ExpenseReceiptFlowMode.materials,
   );
 }
 
@@ -141,7 +141,7 @@ void _openCategory(
     return;
   }
   if (category.category == 'Materials') {
-    _openMaterialReceipt(context);
+    _openMaterialReceipt(context, initialDate: initialDate);
     return;
   }
   if (category.category == 'Repair' || category.category == 'Maintenance') {

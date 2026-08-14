@@ -109,7 +109,8 @@ class ReceiptCaptureFlow {
       'stitchOcrHandoffSafetyCode': result.stitchResult.ocrHandoffSafetyCode,
       'stitchOcrHandoffUsesOrderedSections':
           result.stitchResult.usedFallback ||
-          result.stitchResult.status == ReceiptStitchStatus.notNeeded,
+          result.stitchResult.status == ReceiptStitchStatus.notNeeded ||
+          result.stitchResult.status == ReceiptStitchStatus.stacked,
       'stitchOcrHandoffUsesCombinedImage': result.stitchResult.didStitch,
       'warningImageCount': scan.warningImageCount,
       'invalidImageCount': scan.invalidImageCount,

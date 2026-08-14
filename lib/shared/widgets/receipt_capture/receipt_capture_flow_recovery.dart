@@ -149,6 +149,32 @@ extension ReceiptCaptureFlowRecovery on ReceiptCaptureFlow {
         photoPaths.length,
       );
     }
+    if (reviewResult.discardedByUser) {
+      await _staging.discardRecoveryRecord(record);
+      return _recoveryReviewDiscardedResult(
+        record,
+        nativeCapabilities,
+        options,
+        reviewResult,
+      );
+    }
+    try {
+      await _staging.checkpointRecoveredCapture(record, reviewResult);
+    } catch (_) {
+      return ReceiptCaptureFlowResult.failed(
+        status: ReceiptCaptureFlowStatus.stagingFailed,
+        message:
+            'The reviewed receipt order could not be kept safely. Your staged photos remain recoverable; review them again before continuing.',
+        nativeCapabilities: nativeCapabilities,
+        diagnostics: _diagnostics(
+          stage: 'native_capture_recovery',
+          reason: 'recovery_review_checkpoint_failed',
+          action: 'keep_staged_receipt_for_recovery_and_retry_review',
+          nativeCapabilities: nativeCapabilities,
+          options: options,
+        ),
+      );
+    }
     if (reviewResult.keptForLater) {
       await _staging.markRecoveryStage(
         record.manifestPath,

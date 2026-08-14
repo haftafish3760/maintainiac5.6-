@@ -145,6 +145,11 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
     _resetPhotoPreviewZoom();
     if (_photoPaths.isEmpty) return;
     _updateReviewState(() {
+      // Pair adjustments are only authoritative for the exact two adjacent
+      // source paths that were visible when the person made them. Any photo
+      // set mutation changes that topology, so carrying index-based values
+      // forward can silently apply A->B alignment to an unrelated pair.
+      _manualStitchAdjustments.resetForPhotoSetChange(_photoPaths.length);
       if (_selectedIndex < 0) _selectedIndex = 0;
       if (_selectedIndex >= _photoPaths.length) {
         _selectedIndex = _photoPaths.length - 1;

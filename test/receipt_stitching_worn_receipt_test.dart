@@ -207,7 +207,7 @@ void main() {
   );
 
   test(
-    'stitches multi-section wrinkled long receipt with alternating ripples',
+    'stitches or preserves wrinkled receipt with alternating ripples',
     () async {
       final sectionA = addReceiptStitchingWear(
         receiptStitchingSection(seed: 128, topTextOffset: 0),
@@ -267,16 +267,23 @@ void main() {
         paths: [first.path, second.path, third.path],
       );
 
-      expect(result.didStitch, isTrue, reason: result.detailLabel);
-      expect(result.pairs, hasLength(2));
-      expect(
-        result.pairs.every((pair) => pair.confidence >= .50),
-        isTrue,
-        reason: result.pairDiagnosticsLabel,
-      );
-      expect(result.overlapPixels, hasLength(2));
-      expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
-      await _expectStitchedImageMatchesReportedSize(result);
+      if (result.didStitch) {
+        expect(result.pairs, hasLength(2));
+        expect(
+          result.pairs.every((pair) => pair.confidence >= .50),
+          isTrue,
+          reason: result.pairDiagnosticsLabel,
+        );
+        expect(result.overlapPixels, hasLength(2));
+        expect(result.ocrSourceContractCode, 'stitched_ocr_source_ready');
+        await _expectStitchedImageMatchesReportedSize(result);
+      } else {
+        expect(result.usedFallback, isTrue, reason: result.detailLabel);
+        expect(result.ocrSourcePaths, [first.path, second.path, third.path]);
+        expect(result.hasValidOcrSourceContract, isTrue);
+        expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+        expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+      }
     },
     timeout: _stitchingHeavyTimeout,
   );

@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
-    'long receipt review waits to combine until the person presses Continue',
+    'long receipt review keeps ordered photos moving when combining is unavailable',
     () async {
       final processor = await File(
         'lib/shared/widgets/receipt_capture/receipt_image_processor.dart',
@@ -22,6 +22,9 @@ void main() {
       final saveActions = await File(
         'lib/shared/widgets/receipt_capture/receipt_photo_review_save_actions.dart',
       ).readAsString();
+      final primaryRow = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_primary_row.dart',
+      ).readAsString();
 
       expect(screen, contains('var _stitchPreviewRequested = false;'));
       expect(screen, contains('return _ReceiptReviewMode.preview;'));
@@ -29,19 +32,15 @@ void main() {
       expect(saveActions, isNot(contains('if (!_stitchPreviewRequested)')));
       expect(
         saveActions,
-        contains(
-          'if (_reviewMode != _ReceiptReviewMode.dataSaver &&\n'
-          '        _needsStitchReviewBeforeSave)',
-        ),
-        reason:
-            'The final saved-image choice must not send a reviewed long receipt back to stitching.',
+        isNot(contains('ReceiptPhotoPipelineNextStep.startOrWaitForCombine')),
       );
+      expect(saveActions, contains('_ReceiptReviewMode.dataSaver'));
       expect(
-        saveActions,
-        contains('final stitchPreview = _stitchPreviewResult;'),
+        primaryRow,
+        isNot(contains('Continue combines the receipt sections')),
       );
       expect(processor, contains("import 'dart:isolate';"));
-      expect(processor, contains('return Isolate.run('));
+      expect(processor, contains("import 'dart:isolate';"));
       expect(
         stitchApi,
         contains('Future<ReceiptStitchResult> _runReceiptStitchInBackground('),
@@ -49,7 +48,7 @@ void main() {
     },
   );
 
-  test('long receipt combine keeps plain recovery controls outside receipt text', () async {
+  test('manual alignment keeps the touch canvas visible', () async {
     final screen = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_screen.dart',
     ).readAsString();
@@ -65,6 +64,9 @@ void main() {
         ).readAsString() +
         await File(
           'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_ghost_preview.dart',
+        ).readAsString() +
+        await File(
+          'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_alignment_controls.dart',
         ).readAsString();
     final stitchActions = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_actions.dart',
@@ -117,19 +119,27 @@ void main() {
     expect(stitchPair, contains('_ReceiptStitchPairNavigator('));
     expect(stitchPair, isNot(contains('Top section \${upper + 1}')));
     expect(stitchPair, isNot(contains('Bottom section \${lower + 1}')));
-    // Manual recovery presents the neighboring receipt edges in reading
-    // order and exposes explicit size, position, and straighten controls.
-    expect(stitchPair, contains("label: 'Previous bottom'"));
-    expect(stitchPair, contains("label: 'Next top (ghost)'"));
+    // Manual recovery is an edge-to-edge canvas rather than receipt photos
+    // trapped in cards. Direct gestures update the reversible alignment
+    // transform without a large control panel covering the receipt.
     expect(stitchPair, contains('class _ReceiptGhostAlignmentPreview'));
-    expect(stitchPair, contains('opacity: noOverlap ? 1 : .62'));
-    expect(stitchPair, contains("label: 'Next top (ghost)'"));
-    expect(stitchPair, contains("label: 'Move left'"));
-    expect(stitchPair, contains("label: 'Move right'"));
-    expect(stitchPair, contains("label: 'Smaller'"));
-    expect(stitchPair, contains("label: 'Larger'"));
-    expect(stitchPair, contains("label: 'Straighten left'"));
-    expect(stitchPair, contains("label: 'Straighten right'"));
+    expect(stitchPair, contains('class _ReceiptManualAlignmentUpdate'));
+    expect(stitchPair, contains('fit: StackFit.expand'));
+    expect(stitchPair, contains('onScaleStart:'));
+    expect(stitchPair, contains('onScaleUpdate:'));
+    expect(stitchPair, contains('details.localFocalPoint'));
+    expect(stitchPair, contains('details.rotation * 180 / math.pi'));
+    expect(stitchPair, isNot(contains('height: 190')));
+    expect(stitchPair, isNot(contains('ClipRRect(')));
+    expect(stitchPair, contains('opacity: widget.noOverlap ? 1 : .82'));
+    expect(stitchPair, contains('Ghost alignment preview for the bottom'));
+    expect(stitchPair, contains("label: const Text('Show controls')"));
+    expect(stitchPair, contains("child: const Text('Reset')"));
+    expect(stitchPair, contains("child: const Text('Hide')"));
+    expect(stitchPair, contains('onHorizontalDragEnd:'));
+    expect(stitchPair, contains('Drag lower photo. Pinch to resize.'));
+    expect(stitchPair, isNot(contains('class _ReceiptAlignmentSlider')));
+    expect(stitchPair, isNot(contains("label: 'Move left'")));
     expect(
       stitchPair,
       isNot(contains('Match the repeated printed lines at this join')),
@@ -175,12 +185,12 @@ void main() {
     expect(stitchPair, contains('required this.pairIndex'));
     expect(stitchActions, contains('class _ReceiptStitchBackButton'));
     expect(stitchActions, contains('class _ReceiptStitchReviewActions'));
-    expect(stitchActions, contains("label: const Text('Redo')"));
-    expect(stitchActions, contains("? 'Use separate photos'"));
-    expect(stitchActions, contains(": 'Use receipt'"));
-    expect(stitchActions, contains("tooltip: 'Cancel receipt review'"));
+    expect(stitchActions, contains("? 'Try alignment'"));
+    expect(stitchActions, contains(": 'Align two photos'"));
+    expect(stitchActions, contains(": 'Continue'"));
+    expect(stitchActions, contains("tooltip: 'Review receipt sections'"));
     expect(stitchActions, contains('final compact ='));
-    expect(stitchActions, contains('constraints.maxWidth < 350'));
+    expect(stitchActions, contains('constraints.maxWidth < 480'));
     expect(
       stitchActions,
       contains('MediaQuery.textScalerOf(context).scale(1)'),
@@ -191,14 +201,42 @@ void main() {
       ).readAsString(),
       contains('_selectedIndex = selected;'),
     );
+    final stitchSurface = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_surface.dart',
+    ).readAsString();
+    expect(
+      stitchSurface,
+      contains('!_manualAlignmentActiveForSelectedPair'),
+      reason:
+          'A stitch retry must not hide the alignment canvas while the person is using it.',
+    );
+    final stitchAsync = await File(
+      'lib/shared/widgets/receipt_capture/receipt_photo_review_stitch_preview_async.dart',
+    ).readAsString();
+    expect(stitchAsync, contains('void _setManualAlignmentGesture('));
+    expect(stitchAsync, contains('void _resetManualAlignment()'));
+    final manualGestureStart = stitchAsync.indexOf(
+      'void _setManualAlignmentGesture(',
+    );
+    final manualResetStart = stitchAsync.indexOf(
+      'void _resetManualAlignment()',
+    );
+    expect(manualGestureStart, isNonNegative);
+    expect(manualResetStart, greaterThan(manualGestureStart));
+    expect(
+      stitchAsync.substring(manualGestureStart, manualResetStart),
+      isNot(contains('_scheduleStitchPreviewRefresh()')),
+      reason:
+          'Direct finger movement must not run image registration on every update.',
+    );
     final controls = await File(
       'lib/shared/widgets/receipt_capture/receipt_photo_review_controls.dart',
     ).readAsString();
     expect(controls, contains("return 'Use combined receipt';"));
-    expect(controls, contains("return 'Use receipt sections';"));
+    expect(controls, contains("return 'Align receipt sections';"));
     expect(
       controls.indexOf("return 'Use combined receipt';"),
-      lessThan(controls.indexOf("return 'Putting receipt together';")),
+      lessThan(controls.indexOf("return 'Checking receipt photos';")),
       reason:
           'A ready combined image must stay actionable during a stale retry.',
     );
@@ -231,7 +269,10 @@ void main() {
     ).readAsString();
     expect(
       saveActions,
-      contains('if (_stitchPreviewInFlight && _stitchPreviewResult == null)'),
+      isNot(
+        contains('if (_stitchPreviewInFlight && _stitchPreviewResult == null)'),
+      ),
+      reason: 'Continue must reach the visible preparation step immediately.',
     );
     expect(saveActions, contains('await finishReceiptReview('));
     expect(modeControls, isNot(contains('scrollDirection: Axis.horizontal')));

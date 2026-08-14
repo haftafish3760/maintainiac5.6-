@@ -35,6 +35,10 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
       receiptReadHandoffCoverageWarning: _receiptReadHandoffCoverageWarning,
       receiptReviewMode: _detailEntryMode.name,
       receiptReviewModeChangedByUser: _receiptReviewModeChangedByUser,
+      receiptManualStep: _manualReceiptStep.name,
+      receiptWholeUse: _receiptUse.name,
+      receiptClassificationConfirmed: _receiptClassificationConfirmed,
+      receiptCategoryEntryChoice: _receiptCategoryEntryChoice?.name ?? '',
       receiptCategory: _receiptCategory,
       receiptCategoryAppliesToAll: _receiptCategoryAppliesToAll,
       enteredSubtotal: _enteredReceiptSubtotal,
@@ -73,6 +77,13 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
   }
 
   bool get _hasDraftContentWorthRecovering {
+    if (_manualReceiptStep != _ManualReceiptStep.start ||
+        _receiptClassificationConfirmed ||
+        _receiptUseSelectionMade ||
+        _receiptCategoryEntryChoice != null ||
+        _receiptCategory.trim().toLowerCase() != 'uncategorized') {
+      return true;
+    }
     if (_hasReceipt || _receiptAttachments.isNotEmpty) return true;
     if (_rawReceiptText.trim().isNotEmpty || _receiptReviewFlowStarted) {
       return true;
@@ -153,9 +164,15 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
         draft.receiptReadHandoffCoverageWarning;
     _receiptReviewModeChangedByUser = draft.receiptReviewModeChangedByUser;
     _receiptCategoryAppliesToAll = draft.receiptCategoryAppliesToAll;
-    _receiptCategoryEntryChoice = _receiptCategoryAppliesToAll
-        ? _ReceiptCategoryEntryChoice.wholeReceipt
-        : null;
+    _receiptCategoryEntryChoice = switch (draft.receiptCategoryEntryChoice) {
+      'wholeReceipt' => _ReceiptCategoryEntryChoice.wholeReceipt,
+      'mixedItems' => _ReceiptCategoryEntryChoice.mixedItems,
+      'notSureYet' => _ReceiptCategoryEntryChoice.notSureYet,
+      _ =>
+        _receiptCategoryAppliesToAll
+            ? _ReceiptCategoryEntryChoice.wholeReceipt
+            : null,
+    };
     // Older drafts retain their stored mode for compatibility, but reopen in
     // the unified editable form so no field is hidden by a legacy receipt type.
     _detailEntryMode = _ReceiptDetailEntryMode.detailedItems;
@@ -180,6 +197,29 @@ extension _ExpenseReceiptEntryDraftActions on _ExpenseReceiptEntryScreenState {
     _receiptCategory = _lines.isNotEmpty
         ? _lines.first.category
         : draft.receiptCategory;
+    final resumePolicy = expenseReceiptDraftResumePolicy(
+      storedStepToken: draft.receiptManualStep,
+      storedUseToken: draft.receiptWholeUse,
+      storedClassificationConfirmed: draft.receiptClassificationConfirmed,
+      hasReceiptLinesOrOcr:
+          _lines.isNotEmpty || _rawReceiptText.trim().isNotEmpty,
+      hasLegacyRecoverableContent: draft.hasUserContent,
+    );
+    _receiptClassificationConfirmed = resumePolicy.classificationConfirmed;
+    _receiptUse = switch (resumePolicy.useToken) {
+      'business' => _ExpenseLineUse.business,
+      'personal' => _ExpenseLineUse.personal,
+      'split' => _ExpenseLineUse.split,
+      _ => _ExpenseLineUse.unclassified,
+    };
+    _receiptUseSelectionMade = resumePolicy.hasUseSelection;
+    _manualReceiptStep = switch (resumePolicy.stepToken) {
+      'start' => _ManualReceiptStep.start,
+      'details' => _ManualReceiptStep.details,
+      'items' => _ManualReceiptStep.items,
+      'review' => _ManualReceiptStep.review,
+      _ => _ManualReceiptStep.start,
+    };
   }
 
   void _applyReceipt(ExpenseReceiptRecord receipt) {

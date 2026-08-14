@@ -34,6 +34,12 @@ android {
         versionName = flutter.versionName
     }
 
+    packaging {
+        jniLibs {
+            pickFirsts += "**/libc++_shared.so"
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -62,6 +68,7 @@ dependencies {
     implementation("androidx.exifinterface:exifinterface:1.4.2")
     implementation("com.google.guava:guava:33.4.8-android")
     implementation("com.google.android.gms:play-services-location:21.3.0")
+    implementation("org.opencv:opencv:4.14.0")
 }
 
 tasks.matching { it.name.startsWith("copyFlutterAssets") }.configureEach {

@@ -164,10 +164,11 @@ Report Back:
 - Did the app move to receipt review after using the photo?
 - Did the handoff retain the original photo and the correction history?
 
-## Flow 2: Multi-Photo Capture Handoff
+## Flow 2: Multi-Photo Capture And Long-Receipt Reconstruction
 
 Purpose:
-- Prove capture preserves ordered source segments for the separate long-receipt subsystem.
+- Prove ordered source sections reach the long-receipt subsystem and either
+  produce one trustworthy composite or decline safely without losing proof.
 
 Steps:
 1. Start a new receipt expense.
@@ -178,24 +179,59 @@ Steps:
 6. Add a third section if needed.
 7. Review photo order.
 8. Move one photo out of order, then put it back.
-9. Continue to the receipt-review handoff.
-10. Confirm that the ordered photo set remains available to the next subsystem.
+9. Continue and let the app attempt automatic reconstruction.
+10. If a composite is accepted, inspect its top, every join, and its bottom at
+    readable zoom. Confirm no repeated, missing, squeezed, or crossed text.
+11. If automatic reconstruction declines, confirm the app keeps every ordered
+    section and offers understandable retake/manual-alignment continuation.
+12. Continue to text extraction and confirm it reads the accepted composite,
+    or the ordered sources after a safe decline, without substituting the
+    smaller saved proof.
 
 Expected:
 - The app makes photo order clear.
 - Every accepted source image remains available with its capture order.
-- The camera lane does not attempt to stitch, deduplicate, or reorder the receipt itself.
-- The user can still continue manually with proof attached.
+- Automatic reconstruction respects that order and uses image, document
+  geometry, positional text, and receipt-structure evidence together.
+- An accepted result is one continuous, readable receipt; uncertainty becomes
+  a review/retake/manual-alignment path rather than a fabricated join.
+- The receiving receipt flow owns the accepted composite and preserves its
+  relationship to the temporary full-quality sources until durable save.
+- Work stays within the capability-derived output, comparison, evidence-time,
+  and processing-time limits for the tested device tier.
 
 Must Never Happen:
 - No silent loss of a receipt section.
+- No silent reorder or duplicate line section.
+- No accepted composite with visibly crushed, stretched, or mismatched joins.
 - No memory crash on an older phone.
+- No endless spinner; timeout must return a recoverable ordered-source fallback.
 
 Report Back:
 - Did the app make it obvious which section was first, second, and third?
 - Did it warn if a middle section might be missing?
 - Did every accepted photo remain available in the correct order?
-- Did the camera handoff avoid presenting a false stitched receipt?
+- Was the accepted composite visually valid at every join?
+- If reconstruction declined, were retake and manual alignment understandable?
+- What capability tier, elapsed reconstruction time, peak app memory, output
+  dimensions, status, and privacy-safe reason code were recorded?
+
+### Runtime Evidence For Flow 2
+
+Record evidence separately for the flagship and constrained Android targets.
+Do not infer low-tier performance from the flagship.
+
+- Resolve the package and confirm the exact model/API before the run.
+- Record the capability tier and its effective stitch limits from privacy-safe
+  diagnostics: output pixels/height, target/comparison widths, evidence timeout,
+  and processing timeout.
+- Record wall-clock time from pressing Continue until composite or fallback.
+- Capture `dumpsys meminfo` before processing, during the longest observed run,
+  and after returning to receipt review. Record totals only, never receipt data.
+- Record output width/height, section count, final status, fallback reason code,
+  and whether cancellation/timeout preserved every ordered source.
+- Check crash and ANR buffers after the run. A result is not a performance pass
+  merely because it eventually completed.
 
 ## Flow 3: Save-Space Preview
 
@@ -326,7 +362,10 @@ The receipt camera flow is ready for broader real receipt testing only when:
 
 - Single-photo receipt flow passes on S24/S25 and iPhone.
 - Manual capture works on every tested phone.
-- Multi-photo capture preserves ordered source segments for the long-receipt subsystem.
+- Multi-photo capture either produces a visually valid continuous receipt or
+  declines safely with all ordered source segments preserved.
+- Flagship and constrained-Android runs record capability limits, elapsed time,
+  memory totals, output dimensions, status/reason code, and crash/ANR result.
 - Receipt-review handoff opens after photo acceptance.
 - Save-space preview is understandable and does not affect text-extraction source quality.
 - Draft recovery survives app interruption.

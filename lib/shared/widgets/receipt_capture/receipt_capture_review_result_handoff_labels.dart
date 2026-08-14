@@ -16,10 +16,10 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
           'missing_bottom_edge_and_totals') {
         return _bottomGhostSliceHandoffInstruction(
           suffix:
-              'before reviewing receipt details, unless this photo already shows the full receipt.',
+              'if the receipt continues. Receipt details are opening now.',
         );
       }
-      return 'Add the next receipt section before reviewing receipt details, unless this photo already shows the full receipt.';
+      return 'Receipt details are opening now. Add the next section if the receipt continues.';
     }
     final warningProfile = acceptedPhotoWarningProfile;
     if (warningProfile != 'saved_photo_ok') {
@@ -123,7 +123,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
   String get acceptedPhotoHandoffRoute => keptForLater
       ? 'saved_photo_review_resume_required'
       : needsAnotherReceiptSectionBeforeDetails
-      ? 'photo_review_add_next_receipt_section'
+      ? 'photo_review_accepted_with_coverage_warning'
       : receiptSectionOrderNeedsReview
       ? 'photo_review_section_order_review_required'
       : !hasOcrSourcePhotos
@@ -136,7 +136,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
   String get acceptedPhotoHandoffNextScreen => keptForLater
       ? 'receipt_photo_review_resume'
       : needsAnotherReceiptSectionBeforeDetails
-      ? 'receipt_photo_capture_bottom_section'
+      ? 'receipt_details_with_coverage_warning'
       : receiptSectionOrderNeedsReview
       ? 'receipt_photo_section_order_review'
       : !hasOcrSourcePhotos
@@ -155,9 +155,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
                 'missing_bottom_edge_and_totals'
             ? _bottomGhostSliceHandoffInstruction(
                 suffix:
-                    'before receipt details, or confirm this photo already shows the full receipt.',
+                    'if the receipt continues. Receipt details open now.',
               )
-            : 'Add the next receipt section before receipt details, or confirm this photo already shows the full receipt.'
+            : 'Receipt details open now. Add the next section if the receipt continues.'
       : receiptSectionOrderHasFollowThroughAction
       ? '$receiptSectionOrderReviewActionLabel Then receipt details open.'
       : ocrSourceReviewRequirement ==
@@ -170,7 +170,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : !hasOcrSourcePhotos
       ? 'Receipt details stay paused until a clearer photo is added or the user continues by hand.'
       : needsAnotherReceiptSectionBeforeDetails
-      ? 'Receipt details stay paused until the bottom section is added or the user confirms this photo already shows the full receipt.'
+      ? 'Maintainiac opens the editable receipt now and flags that another lower section may help.'
       : receiptSectionOrderNeedsReview
       ? 'Receipt details stay paused until the user confirms the receipt section order.'
       : ocrSourceReviewRequirement ==
@@ -189,9 +189,9 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
                 'missing_bottom_edge_and_totals'
             ? _bottomGhostSliceHandoffInstruction(
                 suffix:
-                    'before receipt details can open, unless the user confirms this photo already shows the full receipt.',
+                    'if the receipt continues. Receipt details open now.',
               )
-            : 'Receipt details can open only after the user accepts that this photo covers the full receipt or adds the next section.'
+            : 'Receipt details open now with a reminder to add another section if the receipt continues.'
       : receiptSectionOrderHasFollowThroughAction
       ? '$receiptSectionOrderReviewActionLabel Receipt details open immediately after that confirmation.'
       : receiptSectionOrderNeedsReview
@@ -203,14 +203,12 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
 
   bool get acceptedPhotoHandoffMustOpenFilledReview =>
       !keptForLater &&
-      !needsAnotherReceiptSectionBeforeDetails &&
       !receiptSectionOrderNeedsReview &&
       ocrSourceReviewRequirement !=
           'manual_review_required_before_saving_receipt';
 
   bool get acceptedPhotoHandoffMustOpenReceiptDetails =>
       !keptForLater &&
-      !needsAnotherReceiptSectionBeforeDetails &&
       !receiptSectionOrderNeedsReview &&
       ocrSourceReviewRequirement !=
           'manual_review_required_before_saving_receipt';
@@ -220,7 +218,7 @@ extension ReceiptPhotoReviewResultHandoffLabels on ReceiptPhotoReviewResult {
       : userConfirmedPossiblePartialReceiptComplete
       ? 'confirm_complete_receipt_and_review_details'
       : needsAnotherReceiptSectionBeforeDetails
-      ? 'add_next_section_or_confirm_complete_receipt'
+      ? 'review_details_and_add_section_if_needed'
       : receiptSectionOrderNeedsReview
       ? 'review_receipt_section_order'
       : receiptSectionOrderReviewActionCode ==

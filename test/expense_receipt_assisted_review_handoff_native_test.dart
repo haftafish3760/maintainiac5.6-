@@ -71,11 +71,11 @@ void main() {
       importActions,
       contains('required List<String> keptReceiptPhotoPaths'),
     );
-    expect(importActions, contains('_shouldDeleteTemporaryOcrPhoto'));
-    expect(importActions, contains('_isProtectedReceiptStoragePath'));
-    expect(importActions, contains("'/receipt_proofs_staging/'"));
-    expect(importActions, contains("'/native_capture_recovery/'"));
-    expect(importActions, contains('Directory.systemTemp.path'));
+    expect(
+      importActions,
+      contains('ReceiptTemporaryArtifactCleanup().deleteAppOwnedFiles'),
+    );
+    expect(importActions, contains('keptPaths: keptReceiptPhotoPaths'));
     expect(
       importActions,
       contains(
@@ -254,13 +254,17 @@ void main() {
     expect(stateActions, contains('Custom Business %'));
     expect(photoControls, contains('_ReceiptPreviewActionTray'));
     expect(photoControls, contains('Use combined receipt'));
-    expect(photoControls, contains('Use receipt sections'));
+    expect(photoControls, contains('Align receipt sections'));
     expect(photoControls, contains('receipt sections are saved locally'));
     expect(photoPreviewControls, contains('Add Bottom Section'));
-    expect(photoPreviewControls, contains('minimumSize: const Size(0, 38)'));
-    expect(photoPreviewControls, contains('BoxConstraints(maxWidth: 132)'));
-    expect(photoPreviewControls, contains('message: label'));
-    expect(photoPreviewControls, contains('strings.addAnotherReceiptPhoto'));
+    expect(photoPreviewControls, contains('minimumSize: const Size(0, 46)'));
+    expect(
+      photoPreviewControls,
+      contains('Expanded(\n                  child: _ReceiptPreviewSecondaryAction('),
+    );
+    expect(photoPreviewControls, isNot(contains('BoxConstraints(maxWidth: 132)')));
+    expect(photoPreviewControls, contains('semanticLabel: addPhotoTooltip'));
+    expect(photoPreviewControls, contains('label: addPhotoLabel'));
     expect(photoControls, isNot(contains('Check Photo Match')));
     expect(photoControls, contains('Use this receipt'));
     expect(photoControls, isNot(contains("'Use Receipt'")));

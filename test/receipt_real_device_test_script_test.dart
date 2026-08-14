@@ -23,14 +23,29 @@ void main() {
     expect(script, contains('paste/text'));
     expect(script, contains('receipt assist question'));
     expect(script, contains('manual entry remains available'));
-    expect(script, contains('no compression, storage, or save-space setup wall'));
+    expect(
+      script,
+      contains('no compression, storage, or save-space setup wall'),
+    );
     expect(script, contains('camera opens immediately after the choice'));
     expect(script, contains('preview reads as full-screen'));
     expect(script, contains('settings gear'));
     expect(script, contains('torch'));
     expect(script, contains('shutter is round and centered'));
     expect(script, contains('preview tap focus stays off limits'));
-    expect(script, contains('viewer does not hide the receipt behind a large control sheet'));
+    expect(
+      script,
+      contains('viewer does not hide the receipt behind a large control sheet'),
+    );
+    expect(script, contains('automatic reconstruction'));
+    expect(script, contains('one trustworthy composite'));
+    expect(script, contains('manual-alignment continuation'));
+    expect(script, contains('dumpsys meminfo'));
+    expect(
+      script,
+      contains('do not infer low-tier performance from the flagship'),
+    );
+    expect(script, isNot(contains('does not attempt to stitch')));
     expect(script, isNot(contains('prove pdf receipts are handled safely')));
     expect(script, isNot(contains('pdf import is bounded and proof-safe')));
   });

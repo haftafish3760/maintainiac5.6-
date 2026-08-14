@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Expense first-use receipt setup is full screen and conditional', () {
+  test('Expense receipt assistance setup is available from settings only', () {
     final home = File(
       'lib/screens/expenses/home/expenses_home_screen.dart',
     ).readAsStringSync();
@@ -11,14 +11,10 @@ void main() {
       'lib/screens/expenses/settings/expense_receipt_assistance_setup_screen.dart',
     ).readAsStringSync();
 
-    expect(home, contains('hasCompletedExpenseReceiptSetup'));
-    expect(home, contains('ExpenseReceiptAssistanceSetupScreen'));
+    expect(home, isNot(contains('ExpenseReceiptAssistanceSetupScreen')));
     expect(setup, contains('class ExpenseReceiptAssistanceSetupScreen'));
     expect(setup, contains('Scaffold('));
     expect(setup, isNot(contains('showModalBottomSheet')));
-    expect(setup, contains('Would you like help with your receipts?'));
-    expect(setup, contains('Yes, help me'));
-    expect(setup, contains('No, I will enter receipts myself'));
     expect(setup, contains('Local receipt extraction'));
     expect(setup, contains('ChatGPT-assisted receipts'));
     expect(setup, isNot(contains('Use Maintainiac AI when I choose it')));

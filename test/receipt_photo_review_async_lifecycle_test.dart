@@ -38,7 +38,7 @@ void main() {
     expect(reviewScreen, contains('gaplessPlayback: true'));
     expect(
       reviewScreen,
-      contains('unawaited(_deferQualityCheck(photoPath, generation));'),
+      contains('.whenComplete(() => _postFrameReviewWorkKeys.remove(workKey))'),
     );
     expect(
       reviewScreen,

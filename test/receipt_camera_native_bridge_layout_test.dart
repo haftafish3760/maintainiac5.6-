@@ -51,10 +51,13 @@ void main() {
     expect(androidCameraUnit, contains('previousSectionGuideUsesNextContext'));
     expect(
       androidCameraUnit,
-      contains('next_section_top_context_ghost_at_top_repeat_3_to_5_lines'),
+      contains('next_section_top_context_ghost_at_bottom_repeat_3_to_5_lines'),
     );
     expect(androidCameraUnit, contains('next_section_top_lines'));
-    expect(androidCameraUnit, contains('Match the next section'));
+    expect(
+      androidCameraUnit,
+      contains('Line up 3-5 readable lines at the top.'),
+    );
     expect(androidCameraUnit, contains('latestCapturedBottomTopLumaDelta'));
     expect(
       androidCameraUnit,
@@ -71,7 +74,9 @@ void main() {
     expect(androidCameraUnit, contains('"manual_add_photo"'));
     expect(
       androidCameraUnit,
-      contains(r'"${receiptCameraText("Done", "Listo")} ($count)"'),
+      contains(
+        r'"${receiptCameraText("Review Photos", "Revisar fotos")} ($count)"',
+      ),
     );
     expect(androidCameraUnit, contains('bottomBar.addView(addPhotoButton)'));
     expect(

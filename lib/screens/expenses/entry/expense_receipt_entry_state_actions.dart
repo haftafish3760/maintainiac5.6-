@@ -133,6 +133,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
   }
 
   void _scheduleDraftSave() {
+    if (_receiptReviewExitInFlight || _receiptExitResolved) return;
     _draftTimer?.cancel();
     _draftTimer = Timer(const Duration(milliseconds: 200), () {
       unawaited(_saveDraftNow());
@@ -173,6 +174,7 @@ extension _ExpenseReceiptEntryStateActions on _ExpenseReceiptEntryScreenState {
   void _setReceiptUse(_ExpenseLineUse use) {
     _updateReceiptState(() {
       _receiptUse = use;
+      _receiptUseSelectionMade = true;
       for (var index = 0; index < _lines.length; index++) {
         final line = _lines[index];
         _lines[index] = line.copyWith(

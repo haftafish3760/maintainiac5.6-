@@ -32,14 +32,49 @@ Future<ReceiptCaptureFlowResult> _resultFromNativePhotoReview({
   }
 
   if (reviewResult.discardedByUser) {
-    await staged.discardStagedPhotos();
-    return ReceiptCaptureFlowResult.canceled(
+    try {
+      await staged.discardStagedPhotos();
+    } catch (_) {
+      return ReceiptCaptureFlowResult.failed(
+        status: ReceiptCaptureFlowStatus.stagingFailed,
+        message:
+            'Maintainiac could not confirm that its staged receipt recovery copy was removed. The receipt was kept recoverable; try Exit Without Saving again.',
+        nativeCapabilities: nativeCapabilities,
+        diagnostics: _diagnostics(
+          stage: 'receipt_photo_review',
+          reason: 'discard_cleanup_unconfirmed',
+          action: 'keep_staged_receipt_for_recovery_and_retry_discard',
+          nativeCapabilities: nativeCapabilities,
+          options: options,
+        ),
+      );
+    }
+    return ReceiptCaptureFlowResult.reviewCompleted(
+      reviewResult: reviewResult,
       message: 'Receipt photo was discarded.',
       nativeCapabilities: nativeCapabilities,
       diagnostics: _diagnostics(
         stage: 'receipt_photo_review',
         reason: 'user_discarded_receipt_photo_review',
         action: 'discard_staged_receipt_photos',
+        nativeCapabilities: nativeCapabilities,
+        options: options,
+      ),
+    );
+  }
+
+  try {
+    await flow._staging.checkpointReviewedCapture(staged, reviewResult);
+  } catch (_) {
+    return ReceiptCaptureFlowResult.failed(
+      status: ReceiptCaptureFlowStatus.stagingFailed,
+      message:
+          'The reviewed receipt order could not be kept safely. Your staged photos remain recoverable; review them again before continuing.',
+      nativeCapabilities: nativeCapabilities,
+      diagnostics: _diagnostics(
+        stage: 'receipt_photo_review',
+        reason: 'review_checkpoint_failed',
+        action: 'keep_staged_receipt_for_recovery_and_retry_review',
         nativeCapabilities: nativeCapabilities,
         options: options,
       ),
@@ -61,10 +96,12 @@ Future<ReceiptCaptureFlowResult> _resultFromNativePhotoReview({
         'receiptReviewExitAction': reviewResult.reviewExitAction,
       },
     );
-    return ReceiptCaptureFlowResult.canceled(
+    return ReceiptCaptureFlowResult.reviewCompleted(
+      reviewResult: reviewResult,
       message:
           'Receipt photos were kept on this device. Resume the saved receipt review when you are ready.',
       nativeCapabilities: nativeCapabilities,
+      recoveryManifestPath: staged.recoveryManifestPath,
       diagnostics: _diagnostics(
         stage: 'receipt_photo_review',
         reason: 'review_closed_kept_for_later',

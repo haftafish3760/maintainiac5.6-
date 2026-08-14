@@ -1,46 +1,54 @@
 part of 'receipt_attachment_panel.dart';
 
-enum _ReceiptImportAction {
-  camera,
-  image,
-  pdf,
-  savedText,
-  pasteText,
-  settings,
-  shareHelp,
-}
-
 enum _ReceiptTextImportAction { pasteText, textFile }
 
 enum _ReceiptFirstUseCameraAction { useReceiptAssist, manualEntry }
 
-enum _MaintainiacNativeCameraPhotoOutcome { added, unavailable, canceled }
+enum _MaintainiacNativeCameraPhotoOutcome {
+  added,
+  reviewCompleted,
+  unavailable,
+  canceled,
+}
+
+class _MaintainiacNativeCameraPhotoResult {
+  const _MaintainiacNativeCameraPhotoResult(
+    this.outcome, {
+    this.sourceResult = const ReceiptImportActionResult.stayOnChooser(),
+  });
+
+  final _MaintainiacNativeCameraPhotoOutcome outcome;
+  final ReceiptImportActionResult sourceResult;
+}
 
 extension _ReceiptAttachmentImportActions
     on _SharedReceiptAttachmentPanelState {
-  Future<void> uploadReceiptImage() async {
-    await _pickAndReviewMultiple(
+  Future<ReceiptImportActionResult> uploadReceiptImage() {
+    return _pickAndReviewMultiple(
       ReceiptImagePicker.chooseReceiptImageSet,
       fallbackMessage: 'The receipt photo picker did not open correctly.',
       platformFallback: 'Could not open the photo picker.',
     );
   }
 
-  Future<void> _pickAndReviewMultiple(
+  Future<ReceiptImportActionResult> _pickAndReviewMultiple(
     Future<ReceiptPickedPhotoSet> Function() pickImages, {
     required String fallbackMessage,
     required String platformFallback,
   }) async {
-    if (_openingPicker) return;
+    if (_openingPicker) {
+      return const ReceiptImportActionResult.stayOnChooser();
+    }
     updateAttachmentState(() => _openingPicker = true);
     try {
       final picked = await pickImages();
       if (picked.isEmpty || !mounted) {
-        await returnToReceiptImportOptions();
-        return;
+        return const ReceiptImportActionResult.stayOnChooser();
       }
       final staged = await _stageImportedReceiptPhotos(picked);
-      if (staged == null || !mounted) return;
+      if (staged == null || !mounted) {
+        return const ReceiptImportActionResult.stayOnChooser();
+      }
       final importedDiagnostics = receiptBrainDiagnosticsByPath(
         staged.photoPaths,
         captureRoute: 'existing_receipt_photo_import',
@@ -51,11 +59,9 @@ extension _ReceiptAttachmentImportActions
           'importedPhotoStagedBeforeReview': true,
         },
       );
-      await reviewPickedPhotoPaths(
+      return await reviewPickedPhotoPaths(
         staged.photoPaths,
-        initialQualityChecksByPath: await qualityChecksForPhotoPaths(
-          staged.photoPaths,
-        ),
+        stagedCapture: staged,
         initialCaptureDiagnosticsByPath: {
           for (final photoPath in staged.photoPaths)
             photoPath: {
@@ -65,19 +71,22 @@ extension _ReceiptAttachmentImportActions
         },
       );
     } on MissingPluginException {
-      if (!mounted) return;
+      if (!mounted) return const ReceiptImportActionResult.stayOnChooser();
       showPickerError(
         'Receipt photo picking is not available in this build. Reinstall the app and try again.',
       );
+      return const ReceiptImportActionResult.stayOnChooser();
     } on PlatformException catch (error) {
-      if (!mounted) return;
+      if (!mounted) return const ReceiptImportActionResult.stayOnChooser();
       final message = error.message?.trim();
       showPickerError(
         message == null || message.isEmpty ? platformFallback : message,
       );
+      return const ReceiptImportActionResult.stayOnChooser();
     } catch (_) {
-      if (!mounted) return;
+      if (!mounted) return const ReceiptImportActionResult.stayOnChooser();
       showPickerError(fallbackMessage);
+      return const ReceiptImportActionResult.stayOnChooser();
     } finally {
       if (mounted) updateAttachmentState(() => _openingPicker = false);
     }

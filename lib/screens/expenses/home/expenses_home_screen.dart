@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
-import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/calendar/calendar_day_flow.dart';
 import '../../../shared/calendar/calendar_flow_models.dart';
+import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/state/expense_settings_store.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
 import '../../../shared/widgets/receipt_capture/receipt_native_capture_staging.dart';
-import '../../../shared/widgets/receipt_capture/receipt_capture_settings_store.dart';
 import '../calendar/expense_calendar.dart';
 import '../categories/expense_categories.dart';
 import '../data/expense_draft_store.dart';
@@ -18,7 +17,6 @@ import '../data/expense_screen_telemetry.dart';
 import '../data/expense_screen_telemetry_recorder.dart';
 import '../entry/expense_receipt_entry_screen.dart';
 import '../reminders/expense_reminder_screen.dart';
-import '../settings/expense_receipt_assistance_setup_screen.dart';
 
 part 'expenses_home_period.dart';
 part 'expenses_home_totals.dart';
@@ -45,8 +43,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   var _anchorDate = _dateOnly(DateTime.now());
   late final DateTime _screenOpenedAtUtc;
   ExpenseScreenTelemetrySnapshot? _telemetrySnapshot;
-  var _checkedReceiptSetup = false;
-  var _openingReceiptSetup = false;
 
   @override
   void initState() {
@@ -59,7 +55,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
         ExpenseTelemetryEventType.screenOpened,
         metadata: {'source': 'expenses_home'},
       );
-      _openReceiptSetupWhenNeeded();
     });
   }
 
@@ -67,24 +62,6 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _telemetrySnapshot = ExpenseScreenTelemetryRecorder.snapshot(context);
-  }
-
-  Future<void> _openReceiptSetupWhenNeeded() async {
-    if (_checkedReceiptSetup || _openingReceiptSetup || !mounted) return;
-    _checkedReceiptSetup = true;
-    final captureSettings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (captureSettings == null ||
-        captureSettings.hasCompletedExpenseReceiptSetup) {
-      return;
-    }
-    _openingReceiptSetup = true;
-    await Navigator.of(context).push<bool>(
-      appNativeRoute<bool>(
-        context,
-        const ExpenseReceiptAssistanceSetupScreen(showBackButton: false),
-      ),
-    );
-    if (mounted) _openingReceiptSetup = false;
   }
 
   @override

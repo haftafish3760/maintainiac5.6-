@@ -24,11 +24,11 @@ void main() {
       );
       expect(panel, contains('unawaited(openReceiptImportOptions())'));
       expect(expenseAttachment, contains('final startsWithAssistedCapture ='));
-      expect(expenseAttachment, contains('(startsWithAssistedCapture ||'));
       expect(
         expenseAttachment,
-        contains('closeParentWhenImportCanceled: startsWithAssistedCapture'),
+        contains('receiptSettings?.appAssistedEnabledFor(_receiptCaptureArea)'),
       );
+      expect(expenseAttachment, contains('closeParentWhenImportCanceled:'));
     },
   );
 
@@ -181,7 +181,7 @@ void main() {
       expect(openBlock, contains('Navigator.of(context).push'));
       expect(openBlock, contains('MaterialPageRoute'));
       expect(openBlock, contains('fullscreenDialog: true'));
-      expect(source, contains('return Scaffold('));
+      expect(source, contains('child: Scaffold('));
       expect(source, contains("tooltip: 'Back to receipt'"));
       expect(source, contains('SafeArea('));
       expect(source, contains('SingleChildScrollView('));
@@ -202,6 +202,18 @@ void main() {
       expect(tile, isNot(contains('height: 58')));
     },
   );
+
+  test('Android receipt image import uses the system photo picker', () async {
+    final imagePicker = await File(
+      'lib/shared/widgets/receipt_capture/receipt_image_picker.dart',
+    ).readAsString();
+
+    // Immediate handoff and single-transaction behavior are exercised by
+    // receipt_import_transaction_widget_test.dart. Keep this static check
+    // narrowly scoped to the platform integration it can actually prove.
+    expect(imagePicker, contains('platformPicker is ImagePickerAndroid'));
+    expect(imagePicker, contains('useAndroidPhotoPicker = true'));
+  });
 
   test('receipt source chooser asks for Receipt Assist once first', () async {
     final source = await File(
@@ -228,20 +240,32 @@ void main() {
       openBlock,
       contains('!settings.hasReceiptAssistChoiceFor(widget.area)'),
     );
-    final captureCaseStart = openBlock.indexOf(
-      'case _ReceiptImportAction.camera',
+    expect(
+      openBlock,
+      contains('intent != ReceiptImportEntryIntent.optionalManualProof'),
     );
-    final imageCaseStart = openBlock.indexOf('case _ReceiptImportAction.image');
+    final captureCaseStart = openBlock.indexOf(
+      'case ReceiptImportSourceAction.camera',
+    );
+    final imageCaseStart = openBlock.indexOf(
+      'case ReceiptImportSourceAction.image',
+    );
     final captureCase = openBlock.substring(captureCaseStart, imageCaseStart);
 
-    expect(captureCase, contains('await takeReceiptPhoto();'));
+    expect(captureCase, contains('return takeReceiptPhoto('));
+    expect(
+      captureCase,
+      contains('ReceiptImportEntryIntent.optionalManualProof'),
+    );
     expect(captureCase, isNot(contains('openReceiptCaptureSettings')));
     expect(captureCase, isNot(contains('defaultDataSaverLevel')));
     expect(captureCase, isNot(contains('parserPackInstallChoice')));
 
-    final takeStart = cameraActions.indexOf('Future<void> takeReceiptPhoto');
+    final takeStart = cameraActions.indexOf(
+      'Future<ReceiptImportActionResult> takeReceiptPhoto',
+    );
     final takeEnd = cameraActions.indexOf(
-      'Future<_MaintainiacNativeCameraPhotoOutcome>',
+      'Future<_MaintainiacNativeCameraPhotoResult>',
     );
     final takeBlock = cameraActions.substring(takeStart, takeEnd);
     final cameraIntroIndex = takeBlock.indexOf(
@@ -271,35 +295,4 @@ void main() {
     expect(intro, isNot(contains('storage')));
     expect(intro, isNot(contains('Saved Receipt Proof Size')));
   });
-
-  test(
-    'paste slash text path routes through a dedicated text choice',
-    () async {
-      final source = await File(
-        'lib/shared/widgets/receipt_capture/receipt_import_source_sheet.dart',
-      ).readAsString();
-
-      final openStart = source.indexOf('Future<void> openReceiptImportOptions');
-      final openEnd = source.indexOf('Future<void> _showReceiptShareHelp');
-      final openBlock = source.substring(openStart, openEnd);
-      final pasteCaseStart = openBlock.indexOf(
-        'case _ReceiptImportAction.pasteText',
-      );
-      final shareCaseStart = openBlock.indexOf(
-        'case _ReceiptImportAction.shareHelp',
-      );
-      final pasteCase = openBlock.substring(pasteCaseStart, shareCaseStart);
-
-      expect(pasteCase, contains('_chooseReceiptTextImportAction()'));
-      expect(pasteCase, contains('returnToReceiptImportOptions()'));
-      expect(pasteCase, contains('_ReceiptTextImportAction.pasteText'));
-      expect(pasteCase, contains('_ReceiptTextImportAction.textFile'));
-      expect(pasteCase, contains('openImportedTextSheet'));
-      expect(pasteCase, contains('pickImportedTextFile'));
-      expect(source, contains('class _ReceiptTextImportSheet'));
-      expect(source, contains('Paste or import receipt text'));
-      expect(source, contains('Paste Text'));
-      expect(source, contains('Text File'));
-    },
-  );
 }

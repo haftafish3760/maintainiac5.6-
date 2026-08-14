@@ -13,6 +13,7 @@ import 'receipt_proof_storage.dart';
 part 'receipt_native_capture_staging_diagnostics.dart';
 part 'receipt_native_capture_staging_recovery_record.dart';
 part 'receipt_native_capture_staging_recovery_actions.dart';
+part 'receipt_native_capture_staging_review_checkpoint.dart';
 part 'receipt_native_capture_staging_manifest_helpers.dart';
 part 'receipt_native_capture_staging_manifest_writer.dart';
 part 'receipt_native_capture_staging_recovery_index.dart';

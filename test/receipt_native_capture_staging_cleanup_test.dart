@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_camera_contract.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_capture_recovery_store.dart';
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_native_capture_staging.dart';
+import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models.dart';
 
 import 'helpers/receipt_native_capture_staging_harness.dart';
 
@@ -61,6 +62,23 @@ void main() {
     expect(await source.exists(), isTrue);
     final recoveryIndex = await ReceiptNativeCaptureRecoveryStore.create();
     expect(recoveryIndex.entries, isEmpty);
+  });
+
+  test('discard fails closed when a recovery manifest still exists', () async {
+    final undeletableManifest = Directory(
+      '${documentsDirectory.path}/manifest-is-a-directory',
+    );
+    await undeletableManifest.create();
+    final staged = ReceiptNativeCaptureStagingResult(
+      photoPaths: const [],
+      originalToStagedPath: const {},
+      captureDiagnosticsByPhotoPath: const {},
+      stagedAttachments: const [],
+      recoveryManifestPath: undeletableManifest.path,
+    );
+
+    await expectLater(staged.discardStagedPhotos(), throwsA(isA<StateError>()));
+    expect(await undeletableManifest.exists(), isTrue);
   });
 
   test('clearing accepted recovery leaves attached staged photos', () async {
@@ -239,6 +257,68 @@ void main() {
       isNot(contains('Private Customer')),
     );
   });
+
+  test(
+    'recovery resumes the reviewed order without reintroducing a removed photo',
+    () async {
+      final sourceFiles = <File>[];
+      for (var index = 0; index < 3; index++) {
+        final source = File(
+          '${Directory.systemTemp.path}/review-checkpoint-$index.jpg',
+        );
+        await source.writeAsBytes(
+          List<int>.filled(128, 70 + index),
+          flush: true,
+        );
+        sourceFiles.add(source);
+      }
+      addTearDown(() {
+        for (final source in sourceFiles) {
+          if (source.existsSync()) source.deleteSync();
+        }
+      });
+
+      const staging = ReceiptNativeCaptureStaging();
+      final staged = await staging.stage(
+        ReceiptNativeCaptureResult(
+          engine: ReceiptNativeCameraEngine.cameraX,
+          originalPhotoPaths: [for (final source in sourceFiles) source.path],
+          temporaryCaptureIds: const ['top', 'middle', 'bottom'],
+          capturedAt: DateTime(2026, 8, 14, 9),
+        ),
+      );
+      final reviewedOrder = [staged.photoPaths[2], staged.photoPaths[0]];
+      final review = ReceiptPhotoReviewResult(
+        photoPaths: reviewedOrder,
+        ocrSourcePhotoPaths: reviewedOrder,
+        dataSaverLevel: ReceiptDataSaverLevel.balanced,
+        stitchResult: ReceiptStitchResult.notNeeded(reviewedOrder),
+      );
+
+      await staging.checkpointReviewedCapture(staged, review);
+
+      final recovered = (await staging.recoverableNativeCaptures()).single;
+      expect(recovered.recoverablePhotoPaths, reviewedOrder);
+      expect(
+        recovered.recoverablePhotoPaths,
+        isNot(contains(staged.photoPaths[1])),
+      );
+      // All three app-owned sources remain cleanup-owned even though only the
+      // reviewed two are visible when this session resumes.
+      expect(recovered.attachments, hasLength(3));
+
+      expect(
+        await staging.finalizeAcceptedCapture(staged.recoveryManifestPath),
+        isTrue,
+      );
+      for (final stagedPath in staged.photoPaths) {
+        expect(await File(stagedPath).exists(), isFalse);
+      }
+      for (final source in sourceFiles) {
+        expect(await source.exists(), isTrue);
+      }
+    },
+  );
 
   test('discarding recovery record removes staged photos and index', () async {
     final source = File('${Directory.systemTemp.path}/native-record-drop.jpg');

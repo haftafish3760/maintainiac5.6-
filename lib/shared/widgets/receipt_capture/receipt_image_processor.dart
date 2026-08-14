@@ -2,23 +2,32 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:crypto/crypto.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as path;
 
 import 'receipt_capture_models.dart';
 import 'receipt_photo_path_identity.dart';
+import 'receipt_pipeline_trace.dart';
 import 'receipt_stitch_acceptance.dart';
+import 'receipt_native_stitch_registration.dart';
 import 'receipt_stitch_text_evidence.dart';
 
 part 'receipt_image_processor_models.dart';
 part 'receipt_image_processor_source_prep.dart';
 part 'receipt_image_processor_resize_helpers.dart';
+part 'receipt_image_processor_stitch_search_budget.dart';
+part 'receipt_image_processor_stitch_sequence_guidance.dart';
 part 'receipt_image_processor_stitch_helpers.dart';
+part 'receipt_image_processor_stitch_overlap_search.dart';
+part 'receipt_image_processor_stitch_coordinate_refinement.dart';
 part 'receipt_image_processor_stitch_fast_path.dart';
+part 'receipt_image_processor_stitch_frame_transform.dart';
+part 'receipt_image_processor_stitch_text_guidance.dart';
+part 'receipt_image_processor_stitch_native_guidance.dart';
 part 'receipt_image_processor_stitch_duplicate_helpers.dart';
 part 'receipt_image_processor_stitch_transform_helpers.dart';
 part 'receipt_image_processor_stitch_scoring_helpers.dart';
@@ -26,7 +35,9 @@ part 'receipt_image_processor_stitch_geometry_helpers.dart';
 part 'receipt_image_processor_stitch_support.dart';
 part 'receipt_image_processor_stitch_isolate.dart';
 part 'receipt_image_processor_stitch_sources.dart';
+part 'receipt_image_processor_stitch_manual_pair.dart';
 part 'receipt_image_processor_stitch_api.dart';
+part 'receipt_image_processor_stitch_composition.dart';
 part 'receipt_image_processor_scan_helpers.dart';
 part 'receipt_image_processor_perspective_helpers.dart';
 part 'receipt_image_processor_enhancement_helpers.dart';
@@ -259,6 +270,7 @@ class ReceiptImageProcessor {
 
   static Future<ReceiptStitchResult> stitchReceiptPhotosForOcr({
     required List<String> paths,
+    String? traceId,
     List<ReceiptStitchTextEvidence>? textEvidence,
     List<bool>? manualZeroOverlapPairs,
     List<int>? manualOverlapPixels,
@@ -272,29 +284,65 @@ class ReceiptImageProcessor {
     int comparisonWidth = 400,
     int retryComparisonWidth = 320,
     Duration? processingTimeout,
+    List<ReceiptNativeRegistrationProposal>? nativeRegistrationProposals,
     String timeoutReasonCode = 'stitch_timeout',
     String timeoutWarning =
         'Putting these photos together took too long. Receipt details will use them from top to bottom.',
-  }) {
-    final evidenceByPath = <String, List<String>>{};
+  }) async {
+    final stitchStopwatch = Stopwatch()..start();
+    final evidenceByPath = <String, ReceiptStitchTextEvidence>{};
     for (final evidence
         in textEvidence ?? const <ReceiptStitchTextEvidence>[]) {
       final normalizedPath = normalizedReceiptPhotoPath(evidence.path);
       if (normalizedPath == null) continue;
-      evidenceByPath[normalizedPath] = List<String>.of(evidence.lines);
+      evidenceByPath[normalizedPath] = evidence;
     }
     final outputPath =
         '${Directory.systemTemp.path}/maintaniac_receipt_stitched_'
         '${DateTime.now().microsecondsSinceEpoch}.jpg';
+    final hasManualRegistration =
+        manualOverlapPixels != null ||
+        manualOverlapFractions != null ||
+        (manualZeroOverlapPairs?.any((value) => value) ?? false);
+    final resolvedNativeProposals =
+        nativeRegistrationProposals ??
+        (hasManualRegistration
+            ? const <ReceiptNativeRegistrationProposal>[]
+            : await const ReceiptNativeStitchRegistration().propose(
+                paths: paths,
+                comparisonWidth: comparisonWidth,
+              ));
+    if (traceId != null) {
+      traceReceiptPipelineStage(
+        'stitch_registration_ready',
+        traceId: traceId,
+        elapsedMs: stitchStopwatch.elapsedMilliseconds,
+        sourceCount: paths.length,
+        layoutLineCount: evidenceByPath.values.fold<int>(
+          0,
+          (total, item) => total + item.positionedLines.length,
+        ),
+        candidateLineCount: resolvedNativeProposals.length,
+      );
+    }
     final request = _ReceiptStitchRequest(
       paths: List<String>.of(paths),
-      textLinesByPath: evidenceByPath.isEmpty
+      textEvidenceByPath: evidenceByPath.isEmpty
           ? null
           : [
               for (final inputPath in paths)
-                List<String>.of(
-                  evidenceByPath[normalizedReceiptPhotoPath(inputPath)] ??
-                      const <String>[],
+                ReceiptStitchTextEvidence(
+                  path: inputPath,
+                  lines: List<String>.of(
+                    evidenceByPath[normalizedReceiptPhotoPath(inputPath)]
+                            ?.lines ??
+                        const <String>[],
+                  ),
+                  positionedLines: List<ReceiptStitchTextLineEvidence>.of(
+                    evidenceByPath[normalizedReceiptPhotoPath(inputPath)]
+                            ?.positionedLines ??
+                        const <ReceiptStitchTextLineEvidence>[],
+                  ),
                 ),
             ],
       manualZeroOverlapPairs: manualZeroOverlapPairs == null
@@ -320,13 +368,38 @@ class ReceiptImageProcessor {
       maxTargetWidth: maxTargetWidth,
       comparisonWidth: comparisonWidth,
       retryComparisonWidth: retryComparisonWidth,
+      nativeRegistrationProposals: resolvedNativeProposals,
       outputPath: outputPath,
     );
-    return _runReceiptStitchInManagedIsolate(
+    final remainingWorkerTimeout = processingTimeout == null
+        ? null
+        : receiptRemainingStitchWorkerTimeout(
+            totalBudget: processingTimeout,
+            elapsedBeforeWorker: stitchStopwatch.elapsed,
+          );
+    final result = await _runReceiptStitchInManagedIsolate(
       request: request,
-      processingTimeout: processingTimeout,
+      processingTimeout: remainingWorkerTimeout,
       timeoutReasonCode: timeoutReasonCode,
       timeoutWarning: timeoutWarning,
     );
+    stitchStopwatch.stop();
+    if (traceId != null) {
+      traceReceiptPipelineStage(
+        'stitch_finished',
+        traceId: traceId,
+        elapsedMs: stitchStopwatch.elapsedMilliseconds,
+        sourceCount: paths.length,
+        layoutLineCount: result.pairs.fold<int>(
+          0,
+          (total, pair) => total + pair.matchedTextLineCount,
+        ),
+        candidateLineCount: resolvedNativeProposals.length,
+        destination: result.didStitch
+            ? result.status.name
+            : '${result.status.name}.${result.fallbackReasonCode}',
+      );
+    }
+    return result;
   }
 }

@@ -18,7 +18,8 @@ void main() {
     expect(exitActions, contains('if (!beginReceiptReviewClose()) return;'));
     expect(reviewScreen, contains('canPop: _closingReview'));
     expect(saveActions, contains('await finishReceiptReview('));
-    expect(exitActions, contains('await WidgetsBinding.instance.endOfFrame;'));
+    expect(exitActions, contains('addPostFrameCallback'));
+    expect(exitActions, contains('WidgetsBinding.instance.scheduleFrame();'));
     expect(
       saveActions,
       isNot(contains('return !widget.initialPhotoPaths.contains(photoPath)')),

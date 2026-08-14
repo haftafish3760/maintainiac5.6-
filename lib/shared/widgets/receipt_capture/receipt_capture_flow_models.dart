@@ -24,6 +24,7 @@ enum ReceiptCaptureFlowModule {
 
 enum ReceiptCaptureFlowStatus {
   accepted,
+  reviewCompleted,
   canceled,
   permissionDenied,
   nativeUnavailable,
@@ -255,13 +256,34 @@ class ReceiptCaptureFlowResult {
     );
   }
 
+  factory ReceiptCaptureFlowResult.reviewCompleted({
+    required ReceiptPhotoReviewResult reviewResult,
+    String message = '',
+    ReceiptNativeCameraCapabilities? nativeCapabilities,
+    String recoveryManifestPath = '',
+    Map<String, Object?> diagnostics = const {},
+  }) {
+    assert(reviewResult.exitsReceiptFlow);
+    return ReceiptCaptureFlowResult._(
+      status: ReceiptCaptureFlowStatus.reviewCompleted,
+      reviewResult: reviewResult,
+      message: message,
+      nativeCapabilities: nativeCapabilities,
+      recoveryManifestPath: recoveryManifestPath,
+      diagnostics: diagnostics,
+    );
+  }
+
   factory ReceiptCaptureFlowResult.failed({
     required ReceiptCaptureFlowStatus status,
     required String message,
     ReceiptNativeCameraCapabilities? nativeCapabilities,
     Map<String, Object?> diagnostics = const {},
   }) {
-    assert(status != ReceiptCaptureFlowStatus.accepted);
+    assert(
+      status != ReceiptCaptureFlowStatus.accepted &&
+          status != ReceiptCaptureFlowStatus.reviewCompleted,
+    );
     return ReceiptCaptureFlowResult._(
       status: status,
       message: message,
@@ -279,5 +301,6 @@ class ReceiptCaptureFlowResult {
   final Map<String, Object?> diagnostics;
 
   bool get accepted => status == ReceiptCaptureFlowStatus.accepted;
+  bool get exitsReceiptFlow => reviewResult?.exitsReceiptFlow ?? false;
   bool get hasOcrText => ocrResult?.hasText == true;
 }

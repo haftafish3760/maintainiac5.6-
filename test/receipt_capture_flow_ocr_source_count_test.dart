@@ -157,7 +157,7 @@ void main() {
     expect(importActions, contains('reviewPickedPhotoPaths('));
     expect(importActions, contains('existing_receipt_photo_import'));
     expect(cameraActions, contains('captureAndReview('));
-    expect(cameraActions, contains('_acceptReviewedPhotoResult(result)'));
+    expect(cameraActions, contains('_completeReviewedPhotoResult(result)'));
     expect(cameraActions, contains('native_receipt_camera'));
     expect(saveActions, contains('ocrSourcePaths.add(prepared.ocrSourcePath)'));
     expect(
@@ -166,8 +166,17 @@ void main() {
         '_finalStitchResultForOcr(\n        inputPaths: pathsToSave,\n        preparedOcrPaths: ocrSourcePaths,',
       ),
     );
-    expect(stitchActions, contains('paths: preparedOcrPaths'));
-    expect(stitchActions, isNot(contains('paths: inputPaths')));
+    // Continue must reuse a reviewed composite when one exists, or hand the
+    // ordered prepared sections directly to OCR. Starting a new stitch here
+    // made a successful review look frozen and could strand a receipt at a
+    // combine-failure screen.
+    expect(stitchActions, contains('preview.copyForFinalOcr('));
+    expect(stitchActions, contains('ocrSourcePaths: preparedOcrPaths'));
+    expect(
+      stitchActions,
+      contains('return ReceiptStitchResult.notNeeded(preparedOcrPaths)'),
+    );
+    expect(stitchActions, isNot(contains('stitchReceiptPhotosForOcr(')));
   });
 
   test(

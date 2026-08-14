@@ -37,9 +37,31 @@ void main() {
     expect(template, contains('- Flutter devices snapshot log:'));
     expect(template, contains('- ADB devices snapshot log:'));
     expect(template, contains('- Xcode devices snapshot log:'));
+    expect(template, contains('## Required Target Evidence Matrix'));
+    expect(template, contains('- Galaxy S24 Ultra flagship:'));
+    expect(template, contains('- Galaxy S25 Ultra additional flagship:'));
+    expect(template, contains('- Galaxy S9 Plus older flagship:'));
+    expect(template, contains('- Constrained Android emulator:'));
+    expect(template, contains('- iPhone SE third generation:'));
+    expect(template, contains('- Future budget Android:'));
+    expect(template, contains('A newer flagship does not satisfy the S24 row'));
+    expect(template, contains('Do not copy results between rows.'));
     expect(template, contains('## Flow Results'));
     expect(template, contains('### Flow 1: Single Photo Receipt'));
     expect(template, contains('### Flow 6: Interruption And Recovery'));
+    expect(
+      template,
+      contains(
+        '### Flow 2: Multi-Photo Capture And Long-Receipt Reconstruction',
+      ),
+    );
+    expect(template, contains('## Android Stitch Runtime Evidence'));
+    expect(template, contains('- Capability tier:'));
+    expect(template, contains('- Continue-to-result elapsed time:'));
+    expect(
+      template,
+      contains('- App memory before, peak observed, and after review:'),
+    );
     expect(template, contains('## Failure Reports'));
     expect(template, contains('## Privacy And Diagnostics Check'));
     expect(template, contains('## Exit Summary'));
@@ -223,6 +245,15 @@ String _runNote({
 - ADB devices snapshot log: `$adbLog`
 - Xcode devices snapshot log: `$xcodeLog`
 
+## Required Target Evidence Matrix
+
+- Galaxy S24 Ultra flagship: NOT RUN
+- Galaxy S25 Ultra additional flagship: NOT RUN
+- Galaxy S9 Plus older flagship: NOT RUN
+- Constrained Android emulator: NOT RUN
+- iPhone SE third generation: NOT RUN
+- Future budget Android: NOT RUN
+
 - Older Android: NOT RUN
 - Current Android: NOT RUN
 - Additional Android: NOT RUN
@@ -247,6 +278,13 @@ String _runNote({
 
 ### Flow 6: Interruption And Recovery
 - Status: NOT RUN
+
+## Android Stitch Runtime Evidence
+
+- Device model and Android API: NOT RUN
+- Capability tier: NOT RUN
+- Continue-to-result elapsed time: NOT RUN
+- App memory before, peak observed, and after review: NOT RUN
 
 ## Failure Reports
 

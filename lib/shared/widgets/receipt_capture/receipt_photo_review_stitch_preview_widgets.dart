@@ -23,7 +23,7 @@ class _ReceiptStitchAssemblySurface extends StatelessWidget {
               ),
               SizedBox(height: 20),
               Text(
-                'Putting your receipt together…',
+                'Checking your receipt photos…',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFFE8ECEE),
@@ -33,7 +33,7 @@ class _ReceiptStitchAssemblySurface extends StatelessWidget {
               ),
               SizedBox(height: 8),
               Text(
-                'Keep this screen open. Your finished receipt will appear when it is ready.',
+                'Checking whether these photos line up. You can review each photo next.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFFC8D0D3),
@@ -79,7 +79,7 @@ class _ReceiptStitchFailureSurface extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'These photos did not line up clearly.',
+                  'These photos could not be combined safely.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFFE8ECEE),
@@ -89,7 +89,7 @@ class _ReceiptStitchFailureSurface extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Your original photos are unchanged. Retake the affected photo or align the sections yourself.',
+                  'Your original photos are unchanged and still in order. Continue can read them separately, or you can replace or align the affected section.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Color(0xFFC8D0D3),
@@ -102,7 +102,7 @@ class _ReceiptStitchFailureSurface extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: onRetake,
                   icon: const Icon(Icons.camera_alt_rounded),
-                  label: const Text('Retake Photos'),
+                  label: const Text('Replace Affected Photo'),
                   style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
                     foregroundColor: const Color(0xFFE8ECEE),
@@ -111,14 +111,14 @@ class _ReceiptStitchFailureSurface extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
-                FilledButton.icon(
+                OutlinedButton.icon(
                   onPressed: onAlign,
                   icon: const Icon(Icons.join_full_rounded),
                   label: const Text('Align Photos Myself'),
-                  style: FilledButton.styleFrom(
+                  style: OutlinedButton.styleFrom(
                     minimumSize: const Size.fromHeight(50),
-                    backgroundColor: const Color(0xFF28A745),
-                    foregroundColor: Colors.white,
+                    foregroundColor: const Color(0xFFE8ECEE),
+                    side: const BorderSide(color: Color(0xFF526168)),
                     textStyle: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),

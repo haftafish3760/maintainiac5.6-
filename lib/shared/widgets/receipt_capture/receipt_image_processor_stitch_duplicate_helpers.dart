@@ -1,5 +1,36 @@
 part of 'receipt_image_processor.dart';
 
+ReceiptStitchResult? _validateReceiptStitchInputPaths(List<String> inputPaths) {
+  if (inputPaths.isEmpty) {
+    return ReceiptStitchResult.fallback(
+      inputPaths: const [],
+      warning: 'No receipt photos were available for stitching.',
+      fallbackReasonCode: 'no_input_paths',
+    );
+  }
+  if (inputPaths.length <= 1) return ReceiptStitchResult.notNeeded(inputPaths);
+  if (!receiptPhotoPathsAreUniqueAndNormalized(inputPaths)) {
+    final duplicateOrAlias = _stitchInputPathsHaveDuplicateAliases(inputPaths);
+    return ReceiptStitchResult.fallback(
+      inputPaths: inputPaths,
+      warning:
+          'Receipt photos included invalid or repeated section paths. Receipt details will use the photos separately.',
+      fallbackReasonCode: duplicateOrAlias
+          ? 'duplicate_input_paths'
+          : 'invalid_input_paths',
+    );
+  }
+  if (!_stitchInputPathsAreUnique(inputPaths)) {
+    return ReceiptStitchResult.fallback(
+      inputPaths: inputPaths,
+      warning:
+          'Receipt photos included the same section more than once. Receipt details will use them separately.',
+      fallbackReasonCode: 'duplicate_input_paths',
+    );
+  }
+  return null;
+}
+
 int _receiptImageAverageHashDistance(img.Image a, img.Image b) {
   return _receiptImageAverageHashHammingDistance(
     _receiptImageAverageHash(a),
@@ -58,45 +89,109 @@ bool _receiptImageImmediateDuplicateContentMatches(img.Image a, img.Image b) {
 
 bool _receiptImageSmallShiftDuplicateContentMatches(img.Image a, img.Image b) {
   final shortestHeight = math.min(a.height, b.height);
-  if (shortestHeight < 160) return false;
+  final shortestWidth = math.min(a.width, b.width);
+  if (shortestHeight < 160 || shortestWidth < 160) return false;
   for (final fraction in const [.02, .025, .028, .03, .04, .05, .06]) {
-    final shift = (shortestHeight * fraction).round();
-    final commonHeight = shortestHeight - shift;
-    if (commonHeight < 120) continue;
-    final aTop = img.copyCrop(
+    final verticalShift = (shortestHeight * fraction).round();
+    final commonHeight = shortestHeight - verticalShift;
+    if (commonHeight >= 120) {
+      final aTop = img.copyCrop(
+        a,
+        x: 0,
+        y: 0,
+        width: a.width,
+        height: commonHeight,
+      );
+      final aBottom = img.copyCrop(
+        a,
+        x: 0,
+        y: verticalShift,
+        width: a.width,
+        height: commonHeight,
+      );
+      final bTop = img.copyCrop(
+        b,
+        x: 0,
+        y: 0,
+        width: b.width,
+        height: commonHeight,
+      );
+      final bBottom = img.copyCrop(
+        b,
+        x: 0,
+        y: verticalShift,
+        width: b.width,
+        height: commonHeight,
+      );
+      if (_receiptImageImmediateDuplicateContentMatches(aTop, bBottom) ||
+          _receiptImageImmediateDuplicateContentMatches(aBottom, bTop)) {
+        return true;
+      }
+    }
+
+    // A person can recapture the same section with the paper shifted to one
+    // side. That must be detected before OCR or the whole section can be
+    // counted twice. Compare the common horizontal field in both directions;
+    // the bounded fractions cover ordinary handheld framing drift.
+    // Extremely narrow, very tall sections contain many similar row bands;
+    // horizontally cropping them can falsely resemble a duplicate even when
+    // their unique continuation content differs. Their exact/recompressed
+    // checks still run, but shift matching needs a normal capture aspect.
+    if (shortestHeight / shortestWidth > 4.5) continue;
+    final horizontalShift = (shortestWidth * fraction).round();
+    final commonWidth = shortestWidth - horizontalShift;
+    if (commonWidth < 120) continue;
+    final aLeft = img.copyCrop(
       a,
       x: 0,
       y: 0,
-      width: a.width,
-      height: commonHeight,
+      width: commonWidth,
+      height: a.height,
     );
-    final aBottom = img.copyCrop(
+    final aRight = img.copyCrop(
       a,
-      x: 0,
-      y: shift,
-      width: a.width,
-      height: commonHeight,
+      x: horizontalShift,
+      y: 0,
+      width: commonWidth,
+      height: a.height,
     );
-    final bTop = img.copyCrop(
+    final bLeft = img.copyCrop(
       b,
       x: 0,
       y: 0,
-      width: b.width,
-      height: commonHeight,
+      width: commonWidth,
+      height: b.height,
     );
-    final bBottom = img.copyCrop(
+    final bRight = img.copyCrop(
       b,
-      x: 0,
-      y: shift,
-      width: b.width,
-      height: commonHeight,
+      x: horizontalShift,
+      y: 0,
+      width: commonWidth,
+      height: b.height,
     );
-    if (_receiptImageImmediateDuplicateContentMatches(aTop, bBottom) ||
-        _receiptImageImmediateDuplicateContentMatches(aBottom, bTop)) {
+    if (_receiptImageImmediateDuplicateContentMatches(aLeft, bRight) ||
+        _receiptImageImmediateDuplicateContentMatches(aRight, bLeft)) {
       return true;
     }
   }
   return false;
+}
+
+img.Image _receiptDuplicateComparisonSample(img.Image source) {
+  const maximumWidth = 192;
+  const maximumHeight = 512;
+  if (source.width <= maximumWidth && source.height <= maximumHeight) {
+    return source;
+  }
+  final scale = math.min(
+    maximumWidth / math.max(1, source.width),
+    maximumHeight / math.max(1, source.height),
+  );
+  return img.copyResize(
+    source,
+    width: math.max(1, (source.width * scale).round()),
+    height: math.max(1, (source.height * scale).round()),
+  );
 }
 
 bool _receiptImageContentMatchScore(
@@ -112,8 +207,23 @@ bool _receiptImageContentMatchScore(
   if ((aspectA - aspectB).abs() > .03) return false;
 
   const sampleWidth = 96;
-  final sampleA = img.copyResize(a, width: sampleWidth);
-  final sampleB = img.copyResize(b, width: sampleWidth);
+  const maximumSampleHeight = 512;
+  var sampleA = img.copyResize(a, width: sampleWidth);
+  var sampleB = img.copyResize(b, width: sampleWidth);
+  if (sampleA.height > maximumSampleHeight) {
+    sampleA = img.copyResize(
+      sampleA,
+      width: sampleWidth,
+      height: maximumSampleHeight,
+    );
+  }
+  if (sampleB.height > maximumSampleHeight) {
+    sampleB = img.copyResize(
+      sampleB,
+      width: sampleWidth,
+      height: maximumSampleHeight,
+    );
+  }
   final sampleHeight = math.min(sampleA.height, sampleB.height);
   if (sampleHeight < 96) return false;
 

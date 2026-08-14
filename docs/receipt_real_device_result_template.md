@@ -37,6 +37,25 @@ List the device classes covered in this session:
 - ADB devices snapshot log:
 - Xcode devices snapshot log:
 
+## Required Target Evidence Matrix
+
+Target identity must come from the reported hardware model, not an inferred
+capability tier. A newer flagship does not satisfy the S24 row, and a simulator
+or another iPhone does not satisfy the iPhone SE row.
+
+- Galaxy S24 Ultra flagship: NOT RUN
+- Galaxy S25 Ultra additional flagship: NOT RUN; does not satisfy S24 evidence
+- Galaxy S9 Plus older flagship: NOT RUN
+- Constrained Android emulator: NOT RUN
+- iPhone SE third generation: NOT RUN
+- Future budget Android: NOT RUN
+
+For every row changed from `NOT RUN`, record the exact model/virtual profile,
+OS/API version, capability tier reported by Maintainiac, evidence file path,
+and whether the result passed, failed, or was incomplete.
+
+Do not copy results between rows.
+
 - Older Android:
 - Current Android:
 - Additional Android:
@@ -62,10 +81,16 @@ List the lighting or interruption conditions covered:
 - Device coverage:
 - Notes:
 
-### Flow 2: Multi-Photo Capture Handoff
+### Flow 2: Multi-Photo Capture And Long-Receipt Reconstruction
 
 - Status:
 - Device coverage:
+- Source section count and verified order:
+- Automatic result (accepted composite or safe fallback):
+- Every join visually valid:
+- No repeated, missing, squeezed, or crossed receipt content:
+- Retake/manual alignment available after decline:
+- OCR source after result:
 - Notes:
 
 ### Flow 3: Save-Space Preview
@@ -92,6 +117,25 @@ List the lighting or interruption conditions covered:
 - Device coverage:
 - Notes:
 
+## Android Stitch Runtime Evidence
+
+Repeat this block for each flagship and constrained Android target. Do not copy
+flagship results into the constrained-device row.
+
+- Device model and Android API:
+- Capability tier:
+- Effective output pixel and height limits:
+- Effective target, comparison, and retry widths:
+- Effective evidence and processing timeouts:
+- Source section count:
+- Continue-to-result elapsed time:
+- App memory before, peak observed, and after review:
+- Output dimensions:
+- Result status and privacy-safe reason code:
+- Ordered sources preserved after timeout/cancellation:
+- Crash buffer clear:
+- ANR evidence clear:
+
 ## Failure Reports
 
 Repeat this block for each real failure:
@@ -116,6 +160,8 @@ Repeat this block for each real failure:
 
 - Single-photo flow ready:
 - Multi-photo capture handoff ready:
+- Long-receipt reconstruction ready:
+- Constrained-Android performance ready:
 - Save-space review ready:
 - Manual/no-assist ready:
 - Recovery ready:

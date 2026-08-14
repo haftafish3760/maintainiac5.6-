@@ -38,16 +38,41 @@ void main() {
       final source = await File(
         'lib/shared/widgets/receipt_capture/receipt_attachment_panel_controller.dart',
       ).readAsString();
+      final tracker = await File(
+        'lib/shared/widgets/receipt_capture/receipt_session_artifact_tracker.dart',
+      ).readAsString();
 
-      expect(source, contains('result.temporarySourcePhotoPaths'));
-      expect(source, contains('result.ocrSourcePhotoPaths'));
-      expect(source, contains('result.photoPaths'));
-      expect(source, contains('keptPaths: keptReceiptPhotoPaths'));
-      expect(source, contains('staging.finalizeAcceptedCapture(manifestPath)'));
+      expect(source, contains('_artifactTracker.retainReviewSources(result)'));
+      expect(tracker, contains('result.temporarySourcePhotoPaths'));
+      expect(tracker, contains('result.ocrSourcePhotoPaths'));
+      expect(tracker, contains('result.photoPaths'));
+      expect(tracker, contains('keptPaths: keptReceiptPhotoPaths'));
+      expect(tracker, contains('_nativeStaging.finalizeAcceptedCapture('));
       expect(
-        source.indexOf('deleteAppOwnedFiles('),
-        lessThan(source.indexOf('finalizeAcceptedCapture(manifestPath)')),
+        tracker.indexOf('_temporaryCleanup.deleteAppOwnedFiles('),
+        lessThan(tracker.indexOf('_finalizeTrackedManifests()')),
       );
+    },
+  );
+
+  test(
+    'failed prep cleanup is restricted to app-owned temporary files',
+    () async {
+      final source = await File(
+        'lib/shared/widgets/receipt_capture/receipt_photo_review_exit_actions.dart',
+      ).readAsString();
+      final start = source.indexOf(
+        'Future<void> _cleanupFailedReceiptPrepArtifacts',
+      );
+      final end = source.indexOf(
+        'void _forgetAcceptedReceiptPrepArtifacts',
+        start,
+      );
+      final cleanupBlock = source.substring(start, end);
+
+      expect(cleanupBlock, contains('ReceiptTemporaryArtifactCleanup'));
+      expect(cleanupBlock, contains('keptPaths: _photoPaths'));
+      expect(cleanupBlock, isNot(contains('file.delete()')));
     },
   );
 

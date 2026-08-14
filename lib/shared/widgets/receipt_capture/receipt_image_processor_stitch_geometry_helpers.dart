@@ -39,7 +39,7 @@ _receiptOverlapGeometryEvidence({
       // a tiny local correction here so resampling/rounding does not erase an
       // otherwise coherent two-dimensional match.
       for (final yAdjustment in const [-2, 0, 2]) {
-        for (final xAdjustment in const [-6, 0, 6]) {
+        for (final xAdjustment in const [-1, 0, 1]) {
           final candidate = _receiptOverlapGeometryCellCorrelation(
             previous: previous,
             next: next,
@@ -74,6 +74,16 @@ _receiptOverlapGeometryEvidence({
     detailedCells: detailedCells,
     matchingCells: matchingCells,
   );
+}
+
+bool _receiptGeometryEvidenceSupportsCandidate(
+  ({bool isProven, double correlation, int detailedCells, int matchingCells})
+  evidence,
+) {
+  return evidence.isProven ||
+      (evidence.detailedCells >= 6 &&
+          evidence.matchingCells >= 5 &&
+          evidence.correlation >= .72);
 }
 
 ({bool hasDetail, double correlation}) _receiptOverlapGeometryCellCorrelation({

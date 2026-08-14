@@ -14,19 +14,19 @@ extension _ExpenseReceiptEntryAttachmentPanel
       controller: controller,
       hasReceipt: _hasReceipt,
       area: _receiptCaptureArea,
-      // The rebuilt general receipt flow always begins with receipt-wide
-      // classification and category. It opens this shared picker explicitly
-      // only after that choice is confirmed, so Back has one clear prior step.
-      // Keep the established behavior for specialized lane-owned forms.
+      // General receipts choose their method on the visible Add Receipt screen.
+      // A setting must never open camera/import over that choice or force a
+      // person who wants manual entry into receipt capture. Specialized forms
+      // retain their established lane-owned behavior.
       openImportOptionsOnFirstBuild:
-          (startsWithAssistedCapture ||
-              !_usesRebuiltManualDetailedReceiptFlow) &&
+          !_usesRebuiltManualDetailedReceiptFlow &&
           !_isEditingReceipt &&
           !_hasReceipt &&
           _receiptAttachments.isEmpty &&
           _rawReceiptText.isEmpty &&
           receiptSettings?.appAssistedEnabledFor(_receiptCaptureArea) == true,
-      closeParentWhenImportCanceled: startsWithAssistedCapture,
+      closeParentWhenImportCanceled:
+          !_usesRebuiltManualDetailedReceiptFlow && startsWithAssistedCapture,
       showInterruptedCaptureRecovery: widget.showInterruptedCaptureRecovery,
       initialAttachments: _receiptAttachments,
       receiptContinuationReasonCode:
@@ -83,10 +83,22 @@ extension _ExpenseReceiptEntryAttachmentPanel
       },
       onImportedText: _parseImportedReceiptText,
       onReceiptPhotoReviewAccepted: _markReceiptPhotoReviewAccepted,
+      onReceiptPhotoReviewExitRequested: _handleReceiptPhotoReviewExitRequested,
       onReceiptReadStarted: _markReceiptReadStarted,
       onReceiptOcrResultForReview: _parseReceiptOcrResultFromCapture,
       onReceiptReadFinished: _markReceiptReadFinished,
       onReceiptCaptureDiagnostic: _recordReceiptCaptureDiagnostic,
     );
+  }
+
+  Future<void> _handleReceiptPhotoReviewExitRequested(
+    ReceiptPhotoReviewResult result,
+  ) async {
+    if (!result.exitsReceiptFlow) return;
+    if (result.outcome == ReceiptPhotoReviewOutcome.saveDraftAndExit) {
+      await _saveReceiptDraftAndExit();
+      return;
+    }
+    await _discardReceiptAndExit();
   }
 }

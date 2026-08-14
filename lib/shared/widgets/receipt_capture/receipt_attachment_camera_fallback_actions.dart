@@ -2,18 +2,19 @@ part of 'receipt_attachment_panel.dart';
 
 extension _ReceiptAttachmentCameraFallbackActions
     on _SharedReceiptAttachmentPanelState {
-  Future<void> _takePhoneCameraBackupPhoto() async {
+  Future<ReceiptImportActionResult> _takePhoneCameraBackupPhoto() async {
     final picked = await ReceiptImagePicker.takeBackupReceiptPhotoSet();
     if (picked.isEmpty || !mounted) {
-      await returnToReceiptImportOptions();
-      return;
+      return const ReceiptImportActionResult.stayOnChooser();
     }
     final staged = await _stageFallbackReceiptPhotos(
       picked.paths,
       captureFlow: 'phone_camera_backup_receipt_photo',
       temporaryIdPrefix: 'phone-camera-backup',
     );
-    if (staged == null || !mounted) return;
+    if (staged == null || !mounted) {
+      return const ReceiptImportActionResult.stayOnChooser();
+    }
     final diagnostics = receiptBrainDiagnosticsByPath(
       staged.photoPaths,
       captureRoute: 'phone_camera_backup_receipt_photo',
@@ -45,8 +46,9 @@ extension _ReceiptAttachmentCameraFallbackActions
         'phoneCameraBackupPhotoCount': picked.paths.length,
       },
     );
-    await reviewPickedPhotoPaths(
+    return reviewPickedPhotoPaths(
       staged.photoPaths,
+      stagedCapture: staged,
       initialCaptureDiagnosticsByPath: _mergeStagedFallbackDiagnostics(
         staged,
         diagnostics,
@@ -54,7 +56,8 @@ extension _ReceiptAttachmentCameraFallbackActions
     );
   }
 
-  Future<void> _openReceiptBackupCaptureAfterNativeUnavailable(
+  Future<ReceiptImportActionResult>
+  _openReceiptBackupCaptureAfterNativeUnavailable(
     ReceiptCaptureSettingsController? settings,
   ) async {
     if (NativeReceiptScannerService.documentScannerAllowedOnThisPlatform) {
@@ -65,12 +68,10 @@ extension _ReceiptAttachmentCameraFallbackActions
         allowGalleryImport: false,
       );
       if (scanResult.hasScannedPages) {
-        await _reviewDocumentScannerBackup(scanResult.cameraResult!);
-        return;
+        return _reviewDocumentScannerBackup(scanResult.cameraResult!);
       }
       if (scanResult.status == ReceiptNativeScanStatus.canceled) {
-        if (mounted) await returnToReceiptImportOptions();
-        return;
+        return const ReceiptImportActionResult.stayOnChooser();
       }
       _showScannerFallbackNotice(scanResult);
     }
@@ -86,10 +87,10 @@ extension _ReceiptAttachmentCameraFallbackActions
     showPickerError(
       'Maintainiac receipt camera is not available. Opening the phone camera as backup capture; the photo still returns to Maintainiac receipt review.',
     );
-    await _takePhoneCameraBackupPhoto();
+    return _takePhoneCameraBackupPhoto();
   }
 
-  Future<void> _reviewDocumentScannerBackup(
+  Future<ReceiptImportActionResult> _reviewDocumentScannerBackup(
     ReceiptCameraResult cameraResult,
   ) async {
     final staged = await _stageFallbackReceiptPhotos(
@@ -97,7 +98,9 @@ extension _ReceiptAttachmentCameraFallbackActions
       captureFlow: 'document_scanner_backup_receipt_photo',
       temporaryIdPrefix: 'document-scanner-backup',
     );
-    if (staged == null || !mounted) return;
+    if (staged == null || !mounted) {
+      return const ReceiptImportActionResult.stayOnChooser();
+    }
     final diagnostics = receiptBrainDiagnosticsByPath(
       staged.photoPaths,
       captureRoute: 'document_scanner_backup_receipt_photo',
@@ -127,8 +130,9 @@ extension _ReceiptAttachmentCameraFallbackActions
         'documentScannerBackupPhotoCount': cameraResult.photoPaths.length,
       },
     );
-    await reviewPickedPhotoPaths(
+    return reviewPickedPhotoPaths(
       staged.photoPaths,
+      stagedCapture: staged,
       initialQualityChecksByPath: await qualityChecksForPhotoPaths(
         staged.photoPaths,
       ),

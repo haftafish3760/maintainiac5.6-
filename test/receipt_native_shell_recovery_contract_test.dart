@@ -226,13 +226,16 @@ void main() {
       expect(actions, contains('Add Next Receipt Section'));
       expect(actions, contains('coverageDecision.completionDialogMessage'));
       expect(actions, contains('coverageDecision.addSectionButtonLabel'));
-      expect(actions, contains('repeat 3-5 readable lines in the next photo'));
-      expect(actions, contains('missingBottomAndTotals'));
-      expect(actions, contains('bottom-section ghost guide'));
       expect(
         actions,
-        contains('subtotal, total, and final lines can be matched'),
+        contains('Start the next photo with the same 3-5 readable lines.'),
       );
+      expect(actions, contains('missingBottomAndTotals'));
+      expect(
+        actions,
+        contains('bottom_overlap_ghost_at_top_repeat_3_to_5_lines'),
+      );
+      expect(actions, contains('subtotal_total_and_final_lines'));
       expect(actions, contains('previousSectionGuidePhotoPath'));
       expect(actions, contains('previousSectionCoverageDecision'));
       expect(actions, contains('previousSectionReasonCode'));

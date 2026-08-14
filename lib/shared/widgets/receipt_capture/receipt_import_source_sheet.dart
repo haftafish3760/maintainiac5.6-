@@ -1,52 +1,97 @@
 part of 'receipt_attachment_panel.dart';
 
 extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
-  Future<void> openReceiptImportOptions() async {
+  Future<void> openReceiptImportOptions({
+    ReceiptImportEntryIntent intent =
+        ReceiptImportEntryIntent.standardReceiptEntry,
+  }) async {
+    await _openReceiptImportOptionsTransaction(intent: intent);
+  }
+
+  Future<ReceiptImportActionResult?> _openReceiptImportOptionsTransaction({
+    ReceiptImportEntryIntent intent =
+        ReceiptImportEntryIntent.standardReceiptEntry,
+    bool notifyOwnerOnExit = true,
+  }) async {
     final settings = ReceiptCaptureSettingsScope.maybeOf(context);
-    if (settings != null && !settings.hasReceiptAssistChoiceFor(widget.area)) {
+    if (intent != ReceiptImportEntryIntent.optionalManualProof &&
+        settings != null &&
+        !settings.hasReceiptAssistChoiceFor(widget.area)) {
       final choiceSaved = await _showFirstUseReceiptAssistIntro(settings);
-      if (!mounted || !choiceSaved) return;
+      if (!mounted || !choiceSaved) return null;
     }
-    final action = await Navigator.of(context).push<_ReceiptImportAction>(
+    final result = await Navigator.of(context).push<ReceiptImportActionResult>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (context) =>
-            _ReceiptImportSourceScreen(showCamera: widget.showCamera),
+        builder: (context) => ReceiptImportSourceScreen(
+          showCamera: widget.showCamera,
+          intent: intent,
+          onAction: (action) =>
+              _handleReceiptImportSourceAction(action, intent: intent),
+        ),
       ),
     );
-    if (!mounted || action == null) {
-      if (mounted && widget.closeParentWhenImportCanceled) {
-        Navigator.of(context).maybePop();
-      }
-      return;
+    if (!mounted) return result;
+    final reviewResult = result?.reviewResult;
+    if (notifyOwnerOnExit && reviewResult?.exitsReceiptFlow == true) {
+      await _notifyReviewedPhotoExitRequested(reviewResult!);
+      return result;
     }
+    if (result == null && widget.closeParentWhenImportCanceled && mounted) {
+      await Navigator.of(context).maybePop();
+    }
+    return result;
+  }
+
+  /// Keeps the source chooser in place while the system picker, camera, or
+  /// review route opens. Popping it first briefly revealed the parent screen
+  /// between "Done" and photo review, which looked like a broken transition.
+  Future<ReceiptImportActionResult> _handleReceiptImportSourceAction(
+    ReceiptImportSourceAction action, {
+    ReceiptImportEntryIntent intent =
+        ReceiptImportEntryIntent.standardReceiptEntry,
+  }) async {
     switch (action) {
-      case _ReceiptImportAction.camera:
-        await takeReceiptPhoto();
-      case _ReceiptImportAction.image:
-        await uploadReceiptImage();
-      case _ReceiptImportAction.pdf:
+      case ReceiptImportSourceAction.camera:
+        return takeReceiptPhoto(
+          skipFirstUseReceiptAssistIntro:
+              intent == ReceiptImportEntryIntent.optionalManualProof,
+        );
+      case ReceiptImportSourceAction.image:
+        return uploadReceiptImage();
+      case ReceiptImportSourceAction.pdf:
+        final previousAttachmentCount = _documentAttachments.length;
         await _pickPdfFiles();
-      case _ReceiptImportAction.savedText:
+        return _documentAttachments.length > previousAttachmentCount
+            ? const ReceiptImportActionResult.completed()
+            : const ReceiptImportActionResult.stayOnChooser();
+      case ReceiptImportSourceAction.savedText:
+        final previousAttachmentCount = _documentAttachments.length;
         await pickImportedTextFile(kind: ReceiptAttachmentKind.emailText);
-      case _ReceiptImportAction.pasteText:
+        return _documentAttachments.length > previousAttachmentCount
+            ? const ReceiptImportActionResult.completed()
+            : const ReceiptImportActionResult.stayOnChooser();
+      case ReceiptImportSourceAction.pasteText:
         final textAction = await _chooseReceiptTextImportAction();
-        if (!mounted) return;
-        if (textAction == null) {
-          await returnToReceiptImportOptions();
-          return;
+        if (!mounted || textAction == null) {
+          return const ReceiptImportActionResult.stayOnChooser();
         }
+        final previousAttachmentCount = _documentAttachments.length;
         switch (textAction) {
           case _ReceiptTextImportAction.pasteText:
             await openImportedTextSheet(kind: ReceiptAttachmentKind.emailText);
           case _ReceiptTextImportAction.textFile:
             await pickImportedTextFile(kind: ReceiptAttachmentKind.emailText);
         }
-      case _ReceiptImportAction.settings:
+        return _documentAttachments.length > previousAttachmentCount
+            ? const ReceiptImportActionResult.completed()
+            : const ReceiptImportActionResult.stayOnChooser();
+      case ReceiptImportSourceAction.settings:
         await openReceiptCaptureSettings();
-      case _ReceiptImportAction.shareHelp:
+        return const ReceiptImportActionResult.stayOnChooser();
+      case ReceiptImportSourceAction.shareHelp:
         await _showReceiptShareHelp();
-        await returnToReceiptImportOptions();
+        return const ReceiptImportActionResult.stayOnChooser();
     }
   }
 
@@ -59,13 +104,6 @@ extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
     );
   }
 
-  Future<void> returnToReceiptImportOptions() async {
-    if (!mounted) return;
-    updateAttachmentState(() => _openingPicker = false);
-    await Future<void>.delayed(const Duration(milliseconds: 120));
-    if (mounted) await openReceiptImportOptions();
-  }
-
   Future<_ReceiptTextImportAction?> _chooseReceiptTextImportAction() {
     return showModalBottomSheet<_ReceiptTextImportAction>(
       context: context,
@@ -76,18 +114,114 @@ extension _ReceiptImportSourceSheet on _SharedReceiptAttachmentPanelState {
   }
 }
 
-class _ReceiptImportSourceScreen extends StatelessWidget {
-  const _ReceiptImportSourceScreen({required this.showCamera});
+class ReceiptImportSourceScreen extends StatefulWidget {
+  const ReceiptImportSourceScreen({
+    super.key,
+    required this.showCamera,
+    required this.onAction,
+    this.intent = ReceiptImportEntryIntent.standardReceiptEntry,
+  });
 
   final bool showCamera;
+  final ReceiptImportEntryIntent intent;
+  final Future<ReceiptImportActionResult> Function(
+    ReceiptImportSourceAction action,
+  )
+  onAction;
+
+  @override
+  State<ReceiptImportSourceScreen> createState() =>
+      _ReceiptImportSourceScreenState();
+}
+
+class _ReceiptImportSourceScreenState extends State<ReceiptImportSourceScreen> {
+  var _waitingForPhotoImport = false;
+  var _actionInFlight = false;
+
+  Future<void> _handleAction(ReceiptImportSourceAction action) async {
+    if (_actionInFlight) return;
+    final coversPhotoRoute =
+        action == ReceiptImportSourceAction.image ||
+        action == ReceiptImportSourceAction.camera;
+    setState(() {
+      _actionInFlight = true;
+      _waitingForPhotoImport = coversPhotoRoute;
+    });
+    if (coversPhotoRoute) {
+      // Paint the neutral handoff before the system picker or camera opens.
+      // When either route returns, source choices stay covered while reviewed
+      // photos are installed and any accepted receipt read is completed.
+      await WidgetsBinding.instance.endOfFrame;
+    }
+
+    try {
+      final result = await widget.onAction(action);
+      if (!mounted) return;
+      if (result.closesChooser) {
+        Navigator.of(context).pop(result);
+        return;
+      }
+      setState(() {
+        _actionInFlight = false;
+        _waitingForPhotoImport = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _actionInFlight = false;
+        _waitingForPhotoImport = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'That receipt source could not be opened. Try again or choose another source.',
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF161D20),
-      body: _ReceiptImportSourceSheetBody(
-        showCamera: showCamera,
-        fullScreen: true,
+    return PopScope(
+      canPop: !_actionInFlight,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF161D20),
+        body: _waitingForPhotoImport
+            ? const _ReceiptPhotoImportHandoff()
+            : _ReceiptImportSourceSheetBody(
+                showCamera: widget.showCamera,
+                intent: widget.intent,
+                fullScreen: true,
+                onAction: _handleAction,
+              ),
+      ),
+    );
+  }
+}
+
+class _ReceiptPhotoImportHandoff extends StatelessWidget {
+  const _ReceiptPhotoImportHandoff();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SafeArea(
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text(
+              'Just a moment…',
+              style: TextStyle(
+                color: Color(0xFFE8ECEE),
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -96,10 +230,14 @@ class _ReceiptImportSourceScreen extends StatelessWidget {
 class _ReceiptImportSourceSheetBody extends StatelessWidget {
   const _ReceiptImportSourceSheetBody({
     required this.showCamera,
+    this.intent = ReceiptImportEntryIntent.standardReceiptEntry,
+    this.onAction,
     this.fullScreen = false,
   });
 
   final bool showCamera;
+  final ReceiptImportEntryIntent intent;
+  final Future<void> Function(ReceiptImportSourceAction action)? onAction;
   final bool fullScreen;
 
   @override
@@ -107,28 +245,28 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
     final sources = <_ReceiptImportSource>[
       if (showCamera)
         const _ReceiptImportSource(
-          action: _ReceiptImportAction.camera,
+          action: ReceiptImportSourceAction.camera,
           icon: Icons.photo_camera_rounded,
           label: 'Capture Photo',
           detail: 'Take receipt photos, review them, then read the receipt.',
           color: Color(0xFF8EF6A4),
         ),
       const _ReceiptImportSource(
-        action: _ReceiptImportAction.image,
+        action: ReceiptImportSourceAction.image,
         icon: Icons.photo_library_rounded,
         label: 'Upload Photos',
         detail: 'Choose one or more receipt images from this device.',
         color: Color(0xFFFFD166),
       ),
       const _ReceiptImportSource(
-        action: _ReceiptImportAction.pdf,
+        action: ReceiptImportSourceAction.pdf,
         icon: Icons.folder_rounded,
         label: 'Upload PDF/File',
         detail: 'Use a downloaded receipt file or emailed PDF.',
         color: Color(0xFFA9DFFF),
       ),
       const _ReceiptImportSource(
-        action: _ReceiptImportAction.pasteText,
+        action: ReceiptImportSourceAction.pasteText,
         icon: Icons.content_paste_rounded,
         label: 'Paste/Text',
         detail: 'Use copied receipt text when there is no photo.',
@@ -150,10 +288,12 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                     icon: const Icon(Icons.arrow_back_rounded),
                   ),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Add Receipt',
-                    style: TextStyle(
+                    intent == ReceiptImportEntryIntent.optionalManualProof
+                        ? 'Add image of your receipt'
+                        : 'Add Receipt',
+                    style: const TextStyle(
                       color: Color(0xFFE8ECEE),
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -163,22 +303,28 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                 ),
                 IconButton(
                   tooltip: 'Receipt settings',
-                  onPressed: () =>
-                      Navigator.of(context).pop(_ReceiptImportAction.settings),
+                  onPressed: () => _selectAction(
+                    context,
+                    ReceiptImportSourceAction.settings,
+                  ),
                   icon: const Icon(Icons.settings_rounded),
                 ),
                 IconButton(
                   tooltip: 'Receipt help',
-                  onPressed: () =>
-                      Navigator.of(context).pop(_ReceiptImportAction.shareHelp),
+                  onPressed: () => _selectAction(
+                    context,
+                    ReceiptImportSourceAction.shareHelp,
+                  ),
                   icon: const Icon(Icons.help_outline_rounded),
                 ),
               ],
             ),
             const SizedBox(height: 6),
-            const Text(
-              'Choose how you want to add this receipt.',
-              style: TextStyle(
+            Text(
+              intent == ReceiptImportEntryIntent.optionalManualProof
+                  ? 'Take a photo or choose an image. You can also add a PDF or text copy.'
+                  : 'Choose how you want to add this receipt.',
+              style: const TextStyle(
                 color: Color(0xFFC8D0D3),
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -200,7 +346,10 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
                     for (final source in sources)
                       SizedBox(
                         width: tileWidth,
-                        child: _ReceiptImportTile(source: source),
+                        child: _ReceiptImportTile(
+                          source: source,
+                          onSelected: () => _selectSource(context, source),
+                        ),
                       ),
                   ],
                 );
@@ -210,6 +359,23 @@ class _ReceiptImportSourceSheetBody extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _selectSource(
+    BuildContext context,
+    _ReceiptImportSource source,
+  ) => _selectAction(context, source.action);
+
+  Future<void> _selectAction(
+    BuildContext context,
+    ReceiptImportSourceAction action,
+  ) async {
+    final handler = onAction;
+    if (handler == null) {
+      Navigator.of(context).pop(action);
+      return;
+    }
+    await handler(action);
   }
 }
 
@@ -222,7 +388,7 @@ class _ReceiptImportSource {
     required this.color,
   });
 
-  final _ReceiptImportAction action;
+  final ReceiptImportSourceAction action;
   final IconData icon;
   final String label;
   final String detail;

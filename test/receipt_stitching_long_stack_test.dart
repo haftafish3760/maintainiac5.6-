@@ -72,10 +72,7 @@ void main() {
         pixelCapResult.sourcePreservationCode,
         'original_sections_preserved_ordered_ocr_sources',
       );
-      expect(
-        pixelCapResult.assistedReadinessCode,
-        'stitch_contract_review_required',
-      );
+      expect(pixelCapResult.assistedReadinessCode, 'ordered_sections_ready');
 
       final heightCapResult =
           await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
@@ -84,12 +81,18 @@ void main() {
           );
 
       expectOutputTooLargeFallback(heightCapResult, files);
-      expect(heightCapResult.pairs, isEmpty);
-      expect(heightCapResult.stitchedHeight, greaterThan(3000));
+      // The conservative preflight can prove the cap immediately, or the
+      // running estimate can cross it after one or more verified joins.
+      // Either route must preserve any evidence already evaluated.
+      expect(heightCapResult.pairs.length, lessThan(files.length));
       expect(
-        heightCapResult.assistedReadinessCode,
-        'stitch_contract_review_required',
+        heightCapResult.pairs.map((pair) => pair.pairIndex),
+        orderedEquals(
+          List<int>.generate(heightCapResult.pairs.length, (index) => index),
+        ),
       );
+      expect(heightCapResult.stitchedHeight, greaterThan(3000));
+      expect(heightCapResult.assistedReadinessCode, 'ordered_sections_ready');
     },
     timeout: _longStackTimeout,
   );
@@ -160,6 +163,7 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: [for (final file in files) file.path],
+        textEvidence: _mixedTransformTextEvidence(files),
       );
 
       expect(
@@ -267,7 +271,6 @@ void main() {
     },
     timeout: _longStackTimeout,
   );
-
 }
 
 int _expectedStitchedHeightForUniformSections({
@@ -299,8 +302,8 @@ void expectOutputTooLargeFallback(
   expect(result.fallbackReasonCode, 'output_too_large');
   expect(result.stitchedPath, isNull);
   expect(result.ocrSourcePaths, [for (final file in files) file.path]);
-  expect(result.ocrSourceContractCode, 'fallback_derived_stitch_too_large');
-  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+  expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
+  expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
 }
 
 Future<List<File>> _writeFiveSectionStack(String prefix) async {
@@ -430,4 +433,40 @@ Future<List<File>> _writeMixedTransformStack(String prefix) async {
     );
   }
   return files;
+}
+
+List<ReceiptStitchTextEvidence> _mixedTransformTextEvidence(List<File> files) {
+  const lines = [
+    ['ITEM A 1.00', 'ITEM B 2.00', 'ITEM C 3.00', 'ITEM D 4.00'],
+    ['ITEM C 3.00', 'ITEM D 4.00', 'ITEM E 5.00', 'ITEM F 6.00'],
+    ['ITEM E 5.00', 'ITEM F 6.00', 'ITEM G 7.00', 'ITEM H 8.00'],
+    ['ITEM G 7.00', 'ITEM H 8.00', 'ITEM I 9.00', 'TOTAL 45.00'],
+  ];
+  const baseCenters = [.07, .15, .82, .90];
+  const scales = [1.0, 1.06, 1.0, .94];
+  const angles = [0.0, 0.0, .8, 0.0];
+  return [
+    for (var index = 0; index < files.length; index++)
+      ReceiptStitchTextEvidence(
+        path: files[index].path,
+        lines: lines[index],
+        positionedLines: [
+          for (var lineIndex = 0; lineIndex < lines[index].length; lineIndex++)
+            ReceiptStitchTextLineEvidence(
+              text: lines[index][lineIndex],
+              left: .12,
+              top: (baseCenters[lineIndex] * scales[index] - .018).clamp(
+                0.0,
+                1.0,
+              ),
+              right: (.88 * scales[index]).clamp(0.0, 1.0),
+              bottom: (baseCenters[lineIndex] * scales[index] + .018).clamp(
+                0.0,
+                1.0,
+              ),
+              angleDegrees: angles[index],
+            ),
+        ],
+      ),
+  ];
 }

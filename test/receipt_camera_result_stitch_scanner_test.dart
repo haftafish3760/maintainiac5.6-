@@ -146,11 +146,11 @@ void main() {
     expect(fallback.nextReviewUsesCombinedReceiptImage, isFalse);
     expect(
       fallback.receiptPhotoReviewHandoffPath,
-      'accepted_stitch_ocr_source_review_required',
+      'accepted_ordered_sections_fallback',
     );
     expect(
       fallback.receiptPhotoReviewHandoffPathLabel,
-      'Accepted photo review, but the combined receipt image needs review.',
+      'Accepted long receipt as ordered sections after the combined-image fallback.',
     );
     expect(
       fallback
@@ -159,32 +159,32 @@ void main() {
     );
     expect(
       fallback
-          .receiptReaderHandoffCounts['ocr_source_review_risk_stitch_ocr_source_contract_review_required'],
+          .receiptReaderHandoffCounts['ocr_source_review_risk_ocr_source_ready'],
       1,
     );
     expect(
       fallback
-          .receiptReaderHandoffCounts['ocr_source_review_requirement_manual_review_required_before_saving_receipt'],
+          .receiptReaderHandoffCounts['ocr_source_review_requirement_standard_user_confirmation_required'],
       1,
     );
     expect(
       fallback
-          .receiptReaderHandoffCounts['stitch_ocr_source_contract_fallback_overlap_untrusted_sources'],
+          .receiptReaderHandoffCounts['stitch_ocr_source_contract_fallback_ordered_sources_ready'],
       1,
     );
     expect(
       fallback
-          .receiptReaderHandoffCounts['stitch_assisted_readiness_stitch_contract_review_required'],
+          .receiptReaderHandoffCounts['stitch_assisted_readiness_ordered_sections_ready'],
       1,
     );
     expect(
       fallback
-          .receiptReaderHandoffCounts['stitch_requires_ocr_source_review_before_assist'],
+          .receiptReaderHandoffCounts['stitch_ready_for_assisted_read_without_extra_review'],
       1,
     );
     expect(
       fallback
-          .receiptReaderHandoffCounts['match_readiness_ocr_source_review_required_before_assist'],
+          .receiptReaderHandoffCounts['match_readiness_ordered_sections_fallback_ready'],
       1,
     );
     expect(
@@ -199,11 +199,11 @@ void main() {
     expect(fallback.nextReviewUsesOrderedSections, isTrue);
     expect(
       fallback.nextReviewMatchReadinessOutcome,
-      'ocr_source_review_required_before_assist',
+      'ordered_sections_fallback_ready',
     );
     expect(
       fallback.nextReviewMatchReadinessLabel,
-      'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
+      'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 1 to 2 needs review.',
     );
     expect(fallback.nextReviewSourceLabel, '2 ordered receipt sections');
     expect(fallback.ocrSourceCountLabel, '2 clear ordered receipt sections');
@@ -221,24 +221,24 @@ void main() {
     );
     expect(
       fallback.stitchResult.requiresOcrSourceReviewBeforeAssistedRead,
-      isTrue,
+      isFalse,
     );
     expect(
       fallback.stitchResult.assistedReadinessCode,
-      'stitch_contract_review_required',
+      'ordered_sections_ready',
     );
-    expect(fallback.stitchResult.hasValidOcrSourceContract, isFalse);
+    expect(fallback.stitchResult.hasValidOcrSourceContract, isTrue);
     expect(
       fallback.stitchResult.ocrSourceContractCode,
-      'fallback_overlap_untrusted_sources',
+      'fallback_ordered_sources_ready',
     );
     expect(
       fallback.ocrSourceReviewRiskCode,
-      'stitch_ocr_source_contract_review_required',
+      'ocr_source_ready',
     );
     expect(
       fallback.ocrSourceReviewRequirement,
-      'manual_review_required_before_saving_receipt',
+      'standard_user_confirmation_required',
     );
     expect(
       fallback.stitchResult.ocrHandoffSafetyLabel,
@@ -270,19 +270,19 @@ void main() {
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'nextReviewMatchReadinessOutcome',
-        'ocr_source_review_required_before_assist',
+        'ordered_sections_fallback_ready',
       ),
     );
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'nextReviewMatchReadinessLabel',
-        'Photo match needs review before receipt details can be filled, starting with Photo 1 to 2.',
+        'Photo match fallback: ordered receipt sections will be read top to bottom, and Photo 1 to 2 needs review.',
       ),
     );
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
-      containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', true),
+      containsPair('nextReviewRequiresOcrSourceReviewBeforeAssist', false),
     );
     expect(
       stitched.privacySafeReceiptReaderHandoffMetadata,
@@ -333,14 +333,14 @@ void main() {
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'ocrSourceReviewRiskCode',
-        'stitch_ocr_source_contract_review_required',
+        'ocr_source_ready',
       ),
     );
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'ocrSourceReviewRequirement',
-        'manual_review_required_before_saving_receipt',
+        'standard_user_confirmation_required',
       ),
     );
     expect(
@@ -351,12 +351,12 @@ void main() {
       fallback.privacySafeReceiptReaderHandoffMetadata,
       containsPair(
         'stitchAssistedReadinessCode',
-        'stitch_contract_review_required',
+        'ordered_sections_ready',
       ),
     );
     expect(
       fallback.privacySafeReceiptReaderHandoffMetadata,
-      containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', true),
+      containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', false),
     );
 
     final stitchedAttachments = ReceiptCaptureFlow.attachmentsFromReviewResult(

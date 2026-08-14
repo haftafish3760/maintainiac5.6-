@@ -158,6 +158,9 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
       return parsed.diagnostics.ocrSourceCoverageReviewActionLabel;
     }
     if (parsed.diagnostics.shouldSuggestLowerReceiptSection) {
+      if (parsed.totalCalculatedFromVisibleLines) {
+        return 'Check the calculated total. Add the lower receipt section if this receipt continues.';
+      }
       return 'Add the lower receipt section, or continue and enter the total manually if this is the full receipt.';
     }
     return parsed.diagnostics.localReceiptParserRoutingActionLabel;
@@ -176,7 +179,7 @@ extension _ExpenseReceiptEntryReadHandoffHelpers
       _lastOcrDiagnostics?.receiptTotalsTextEvidenceStatus == 'missing';
 
   String get _receiptMissingTotalsHandoffActionLabel =>
-      'Check the bottom of the receipt. Add the next section if it continues, or enter the total manually.';
+      'Check the calculated total. Add the next section if the receipt continues.';
 
   String get _receiptMissingTotalsCoverageWarningLabel =>
       'Subtotal/total lines were not found. If this photo does not include the bottom of the receipt, use Add / Retake to add the next receipt section.';

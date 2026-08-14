@@ -126,13 +126,13 @@ void main() {
     expect(
       reviewScreen,
       contains(
-        'body: SafeArea(\n          top: true,\n          bottom: true,\n          maintainBottomViewPadding: true,\n          child: Column(',
+        'body: SafeArea(\n          top: true,\n          bottom: true,\n          maintainBottomViewPadding: true,\n          child: _savingPhotos\n              ? const _ReceiptPreparationProgressView()\n              : Column(',
       ),
     );
-    expect(reviewScreen, contains('Expanded(\n                child: Stack('));
+    expect(reviewScreen, contains('child: Stack('));
     expect(reviewScreen, isNot(contains('_reviewSurfaceBottomPadding')));
     expect(uiConfig, contains('class ReceiptPhotoReviewUiConfig'));
-    expect(uiConfig, contains('this.cropControlsHeight = 120'));
+    expect(uiConfig, contains('this.cropControlsHeight = 70'));
     expect(uiConfig, isNot(contains('keepControlsOutsidePreview')));
     expect(uiConfig, contains('String addPhotoLabel'));
     expect(reviewScreen, contains('_reviewPreviewCacheWidth(context)'));
@@ -201,12 +201,14 @@ void main() {
       previewControls,
       contains('Expanded(child: _continueButton(compact: true))'),
     );
-    expect(cropControls, contains('class _ReceiptCropInstructionStrip'));
-    expect(cropControls, contains('height: 52'));
-    expect(topBar, contains('Crop receipt — drag the yellow edges'));
+    expect(cropControls, contains('class _ReceiptStraightenSlider'));
+    expect(cropControls, contains('height: 48'));
+    expect(topBar, contains('Crop and straighten receipt'));
     expect(
       previewControls,
-      contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
+      isNot(
+        contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
+      ),
     );
     expect(
       reviewScreen,
@@ -286,7 +288,8 @@ void main() {
     expect(commonControls, contains('class _ReceiptStackedButtonLabel'));
     expect(commonControls, contains("normalized == 'Add Another Photo'"));
     expect(commonControls, isNot(contains("normalized == 'Save & Continue'")));
-    expect(previewControls, contains('maxLines: 2'));
+    expect(previewControls, contains('FittedBox('));
+    expect(previewControls, contains('maxLines: 1'));
     expect(previewControls, contains('textAlign: TextAlign.center'));
     expect(previewControls, contains('minimumSize: const Size(0, 46)'));
     expect(previewControls, contains('Semantics('));
@@ -366,29 +369,21 @@ void main() {
     expect(reviewScreen, contains('current: effectiveSelectedIndex + 1'));
     expect(topBar, contains('Review Receipt'));
     expect(previewControls, contains("semanticLabel: 'Crop receipt photo'"));
-    expect(controls, contains('selectedIndex: effectiveSelectedIndex'));
-    expect(controls, contains('Check the store, date, total, '));
+    expect(reviewScreen, contains('selectedIndex: effectiveSelectedIndex'));
+    expect(controls, isNot(contains('saved. Check the order, then continue.')));
+    expect(previewControls, contains('FittedBox('));
+    expect(controls, isNot(contains('Check the store, date, total, ')));
+    expect(controls, contains('coverageDecision.shouldPromptForMorePhotos'));
     expect(
-      controls,
-      contains('if (coverageDecision.shouldPromptForMorePhotos)'),
-    );
-    expect(
-      controls,
+      previewControls,
       contains(
-        'add the bottom receipt section and repeat 3-5 readable lines in the top reference strip',
+        'Add bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
-    expect(controls, contains('Add another photo if any part of the '));
-    expect(controls, contains('receipt is missing.'));
-    expect(controls, contains('captureSurface.startsWith'));
-    expect(controls, contains('maintainiac_native_receipt_camera'));
-    expect(controls, contains('String get captureMemoryPolicyCopy'));
-    expect(controls, contains("diagnostics['nativeCaptureMemoryPolicy']"));
-    expect(controls, contains("diagnostics['storageConstrained'] == true"));
     expect(
-      controls,
+      previewControls,
       contains(
-        'Maintainiac reads the full captured photo first; smaller saved copies are only for storage and recovery.',
+        'Add another photo if more receipt lines continue below this section.',
       ),
     );
     expect(controls, contains("return 'Continue';"));
@@ -435,7 +430,7 @@ void main() {
     expect(sectionLabels, contains('Add Next Receipt Photo'));
     expect(
       sectionLabels,
-      contains('Add another photo only if the receipt continues.'),
+      contains('Add Another Photo only if the receipt continues.'),
     );
     expect(sectionLabels, contains('Add Another Photo'));
     expect(contextControls, contains("label: 'Add Photo'"));

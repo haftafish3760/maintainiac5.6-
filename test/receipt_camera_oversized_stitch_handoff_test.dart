@@ -3,7 +3,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 
 void main() {
   test(
-    'oversized stitch fallback keeps long receipt ordered and review blocked',
+    'oversized stitch fallback keeps ordered originals ready for review',
     () {
       final result = ReceiptPhotoReviewResult(
         photoPaths: const [
@@ -38,12 +38,12 @@ void main() {
 
       expect(
         result.receiptPhotoReviewHandoffPath,
-        'accepted_stitch_ocr_source_review_required',
+        'accepted_ordered_sections_fallback',
       );
       expect(result.nextReviewUsesOrderedSections, isTrue);
       expect(
         result.nextReviewMatchReadinessOutcome,
-        'ocr_source_review_required_before_assist',
+        'ordered_sections_fallback_ready',
       );
       expect(
         result.stitchResult.reviewPathLabel,
@@ -51,14 +51,19 @@ void main() {
       );
       expect(
         result.stitchResult.ocrSourceContractCode,
-        'fallback_derived_stitch_too_large',
+        'fallback_ordered_sources_ready',
       );
       expect(
         result.receiptReaderHandoffCounts,
         containsPair(
-          'stitch_ocr_source_contract_fallback_derived_stitch_too_large',
+          'stitch_ocr_source_contract_fallback_ordered_sources_ready',
           1,
         ),
+      );
+      expect(result.stitchResult.hasValidOcrSourceContract, isTrue);
+      expect(
+        result.stitchResult.requiresOcrSourceReviewBeforeAssistedRead,
+        isFalse,
       );
       expect(
         result.privacySafeReceiptReaderHandoffMetadata,

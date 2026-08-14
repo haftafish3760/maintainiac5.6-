@@ -17,7 +17,7 @@ part 'expense_receipt_item_memory.dart';
 Future<ExpenseReceiptParseResult> parseExpenseReceiptTextWithLocalMemory(
   String sourceText, {
   DateTime? fallbackDate,
-  ReceiptParserDepth parserDepth = ReceiptParserDepth.inventoryMatching,
+  ReceiptParserDepth parserDepth = ReceiptParserDepth.lineItems,
   int maxCatalogCandidates = 80,
 }) async {
   if (parserDepth != ReceiptParserDepth.inventoryMatching) {

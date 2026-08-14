@@ -5,15 +5,14 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
     required this.uiConfig,
     required this.current,
     required this.total,
-    required this.statusIcon,
-    required this.statusColor,
-    required this.statusText,
     required this.compact,
+    required this.wideShortLayout,
     required this.coverageDecision,
     required this.savingPhotos,
     required this.continueLabel,
     required this.onRetake,
     required this.onAddPhoto,
+    required this.onRemove,
     required this.onCrop,
     required this.onArrange,
     required this.onContinue,
@@ -22,15 +21,14 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
   final ReceiptPhotoReviewUiConfig uiConfig;
   final int current;
   final int total;
-  final IconData statusIcon;
-  final Color statusColor;
-  final String statusText;
   final bool compact;
+  final bool wideShortLayout;
   final ReceiptPhotoCoverageDecision coverageDecision;
   final bool savingPhotos;
   final String continueLabel;
   final VoidCallback? onRetake;
   final VoidCallback? onAddPhoto;
+  final VoidCallback? onRemove;
   final VoidCallback? onCrop;
   final VoidCallback? onArrange;
   final VoidCallback? onContinue;
@@ -60,85 +58,128 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
         border: Border.all(color: uiConfig.controlsBorderColor),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _ReceiptPhotoCountBadge(current: current, total: total),
-                const SizedBox(width: 8),
-                Icon(statusIcon, color: statusColor, size: 17),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    statusText,
-                    maxLines: compact ? 1 : 2,
-                    softWrap: true,
-                    style: const TextStyle(
-                      color: Color(0xFFE8ECEE),
-                      fontSize: 12,
-                      height: 1.18,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: _ReceiptPreviewSecondaryAction(
-                    icon: Icons.crop_rounded,
-                    label: 'Crop',
-                    semanticLabel: 'Crop receipt photo',
-                    onPressed: savingPhotos ? null : onCrop,
-                  ),
-                ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: _ReceiptPreviewSecondaryAction(
-                    icon: Icons.camera_alt_rounded,
-                    label: retakeLabel,
-                    semanticLabel: retakeSemanticLabel,
-                    onPressed: savingPhotos ? null : onRetake,
-                  ),
-                ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: _ReceiptPreviewSecondaryAction(
-                    icon: Icons.add_a_photo_rounded,
-                    label: addPhotoLabel,
-                    semanticLabel: addPhotoTooltip,
-                    onPressed: savingPhotos ? null : onAddPhoto,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            if (compact)
-              Row(
-                children: [
-                  if (onArrange != null) ...[
-                    Expanded(child: _arrangeButton(compact: true)),
-                    const SizedBox(width: 7),
-                  ],
-                  Expanded(child: _continueButton(compact: true)),
-                ],
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+        child: wideShortLayout
+            ? _buildWideShortRow(
+                retakeLabel: retakeLabel,
+                retakeSemanticLabel: retakeSemanticLabel,
+                addPhotoLabel: addPhotoLabel,
+                addPhotoTooltip: addPhotoTooltip,
               )
-            else ...[
-              if (onArrange != null) ...[
-                SizedBox(width: double.infinity, child: _arrangeButton()),
-                const SizedBox(height: 7),
-              ],
-              SizedBox(width: double.infinity, child: _continueButton()),
-            ],
-          ],
-        ),
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _ReceiptPreviewSecondaryAction(
+                          icon: Icons.crop_rounded,
+                          label: 'Crop',
+                          semanticLabel: 'Crop receipt photo',
+                          onPressed: savingPhotos ? null : onCrop,
+                        ),
+                      ),
+                      if (onRemove != null) ...[
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: _ReceiptPreviewSecondaryAction(
+                            icon: Icons.delete_outline_rounded,
+                            label: 'Remove',
+                            semanticLabel:
+                                'Remove receipt section $current of $total',
+                            onPressed: savingPhotos ? null : onRemove,
+                            destructive: true,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: _ReceiptPreviewSecondaryAction(
+                          icon: Icons.camera_alt_rounded,
+                          label: retakeLabel,
+                          semanticLabel: retakeSemanticLabel,
+                          onPressed: savingPhotos ? null : onRetake,
+                        ),
+                      ),
+                      const SizedBox(width: 7),
+                      Expanded(
+                        child: _ReceiptPreviewSecondaryAction(
+                          icon: Icons.add_a_photo_rounded,
+                          label: addPhotoLabel,
+                          semanticLabel: addPhotoTooltip,
+                          onPressed: savingPhotos ? null : onAddPhoto,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  if (compact)
+                    Row(
+                      children: [
+                        if (onArrange != null) ...[
+                          Expanded(child: _arrangeButton(compact: true)),
+                          const SizedBox(width: 7),
+                        ],
+                        Expanded(child: _continueButton(compact: true)),
+                      ],
+                    )
+                  else ...[
+                    if (onArrange != null) ...[
+                      SizedBox(width: double.infinity, child: _arrangeButton()),
+                      const SizedBox(height: 7),
+                    ],
+                    SizedBox(width: double.infinity, child: _continueButton()),
+                  ],
+                ],
+              ),
       ),
+    );
+  }
+
+  Widget _buildWideShortRow({
+    required String retakeLabel,
+    required String retakeSemanticLabel,
+    required String addPhotoLabel,
+    required String addPhotoTooltip,
+  }) {
+    final actions = <Widget>[
+      _ReceiptPreviewSecondaryAction(
+        icon: Icons.crop_rounded,
+        label: 'Crop',
+        semanticLabel: 'Crop receipt photo',
+        onPressed: savingPhotos ? null : onCrop,
+      ),
+      if (onRemove != null)
+        _ReceiptPreviewSecondaryAction(
+          icon: Icons.delete_outline_rounded,
+          label: 'Remove',
+          semanticLabel: 'Remove receipt section $current of $total',
+          onPressed: savingPhotos ? null : onRemove,
+          destructive: true,
+        ),
+      _ReceiptPreviewSecondaryAction(
+        icon: Icons.camera_alt_rounded,
+        label: retakeLabel,
+        semanticLabel: retakeSemanticLabel,
+        onPressed: savingPhotos ? null : onRetake,
+      ),
+      _ReceiptPreviewSecondaryAction(
+        icon: Icons.add_a_photo_rounded,
+        label: addPhotoLabel,
+        semanticLabel: addPhotoTooltip,
+        onPressed: savingPhotos ? null : onAddPhoto,
+      ),
+      if (onArrange != null) _arrangeButton(compact: true),
+    ];
+    return Row(
+      key: const ValueKey('receipt-review-wide-short-actions'),
+      children: [
+        for (var index = 0; index < actions.length; index++) ...[
+          Expanded(child: actions[index]),
+          const SizedBox(width: 6),
+        ],
+        Expanded(flex: 2, child: _continueButton(compact: true)),
+      ],
     );
   }
 
@@ -166,7 +207,7 @@ class _ReceiptPreviewPrimaryRow extends StatelessWidget {
             ),
           )
         : Icon(
-            continueLabel == 'Putting receipt together'
+            continueLabel == 'Checking receipt photos'
                 ? Icons.hourglass_top_rounded
                 : Icons.arrow_forward_rounded,
           ),
@@ -190,34 +231,46 @@ class _ReceiptPreviewSecondaryAction extends StatelessWidget {
     required this.label,
     required this.semanticLabel,
     required this.onPressed,
+    this.destructive = false,
   });
 
   final IconData icon;
   final String label;
   final String semanticLabel;
   final VoidCallback? onPressed;
+  final bool destructive;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
     label: semanticLabel,
-    child: OutlinedButton.icon(
+    child: OutlinedButton(
       onPressed: onPressed,
-      icon: Icon(icon, size: 17),
-      label: Text(
-        label,
-        maxLines: 2,
-        textAlign: TextAlign.center,
-        overflow: TextOverflow.ellipsis,
-      ),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(0, 46),
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        foregroundColor: const Color(0xFFE8ECEE),
+        padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 4),
+        foregroundColor: destructive
+            ? const Color(0xFFFF9A94)
+            : const Color(0xFFE8ECEE),
         disabledForegroundColor: const Color(0xFF758188),
-        side: const BorderSide(color: Color(0xFF526168)),
+        side: BorderSide(
+          color: destructive
+              ? const Color(0xFF8C3E3A)
+              : const Color(0xFF526168),
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
         textStyle: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 17),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(label, maxLines: 1, textAlign: TextAlign.center),
+          ),
+        ],
       ),
     ),
   );
@@ -305,9 +358,6 @@ class _ReceiptReviewDecisionHeader extends StatelessWidget {
     if (photoCount > 1 && continueLabel == 'Review Photos') {
       return 'Review the photos in order, then continue to the receipt.';
     }
-    if (photoCount == 1) {
-      return 'Choose Saved Image Size next. Then Continue opens the receipt details.';
-    }
-    return 'Continue combines the receipt sections, then lets you choose the saved image size.';
+    return 'Choose Saved Image Size next. Then Continue opens the receipt details.';
   }
 }

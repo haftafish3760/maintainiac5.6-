@@ -27,8 +27,16 @@ void main() {
       flow,
       contains(
         'bool get _usesRebuiltManualDetailedReceiptFlow =>\n'
-        '      !_isMaterialsFlow && !_isMaintenanceRepairFlow;',
+        '      !_isEditingReceipt || (!_isMaterialsFlow && !_isMaintenanceRepairFlow);',
       ),
+    );
+    final homeNavigation = File(
+      'lib/screens/expenses/home/expenses_home_navigation_actions.dart',
+    ).readAsStringSync();
+    expect(homeNavigation, contains("initialCategory: 'Materials'"));
+    expect(
+      homeNavigation,
+      contains('_openMaterialReceipt(context, initialDate: initialDate)'),
     );
     for (final path in entryRouteFiles) {
       expect(

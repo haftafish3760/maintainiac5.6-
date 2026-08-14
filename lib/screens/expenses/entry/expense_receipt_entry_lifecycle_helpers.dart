@@ -178,7 +178,9 @@ extension _ExpenseReceiptEntryLifecycleHelpers
       }
     }
     _draftTimer?.cancel();
-    if (!_savedReceipt) {
+    if (!_savedReceipt &&
+        !_receiptExitResolved &&
+        !_receiptReviewExitInFlight) {
       unawaited(_saveDraftNow());
     }
     for (final controller in [

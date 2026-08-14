@@ -65,7 +65,7 @@ _ReceiptOverlapMatch _strongerCorroboratedStitchMatch({
 class _ReceiptStitchRequest {
   const _ReceiptStitchRequest({
     required this.paths,
-    required this.textLinesByPath,
+    required this.textEvidenceByPath,
     required this.manualZeroOverlapPairs,
     required this.manualOverlapPixels,
     required this.manualOverlapFractions,
@@ -77,11 +77,12 @@ class _ReceiptStitchRequest {
     required this.maxTargetWidth,
     required this.comparisonWidth,
     required this.retryComparisonWidth,
+    required this.nativeRegistrationProposals,
     required this.outputPath,
   });
 
   final List<String> paths;
-  final List<List<String>>? textLinesByPath;
+  final List<ReceiptStitchTextEvidence>? textEvidenceByPath;
   final List<bool>? manualZeroOverlapPairs;
   final List<int>? manualOverlapPixels;
   final List<double>? manualOverlapFractions;
@@ -93,6 +94,7 @@ class _ReceiptStitchRequest {
   final int maxTargetWidth;
   final int comparisonWidth;
   final int retryComparisonWidth;
+  final List<ReceiptNativeRegistrationProposal> nativeRegistrationProposals;
   final String outputPath;
 }
 
@@ -101,7 +103,7 @@ Future<ReceiptStitchResult> _runReceiptStitchInBackground(
 ) {
   return _stitchReceiptPhotosForOcr(
     paths: request.paths,
-    textLinesByPath: request.textLinesByPath,
+    textEvidenceByPath: request.textEvidenceByPath,
     manualZeroOverlapPairs: request.manualZeroOverlapPairs,
     manualOverlapPixels: request.manualOverlapPixels,
     manualOverlapFractions: request.manualOverlapFractions,
@@ -113,61 +115,91 @@ Future<ReceiptStitchResult> _runReceiptStitchInBackground(
     maxTargetWidth: request.maxTargetWidth,
     comparisonWidth: request.comparisonWidth,
     retryComparisonWidth: request.retryComparisonWidth,
+    nativeRegistrationProposals: request.nativeRegistrationProposals,
     outputPath: request.outputPath,
   );
 }
 
+void _traceReceiptStitchPairDecision(
+  String stage, {
+  required int pairIndex,
+  required Stopwatch stopwatch,
+  bool? accepted,
+  bool? textAccelerated,
+  int? matchedTextLines,
+  double? textConfidence,
+  double? positionalConfidence,
+  double? visualConfidence,
+  double? continuityConfidence,
+  double? geometryConfidence,
+  double? scale,
+  int? overlapPixels,
+  String? reason,
+}) {
+  if (!kDebugMode) return;
+  final fields = <String>[
+    'stage=$stage',
+    'pair=${pairIndex + 1}',
+    'elapsedMs=${stopwatch.elapsedMilliseconds}',
+    if (accepted != null) 'accepted=$accepted',
+    if (textAccelerated != null) 'textAccelerated=$textAccelerated',
+    if (matchedTextLines != null) 'matchedTextLines=$matchedTextLines',
+    if (textConfidence != null)
+      'textConfidence=${textConfidence.toStringAsFixed(3)}',
+    if (positionalConfidence != null)
+      'positionalConfidence=${positionalConfidence.toStringAsFixed(3)}',
+    if (visualConfidence != null)
+      'visualConfidence=${visualConfidence.toStringAsFixed(3)}',
+    if (continuityConfidence != null)
+      'continuityConfidence=${continuityConfidence.toStringAsFixed(3)}',
+    if (geometryConfidence != null)
+      'geometryConfidence=${geometryConfidence.toStringAsFixed(3)}',
+    if (scale != null) 'scale=${scale.toStringAsFixed(3)}',
+    if (overlapPixels != null) 'overlapPixels=$overlapPixels',
+    if (reason != null) 'reason=$reason',
+  ];
+  debugPrint('MAINTAINIAC_RECEIPT_STITCH_PAIR ${fields.join(' ')}');
+}
+
 ReceiptStitchTextPairEvidence _receiptStitchTextEvidenceForPair({
   required List<String> inputPaths,
-  required List<List<String>>? textLinesByPath,
+  required List<ReceiptStitchTextEvidence>? textEvidenceByPath,
   required int pairIndex,
 }) {
-  if (textLinesByPath == null ||
-      textLinesByPath.length != inputPaths.length ||
+  if (textEvidenceByPath == null ||
+      textEvidenceByPath.length != inputPaths.length ||
       pairIndex < 0 ||
-      pairIndex + 1 >= textLinesByPath.length) {
+      pairIndex + 1 >= textEvidenceByPath.length) {
     return const ReceiptStitchTextPairEvidence.none();
   }
   return matchReceiptStitchTextOverlap(
-    ReceiptStitchTextEvidence(
-      path: inputPaths[pairIndex],
-      lines: textLinesByPath[pairIndex],
-    ),
-    ReceiptStitchTextEvidence(
-      path: inputPaths[pairIndex + 1],
-      lines: textLinesByPath[pairIndex + 1],
-    ),
+    textEvidenceByPath[pairIndex],
+    textEvidenceByPath[pairIndex + 1],
   );
 }
 
 ({ReceiptStitchTextPairEvidence evidence, bool safelyAcceleratesGeometry})
 _receiptStitchTextPlanForPair({
   required List<String> inputPaths,
-  required List<List<String>>? textLinesByPath,
+  required List<ReceiptStitchTextEvidence>? textEvidenceByPath,
   required int pairIndex,
 }) {
   final evidence = _receiptStitchTextEvidenceForPair(
     inputPaths: inputPaths,
-    textLinesByPath: textLinesByPath,
+    textEvidenceByPath: textEvidenceByPath,
     pairIndex: pairIndex,
   );
-  if (textLinesByPath == null ||
+  if (textEvidenceByPath == null ||
       pairIndex < 0 ||
       pairIndex + 1 >= inputPaths.length ||
-      pairIndex + 1 >= textLinesByPath.length) {
+      pairIndex + 1 >= textEvidenceByPath.length) {
     return (evidence: evidence, safelyAcceleratesGeometry: false);
   }
   return (
     evidence: evidence,
     safelyAcceleratesGeometry: receiptStitchTextSafelyAcceleratesGeometry(
-      ReceiptStitchTextEvidence(
-        path: inputPaths[pairIndex],
-        lines: textLinesByPath[pairIndex],
-      ),
-      ReceiptStitchTextEvidence(
-        path: inputPaths[pairIndex + 1],
-        lines: textLinesByPath[pairIndex + 1],
-      ),
+      textEvidenceByPath[pairIndex],
+      textEvidenceByPath[pairIndex + 1],
       evidence,
     ),
   );
@@ -249,7 +281,7 @@ int _maxAutoNextSkipBound({
   final shortest = math.min(previous.height, next.height);
   final maxPixels = math.min(
     shortest - 1,
-    math.max(48, (shortest * .46).round()),
+    math.max(48, (shortest * .68).round()),
   );
   final maxNextTopOffset = math.min(
     320,

@@ -5,6 +5,7 @@ import 'package:image/image.dart' as img;
 import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture.dart';
 
 import 'helpers/receipt_stitching_image_helpers.dart';
+import 'helpers/receipt_stitching_text_evidence_helpers.dart';
 
 void main() {
   test(
@@ -16,6 +17,7 @@ void main() {
 
       final result = await ReceiptImageProcessor.stitchReceiptPhotosForOcr(
         paths: files.map((file) => file.path).toList(growable: false),
+        textEvidence: orderedReceiptSequenceTextEvidence(files),
       );
 
       expect(result.didStitch, isTrue, reason: result.detailLabel);
@@ -51,14 +53,10 @@ void main() {
         paths: files.map((file) => file.path).toList(growable: false),
       );
 
-      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
-      expect(
-        result.assistedReadinessCode,
-        anyOf(
-          'stitched_overlap_review_required',
-          'ordered_sections_stitch_fallback_review_required',
-        ),
-      );
+      expect(result.usedFallback, isTrue, reason: result.detailLabel);
+      expect(result.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+      expect(result.assistedReadinessCode, 'ordered_sections_ready');
+      expect(result.ocrSourceContractCode, 'fallback_ordered_sources_ready');
       expect(
         result.ocrHandoffSafetyCode,
         isNot('stitched_ocr_ready_for_assisted_read'),

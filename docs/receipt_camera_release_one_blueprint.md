@@ -15,10 +15,9 @@ adds the receipt workflow around it: launch, permissions, manual shutter, torch,
 receipt framing guidance, long-receipt continuation, review, retake, stitch or
 ordered fallback, and OCR-source handoff.
 
-The current release-track pass forecast lives in
-`docs/receipt_camera_completion_map.md`: **400-550 focused receipt workflow
-passes**, with **450** as the working anchor. Do not revive older oversized
-camera-app estimates unless new evidence changes the completion map.
+The current evidence state lives in `docs/receipt_camera_completion_map.md`.
+Do not replace missing target measurements with a fixed pass forecast or revive
+older camera-app estimates after the completion map changes.
 
 ### Required Controls
 
@@ -38,11 +37,9 @@ camera-app estimates unless new evidence changes the completion map.
 
 ## Release-One Target
 
-The goal is an 80-90% solid release-one receipt camera system that can keep
-improving through real receipt regressions. It does not need perfect scanner-app
-polish before the expense system can move forward, but it must be dependable
-enough that bad captures, ordering mistakes, lost OCR sources, and obvious
-review bugs are not normal user experiences.
+The goal is a commercial-grade receipt workflow whose reliability is measured
+per supported path and device class. A headline percentage cannot replace
+fixture, compile, runtime, memory, latency, recovery, and saved-artifact proof.
 
 Release one must prove:
 
@@ -315,23 +312,11 @@ Evidence needed:
 ## Pass Budget
 
 Use `docs/receipt_camera_completion_map.md` as the source of truth for pass
-budgeting. The current practical release-track target is **400-550 focused
-receipt workflow passes**, with **450** as the working anchor.
-
-Budget by lane:
-
-- Lane A blueprint/audit: 10-25 passes.
-- Lane B capture shell: 50-80 passes.
-- Lane C single receipt quality: 55-85 passes.
-- Lane D multi-segment flow: 70-100 passes.
-- Lane E ghost/overlap guidance: 55-85 passes.
-- Lane F stitching/artifacts: 80-120 passes.
-- Lane G device/storage safety: 35-60 passes.
-- Lane H real receipt QA: 45-80 passes before release, then ongoing.
-
-Stop earlier if the evidence proves release readiness. Continue longer only
-when real receipt/device testing exposes important camera-workflow failure
-families.
+budgeting. The remaining count is evidence-driven: execute every required
+non-substitutable target row, add one bounded repair/regression pass for each
+reproduced failure family, and continue until the completion audit has direct
+evidence for every required behavior. Do not invent a fixed ceiling before the
+target runs exist.
 
 ## Pass Discipline
 

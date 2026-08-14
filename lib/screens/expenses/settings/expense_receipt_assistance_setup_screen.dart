@@ -27,6 +27,7 @@ class _ExpenseReceiptAssistanceSetupScreenState
   ExpenseReceiptAssistanceChoice? _entryChoice;
   bool? _wantsReceiptHelp;
   var _saving = false;
+  var _leaving = false;
 
   @override
   void didChangeDependencies() {
@@ -43,7 +44,14 @@ class _ExpenseReceiptAssistanceSetupScreenState
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_saving,
+      // Keep Android Back on the same path as the visible back arrow.  The
+      // assisted choice is a second onboarding step, not a separate route;
+      // letting the system pop here skips the preceding question and discards
+      // the in-progress selection.
+      canPop: _leaving,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !_saving) _handleBack();
+      },
       child: Scaffold(
         backgroundColor: const Color(0xFF101719),
         appBar: AppBar(
@@ -165,10 +173,14 @@ class _ExpenseReceiptAssistanceSetupScreenState
   }
 
   void _handleBack() {
-    if (_wantsReceiptHelp == true && _entryChoice == null) {
-      setState(() => _wantsReceiptHelp = null);
+    if (_wantsReceiptHelp == true) {
+      // Retain the specific choice so a person can step back to the initial
+      // question and forward again without re-answering the assisted step.
+      setState(() => _wantsReceiptHelp = false);
       return;
     }
+    if (!Navigator.of(context).canPop()) return;
+    setState(() => _leaving = true);
     Navigator.of(context).pop();
   }
 
@@ -206,6 +218,7 @@ class _ExpenseReceiptAssistanceSetupScreenState
       context,
     ).setExpenseReceiptAssistanceChoice(entryChoice);
     if (!mounted) return;
+    setState(() => _leaving = true);
     Navigator.of(context).pop(true);
   }
 }

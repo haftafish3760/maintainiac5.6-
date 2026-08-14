@@ -141,16 +141,10 @@ void main() {
         'Add bottom receipt section and repeat 3-5 readable lines in the top reference strip',
       ),
     );
-    expect(
-      previewRow,
-      contains('_ReceiptPhotoCountBadge(current: current, total: total)'),
-    );
-    expect(previewControls, contains("total <= 1"));
-    expect(
-      previewControls,
-      contains('strings.receiptSectionOf(current, total)'),
-    );
-    expect(previewRow, contains('maxLines: 2'));
+    expect(previewRow, isNot(contains('_ReceiptPhotoCountBadge')));
+    expect(previewControls, isNot(contains('_ReceiptPhotoCountBadge')));
+    expect(previewRow, contains('FittedBox('));
+    expect(previewRow, contains('maxLines: 1'));
     expect(
       await File(
         'lib/shared/widgets/receipt_capture/receipt_photo_review_preview_action_tray.dart',

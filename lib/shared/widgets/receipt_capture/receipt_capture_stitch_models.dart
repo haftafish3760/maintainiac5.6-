@@ -1,6 +1,9 @@
 part of 'receipt_capture_models.dart';
 
-enum ReceiptStitchStatus { notNeeded, stitched, fallback }
+/// A long receipt can have a safe visual stack even when its overlapping
+/// pixels are not trustworthy enough to remove duplicate rows.  That is a
+/// successful review aid, not a failed receipt.
+enum ReceiptStitchStatus { notNeeded, stitched, stacked, fallback }
 
 class ReceiptStitchResult {
   ReceiptStitchResult({
@@ -51,6 +54,27 @@ class ReceiptStitchResult {
          fallbackReasonCode: fallbackReasonCode,
        );
 
+  /// Builds one scrollable receipt view without deleting or guessing at any
+  /// shared rows. The ordered originals remain the reading and saved sources.
+  ReceiptStitchResult.stacked({
+    required List<String> inputPaths,
+    required List<String> ocrSourcePaths,
+    required String stackedPath,
+    required int stackedWidth,
+    required int stackedHeight,
+    List<ReceiptStitchPairResult> pairs = const [],
+    String warning = '',
+  }) : this(
+         status: ReceiptStitchStatus.stacked,
+         inputPaths: inputPaths,
+         ocrSourcePaths: ocrSourcePaths,
+         stitchedPath: stackedPath,
+         stitchedWidth: stackedWidth,
+         stitchedHeight: stackedHeight,
+         pairs: pairs,
+         warning: warning,
+       );
+
   final ReceiptStitchStatus status;
   final List<String> _inputPaths;
   final List<String> _ocrSourcePaths;
@@ -71,6 +95,11 @@ class ReceiptStitchResult {
   List<ReceiptStitchPairResult> get pairs =>
       List<ReceiptStitchPairResult>.unmodifiable(_pairs);
   bool get didStitch => status == ReceiptStitchStatus.stitched;
+  bool get hasCombinedPreview =>
+      (status == ReceiptStitchStatus.stitched ||
+          status == ReceiptStitchStatus.stacked) &&
+      stitchedPath != null;
+  bool get isSafelyStackedPreview => status == ReceiptStitchStatus.stacked;
   bool get usedFallback => status == ReceiptStitchStatus.fallback;
   bool get hasNoInputPaths => inputPaths.isEmpty;
   bool get hasMultipleSections => inputPaths.length > 1;
@@ -91,7 +120,9 @@ class ReceiptStitchResult {
   bool get hasManualZeroOverlapJoin =>
       pairs.any((pair) => pair.usedZeroOverlapJoin);
   bool get preservesOriginalSectionSources =>
-      usedFallback || status == ReceiptStitchStatus.notNeeded;
+      usedFallback ||
+      status == ReceiptStitchStatus.notNeeded ||
+      status == ReceiptStitchStatus.stacked;
   bool get usesDerivedCombinedOcrArtifact => didStitch && stitchedPath != null;
   int get stitchedPixelCount => stitchedWidth * stitchedHeight;
   int get overlapPixelTotal {
@@ -150,15 +181,19 @@ class ReceiptStitchResult {
     if (usedFallback && diagnosticReasonLabel == 'decode_failed') {
       return 'fallback_unreadable_input_source';
     }
-    if (usedFallback && diagnosticReasonLabel == 'output_too_large') {
-      return 'fallback_derived_stitch_too_large';
-    }
-    if (usedFallback && diagnosticReasonLabel == 'overlap_confidence_low') {
-      return 'fallback_overlap_untrusted_sources';
+    if (usedFallback && diagnosticReasonLabel == 'unreadable_section_image') {
+      return 'fallback_unreadable_section_image';
     }
     if (usedFallback && diagnosticReasonLabel == 'duplicate_section_image') {
+      // Reading both originals would count the same physical receipt section
+      // twice. Preserve both files for review, but do not call that OCR-ready
+      // until the person removes or replaces the duplicate.
       return 'fallback_duplicate_section_image';
     }
+    // These outcomes reject a derived combined image, not the original
+    // photos.  Their ordered sources remain valid for reading and editable
+    // review; duplicate or overlap uncertainty is surfaced as a warning,
+    // never as a reason to strand the user outside the receipt form.
     if (didStitch) {
       if (stitchedPath == null || ocrSourcePaths.length != 1) {
         return 'stitched_ocr_source_missing';
@@ -169,6 +204,21 @@ class ReceiptStitchResult {
       return _sameReceiptArtifactPath(ocrSourcePaths.single, stitchedPath!)
           ? 'stitched_ocr_source_ready'
           : 'stitched_ocr_source_path_mismatch';
+    }
+    if (status == ReceiptStitchStatus.stacked) {
+      if (stitchedPath == null) return 'stacked_preview_missing';
+      if (inputPaths.length != ocrSourcePaths.length) {
+        return 'stacked_preview_ordered_source_count_mismatch';
+      }
+      for (var index = 0; index < inputPaths.length; index++) {
+        if (!_sameReceiptArtifactPath(
+          inputPaths[index],
+          ocrSourcePaths[index],
+        )) {
+          return 'stacked_preview_ordered_source_path_mismatch';
+        }
+      }
+      return 'stacked_preview_ordered_sources_ready';
     }
     if (inputPaths.length != ocrSourcePaths.length) {
       return usedFallback
@@ -188,13 +238,13 @@ class ReceiptStitchResult {
 
   bool get hasValidOcrSourceContract {
     return ocrSourceContractCode == 'stitched_ocr_source_ready' ||
+        ocrSourceContractCode == 'stacked_preview_ordered_sources_ready' ||
         ocrSourceContractCode == 'fallback_ordered_sources_ready' ||
         ocrSourceContractCode == 'ordered_sources_ready';
   }
 
   bool get requiresOcrSourceReviewBeforeAssistedRead {
     return !hasValidOcrSourceContract ||
-        (usedFallback && hasMultipleSections) ||
         (didStitch && hasManualZeroOverlapJoin) ||
         (didStitch && hasMultipleSections && hasLowConfidenceAutomaticOverlap);
   }
@@ -211,9 +261,8 @@ class ReceiptStitchResult {
       return 'stitched_overlap_verified_ready';
     }
     if (didStitch) return 'stitched_overlap_review_required';
-    if (usedFallback && hasMultipleSections) {
-      return 'ordered_sections_stitch_fallback_review_required';
-    }
+    if (status == ReceiptStitchStatus.stacked) return 'ordered_sections_ready';
+    if (usedFallback && hasMultipleSections) return 'ordered_sections_ready';
     if (inputPaths.length <= 1) return 'single_section_ready';
     return 'ordered_sections_ready';
   }
@@ -265,6 +314,7 @@ class ReceiptStitchResult {
       'output_too_large' => 'Receipt is too long for this device',
       'stitch_exception' => 'Stitching hit a safe fallback',
       'stitch_timeout' => 'Putting photos together took too long',
+      'unreadable_section_image' => 'One photo is not readable as a receipt',
       _ => 'Stitching was not trusted',
     };
   }
@@ -296,6 +346,7 @@ class ReceiptStitchResult {
             ? '1 photo to review'
             : '${inputPaths.length} receipt sections to review',
       ReceiptStitchStatus.stitched => '1 combined receipt image',
+      ReceiptStitchStatus.stacked => '1 full receipt view',
       ReceiptStitchStatus.fallback =>
         '${inputPaths.length} receipt sections top to bottom',
     };
@@ -305,6 +356,7 @@ class ReceiptStitchResult {
     return switch (status) {
       ReceiptStitchStatus.notNeeded => reviewPathLabel,
       ReceiptStitchStatus.stitched => '$reviewPathLabel, $matchConfidenceLabel',
+      ReceiptStitchStatus.stacked => reviewPathLabel,
       ReceiptStitchStatus.fallback => '$reviewPathLabel, $matchConfidenceLabel',
     };
   }
@@ -321,6 +373,8 @@ class ReceiptStitchResult {
         'Before use: keep receipt sections top to bottom and make sure no middle section is missing.',
       ReceiptStitchStatus.stitched =>
         'Before use: check repeated lines joined correctly and no receipt section is missing.',
+      ReceiptStitchStatus.stacked =>
+        'Before use: check each receipt section is visible from top to bottom.',
       ReceiptStitchStatus.fallback =>
         'Before use: photos stay separate, so verify top-to-bottom order and any missing middle section.',
     };
@@ -335,6 +389,7 @@ class ReceiptStitchResult {
         allPairsHaveOverlapEvidence && !hasLowConfidenceAutomaticOverlap
             ? 'stitched_overlap_verified'
             : 'stitched_overlap_needs_review',
+      ReceiptStitchStatus.stacked => 'ordered_sections_review_ready',
       ReceiptStitchStatus.fallback =>
         'ordered_sections_after_${diagnosticReasonLabel}_fallback',
     };

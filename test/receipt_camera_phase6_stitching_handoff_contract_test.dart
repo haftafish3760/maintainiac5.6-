@@ -35,32 +35,19 @@ void main() {
         saveActions,
         contains('Future<void> continueReceiptPhotoReview()'),
       );
-      expect(saveActions, contains('_needsStitchReviewBeforeSave'));
+      // A visual join is a review aid.  It must not become a gate before the
+      // ordered original sections can reach the editable receipt.
       expect(
-        saveActions,
-        contains('_setReviewMode(_ReceiptReviewMode.stitch)'),
-      );
-      expect(saveActions, contains('_ensureStitchPreview(force: true)'));
-      expect(
-        saveActions,
-        contains(
-          "stitchPreview.fallbackReasonCode == 'duplicate_section_image'",
-        ),
-      );
-      expect(
-        saveActions,
-        contains(
-          'Remove or replace the highlighted duplicate before continuing.',
-        ),
-      );
-      expect(saveActions, contains('_reviewMode = _ReceiptReviewMode.order;'));
-      expect(
-        saveActions,
-        contains('final stitchFuture = _finalStitchResultForOcr('),
+        stitchExitActions,
+        contains('Ordered original sections are the default OCR source.'),
       );
       expect(
         stitchExitActions,
-        contains("timeoutReasonCode: 'stitch_timeout'"),
+        contains('return ReceiptStitchResult.notNeeded(preparedOcrPaths);'),
+      );
+      expect(
+        saveActions,
+        contains('final stitchFuture = _finalStitchResultForOcr('),
       );
       expect(stitchIsolate, contains('Isolate.spawn('));
       expect(
@@ -70,7 +57,9 @@ void main() {
       expect(stitchIsolate, contains('_deleteFileQuietly(request.outputPath)'));
       expect(saveActions, contains('await _deleteGeneratedStitchPreview();'));
       expect(
-        saveActions.indexOf('prepareForOcrAndBackup('),
+        saveActions.indexOf(
+          'final preparedImages = await _prepareAcceptedReceiptImages(',
+        ),
         lessThan(
           saveActions.indexOf('final stitchFuture = _finalStitchResultForOcr('),
         ),
@@ -103,6 +92,23 @@ void main() {
         contains('effectiveBudget - stopwatch.elapsed'),
       );
       expect(
+        ocrStitchEvidence,
+        contains('ReceiptStitchTextLineEvidence('),
+      );
+      expect(
+        ocrStitchEvidence,
+        contains('line.boundingBox.top / imageSize.height'),
+      );
+      expect(ocrStitchEvidence, contains('positionedLines: positionedLines'));
+      expect(
+        stitchOrderEvidence,
+        contains('source?.positionedLines'),
+      );
+      expect(
+        stitchPreviewAsync,
+        contains('textEvidence: _stitchEvidenceForPaths(_photoPaths)'),
+      );
+      expect(
         stitchPreviewAsync,
         contains(
           'They will stay in order as separate photos so you can continue.',
@@ -114,20 +120,12 @@ void main() {
       );
       expect(
         stitchExitActions,
-        contains(
-          'if (previewCanBeUsed &&\n'
-          '        (preview.usedFallback ||\n'
-          '            preview.status == ReceiptStitchStatus.notNeeded)) {',
-        ),
-      );
-      expect(
-        stitchExitActions,
         contains('ReceiptImageProcessor.copyReceiptOcrArtifact('),
       );
       expect(stitchExitActions, contains('preview.copyForFinalOcr('));
       expect(
         stitchExitActions,
-        contains('return ReceiptImageProcessor.stitchReceiptPhotosForOcr('),
+        isNot(contains('return ReceiptImageProcessor.stitchReceiptPhotosForOcr(')),
       );
       expect(imageProcessor, contains('copyReceiptOcrArtifact'));
 
@@ -289,7 +287,7 @@ void main() {
   );
 
   test(
-    'phase 6 oversized stitch fallback keeps ordered OCR sources review blocked',
+    'phase 6 oversized stitch fallback keeps ordered OCR sources usable',
     () {
       final preview = ReceiptStitchResult.fallback(
         inputPaths: [
@@ -327,12 +325,12 @@ void main() {
       expect(finalResult.fallbackReasonCode, 'output_too_large');
       expect(
         finalResult.ocrSourceContractCode,
-        'fallback_derived_stitch_too_large',
+        'fallback_ordered_sources_ready',
       );
-      expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
+      expect(finalResult.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
       expect(
         finalResult.assistedReadinessCode,
-        'stitch_contract_review_required',
+        'ordered_sections_ready',
       );
       expect(
         finalResult.sourcePreservationCode,
@@ -409,10 +407,7 @@ void main() {
       expect(result.usedFallback, isTrue);
       expect(result.didStitch, isFalse);
       expect(result.failedPairIndex, anyOf(0, 1));
-      expect(
-        result.fallbackReasonCode,
-        anyOf('overlap_confidence_low', 'duplicate_section_image'),
-      );
+      expect(result.fallbackReasonCode, 'unreadable_section_image');
       expect(result.ocrSourcePaths, [
         topFile.path,
         middleFile.path,

@@ -23,6 +23,8 @@ class ReceiptEdgeCropper extends StatelessWidget {
     required this.imageSize,
     required this.cropRect,
     this.suggestedNormalizedCrop,
+    this.rotationDegrees = 0,
+    this.interactionEnabled = true,
     required this.onCropRectChanged,
     required this.onDisplayRectChanged,
   });
@@ -31,6 +33,8 @@ class ReceiptEdgeCropper extends StatelessWidget {
   final Size imageSize;
   final Rect? cropRect;
   final Rect? suggestedNormalizedCrop;
+  final double rotationDegrees;
+  final bool interactionEnabled;
   final ValueChanged<Rect> onCropRectChanged;
   final ValueChanged<Rect> onDisplayRectChanged;
 
@@ -67,7 +71,10 @@ class ReceiptEdgeCropper extends StatelessWidget {
           children: [
             Positioned.fromRect(
               rect: displayedImageRect,
-              child: Image.memory(imageBytes, fit: BoxFit.fill),
+              child: Transform.rotate(
+                angle: rotationDegrees * math.pi / 180,
+                child: Image.memory(imageBytes, fit: BoxFit.fill),
+              ),
             ),
             Positioned.fill(
               child: CustomPaint(
@@ -77,19 +84,20 @@ class ReceiptEdgeCropper extends StatelessWidget {
                 ),
               ),
             ),
-            for (final handle in _ReceiptCropHandle.values)
-              _CropHandle(
-                imageRect: displayedImageRect,
-                cropRect: displayedCropRect,
-                handle: handle,
-                onDrag: (handle, details, _, _) => _dragCropHandle(
-                  handle,
-                  details,
-                  imageRect,
-                  activeCropRect,
-                  viewportScale,
+            if (interactionEnabled)
+              for (final handle in _ReceiptCropHandle.values)
+                _CropHandle(
+                  imageRect: displayedImageRect,
+                  cropRect: displayedCropRect,
+                  handle: handle,
+                  onDrag: (handle, details, _, _) => _dragCropHandle(
+                    handle,
+                    details,
+                    imageRect,
+                    activeCropRect,
+                    viewportScale,
+                  ),
                 ),
-              ),
           ],
         );
       },

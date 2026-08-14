@@ -11,10 +11,12 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     required this.stitchPreviewInFlight,
     required this.openingCamera,
     required this.savingPhotos,
+    required this.canRemove,
     required this.continueLabel,
     required this.onModeChanged,
     required this.onAddPhoto,
     required this.onRetake,
+    required this.onRemove,
     required this.onContinue,
   });
 
@@ -27,10 +29,12 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
   final bool stitchPreviewInFlight;
   final bool openingCamera;
   final bool savingPhotos;
+  final bool canRemove;
   final String continueLabel;
   final ValueChanged<_ReceiptReviewMode> onModeChanged;
   final VoidCallback onAddPhoto;
   final VoidCallback onRetake;
+  final VoidCallback onRemove;
   final VoidCallback? onContinue;
 
   @override
@@ -39,9 +43,6 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
     final effectiveSelectedIndex = photoPaths.isEmpty
         ? 0
         : selectedIndex.clamp(0, photoPaths.length - 1);
-    final statusText = this.statusText;
-    final statusIcon = this.statusIcon;
-    final statusColor = this.statusColor;
     final photoCount = photoPaths.length;
     final hasMultiplePhotos = photoCount > 1;
     final nativeWarning = nativeCaptureReviewWarning;
@@ -65,7 +66,7 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
         border: Border(top: BorderSide(color: uiConfig.controlsBorderColor)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(8, 6, 8, 7),
+        padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
         child: LayoutBuilder(
           builder: (context, constraints) {
             // The multi-photo preview tray is intentionally capped so the
@@ -76,6 +77,9 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
             // the available tray height cannot accommodate the full layout.
             final compactControls =
                 constraints.maxHeight.isFinite && constraints.maxHeight < 210;
+            final wideShortLayout =
+                MediaQuery.orientationOf(context) == Orientation.landscape &&
+                constraints.maxWidth >= 520;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -92,15 +96,14 @@ class _ReceiptPreviewActionTray extends StatelessWidget {
                   uiConfig: uiConfig,
                   current: effectiveSelectedIndex + 1,
                   total: photoCount,
-                  statusIcon: statusIcon,
-                  statusColor: statusColor,
-                  statusText: statusText,
                   compact: compactControls,
+                  wideShortLayout: wideShortLayout,
                   coverageDecision: coverageDecision,
                   savingPhotos: savingPhotos,
                   continueLabel: continueLabel,
                   onRetake: interactionLocked ? null : onRetake,
                   onAddPhoto: interactionLocked ? null : onAddPhoto,
+                  onRemove: !canRemove || interactionLocked ? null : onRemove,
                   onCrop: interactionLocked
                       ? null
                       : () => onModeChanged(_ReceiptReviewMode.crop),

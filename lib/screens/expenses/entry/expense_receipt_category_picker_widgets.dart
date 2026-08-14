@@ -78,36 +78,37 @@ class _CategoryBrowserTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = category == selectedCategory;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: ListTile(
-        onTap: onTap,
-        tileColor: selected ? const Color(0xFFFFD166) : const Color(0xFF101719),
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Material(
+        color: selected ? _receiptReferenceBlue : _receiptSetupChoiceSurface,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
+          borderRadius: BorderRadius.circular(8),
           side: BorderSide(
-            color: selected ? const Color(0xFFFFD166) : const Color(0xFF445159),
+            color: selected ? _receiptReferenceBlue : _receiptReferenceBorder,
+            width: selected ? 2 : 1,
           ),
         ),
-        title: Text(
-          _categoryDisplayName(category),
-          style: TextStyle(
-            color: selected ? const Color(0xFF101416) : const Color(0xFFE8ECEE),
-            fontWeight: FontWeight.w900,
-            letterSpacing: 0,
-          ),
-        ),
-        subtitle: category == 'Uncategorized'
-            ? const Text(
-                'Skip category for this receipt line.',
-                style: TextStyle(
-                  color: Color(0xFF9FAAAF),
-                  fontWeight: FontWeight.w700,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: SizedBox(
+            height: 54,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _categoryDisplayName(category),
+                  style: TextStyle(
+                    color: selected ? Colors.white : _receiptReferenceText,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0,
+                  ),
                 ),
-              )
-            : null,
-        trailing: selected
-            ? const Icon(Icons.check_rounded, color: Color(0xFF101416))
-            : null,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

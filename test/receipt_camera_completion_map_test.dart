@@ -12,12 +12,16 @@ void main() {
     expect(map, contains('Completion Evidence Table'));
     expect(map, contains('Forecast Method'));
     expect(map, contains('Do not answer "how many passes are left"'));
-    expect(map, contains('400 to 550 focused receipt workflow passes'));
-    expect(map, contains('450 focused receipt workflow passes'));
-    expect(map, contains('Four-Phone Real-Device Proof'));
+    expect(map, contains('Exact Physical and Virtual Target Proof'));
+    expect(map, contains('remaining repair count cannot be known'));
+    expect(map, contains('Do not manufacture a fixed pass count'));
+    expect(map, isNot(contains('400 to 550 focused receipt workflow passes')));
+    expect(map, isNot(contains('450 focused receipt workflow passes')));
     expect(
       map,
-      contains('`tool/receipt_camera_real_device_snapshot.sh` is metadata-only environment'),
+      contains(
+        '`tool/receipt_camera_real_device_snapshot.sh` is metadata-only environment',
+      ),
     );
     expect(
       map,
@@ -32,33 +36,26 @@ void main() {
     expect(map, contains('| Milestone quality gate |'));
     expect(
       map,
-      contains(
-        'Phase 2 through Phase 9 targeted gates are green, the source/line-count/scope/regression gates are green, and `tool/receipt_camera_qa_gate.sh milestone` passed on 2026-07-07.',
-      ),
+      contains('Pass 26 closed 374/374 deterministic milestone tests'),
     );
     expect(
       map,
-      contains('`tool/receipt_camera_qa_gate.sh core_remaining` also passed on 2026-07-07'),
+      contains('Passes 29-31 removed first-party iOS compile warnings'),
     );
-    expect(
-      map,
-      contains('real-device note template and gate now exist'),
-    );
+    expect(map, contains('Physical target rows remain `NOT RUN`'));
     expect(map, contains('tool/receipt_real_device_result_gate.dart'));
     expect(map, contains('docs/receipt_real_device_result_template.md'));
     expect(map, contains('tool/receipt_real_device_result_start.sh'));
     expect(map, contains('| Partial |'));
     expect(map, isNot(contains('| Missing |')));
-    expect(
-      map,
-      contains(
-        '`tool/receipt_camera_qa_gate.sh core_remaining` passed on 2026-07-07, so',
-      ),
-    );
-    expect(
-      map,
-      contains('the non-UI lane is ready for live device/UI proof.'),
-    );
+    expect(map, contains('Deterministic host work is green through Pass 31.'));
+    expect(map, contains('Galaxy S24 Ultra'));
+    expect(map, contains('Galaxy S25 Ultra'));
+    expect(map, contains('Galaxy S9 Plus'));
+    expect(map, contains('Constrained Android emulator'));
+    expect(map, contains('iPhone SE third generation'));
+    expect(map, contains('Future budget Android'));
+    expect(map, contains('Record unavailable rows as `NOT RUN`'));
   });
 
   test('release blueprint points future agents to completion map', () {
@@ -68,9 +65,8 @@ void main() {
 
     expect(blueprint, contains('docs/receipt_camera_completion_map.md'));
     expect(blueprint, contains('Do not estimate remaining passes'));
-    expect(blueprint, contains('400-550 focused'));
-    expect(blueprint, contains('receipt workflow passes'));
-    expect(blueprint, contains('450'));
+    expect(blueprint, isNot(contains('400-550 focused')));
+    expect(blueprint, isNot(contains('450 focused')));
     expect(blueprint, isNot(contains('1,500-2,500')));
     expect(blueprint, isNot(contains('4,000-pass camera-app')));
   });

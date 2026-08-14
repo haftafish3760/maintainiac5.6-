@@ -28,7 +28,11 @@ void main() {
       );
       expect(result.pairs, hasLength(2));
       expect(result.overlapPixels, hasLength(2));
-      expect(result.overlapPixelTotal, greaterThan(640));
+      // Shared frame isolation and working-width normalization legitimately
+      // change the pixel scale; assert that both physical joins retained a
+      // substantial overlap instead of coupling QA to a pre-crop total.
+      expect(result.overlapPixelTotal, greaterThan(500));
+      expect(result.overlapPixels, everyElement(greaterThan(200)));
       expect(
         result.pairs.map((pair) => pair.confidence),
         everyElement(greaterThanOrEqualTo(.50)),

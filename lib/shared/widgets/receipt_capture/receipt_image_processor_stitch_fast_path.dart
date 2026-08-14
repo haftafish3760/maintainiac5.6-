@@ -26,10 +26,12 @@ _ReceiptOverlapMatch? _uprightReceiptOverlapFastPath({
   required img.Image nextSample,
   required int targetWidth,
   required int sampleWidth,
+  int? horizontalOffsetHint,
 }) {
   final baseMatch = _bestVerticalOverlap(
     previous: previousSample,
     next: nextSample,
+    horizontalOffsetHint: horizontalOffsetHint,
   );
   final candidate = _ReceiptStitchCandidate(
     pixels: baseMatch.pixels,
@@ -46,21 +48,28 @@ _ReceiptOverlapMatch? _uprightReceiptOverlapFastPath({
     next: nextSample,
     targetWidth: sampleWidth,
   );
-  final continuity = _receiptOverlapContinuityEvidence(
+  final geometry = _receiptOverlapGeometryEvidence(
     previous: previousSample,
     match: sampleMatch,
   );
-  final continuityConfidence = continuity.isProven
-      ? (.42 + continuity.correlation * .30).clamp(0.0, .72)
-      : 0.0;
-  if (!continuity.isProven ||
-      math.max(candidate.confidence, continuityConfidence) < .49) {
+  // The no-text final gate requires two-dimensional geometry. Returning early
+  // on repetitive one-dimensional continuity alone only guarantees a later
+  // rejection and hides stronger transform candidates.
+  if (!_receiptGeometryEvidenceSupportsCandidate(geometry)) {
     return null;
   }
-  return _materializeStitchCandidate(
+  final materialized = _materializeStitchCandidate(
     candidate: candidate,
     previousHeight: previous.height,
     next: next,
     targetWidth: targetWidth,
   );
+  final materializedGeometry = _receiptOverlapGeometryEvidence(
+    previous: previous,
+    match: materialized,
+  );
+  if (!_receiptGeometryEvidenceSupportsCandidate(materializedGeometry)) {
+    return null;
+  }
+  return materialized;
 }

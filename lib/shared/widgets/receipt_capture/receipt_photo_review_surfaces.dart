@@ -91,6 +91,8 @@ extension _ReceiptPhotoReviewSurfaces on _ReceiptPhotoReviewScreenState {
         imageSize: imageSize,
         cropRect: _cropRect,
         suggestedNormalizedCrop: _suggestedCropNormalized,
+        rotationDegrees: _straightenAngleDegrees,
+        interactionEnabled: !_straightenControlsVisible,
         onCropRectChanged: _setCropRectFromCropper,
         onDisplayRectChanged: _setCropDisplayRectFromCropper,
       ),
@@ -105,6 +107,43 @@ extension _ReceiptPhotoReviewSurfaces on _ReceiptPhotoReviewScreenState {
 
   void _setCropDisplayRectFromCropper(Rect rect) {
     if (!_reviewWorkActive || _reviewMode != _ReceiptReviewMode.crop) return;
-    _cropDisplayRect = rect;
+    final previousDisplayRect = _cropDisplayRect;
+    final currentCropRect = _cropRect;
+    if (previousDisplayRect == null ||
+        currentCropRect == null ||
+        previousDisplayRect.isEmpty ||
+        rect.isEmpty ||
+        previousDisplayRect == rect) {
+      _cropDisplayRect = rect;
+      return;
+    }
+
+    // Crop coordinates belong to the fitted image rectangle, not to the
+    // screen. Preserve their normalized location when orientation or window
+    // size changes; reusing portrait pixels in a landscape canvas previously
+    // moved the crop and image far outside the visible frame.
+    final normalized = Rect.fromLTRB(
+      ((currentCropRect.left - previousDisplayRect.left) /
+              previousDisplayRect.width)
+          .clamp(0.0, 1.0),
+      ((currentCropRect.top - previousDisplayRect.top) /
+              previousDisplayRect.height)
+          .clamp(0.0, 1.0),
+      ((currentCropRect.right - previousDisplayRect.left) /
+              previousDisplayRect.width)
+          .clamp(0.0, 1.0),
+      ((currentCropRect.bottom - previousDisplayRect.top) /
+              previousDisplayRect.height)
+          .clamp(0.0, 1.0),
+    );
+    _updateReviewState(() {
+      _cropDisplayRect = rect;
+      _cropRect = Rect.fromLTRB(
+        rect.left + rect.width * normalized.left,
+        rect.top + rect.height * normalized.top,
+        rect.left + rect.width * normalized.right,
+        rect.top + rect.height * normalized.bottom,
+      );
+    });
   }
 }

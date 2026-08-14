@@ -86,21 +86,18 @@ void main() {
     );
     expect(fallback.ocrSourceContractCode, 'fallback_ordered_sources_ready');
     expect(fallback.hasValidOcrSourceContract, isTrue);
-    expect(fallback.requiresOcrSourceReviewBeforeAssistedRead, isTrue);
-    expect(
-      fallback.assistedReadinessCode,
-      'ordered_sections_stitch_fallback_review_required',
-    );
+    expect(fallback.requiresOcrSourceReviewBeforeAssistedRead, isFalse);
+    expect(fallback.assistedReadinessCode, 'ordered_sections_ready');
     expect(
       fallback.privacySafeOcrHandoffSafety,
       containsPair(
         'stitchAssistedReadinessCode',
-        'ordered_sections_stitch_fallback_review_required',
+        'ordered_sections_ready',
       ),
     );
     expect(
       fallback.privacySafeOcrHandoffSafety,
-      containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', true),
+      containsPair('stitchRequiresOcrSourceReviewBeforeAssistedRead', false),
     );
     expect(fallback.ocrSourcePaths, ['/tmp/a.jpg', '/tmp/b.jpg']);
     expect(fallback.failedPairLabel, 'Photo 1 to 2');

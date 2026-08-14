@@ -2,7 +2,7 @@ part of 'receipt_image_processor.dart';
 
 Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   required List<String> paths,
-  List<List<String>>? textLinesByPath,
+  List<ReceiptStitchTextEvidence>? textEvidenceByPath,
   List<bool>? manualZeroOverlapPairs,
   List<int>? manualOverlapPixels,
   List<double>? manualOverlapFractions,
@@ -14,58 +14,37 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
   int maxTargetWidth = 1400,
   int comparisonWidth = 400,
   int retryComparisonWidth = 320,
+  List<ReceiptNativeRegistrationProposal> nativeRegistrationProposals =
+      const <ReceiptNativeRegistrationProposal>[],
   required String outputPath,
 }) async {
-  final inputPaths = paths
-      .map((path) => path.trim())
-      .where((path) {
-        return path.isNotEmpty;
-      })
-      .toList(growable: false);
-  if (inputPaths.isEmpty) {
-    return ReceiptStitchResult.fallback(
-      inputPaths: [],
-      warning: 'No receipt photos were available for stitching.',
-      fallbackReasonCode: 'no_input_paths',
-    );
-  }
-  if (inputPaths.length <= 1) {
-    return ReceiptStitchResult.notNeeded(inputPaths);
-  }
-  if (!receiptPhotoPathsAreUniqueAndNormalized(inputPaths)) {
-    final duplicateOrAlias = _stitchInputPathsHaveDuplicateAliases(inputPaths);
-    return ReceiptStitchResult.fallback(
-      inputPaths: inputPaths,
-      warning:
-          'Receipt photos included invalid or repeated section paths. Receipt details will use the photos separately.',
-      fallbackReasonCode: duplicateOrAlias
-          ? 'duplicate_input_paths'
-          : 'invalid_input_paths',
-    );
-  }
-  if (!_stitchInputPathsAreUnique(inputPaths)) {
-    return ReceiptStitchResult.fallback(
-      inputPaths: inputPaths,
-      warning:
-          'Receipt photos included the same section more than once. Receipt details will use the photos separately.',
-      fallbackReasonCode: 'duplicate_input_paths',
-    );
-  }
-
+  final normalizedInput = _normalizeReceiptStitchInputPaths(paths);
+  if (normalizedInput.failure != null) return normalizedInput.failure!;
+  final inputPaths = normalizedInput.paths;
   final confidences = <double>[];
   final pairResults = <ReceiptStitchPairResult>[];
-  final targetWidth = _stitchTargetWidth(
+  final requestedTargetWidth = _stitchTargetWidth(
     inputPaths.length,
     maxTargetWidth: maxTargetWidth,
   );
   var activePairIndex = -1;
   try {
+    final pairStopwatch = Stopwatch()..start();
     final sourcePreparation = await _prepareReceiptStitchSources(
       inputPaths: inputPaths,
-      targetWidth: targetWidth,
+      targetWidth: requestedTargetWidth,
     );
     final preparationFailure = sourcePreparation.failure;
     if (preparationFailure != null) return preparationFailure;
+    final targetWidth = sourcePreparation.targetWidth;
+    final mappedTextEvidence = _mapReceiptStitchTextEvidenceToFrames(
+      textEvidenceByPath,
+      sourcePreparation.frameTransforms,
+    );
+    final mappedNativeProposals = _mapReceiptNativeProposalsToFrames(
+      nativeRegistrationProposals,
+      sourcePreparation.frameTransforms,
+    );
     final prepared = sourcePreparation.prepared;
     final comparisonPrepared = sourcePreparation.comparisonPrepared;
     final comparisonHasReadableDetail =
@@ -109,44 +88,26 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
       final pairIndex = index - 1;
       activePairIndex = pairIndex;
       final previous = normalized[pairIndex];
-      final manualScale = _manualStitchValue(
-        manualScaleCorrections,
-        pairIndex,
-        fallback: 1,
-        minimum: .75,
-        maximum: 1.25,
-      );
-      final manualRotation = _manualStitchValue(
-        manualRotationCorrectionsDegrees,
-        pairIndex,
-        fallback: 0,
-        minimum: -8,
-        maximum: 8,
-      );
-      final manualHorizontalFraction = _manualStitchValue(
-        manualHorizontalOffsetFractions,
-        pairIndex,
-        fallback: 0,
-        minimum: -.20,
-        maximum: .20,
-      );
-      final manualNext = _transformForStitchComparison(
-        prepared[index],
-        targetWidth: targetWidth,
-        scale: manualScale,
-        rotationDegrees: manualRotation,
-      );
-      final manualOverlap = _manualOverlapFor(
+      final manualPair = _prepareReceiptManualStitchPair(
         previous: previous,
-        next: manualNext,
+        next: prepared[index],
+        targetWidth: targetWidth,
         pairIndex: pairIndex,
         manualOverlapPixels: manualOverlapPixels,
         manualOverlapFractions: manualOverlapFractions,
+        manualScaleCorrections: manualScaleCorrections,
+        manualRotationCorrectionsDegrees: manualRotationCorrectionsDegrees,
+        manualHorizontalOffsetFractions: manualHorizontalOffsetFractions,
       );
-      final manualZeroOverlap =
-          manualZeroOverlapPairs != null &&
-          pairIndex < manualZeroOverlapPairs.length &&
-          manualZeroOverlapPairs[pairIndex];
+      final manualScale = manualPair.scale;
+      final manualRotation = manualPair.rotationDegrees;
+      final manualHorizontalFraction = manualPair.horizontalOffsetFraction;
+      final manualNext = manualPair.next;
+      final manualOverlap = manualPair.overlap;
+      final manualZeroOverlap = _receiptManualZeroOverlapFor(
+        manualZeroOverlapPairs,
+        pairIndex,
+      );
       if (manualZeroOverlap) {
         final manualHorizontalOffset = (targetWidth * manualHorizontalFraction)
             .round();
@@ -158,6 +119,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairIndex: pairIndex,
             overlapPixels: 0,
             confidence: .30,
+            seamSkipPixels: 0,
             usedManualAdjustment: true,
             usedZeroOverlapJoin: true,
             scaleCorrection: manualScale,
@@ -201,6 +163,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairIndex: pairIndex,
             overlapPixels: manualOverlap,
             confidence: 1,
+            seamSkipPixels: manualOverlap,
             usedManualAdjustment: true,
             scaleCorrection: manualScale,
             rotationCorrectionDegrees: manualRotation,
@@ -237,7 +200,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             inputPaths: inputPaths,
             warning:
                 'One receipt photo does not show enough readable detail to combine safely.',
-            fallbackReasonCode: 'overlap_confidence_low',
+            fallbackReasonCode: 'unreadable_section_image',
             confidence: 0,
             failedPairIndex: pairIndex,
             pairs: List.unmodifiable([...pairResults, failedPair]),
@@ -245,39 +208,126 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
         }
         final textPlan = _receiptStitchTextPlanForPair(
           inputPaths: inputPaths,
-          textLinesByPath: textLinesByPath,
+          textEvidenceByPath: mappedTextEvidence,
           pairIndex: pairIndex,
         );
         final textEvidence = textPlan.evidence;
-        // Automatic long-receipt composition is a document operation, not a
-        // photo-collage guess. Pixels may refine a transform after OCR proves
-        // that adjacent sections share distinctive receipt lines, but visual
-        // similarity alone must never authorize deleting repeated rows.
-        if (!textEvidence.isStrong) {
-          final failedPair = ReceiptStitchPairResult(
-            pairIndex: pairIndex,
-            overlapPixels: 0,
-            confidence: textEvidence.confidence,
-            textOverlapConfidence: textEvidence.confidence,
-            matchedTextLineCount: textEvidence.matchedLineCount,
+        _traceReceiptStitchPairDecision(
+          'text_plan',
+          pairIndex: pairIndex,
+          stopwatch: pairStopwatch,
+          textAccelerated: textPlan.safelyAcceleratesGeometry,
+          matchedTextLines: textEvidence.matchedLineCount,
+          textConfidence: textEvidence.confidence,
+          positionalConfidence: textEvidence.positionalConfidence,
+        );
+        final documentHorizontalOffsetHint =
+            sourcePreparation.documentCenterX.length == prepared.length
+            ? ((sourcePreparation.documentCenterX[index] -
+                          sourcePreparation.documentCenterX[pairIndex]) *
+                      targetWidth)
+                  .round()
+            : null;
+        // OCR is a valuable document signal, but it is not universally
+        // available and imperfect receipts can lose exactly the overlap text.
+        // Always evaluate bounded registration, then require multiple
+        // independent signals before any repeated rows are removed.
+        var match = textPlan.safelyAcceleratesGeometry
+            ? _textGuidedReceiptOverlap(
+                previous: normalizedForComparison[pairIndex],
+                next: comparisonPrepared[index],
+                targetWidth: targetWidth,
+                evidence: textEvidence,
+              )
+            : null;
+        if (match != null) {
+          final guidedContinuity = _receiptOverlapContinuityEvidence(
+            previous: normalizedForComparison[pairIndex],
+            match: match,
           );
-          return ReceiptStitchResult.fallback(
-            inputPaths: inputPaths,
-            warning:
-                'The shared receipt lines could not be confirmed automatically. Review the order or align these photos yourself.',
-            fallbackReasonCode: 'ocr_overlap_not_proven',
-            confidence: textEvidence.confidence,
-            failedPairIndex: pairIndex,
-            pairs: List.unmodifiable([...pairResults, failedPair]),
+          final guidedGeometry = _receiptOverlapGeometryEvidence(
+            previous: normalizedForComparison[pairIndex],
+            match: match,
+          );
+          final guidedDecision = evaluateReceiptStitchEvidence(
+            visualConfidence: match.confidence,
+            continuityCorrelation: guidedContinuity.correlation,
+            continuityDetailedBands: guidedContinuity.detailedBands,
+            continuityMatchingBands: guidedContinuity.matchingBands,
+            continuityProven: guidedContinuity.isProven,
+            geometryCorrelation: guidedGeometry.correlation,
+            geometryDetailedCells: guidedGeometry.detailedCells,
+            geometryMatchingCells: guidedGeometry.matchingCells,
+            geometryProven: guidedGeometry.isProven,
+            textConfidence: textEvidence.confidence,
+            matchedTextLineCount: textEvidence.matchedLineCount,
+            textStrong: textEvidence.isStrong,
+            hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
+            textPositionalConfidence: textEvidence.positionalConfidence,
+          );
+          _traceReceiptStitchPairDecision(
+            'text_guided',
+            pairIndex: pairIndex,
+            stopwatch: pairStopwatch,
+            accepted: guidedDecision.accepted,
+            visualConfidence: match.confidence,
+            continuityConfidence: guidedContinuity.correlation,
+            geometryConfidence: guidedGeometry.correlation,
+            reason: guidedDecision.reasonCode,
+          );
+          if (!guidedDecision.accepted) {
+            match = null;
+          }
+        }
+        var usedNativeRegistration = false;
+        if (match == null) {
+          match = _verifiedNativeGuidedReceiptOverlap(
+            previous: normalizedForComparison[pairIndex],
+            next: comparisonPrepared[index],
+            targetWidth: targetWidth,
+            comparisonWidth: comparisonWidth,
+            proposal: _receiptNativeRegistrationProposalForPair(
+              mappedNativeProposals,
+              pairIndex,
+            ),
+          );
+          usedNativeRegistration = match != null;
+          _traceReceiptStitchPairDecision(
+            'native_guided',
+            pairIndex: pairIndex,
+            stopwatch: pairStopwatch,
+            accepted: usedNativeRegistration,
           );
         }
-        var match = _bestScaleTolerantVerticalOverlap(
+        if (match == null) {
+          _traceReceiptStitchPairDecision(
+            'bounded_search_started',
+            pairIndex: pairIndex,
+            stopwatch: pairStopwatch,
+          );
+        }
+        match ??= _bestScaleTolerantVerticalOverlap(
           previous: normalizedForComparison[pairIndex],
           next: comparisonPrepared[index],
           targetWidth: targetWidth,
           comparisonWidth: comparisonWidth,
           retryComparisonWidth: retryComparisonWidth,
-          allowUprightFastPath: textPlan.safelyAcceleratesGeometry,
+          // This only chooses a bounded candidate. The fused acceptance gate
+          // still requires two-dimensional geometry when OCR is unavailable.
+          allowUprightFastPath: true,
+          horizontalOffsetHint: documentHorizontalOffsetHint,
+        );
+        _traceReceiptStitchPairDecision(
+          'candidate_ready',
+          pairIndex: pairIndex,
+          stopwatch: pairStopwatch,
+          visualConfidence: match.confidence,
+        );
+        match = _preferVerifiedSequenceGuidedReceiptOverlap(
+          previous: normalizedForComparison[pairIndex],
+          next: comparisonPrepared[index],
+          current: match,
+          priorPair: pairResults.isEmpty ? null : pairResults.last,
         );
         var continuity = _receiptOverlapContinuityEvidence(
           previous: normalizedForComparison[pairIndex],
@@ -287,15 +337,27 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           previous: normalizedForComparison[pairIndex],
           match: match,
         );
-        if (!continuity.isProven &&
-            ((match.scaleCorrection - 1).abs() >= .03 ||
-                match.rotationCorrectionDegrees.abs() >= .5 ||
-                match.perspectiveCorrection.abs() >= .03)) {
+        final guidedMatchHasHighTrustPositionedText =
+            hasHighTrustPositionedReceiptOverlap(
+              visualConfidence: match.confidence,
+              textConfidence: textEvidence.confidence,
+              matchedTextLineCount: textEvidence.matchedLineCount,
+              hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
+              textPositionalConfidence: textEvidence.positionalConfidence,
+            );
+        if (shouldTryFixedScaleReceiptFallback(
+          continuityProven: continuity.isProven,
+          hasHighTrustPositionedText: guidedMatchHasHighTrustPositionedText,
+          scaleCorrection: match.scaleCorrection,
+          rotationCorrectionDegrees: match.rotationCorrectionDegrees,
+          perspectiveCorrection: match.perspectiveCorrection,
+        )) {
           final fixedMatch = _fixedScaleVerticalOverlap(
             previous: normalizedForComparison[pairIndex],
             next: comparisonPrepared[index],
             targetWidth: targetWidth,
             comparisonWidth: comparisonWidth,
+            horizontalOffsetHint: documentHorizontalOffsetHint,
           );
           final fixedContinuity = _receiptOverlapContinuityEvidence(
             previous: normalizedForComparison[pairIndex],
@@ -310,33 +372,40 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             );
           }
         }
-        final textCorroboratesGeometry =
-            textEvidence.isStrong && match.confidence >= .28;
-        final continuityIsCorroborated =
-            continuity.isProven ||
-            textCorroboratesGeometry ||
-            (match.confidence >= .35 &&
-                continuity.detailedBands >= 3 &&
-                continuity.matchingBands >= 3 &&
-                continuity.correlation >= .30) ||
-            (match.confidence >= .44 &&
-                continuity.detailedBands >= 2 &&
-                continuity.matchingBands == continuity.detailedBands &&
-                continuity.correlation >= .55);
-        final continuityConfidence = continuityIsCorroborated
-            ? (.42 + continuity.correlation * .30).clamp(0.0, .72)
-            : 0.0;
-        final textConfidence = textCorroboratesGeometry
-            ? (.46 + textEvidence.confidence * .34).clamp(0.0, .80)
-            : 0.0;
-        final effectiveConfidence = math.max(
-          math.max(match.confidence, continuityConfidence),
-          textConfidence,
+        final evidenceDecision = evaluateReceiptStitchEvidence(
+          visualConfidence: match.confidence,
+          continuityCorrelation: continuity.correlation,
+          continuityDetailedBands: continuity.detailedBands,
+          continuityMatchingBands: continuity.matchingBands,
+          continuityProven: continuity.isProven,
+          geometryCorrelation: geometry.correlation,
+          geometryDetailedCells: geometry.detailedCells,
+          geometryMatchingCells: geometry.matchingCells,
+          geometryProven: geometry.isProven,
+          textConfidence: textEvidence.confidence,
+          matchedTextLineCount: textEvidence.matchedLineCount,
+          textStrong: textEvidence.isStrong,
+          hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
+          textPositionalConfidence: textEvidence.positionalConfidence,
         );
+        // Geometry can safely produce a reviewable composite without OCR,
+        // but it must not silently auto-clear the person's combined-image
+        // review. Strong receipt-text overlap is required only for that higher
+        // trust tier, not for attempting the stitch itself.
+        final effectiveConfidence = textEvidence.isStrong
+            ? evidenceDecision.confidence
+            : math.min(evidenceDecision.confidence, .69);
         final hasExceptionalContinuity = hasExceptionalReceiptStitchContinuity(
           correlation: continuity.correlation,
           detailedBands: continuity.detailedBands,
           matchingBands: continuity.matchingBands,
+        );
+        final hasHighTrustPositionedText = hasHighTrustPositionedReceiptOverlap(
+          visualConfidence: match.confidence,
+          textConfidence: textEvidence.confidence,
+          matchedTextLineCount: textEvidence.matchedLineCount,
+          hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
+          textPositionalConfidence: textEvidence.positionalConfidence,
         );
         final overlapReferenceHeight = math.max(
           1,
@@ -346,6 +415,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           ),
         );
         final largeOverlapTransformIsAmbiguous =
+            !hasHighTrustPositionedText &&
             isLargeReceiptOverlapTransformAmbiguous(
               overlapPixels: match.pixels,
               overlapReferenceHeight: overlapReferenceHeight,
@@ -361,7 +431,9 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
         // the original ordered photos and target the failed pair for review.
         final lowConfidenceTransformIsAggressive =
             effectiveConfidence < .70 &&
+            !hasHighTrustPositionedText &&
             !hasExceptionalContinuity &&
+            !geometry.isProven &&
             ((match.scaleCorrection - 1).abs() >= .15 ||
                 match.rotationCorrectionDegrees.abs() >= 3.5 ||
                 match.perspectiveCorrection.abs() >= .085);
@@ -369,14 +441,41 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             (match.nextTopOffsetPixels > match.pixels ||
                 match.nextTopOffsetPixels / overlapReferenceHeight > .18) &&
             !textEvidence.isStrong &&
-            !geometry.isProven;
+            !geometry.isProven &&
+            !hasExceptionalContinuity;
+        _traceReceiptStitchPairDecision(
+          'final_gate',
+          pairIndex: pairIndex,
+          stopwatch: pairStopwatch,
+          accepted:
+              evidenceDecision.accepted &&
+              !delayedOverlapIsStructurallyAmbiguous &&
+              !largeOverlapTransformIsAmbiguous &&
+              !lowConfidenceTransformIsAggressive,
+          matchedTextLines: textEvidence.matchedLineCount,
+          textConfidence: textEvidence.confidence,
+          positionalConfidence: textEvidence.positionalConfidence,
+          visualConfidence: match.confidence,
+          continuityConfidence: continuity.correlation,
+          geometryConfidence: geometry.correlation,
+          scale: match.scaleCorrection,
+          overlapPixels: match.pixels,
+          reason: !evidenceDecision.accepted
+              ? evidenceDecision.reasonCode
+              : delayedOverlapIsStructurallyAmbiguous
+              ? 'delayed_overlap_ambiguous'
+              : largeOverlapTransformIsAmbiguous
+              ? 'large_transform_ambiguous'
+              : lowConfidenceTransformIsAggressive
+              ? 'low_confidence_transform_aggressive'
+              : 'accepted',
+        );
         // A reviewable low-confidence join may still be geometrically stable.
         // But a weak match that also needs a large scale, rotation, or offset
         // correction can erase real receipt rows when the next opaque image is
         // composited. Preserve the ordered clear sections for retake/manual
         // alignment instead of producing that destructive combined image.
-        if (effectiveConfidence < .49 ||
-            !continuityIsCorroborated ||
+        if (!evidenceDecision.accepted ||
             delayedOverlapIsStructurallyAmbiguous ||
             largeOverlapTransformIsAmbiguous ||
             lowConfidenceTransformIsAggressive) {
@@ -385,6 +484,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairIndex: pairIndex,
             overlapPixels: match.pixels,
             confidence: reportedConfidence,
+            seamSkipPixels: match.nextSkipPixels,
             scaleCorrection: match.scaleCorrection,
             rotationCorrectionDegrees: match.rotationCorrectionDegrees,
             perspectiveCorrection: match.perspectiveCorrection,
@@ -392,6 +492,12 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             verticalOffsetPixels: match.nextTopOffsetPixels,
             textOverlapConfidence: textEvidence.confidence,
             matchedTextLineCount: textEvidence.matchedLineCount,
+            textPositionalConfidence: textEvidence.positionalConfidence,
+            hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
+            previousTextOverlapStart: textEvidence.previousOverlapStart,
+            nextTextOverlapEnd: textEvidence.nextOverlapEnd,
+            nextContinuationTextStart: textEvidence.nextContinuationStart,
+            nextContinuationTextEnd: textEvidence.nextContinuationEnd,
             continuityCorrelation: continuity.correlation,
             continuityDetailedBands: continuity.detailedBands,
             continuityMatchingBands: continuity.matchingBands,
@@ -399,6 +505,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             geometryDetailedCells: geometry.detailedCells,
             geometryMatchingCells: geometry.matchingCells,
             visualConfidence: match.confidence,
+            usedNativeRegistration: usedNativeRegistration,
           );
           return ReceiptStitchResult.fallback(
             inputPaths: inputPaths,
@@ -410,7 +517,6 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairs: List.unmodifiable([...pairResults, failedPair]),
           );
         }
-        // Account for repeated and leading rows exactly once.
         overlaps.add(match.nextSkipPixels);
         horizontalOffsets.add(match.nextXOffsetPixels);
         confidences.add(effectiveConfidence);
@@ -430,6 +536,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             pairIndex: pairIndex,
             overlapPixels: match.pixels,
             confidence: effectiveConfidence,
+            seamSkipPixels: match.nextSkipPixels,
             scaleCorrection: match.scaleCorrection,
             rotationCorrectionDegrees: match.rotationCorrectionDegrees,
             perspectiveCorrection: match.perspectiveCorrection,
@@ -437,6 +544,12 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             verticalOffsetPixels: match.nextTopOffsetPixels,
             textOverlapConfidence: textEvidence.confidence,
             matchedTextLineCount: textEvidence.matchedLineCount,
+            textPositionalConfidence: textEvidence.positionalConfidence,
+            hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
+            previousTextOverlapStart: textEvidence.previousOverlapStart,
+            nextTextOverlapEnd: textEvidence.nextOverlapEnd,
+            nextContinuationTextStart: textEvidence.nextContinuationStart,
+            nextContinuationTextEnd: textEvidence.nextContinuationEnd,
             continuityCorrelation: continuity.correlation,
             continuityDetailedBands: continuity.detailedBands,
             continuityMatchingBands: continuity.matchingBands,
@@ -444,6 +557,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             geometryDetailedCells: geometry.detailedCells,
             geometryMatchingCells: geometry.matchingCells,
             visualConfidence: match.confidence,
+            usedNativeRegistration: usedNativeRegistration,
           ),
         );
         expectedHeight += nextImage.height - match.nextSkipPixels;
@@ -453,107 +567,24 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
     }
 
     activePairIndex = -1;
-    final horizontalPlacements = _stitchHorizontalPlacements(horizontalOffsets);
-    final minPlacementX = horizontalPlacements.reduce(math.min);
-    final maxPlacementX = horizontalPlacements
-        .map((x) => x + targetWidth)
-        .reduce(math.max);
-    final canvasWidth = maxPlacementX - minPlacementX;
-    final expandedPixels = canvasWidth * expectedHeight;
-    if (expectedHeight > maxOutputHeight || expandedPixels > maxOutputPixels) {
-      return _oversizedStitchFallback(
-        inputPaths: inputPaths,
-        targetWidth: canvasWidth,
-        expectedHeight: expectedHeight,
-        maxOutputPixels: maxOutputPixels,
-        maxOutputHeight: maxOutputHeight,
-        confidences: confidences,
-        pairResults: pairResults,
-      )!;
-    }
-    final placementShiftX = -minPlacementX;
-    final canvas = img.Image(
-      width: canvasWidth,
-      height: expectedHeight,
-      numChannels: 3,
-    );
-    img.fill(canvas, color: img.ColorRgb8(255, 255, 255));
-    var y = 0;
-    img.compositeImage(
-      canvas,
-      normalized.first,
-      dstX: horizontalPlacements.first + placementShiftX,
-      dstY: y,
-    );
-    y += normalized.first.height;
-    for (var index = 1; index < normalized.length; index++) {
-      y -= overlaps[index - 1];
-      final pair = pairResults[index - 1];
-      final seam = _selectReceiptStitchSeam(
-        previous: normalized[index - 1],
-        next: normalized[index],
-        overlapPixels: pair.overlapPixels,
-        nextTopOffset: pair.verticalOffsetPixels,
-        horizontalOffset: pair.horizontalOffsetPixels,
-      );
-      if (!pair.usedManualAdjustment && !seam.isSafe) {
-        return ReceiptStitchResult.fallback(
-          inputPaths: inputPaths,
-          warning:
-              'The shared receipt area did not contain a safe join between printed lines.',
-          fallbackReasonCode: 'seam_quality_low',
-          confidence: math.min(pair.confidence, .69),
-          failedPairIndex: index - 1,
-          pairs: pairResults,
-        );
-      }
-      final seamCropY = seam.cropY;
-      final continuation = seamCropY <= 0
-          ? normalized[index]
-          : img.copyCrop(
-              normalized[index],
-              x: 0,
-              y: seamCropY,
-              width: normalized[index].width,
-              height: normalized[index].height - seamCropY,
-            );
-      img.compositeImage(
-        canvas,
-        continuation,
-        dstX: horizontalPlacements[index] + placementShiftX,
-        dstY: y + seamCropY,
-      );
-      y += normalized[index].height;
-    }
-
-    final path = await _writeJpgToPath(
-      canvas,
-      outputPath: outputPath,
-      quality: 88,
-    );
-    final confidence = confidences.isEmpty ? 1.0 : confidences.reduce(math.min);
-    return ReceiptStitchResult(
-      status: ReceiptStitchStatus.stitched,
+    return await _composeReceiptStitchOutput(
       inputPaths: inputPaths,
-      stitchedPath: path,
-      ocrSourcePaths: [path],
-      confidence: confidence,
-      overlapPixels: overlaps,
+      normalized: normalized,
+      horizontalOffsets: horizontalOffsets,
+      overlaps: overlaps,
+      confidences: confidences,
       pairs: pairResults,
-      stitchedWidth: canvasWidth,
-      stitchedHeight: expectedHeight,
-      usedManualAdjustment: pairResults.any(
-        (pair) => pair.usedManualAdjustment,
-      ),
+      targetWidth: targetWidth,
+      expectedHeight: expectedHeight,
+      maxOutputPixels: maxOutputPixels,
+      maxOutputHeight: maxOutputHeight,
+      outputPath: outputPath,
     );
   } catch (_) {
-    return ReceiptStitchResult.fallback(
+    return _receiptStitchExceptionFallback(
       inputPaths: inputPaths,
-      warning:
-          'Receipt photos could not be stitched safely. Receipt details will use them separately.',
-      fallbackReasonCode: 'stitch_exception',
-      confidence: confidences.isEmpty ? 0 : confidences.reduce(math.min),
-      failedPairIndex: activePairIndex >= 0 ? activePairIndex : null,
+      confidences: confidences,
+      activePairIndex: activePairIndex,
       pairs: pairResults,
     );
   }

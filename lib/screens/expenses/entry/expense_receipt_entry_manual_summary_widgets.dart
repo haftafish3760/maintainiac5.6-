@@ -8,6 +8,7 @@ class _ManualReceiptTotalsEditor extends StatelessWidget {
     required this.totalController,
     required this.businessTotal,
     required this.personalTotal,
+    this.totalHelperText,
   });
 
   final double itemSubtotal;
@@ -16,6 +17,7 @@ class _ManualReceiptTotalsEditor extends StatelessWidget {
   final TextEditingController totalController;
   final double businessTotal;
   final double personalTotal;
+  final String? totalHelperText;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,7 @@ class _ManualReceiptTotalsEditor extends StatelessWidget {
           label: 'Final receipt total',
           controller: totalController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          helperText: totalHelperText,
         ),
         const SizedBox(height: 10),
         Row(

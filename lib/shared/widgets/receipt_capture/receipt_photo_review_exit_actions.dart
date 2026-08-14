@@ -117,9 +117,26 @@ extension _ReceiptPhotoReviewExitActions on _ReceiptPhotoReviewScreenState {
   /// review instead of the OCR handoff.
   Future<void> finishReceiptReview(ReceiptPhotoReviewResult result) async {
     if (!beginReceiptReviewClose()) return;
-    await WidgetsBinding.instance.endOfFrame;
-    if (!mounted || _reviewDisposed) return;
-    Navigator.of(context).pop(result);
+    final closeCompleted = Completer<void>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      traceReceiptPipelineStage(
+        'receipt_photo_review_close_frame',
+        traceId: _receiptStitchTraceId,
+        sourceCount: _photoPaths.length,
+        deviceTier: _deviceCapability.tier.name,
+        destination: 'return_typed_result',
+      );
+      if (mounted && !_reviewDisposed) {
+        Navigator.of(context).pop(result);
+      }
+      if (!closeCompleted.isCompleted) closeCompleted.complete();
+    });
+    // Setting _closingReview changes PopScope.canPop. Explicitly request the
+    // next frame so the route is rebuilt with that controlled-pop allowance
+    // before returning its typed result. Awaiting endOfFrame here can deadlock
+    // when Continue itself completes during a frame callback.
+    WidgetsBinding.instance.scheduleFrame();
+    await closeCompleted.future;
   }
 
   Future<_ReceiptReviewExitAction> _confirmReceiptReviewExit() async {

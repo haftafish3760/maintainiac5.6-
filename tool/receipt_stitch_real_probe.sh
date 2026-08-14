@@ -8,6 +8,9 @@ flutter_command="${FLUTTER_BIN:-flutter}"
 if [[ "$#" -lt 2 ]]; then
   echo "Usage: $0 <receipt-section-1> <receipt-section-2> [receipt-section-3 ...]" >&2
   echo "Set RECEIPT_STITCH_REAL_EXPECT=stitched to require a stitched output." >&2
+  echo "Set RECEIPT_STITCH_REAL_TIER=light|medium|heavy to exercise a device workload." >&2
+  echo "Set RECEIPT_STITCH_REAL_OUTPUT_PATH=/tmp/result.jpg to keep a temporary composite and JSON evidence." >&2
+  echo "Set RECEIPT_STITCH_REAL_TEXT_EVIDENCE_PATH to a local JSON array of OCR line arrays when reproducing the production OCR-assisted path." >&2
   exit 64
 fi
 

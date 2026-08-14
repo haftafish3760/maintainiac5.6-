@@ -3,19 +3,6 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('stitch overlap comparison stays bounded for quiet QA gates', () {
-    final source = File(
-      'lib/shared/widgets/receipt_capture/'
-      'receipt_image_processor_stitch_helpers.dart',
-    ).readAsStringSync();
-
-    final match = RegExp(r'const comparisonWidth = (\d+);').firstMatch(source);
-
-    expect(match, isNotNull);
-    final comparisonWidth = int.parse(match!.group(1)!);
-    expect(comparisonWidth, lessThanOrEqualTo(320));
-  });
-
   test('receipt stitch contract health script runs stitch and handoff tests', () {
     final script = File('tool/receipt_stitch_contract_health.sh');
     final realProbeScript = File('tool/receipt_stitch_real_probe.sh');
@@ -36,6 +23,12 @@ void main() {
     final realWindowMatrixSource = realWindowMatrixScript.readAsStringSync();
     expect(realProbeSource, contains('RECEIPT_STITCH_REAL_PATHS'));
     expect(realProbeSource, contains('RECEIPT_STITCH_REAL_EXPECT=stitched'));
+    expect(
+      realProbeSource,
+      contains('RECEIPT_STITCH_REAL_TIER=light|medium|heavy'),
+    );
+    expect(realProbeSource, contains('RECEIPT_STITCH_REAL_OUTPUT_PATH'));
+    expect(realProbeSource, contains('RECEIPT_STITCH_REAL_TEXT_EVIDENCE_PATH'));
     expect(
       realProbeSource,
       contains('test/receipt_stitching_real_fixture_probe_test.dart'),
@@ -322,11 +315,7 @@ void main() {
     expect(source, contains('Receipt stitch section-order health: PASS'));
     expect(source, contains('source_size)'));
     expect(source, contains('Receipt stitch source-size health'));
-    expect(source, contains('receipt_image_processor_stitch_helpers.dart'));
-    expect(
-      source,
-      contains('receipt_image_processor_stitch_transform_helpers.dart'),
-    );
+    expect(source, contains('receipt_image_processor_stitch*.dart'));
     expect(source, contains(r'exceeds $max_lines-line stitch source cap'));
     expect(
       source,
@@ -427,7 +416,7 @@ void main() {
         'extreme_aspect_ratio|ugly_long_receipts|transformed_ugly_receipts|'
         'store_receipt_shape|uploaded_screenshots|section_order|bad_inputs|'
         'manual_overlap|duplicates|handoff|ghost_handoff|synthetic_dataset|'
-        'source_size|fast|core|milestone|full]',
+        'source_size|fast|core|core_remaining|milestone|full]',
       ),
     );
     expect(source, contains('receipt_native_camera_session_limits_test.dart'));

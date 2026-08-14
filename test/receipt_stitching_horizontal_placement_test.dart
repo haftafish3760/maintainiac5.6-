@@ -45,7 +45,7 @@ void main() {
         pixels: 340,
         dstY: 36,
       );
-      final shiftedSecond = shiftReceiptStitchingShot(sectionB, dx: 80, dy: 0);
+      final shiftedSecond = shiftReceiptStitchingShot(sectionB, dx: 72, dy: 0);
 
       final first = await writeTempReceiptStitchingImage(
         sectionA,
@@ -80,6 +80,11 @@ void main() {
 String _pairEvidence(ReceiptStitchResult result) => result.pairs
     .map(
       (pair) =>
-          '${pair.summaryLabel}; continuity ${pair.continuityCorrelation.toStringAsFixed(3)} (${pair.continuityMatchingBands}/${pair.continuityDetailedBands})',
+          '${pair.summaryLabel}; visual ${pair.visualConfidence.toStringAsFixed(3)}; '
+          'geometry ${pair.geometryCorrelation.toStringAsFixed(3)} '
+          '(${pair.geometryMatchingCells}/${pair.geometryDetailedCells}); '
+          'continuity ${pair.continuityCorrelation.toStringAsFixed(3)} '
+          '(${pair.continuityMatchingBands}/${pair.continuityDetailedBands}); '
+          'x ${pair.horizontalOffsetPixels}; y ${pair.verticalOffsetPixels}',
     )
     .join('; ');
