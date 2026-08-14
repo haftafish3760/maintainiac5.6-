@@ -177,7 +177,9 @@ final class ReceiptCameraFullScreenSettingsViewController: UIViewController {
     let label = note(title)
     let control = UISwitch()
     control.isOn = value
-    control.addAction(UIAction { sender in action((sender as? UISwitch)?.isOn ?? value) }, for: .valueChanged)
+    control.addAction(UIAction { [weak control] _ in
+      action(control?.isOn ?? value)
+    }, for: .valueChanged)
     let row = UIStackView(arrangedSubviews: [label, control])
     row.alignment = .center
     return row

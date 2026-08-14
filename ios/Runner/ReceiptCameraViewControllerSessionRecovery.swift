@@ -115,6 +115,8 @@ extension ReceiptCameraViewController {
       return "interrupted_system_pressure"
     case .videoDeviceNotAvailableInBackground:
       return "interrupted_background"
+    case .sensitiveContentMitigationActivated:
+      return "interrupted_sensitive_content_mitigation"
     @unknown default:
       return "interrupted_unknown"
     }

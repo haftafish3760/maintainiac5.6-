@@ -31,6 +31,9 @@ void main() {
     );
     expect(route, contains('Automatic capture'));
     expect(route, contains('Receipt edge guidance'));
+    expect(route, contains('UIAction { [weak control] _ in'));
+    expect(route, contains('action(control?.isOn ?? value)'));
+    expect(route, isNot(contains('sender as? UISwitch')));
     expect(route, isNot(contains('SAVED PROOF SIZE')));
     expect(route, isNot(contains('Help fill receipt details')));
   });

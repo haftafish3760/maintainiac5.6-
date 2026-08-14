@@ -269,7 +269,6 @@ extension ReceiptCameraViewController {
       "torchOn": torchOn,
       "hasTorch": device?.hasTorch ?? false,
       "exposureTargetBias": Double(device?.exposureTargetBias ?? 0),
-      "latestCaptureShutterExposureTargetBias": latestCaptureShutterExposureTargetBias,
       "minExposureTargetBias": Double(device?.minExposureTargetBias ?? 0),
       "maxExposureTargetBias": Double(device?.maxExposureTargetBias ?? 0),
       "zoomRatio": Double(device?.videoZoomFactor ?? 1),
