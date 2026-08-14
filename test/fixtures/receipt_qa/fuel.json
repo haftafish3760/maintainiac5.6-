@@ -1,0 +1,86 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "fuel",
+  "fixtures": [
+    {
+      "name": "diesel station baseline", "merchantNeedle": "quick fuel",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "Quick Fuel\n06/11/2026 08:14 AM\nPump 03 Diesel 12.500 GAL 48.75\nSubtotal 48.75\nSales Tax 2.93\nTotal 51.68\n",
+      "expected": {
+        "merchantName": "Quick Fuel", "dateIso": "2026-06-11", "subtotal": 48.75, "tax": 2.93, "total": 51.68, "expectFuel": true, "expectTax": true,
+        "lineDescriptionNeedles": ["diesel"], "lineCategories": ["Fuel"], "lineFamilies": ["fuel"], "lineUses": ["business"],
+        "fuelQuantity": 12.5, "fuelUnitPrice": 3.9, "fuelType": "Diesel", "fuelUnit": "gallon",
+        "businessTotal": 51.68, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 1, "priced_line_ready": 1, "category_family_fuel_ready": 1}
+      }
+    },
+    {
+      "name": "split row fuel with tender rows", "merchantNeedle": "pilot",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "PILOT TRVL CTR\n06/23/2026 05:42 AM\nPUMP 12\nPRODUCT DIESEL\nGALLONS 18.425\nPRICE/GAL 3.699\nFUEL SALE 68.15\nREWARDS DISC -1.20\nTOTAL 66.95\nVISA FLEET CARD 66.95\nAUTH 442193\nTRACE 77801\nODOMETER 184220\n",
+      "expected": {
+        "merchantName": "Pilot Flying J", "expectFuel": true, "allowTenderAmountRows": true, "lineCount": 2,
+        "lineSubtotals": [68.15, -1.20], "lineDescriptionNeedles": ["fuel", "rewards"],
+        "lineCategories": ["Fuel", "Receipt Adjustment"], "lineFamilies": ["fuel", "receipt_adjustment"], "lineUses": ["business", "business"],
+        "negativeLineCount": 1, "adjustmentLineCount": 1, "expectReconciled": true,
+        "fuelQuantity": 18.425, "fuelUnitPrice": 3.699, "fuelType": "Diesel", "fuelUnit": "gallon", "fuelOdometer": 184220,
+        "businessTotal": 66.95, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 2, "priced_line_ready": 2, "category_family_fuel_ready": 1, "category_family_adjustment_ready": 1}
+      }
+    },
+    {
+      "name": "truck stop HVO100 renewable diesel", "merchantNeedle": "pilot",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "PILOT TRVL CTR\n06/30/2026\nPUMP 04\nHVO100 18.500 @ 4.199 77.68\nTOTAL 77.68\nODOMETER 144220\n",
+      "expected": {
+        "merchantName": "Pilot Flying J", "dateIso": "2026-06-30", "total": 77.68, "expectFuel": true, "lineCount": 1,
+        "lineDescriptionNeedles": ["hvo"], "lineCategories": ["Fuel"], "lineFamilies": ["fuel"], "lineUses": ["business"],
+        "fuelQuantity": 18.5, "fuelUnitPrice": 4.199, "fuelType": "Diesel", "fuelUnit": "gallon", "fuelOdometer": 144220,
+        "businessTotal": 77.68, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 1, "priced_line_ready": 1, "category_family_fuel_ready": 1}
+      }
+    },
+    {
+      "name": "renewable natural gas fleet transaction", "merchantNeedle": "clean energy",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "CLEAN ENERGY\n06/30/2026\nRENEWABLE NATURAL GAS\nGGE 11.500\nPRICE/GGE 2.899\nFUEL SALE 33.34\nTOTAL 33.34\nODOMETER 74480\n",
+      "expected": {
+        "merchantName": "Clean Energy", "dateIso": "2026-06-30", "total": 33.34, "expectFuel": true, "lineCount": 1,
+        "lineDescriptionNeedles": ["renewable natural gas"], "lineCategories": ["Fuel"], "lineFamilies": ["fuel"], "lineUses": ["business"],
+        "fuelQuantity": 11.5, "fuelUnitPrice": 2.899, "fuelType": "CNG", "fuelUnit": "GGE", "fuelOdometer": 74480,
+        "businessTotal": 33.34, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 1, "priced_line_ready": 1, "category_family_fuel_ready": 1}
+      }
+    },
+    {
+      "name": "E15 station receipt excludes terminal and loyalty identifiers", "merchantNeedle": "sheetz",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "Sheetz 754\n07/15/2026 09:01 PM\n12871 Richmond Highway\nConcord VA 24538\nPump No: 10\nE15 (88 @ $3.049/G\nVolume: 15.743 Gal\nGas Total: $48.00\nTotal $48.00\nApproval: 030597\nTerm: 20754\nPointz: 2957\nTier: FRIEND\nPointz value: 29.57\nTier credit: 7.54\n",
+      "expected": {
+        "merchantName": "Sheetz", "dateIso": "2026-07-15", "total": 48, "expectFuel": true, "lineCount": 1,
+        "lineSubtotals": [48], "lineDescriptionNeedles": ["e15"], "lineCategories": ["Fuel"], "lineFamilies": ["fuel"], "lineUses": ["business"],
+        "fuelQuantity": 15.743, "fuelUnitPrice": 3.049, "fuelType": "E15", "fuelUnit": "gallon",
+        "businessTotal": 48, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 1, "priced_line_ready": 1, "category_family_fuel_ready": 1}
+      }
+    },
+    {
+      "name": "multi-product gasoline grades keep line-specific unit prices", "merchantNeedle": "shell",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "SHELL\n07/18/2026\nPUMP 04 PREMIUM 5.000 GAL 20.00\nPUMP 05 REGULAR 10.000 GAL @ 3.500 35.00\nTOTAL 55.00\n",
+      "expected": {
+        "merchantName": "Shell", "dateIso": "2026-07-18", "total": 55, "expectFuel": true, "lineCount": 2,
+        "lineSubtotals": [20, 35], "lineDescriptionNeedles": ["premium", "regular"], "lineCategories": ["Fuel", "Fuel"], "lineFamilies": ["fuel", "fuel"], "lineUses": ["business", "business"],
+        "fuelQuantity": 5, "fuelUnitPrice": 4, "fuelType": "Gasoline", "fuelUnit": "gallon",
+        "businessTotal": 55, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 2, "priced_line_ready": 2, "category_family_fuel_ready": 2}
+      }
+    }
+  ]
+}

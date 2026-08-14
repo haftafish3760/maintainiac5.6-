@@ -145,7 +145,7 @@ void expectReceiptQaExternalFixtureContract({
     ]),
   );
   expect(fieldCoverage['format'], 'fixture_field_coverage_v1');
-  expect(fieldCoverage['externalFixtureFilesReady'], isFalse);
+  expect(fieldCoverage['externalFixtureFilesReady'], isTrue);
   expect(
     fieldCoverage['allRequiredFields'],
     containsAll(manifest['requiredFields']! as List<Object?>),

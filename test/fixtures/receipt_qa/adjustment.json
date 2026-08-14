@@ -1,0 +1,29 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "adjustment",
+  "fixtures": [
+    {
+      "name": "coupon and store discount adjustment rows",
+      "merchantNeedle": "cvs",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "text": "CVS PHARMACY\n06/20/2026\nSHOP TOWELS 8.97\nMFR COUPON -2.00\nSTORE DISCOUNT (1.50)\nSUBTOTAL 5.47\nTAX 0.38\nTOTAL 5.85\n",
+      "expected": {
+        "merchantName": "CVS Pharmacy", "dateIso": "2026-06-20", "subtotal": 5.47, "tax": 0.38, "total": 5.85,
+        "expectTax": true, "expectLineItems": true, "lineCount": 3,
+        "lineSubtotals": [8.97, -2.00, -1.50],
+        "lineDescriptionNeedles": ["shop towels", "mfr coupon", "store discount"],
+        "lineCategories": ["Vehicle Supplies", "Receipt Adjustment", "Receipt Adjustment"],
+        "lineFamilies": ["vehicle_supplies", "receipt_adjustment", "receipt_adjustment"],
+        "lineUses": ["business", "business", "business"],
+        "negativeLineCount": 2, "adjustmentLineCount": 2, "expectReconciled": true,
+        "businessTotal": 5.85, "personalTotal": 0, "reviewLineCount": 1,
+        "downstreamReadinessStatus": "expense_lines_need_review",
+        "downstreamReadinessSummary": "Expense lines need review",
+        "downstreamReadinessCounts": {"parser_downstream_expense_lines_need_review": 1, "line_needs_review": 1, "line_ready": 2, "category_family_vehicle_needs_review": 1, "category_family_adjustment_ready": 2}
+      }
+    }
+  ]
+}

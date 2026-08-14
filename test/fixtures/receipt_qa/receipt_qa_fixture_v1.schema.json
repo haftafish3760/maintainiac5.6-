@@ -74,6 +74,14 @@
         "photoQuality": {
           "$ref": "#/$defs/photoQuality"
         },
+        "deviceCapabilityProfile": {
+          "enum": [
+            "olderPhone",
+            "standard",
+            "highCapacity",
+            "highCapacityCriticalStorage"
+          ]
+        },
         "barcodeCodes": {
           "type": "array",
           "items": {

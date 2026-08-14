@@ -1,0 +1,61 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "retail",
+  "fixtures": [
+    {
+      "name": "mixed retail baseline", "merchantNeedle": "walmart",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "WALMART\n06/12/2026\nGENERAL MDSE 17.48\nCASE WATER 5.99\nTOTAL 23.47\n",
+      "expected": {
+        "merchantName": "Walmart", "expectLineItems": true, "lineCount": 2,
+        "lineSubtotals": [17.48, 5.99], "lineDescriptionNeedles": ["general mdse", "case water"],
+        "lineCategories": ["Uncategorized", "Groceries"], "lineFamilies": ["uncategorized", "food_or_grocery"], "lineUses": ["business", "business"],
+        "businessTotal": 23.47, "personalTotal": 0,
+        "downstreamReadinessStatus": "expense_lines_need_review", "downstreamReadinessSummary": "Expense lines need review",
+        "downstreamReadinessCounts": {"parser_downstream_expense_lines_need_review": 1, "line_needs_review": 1, "line_ready": 1, "category_family_uncategorized_needs_review": 1, "category_family_food_or_grocery_ready": 1}
+      }
+    },
+    {
+      "name": "retail tax total with tender row", "merchantNeedle": "target",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "TARGET\n07/01/2026\nSHOP TOWELS 8.99\nWORK GLOVES 12.49\nBOTTLED WATER 5.99\nSUBTOTAL 27.47\nTAX 1.65\nTOTAL 29.12\nVISA CARD 29.12\nAUTH 901122\n",
+      "expected": {
+        "merchantName": "Target", "dateIso": "2026-07-01", "subtotal": 27.47, "tax": 1.65, "total": 29.12,
+        "expectTax": true, "expectLineItems": true, "allowTenderAmountRows": true, "lineCount": 3,
+        "lineSubtotals": [8.99, 12.49, 5.99], "lineDescriptionNeedles": ["shop towels", "work gloves", "water"],
+        "lineCategories": ["Vehicle Supplies", "Safety Gear", "Groceries"], "lineFamilies": ["vehicle_supplies", "general_expense", "food_or_grocery"], "lineUses": ["business", "business", "business"],
+        "businessTotal": 29.12, "personalTotal": 0,
+        "downstreamReadinessStatus": "expense_lines_ready", "downstreamReadinessSummary": "Expense line review ready"
+      }
+    },
+    {
+      "name": "mixed business and personal line allocation", "merchantNeedle": "target",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "TARGET\n07/02/2026\nBUSINESS SHOP TOWELS 12.00\nPERSONAL SNACKS 8.00\nSUBTOTAL 20.00\nTAX 1.20\nTOTAL 21.20\n",
+      "expected": {
+        "merchantName": "Target", "dateIso": "2026-07-02", "subtotal": 20.00, "tax": 1.20, "total": 21.20,
+        "expectTax": true, "expectLineItems": true, "lineCount": 2,
+        "lineSubtotals": [12.00, 8.00], "lineDescriptionNeedles": ["shop towels", "snacks"],
+        "lineCategories": ["Vehicle Supplies", "Meals"], "lineFamilies": ["vehicle_supplies", "food_or_grocery"], "lineUses": ["business", "personal"],
+        "businessTotal": 12.72, "personalTotal": 8.48, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "expense_lines_ready", "downstreamReadinessSummary": "Expense line review ready"
+      }
+    },
+    {
+      "name": "non business marker line allocation", "merchantNeedle": "target",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "TARGET\n07/03/2026\nNON-BUSINESS SNACKS 5.00\nBUSINESS WORK GLOVES 15.00\nTOTAL 20.00\n",
+      "expected": {
+        "merchantName": "Target", "dateIso": "2026-07-03", "total": 20.00, "expectLineItems": true, "lineCount": 2,
+        "lineSubtotals": [5.00, 15.00], "lineDescriptionNeedles": ["snacks", "work gloves"],
+        "lineCategories": ["Meals", "Safety Gear"], "lineFamilies": ["food_or_grocery", "general_expense"], "lineUses": ["personal", "business"],
+        "businessTotal": 15.00, "personalTotal": 5.00, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "expense_lines_ready", "downstreamReadinessSummary": "Expense line review ready"
+      }
+    }
+  ]
+}

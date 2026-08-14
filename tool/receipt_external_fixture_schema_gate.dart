@@ -13,7 +13,7 @@ const _textPolicy = 'raw_text_allowed_only_in_fixture_files_not_reports';
 const _realFixtureStatus = 'schema_ready_no_real_samples';
 const _realFixturePrivacyPolicy = 'synthetic_or_redacted_only';
 const _artifactPolicy = 'original_capture_preserved_derived_artifacts_separate';
-const _pendingInlineMigration = 'pending_inline_migration';
+const _externalLoaded = 'external_loaded_schema_validated';
 const _plannedPacks = {
   'adjustment',
   'contractor_supply',
@@ -190,7 +190,7 @@ void _checkInventory(File inventoryFile, List<String> failures) {
   _expectEquals(inventory, 'fixtureSchema', _schemaName, failures);
   _expectEquals(inventory, 'fixtureRoot', _fixtureRoot, failures);
   _expectEquals(inventory, 'textPolicy', _textPolicy, failures);
-  _expectEquals(inventory, 'externalFixtureFilesReady', false, failures);
+  _expectEquals(inventory, 'externalFixtureFilesReady', true, failures);
   final realFixtureSupport = _mapAt(inventory, 'realFixtureSupport', failures);
   _expectEquals(realFixtureSupport, 'status', _realFixtureStatus, failures);
   _expectEquals(
@@ -225,8 +225,9 @@ void _checkInventory(File inventoryFile, List<String> failures) {
   for (final pack in _plannedPacks) {
     final packEntry = _mapAt(packs, pack, failures);
     final expectedPath = '$_fixtureRoot/$pack.json';
-    _expectEquals(packEntry, 'plannedFile', expectedPath, failures);
-    _expectEquals(packEntry, 'status', _pendingInlineMigration, failures);
+    _expectEquals(packEntry, 'file', expectedPath, failures);
+    _expectEquals(packEntry, 'status', _externalLoaded, failures);
+    _checkExternalPack(File(expectedPath), pack, packEntry, failures);
   }
 
   final raw = inventory.toString();
@@ -240,6 +241,47 @@ void _checkInventory(File inventoryFile, List<String> failures) {
     if (raw.contains(blocked)) {
       failures.add('Inventory must not contain raw receipt token `$blocked`.');
     }
+  }
+}
+
+void _checkExternalPack(
+  File file,
+  String expectedPack,
+  Map<String, Object?> inventoryEntry,
+  List<String> failures,
+) {
+  if (!file.existsSync()) {
+    failures.add('Externally loaded pack is missing: ${file.path}.');
+    return;
+  }
+  final decoded = jsonDecode(file.readAsStringSync());
+  if (decoded is! Map<String, Object?>) {
+    failures.add('External pack root must be an object: ${file.path}.');
+    return;
+  }
+  _expectEquals(decoded, 'schema', _schemaName, failures);
+  _expectEquals(decoded, 'pack', expectedPack, failures);
+  final fixtures = decoded['fixtures'];
+  if (fixtures is! List || fixtures.isEmpty) {
+    failures.add('External pack fixtures must be non-empty: ${file.path}.');
+    return;
+  }
+  _expectEquals(inventoryEntry, 'fixtureCount', fixtures.length, failures);
+  for (var index = 0; index < fixtures.length; index++) {
+    final fixture = fixtures[index];
+    if (fixture is! Map<String, Object?>) {
+      failures.add('$expectedPack fixture $index must be an object.');
+      continue;
+    }
+    for (final key in const ['name', 'merchantNeedle', 'text', 'expected']) {
+      if (!fixture.containsKey(key)) {
+        failures.add('$expectedPack fixture $index is missing `$key`.');
+      }
+    }
+    _expectEquals(fixture, 'sourcePolicy', _realFixturePrivacyPolicy, failures);
+    final redaction = _mapAt(fixture, 'redaction', failures);
+    _expectEquals(redaction, 'sensitiveFieldsRemoved', true, failures);
+    _expectEquals(fixture, 'expectedEditable', true, failures);
   }
 }
 

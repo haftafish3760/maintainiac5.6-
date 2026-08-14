@@ -10,10 +10,7 @@ dart analyze \
   tool/receipt_camera_io_guard.dart \
   tool/receipt_camera_footprint_audit.dart \
   tool/receipt_qa_fixtures.dart \
-  tool/receipt_qa_fixtures_adjustment_retail.dart \
-  tool/receipt_qa_fixtures_fuel.dart \
-  tool/receipt_qa_fixtures_long_receipt.dart \
-  tool/receipt_qa_fixtures_maintenance.dart \
+  tool/receipt_qa_external_fixture_loader.dart \
   tool/receipt_qa_report_models.dart \
   tool/receipt_qa_fixture_manifest.dart \
   tool/receipt_qa_scoring.dart \
@@ -29,6 +26,7 @@ bash tool/receipt_formatter_projection_gate.sh
 dart tool/maintainiac_source_audit.dart
 dart tool/receipt_camera_io_guard.dart
 dart tool/receipt_camera_footprint_audit.dart
+dart tool/receipt_external_fixture_schema_gate.dart
 dart run tool/receipt_qa_runner.dart --fail-under=1.0 --summary-json
 dart run tool/fuel_synthetic_parser_runner.dart --preset=milestone --fail-under=1.0 --summary-json
 flutter test \

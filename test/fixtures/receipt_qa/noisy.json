@@ -1,0 +1,52 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "noisy",
+  "fixtures": [
+    {
+      "name": "swapped total and date characters", "merchantNeedle": "sheetz",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "SHEETZ\nO6/19/2O26 O7:15 AM\nPUMP O4 UNLEADED 14.25O GAL 47.O1\nT0TAL 47.O1\n",
+      "expected": {
+        "merchantName": "Sheetz", "expectFuel": true, "lineDescriptionNeedles": ["unleaded"], "lineCategories": ["Fuel"], "lineFamilies": ["fuel"], "lineUses": ["business"],
+        "fuelQuantity": 14.25, "fuelType": "Gasoline", "fuelUnit": "gallon", "businessTotal": 47.01, "personalTotal": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 1, "category_family_fuel_ready": 1}
+      }
+    },
+    {
+      "name": "noisy fuel subtotal tax and total", "merchantNeedle": "shell",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "SHELL\nO7/O1/2O26 O6:45 AM\nPUMP O2 DIESEL 1O.OOO GAL 35.OO\nSUBT0TAL 35.OO\nT4X 2.1O\nT0TAL 37.1O\n",
+      "expected": {
+        "merchantName": "Shell", "expectFuel": true, "expectTax": true, "lineDescriptionNeedles": ["diesel"], "lineCategories": ["Fuel"], "lineFamilies": ["fuel"], "lineUses": ["business"],
+        "fuelQuantity": 10, "fuelUnitPrice": 3.5, "fuelType": "Diesel", "fuelUnit": "gallon", "businessTotal": 37.10, "personalTotal": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Fuel receipt review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 1, "category_family_fuel_ready": 1}
+      }
+    },
+    {
+      "name": "home center material OCR letter number swaps", "merchantNeedle": "home depot",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "H0ME DEP0T\nO6/19/2O26\n1/2  IN   C0PPER  9O  ELB0W   7.48\nPVC  GLUE  7,99\nT0TAL 15.47\n",
+      "expected": {
+        "merchantName": "The Home Depot", "dateIso": "2026-06-19", "total": 15.47, "expectLineItems": true, "lineCount": 2,
+        "lineSubtotals": [7.48, 7.99], "lineDescriptionNeedles": ["copper", "pvc glue"], "lineCategories": ["Materials", "Materials"], "lineFamilies": ["materials", "materials"], "lineUses": ["business", "business"],
+        "businessTotal": 15.47, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "inventory_material_ready", "downstreamReadinessSummary": "Inventory/material review ready",
+        "downstreamReadinessCounts": {"parser_downstream_inventory_material_ready": 1, "line_ready": 2, "priced_line_ready": 2, "inventory_material_ready": 2, "category_family_materials_ready": 2}
+      }
+    },
+    {
+      "name": "home center truncated material rows", "merchantNeedle": "home depot",
+      "fixtureKind": "synthetic_text", "sourcePolicy": "synthetic_or_redacted_only", "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true}, "expectedEditable": true,
+      "text": "H0ME DEP0T\n06-19-26\n2X4X8 KD STUD      4.29\n25PK #8 X 1-1/4 WD SCRW 6.98\n12/2 NM-B CABLE    34.80\nAM0UNT PAID 46.O7\n",
+      "expected": {
+        "merchantName": "The Home Depot", "dateIso": "2026-06-19", "total": 46.07, "expectLineItems": true, "lineCount": 3,
+        "lineSubtotals": [4.29, 6.98, 34.80], "lineDescriptionNeedles": ["stud", "scrw", "cable"], "lineCategories": ["Materials", "Materials", "Materials"], "lineFamilies": ["materials", "materials", "materials"], "lineUses": ["business", "business", "business"],
+        "businessTotal": 46.07, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "inventory_material_ready", "downstreamReadinessSummary": "Inventory/material review ready",
+        "downstreamReadinessCounts": {"parser_downstream_inventory_material_ready": 1, "line_ready": 3, "priced_line_ready": 3, "inventory_material_ready": 3, "category_family_materials_ready": 3}
+      }
+    }
+  ]
+}

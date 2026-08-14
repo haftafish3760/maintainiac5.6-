@@ -30,14 +30,7 @@ case "$mode" in
     dart analyze \
       tool/maintainiac_source_audit.dart \
       tool/receipt_qa_fixtures.dart \
-      tool/receipt_qa_fixtures_adjustment_retail.dart \
-      tool/receipt_qa_fixtures_contractor_supply.dart \
-      tool/receipt_qa_fixtures_damaged_ocr.dart \
-      tool/receipt_qa_fixtures_device_tiers.dart \
-      tool/receipt_qa_fixtures_fuel.dart \
-      tool/receipt_qa_fixtures_long_receipt.dart \
-      tool/receipt_qa_fixtures_maintenance.dart \
-      tool/receipt_qa_fixtures_privacy_admin.dart \
+      tool/receipt_qa_external_fixture_loader.dart \
       tool/receipt_qa_fixture_manifest.dart \
       tool/receipt_qa_report_models.dart \
       tool/receipt_qa_scoring.dart \
@@ -48,6 +41,7 @@ case "$mode" in
       tool/receipt_qa_runner.dart
     bash tool/receipt_fast_guard_gate.sh
     dart tool/maintainiac_source_audit.dart
+    dart tool/receipt_external_fixture_schema_gate.dart
     dart run tool/receipt_qa_runner.dart --fail-under=1.0 --summary-json
     flutter test \
       test/receipt_qa_runner_contract_test.dart \

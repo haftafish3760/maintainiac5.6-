@@ -1,0 +1,42 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "device_tiers",
+  "fixtures": [
+    {
+      "name": "older phone keeps receipt OCR workload lean",
+      "merchantNeedle": "casey",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "deviceCapabilityProfile": "olderPhone",
+      "text": "CASEY'S GENERAL STORE\n06/14/2026\nUNLEADED\n11.482 GAL @ 3.693\nSUBTOTAL 42.41\nTAX 0.00\nTOTAL 42.41\n",
+      "expected": {
+        "merchantName": "Casey's", "dateIso": "2026-06-14", "subtotal": 42.41, "tax": 0, "total": 42.41,
+        "capabilityTier": "light", "parserDepth": "proofTotalsOnly", "dataSaverLevel": "strong",
+        "maxLocalPhotoCount": 4, "maxLocalPhotoBytes": 6291456, "assistedCameraShotCount": 2, "bestShotCandidateCount": 1,
+        "maxStitchOutputPixels": 9000000, "maxStitchOutputHeight": 14000, "optionalLocalPackBytes": 0,
+        "cloudOcrOptional": true, "cloudInventoryOptional": true, "autoCaptureEnabled": false
+      }
+    },
+    {
+      "name": "critical storage defers optional packs and cloud assists",
+      "merchantNeedle": "lowe",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "deviceCapabilityProfile": "highCapacityCriticalStorage",
+      "text": "LOWE'S HOME IMPROVEMENT\n06/15/2026\n2 @ 4.98 2X4X8 KD STUD 9.96\nMETAL CONNECTOR PACK 9.98\nSUBTOTAL 19.94\nSALES TAX 1.20\nTOTAL 21.14\n",
+      "expected": {
+        "merchantName": "Lowe's", "dateIso": "2026-06-15", "subtotal": 19.94, "tax": 1.20, "total": 21.14, "expectTax": true,
+        "lineCount": 2, "lineSubtotals": [9.96, 9.98], "lineDescriptionNeedles": ["stud", "connector"],
+        "lineCategories": ["Materials", "Uncategorized"], "lineFamilies": ["materials", "uncategorized"], "lineUses": ["business", "business"],
+        "capabilityTier": "light", "parserDepth": "proofTotalsOnly", "dataSaverLevel": "maximum",
+        "maxLocalPhotoCount": 4, "maxLocalPhotoBytes": 4194304, "assistedCameraShotCount": 1, "bestShotCandidateCount": 1,
+        "maxStitchOutputPixels": 9000000, "maxStitchOutputHeight": 14000, "optionalLocalPackBytes": 0,
+        "cloudOcrOptional": true, "cloudInventoryOptional": true, "autoCaptureEnabled": false
+      }
+    }
+  ]
+}

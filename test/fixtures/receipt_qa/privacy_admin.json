@@ -1,0 +1,38 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "privacy_admin",
+  "fixtures": [
+    {
+      "name": "card auth address and phone stay privacy metadata",
+      "merchantNeedle": "lowe",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "text": "LOWE'S HOME IMPROVEMENT\n123 MAIN ST AUSTIN TX 78745 (512) 555-0188\nJOHN Q CUSTOMER\n06/21/2026\nPVC GLUE 7.99\n2 @ 6.74 2X4 STUD 13.48\nSUBTOTAL 21.47\nSALES TAX 1.29\nTOTAL 22.76\nVISA CARD 4111 22.76\nAUTH 998877\n",
+      "expected": {
+        "merchantName": "Lowe's", "dateIso": "2026-06-21", "subtotal": 21.47, "tax": 1.29, "total": 22.76,
+        "allowTenderAmountRows": true, "expectTax": true, "lineCount": 2, "lineSubtotals": [7.99, 13.48],
+        "lineDescriptionNeedles": ["pvc glue", "stud"], "lineCategories": ["Materials", "Materials"],
+        "lineFamilies": ["materials", "materials"], "lineUses": ["business", "business"],
+        "sensitiveLineCount": 4, "tenderPrivacyLineCount": 2, "addressContactLineCount": 1, "privateNameLineCount": 1,
+        "sensitiveNeedlesExcluded": ["AUTH 998877", "CARD 4111", "AUSTIN TX", "JOHN Q CUSTOMER"]
+      }
+    },
+    {
+      "name": "fleet card and reference rows never become purchase lines",
+      "merchantNeedle": "shell",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "text": "SHELL\n06/22/2026\nREGULAR UNLEADED\n12.012 GAL @ 3.831\nSUBTOTAL 46.02\nTAX 0.00\nTOTAL 46.02\nFLEET CARD 46.02\nTRACE 555013\nAUTH 112233\n",
+      "expected": {
+        "merchantName": "Shell", "dateIso": "2026-06-22", "subtotal": 46.02, "tax": 0, "total": 46.02,
+        "allowTenderAmountRows": true, "expectFuel": true, "fuelQuantity": 12.012, "fuelUnitPrice": 3.831,
+        "sensitiveLineCount": 3, "tenderPrivacyLineCount": 3, "addressContactLineCount": 0, "privateNameLineCount": 0,
+        "sensitiveNeedlesExcluded": ["FLEET CARD", "TRACE 555013", "AUTH 112233"]
+      }
+    }
+  ]
+}

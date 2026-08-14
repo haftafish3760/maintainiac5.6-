@@ -62,8 +62,23 @@ void main() {
       expect(report['failedCheckCount'], 0);
       expect(report['blockers'], isEmpty);
       expect(manifest['version'], 'receipt_qa_fixture_manifest_v1');
-      expect(manifest['format'], 'inline_dart_expected_fields_v1');
-      expect(manifest['externalFixtureFilesReady'], isFalse);
+      expect(manifest['format'], 'external_json_v1');
+      expect(
+        manifest['externallyLoadedPacks'],
+        containsAll([
+          'adjustment',
+          'contractor_supply',
+          'damaged_ocr',
+          'device_tiers',
+          'fuel',
+          'long_receipt',
+          'maintenance',
+          'noisy',
+          'privacy_admin',
+          'retail',
+        ]),
+      );
+      expect(manifest['externalFixtureFilesReady'], isTrue);
       expect(
         manifest['requiredFields'],
         containsAll([
@@ -348,8 +363,8 @@ void main() {
 
       expect(report['pack'], 'long_receipt');
       expect(report['fixtureCount'], 4);
-      expect(report['checkCount'], 84);
-      expect(report['passedCheckCount'], 84);
+      expect(report['checkCount'], 113);
+      expect(report['passedCheckCount'], report['checkCount']);
       expect(report['failedCheckCount'], 0);
       expect(report['fixtureManifest'], isA<Map<String, Object?>>());
       expect(report['fixtureFieldCoverage'], isA<Map<String, Object?>>());

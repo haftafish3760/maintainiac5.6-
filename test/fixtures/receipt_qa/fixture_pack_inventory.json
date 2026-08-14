@@ -3,7 +3,7 @@
   "fixtureSchema": "receipt_qa_fixture_v1",
   "fixtureRoot": "test/fixtures/receipt_qa",
   "textPolicy": "raw_text_allowed_only_in_fixture_files_not_reports",
-  "externalFixtureFilesReady": false,
+  "externalFixtureFilesReady": true,
   "realFixtureSupport": {
     "status": "schema_ready_no_real_samples",
     "privacyPolicy": "synthetic_or_redacted_only",
@@ -13,44 +13,54 @@
   },
   "packs": {
     "adjustment": {
-      "plannedFile": "test/fixtures/receipt_qa/adjustment.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/adjustment.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 1
     },
     "contractor_supply": {
-      "plannedFile": "test/fixtures/receipt_qa/contractor_supply.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/contractor_supply.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 2
     },
     "damaged_ocr": {
-      "plannedFile": "test/fixtures/receipt_qa/damaged_ocr.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/damaged_ocr.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 7
     },
     "device_tiers": {
-      "plannedFile": "test/fixtures/receipt_qa/device_tiers.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/device_tiers.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 2
     },
     "fuel": {
-      "plannedFile": "test/fixtures/receipt_qa/fuel.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/fuel.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 6
     },
     "long_receipt": {
-      "plannedFile": "test/fixtures/receipt_qa/long_receipt.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/long_receipt.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 4
     },
     "maintenance": {
-      "plannedFile": "test/fixtures/receipt_qa/maintenance.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/maintenance.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 2
     },
     "noisy": {
-      "plannedFile": "test/fixtures/receipt_qa/noisy.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/noisy.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 4
     },
     "privacy_admin": {
-      "plannedFile": "test/fixtures/receipt_qa/privacy_admin.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/privacy_admin.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 2
     },
     "retail": {
-      "plannedFile": "test/fixtures/receipt_qa/retail.json",
-      "status": "pending_inline_migration"
+      "file": "test/fixtures/receipt_qa/retail.json",
+      "status": "external_loaded_schema_validated",
+      "fixtureCount": 4
     }
   }
 }

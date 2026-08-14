@@ -1,0 +1,133 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "damaged_ocr",
+  "fixtures": [
+    {
+      "name": "wrinkled long receipt top section still asks for continuation",
+      "merchantNeedle": "cvs",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "photoQuality": {"width": 1800, "height": 2400, "focusScore": 15, "brightness": 142, "contrast": 30, "cropScore": 0.24, "textBandScore": 12, "isLikelyReadable": false},
+      "text": "CVS PHARMACY\n06/22/2026\nPAPER TOWELS 12.49\nTRASH BAGS 8.99\n[wrinkled middle and missing bottom]\n",
+      "expected": {
+        "merchantName": "CVS Pharmacy", "dateIso": "2026-06-22", "expectTotal": false, "expectBottomCoverage": false, "expectLineItems": true,
+        "lineCount": 2, "lineSubtotals": [12.49, 8.99], "lineDescriptionNeedles": ["paper towels", "trash bags"],
+        "lineCategories": ["Groceries", "Cleaning Supplies"], "lineFamilies": ["food_or_grocery", "general_expense"], "lineUses": ["business", "business"],
+        "photoPrimaryIssueLabel": "check that no text is cut off", "photoReviewActionCode": "crop_or_retake_then_next",
+        "photoShouldRetakeBeforeOcr": false, "photoCanContinueWithReview": true, "photoNeedsReview": true,
+        "photoLightLabel": "light OK", "photoFocusLabel": "sharp", "photoWarningNeedles": ["every receipt line"],
+        "photoGuidanceNeedles": ["every line", "part of the receipt"]
+      }
+    },
+    {
+      "name": "smudged long receipt overlap keeps duplicate review diagnostics",
+      "merchantNeedle": "advance",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "photoQuality": {"width": 1800, "height": 2400, "focusScore": 10, "brightness": 146, "contrast": 14, "cropScore": 0.70, "textBandScore": 10, "isLikelyReadable": false},
+      "text": "ADVANCE AUTO PARTS\n06/24/2026\nSHOP TOWELS 14.99\nBRAKE CLEAN 8.49\nBRAKE CLEAN 8.49\nNITRILE GLOVES 9.50\nSUBTOTAL 41.47\nSALES TAX 2.49\nTOTAL 43.96\n",
+      "expected": {
+        "merchantName": "Advance Auto Parts", "dateIso": "2026-06-24", "subtotal": 41.47, "tax": 2.49, "total": 43.96,
+        "expectTax": true, "expectLineItems": true, "lineCount": 4, "lineSubtotals": [14.99, 8.49, 8.49, 9.50],
+        "lineDescriptionNeedles": ["shop towels", "brake clean", "brake clean", "gloves"],
+        "lineCategories": ["Vehicle Supplies", "Uncategorized", "Uncategorized", "Safety Gear"],
+        "lineFamilies": ["vehicle_supplies", "uncategorized", "uncategorized", "general_expense"],
+        "lineUses": ["business", "business", "business", "business"],
+        "parserTaskCounts": {"long_receipt_duplicate_text": 1, "long_receipt_probable_overlap": 1},
+        "photoPrimaryIssueLabel": "low contrast", "photoReviewActionCode": "check_photo_then_next",
+        "photoShouldRetakeBeforeOcr": false, "photoCanContinueWithReview": true, "photoNeedsReview": true,
+        "photoLightLabel": "light OK", "photoFocusLabel": "usable", "photoWarningNeedles": ["low contrast"],
+        "photoGuidanceNeedles": ["printed text", "stands out"]
+      }
+    },
+    {
+      "name": "blurry receipt source requires retake guidance",
+      "merchantNeedle": "pilot",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "photoQuality": {"width": 1800, "height": 2400, "focusScore": 4.8, "brightness": 148, "contrast": 30, "cropScore": 0.72, "textBandScore": 12, "isLikelyReadable": false},
+      "text": "PILOT TRAVEL CENTER\n06/17/2026\nDIESEL FUEL\n15.005 GAL @ 3.895\nSUBTOTAL 58.44\nTAX 0.00\nTOTAL 58.44\n",
+      "expected": {
+        "merchantName": "Pilot Flying J", "dateIso": "2026-06-17", "subtotal": 58.44, "tax": 0, "total": 58.44,
+        "photoPrimaryIssueLabel": "looks blurry", "photoReviewActionCode": "retake_recommended_continue_allowed",
+        "photoShouldRetakeBeforeOcr": true, "photoCanContinueWithReview": true, "photoNeedsReview": true,
+        "photoLightLabel": "light OK", "photoFocusLabel": "may be blurry", "photoWarningNeedles": ["blurry"],
+        "photoGuidanceNeedles": ["Hold steady", "fuzzy"]
+      }
+    },
+    {
+      "name": "glare washed receipt source requires retake guidance",
+      "merchantNeedle": "casey",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "photoQuality": {"width": 1800, "height": 2400, "focusScore": 15, "brightness": 250, "contrast": 30, "cropScore": 0.72, "textBandScore": 12, "isLikelyReadable": false},
+      "text": "CASEY'S GENERAL STORE\n06/18/2026\nUNLEADED\n8.452 GAL @ 3.691\nSUBTOTAL 31.20\nTAX 0.00\nTOTAL 31.20\n",
+      "expected": {
+        "merchantName": "Casey's", "dateIso": "2026-06-18", "subtotal": 31.20, "tax": 0, "total": 31.20,
+        "photoPrimaryIssueLabel": "glare or too bright", "photoReviewActionCode": "retake_recommended_continue_allowed",
+        "photoShouldRetakeBeforeOcr": true, "photoCanContinueWithReview": true, "photoNeedsReview": true,
+        "photoLightLabel": "glare/too bright", "photoFocusLabel": "sharp", "photoWarningNeedles": ["glare", "too bright"],
+        "photoGuidanceNeedles": ["Reduce glare", "tilting"]
+      }
+    },
+    {
+      "name": "low light receipt source requires retake guidance",
+      "merchantNeedle": "sheetz",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "photoQuality": {"width": 1800, "height": 2400, "focusScore": 15, "brightness": 52, "contrast": 30, "cropScore": 0.72, "textBandScore": 12, "isLikelyReadable": false},
+      "text": "SHEETZ\n06/21/2026\nSHOP TOWELS 8.97\nCASE WATER 5.99\nSUBTOTAL 14.96\nSALES TAX 0.90\nTOTAL 15.86\n",
+      "expected": {
+        "merchantName": "Sheetz", "dateIso": "2026-06-21", "subtotal": 14.96, "tax": 0.90, "total": 15.86, "expectTax": true,
+        "photoPrimaryIssueLabel": "too dark", "photoReviewActionCode": "retake_recommended_continue_allowed",
+        "photoShouldRetakeBeforeOcr": true, "photoCanContinueWithReview": true, "photoNeedsReview": true,
+        "photoLightLabel": "too dark", "photoFocusLabel": "sharp", "photoWarningNeedles": ["too dark"],
+        "photoGuidanceNeedles": ["Add light", "torch"]
+      }
+    },
+    {
+      "name": "partial crop source stays in crop or retake review",
+      "merchantNeedle": "lowe",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "photoQuality": {"width": 1800, "height": 2400, "focusScore": 15, "brightness": 148, "contrast": 30, "cropScore": 0.24, "textBandScore": 12, "isLikelyReadable": false},
+      "text": "LOWE'S HOME IMPROVEMENT\n06/19/2026\nCAULK WHITE 6.98\nPAINTER TAPE 9.96\nSUBTOTAL 16.94\nSALES TAX 1.02\nTOTAL 17.96\n",
+      "expected": {
+        "merchantName": "Lowe's", "dateIso": "2026-06-19", "subtotal": 16.94, "tax": 1.02, "total": 17.96, "expectTax": true,
+        "photoPrimaryIssueLabel": "check that no text is cut off", "photoReviewActionCode": "crop_or_retake_then_next",
+        "photoShouldRetakeBeforeOcr": false, "photoCanContinueWithReview": true, "photoNeedsReview": true,
+        "photoLightLabel": "light OK", "photoFocusLabel": "sharp", "photoWarningNeedles": ["every receipt line"],
+        "photoGuidanceNeedles": ["every line", "part of the receipt"]
+      }
+    },
+    {
+      "name": "weak low contrast text asks for review before OCR",
+      "merchantNeedle": "quick lube",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "photoQuality": {"width": 1800, "height": 2400, "focusScore": 13, "brightness": 132, "contrast": 12, "cropScore": 0.68, "textBandScore": 5, "isLikelyReadable": false},
+      "text": "QUICK LUBE\n06/20/2026\n5W-20 SYNTHETIC OIL 39.99\nOIL FILTER 8.49\nSUBTOTAL 48.48\nSALES TAX 2.91\nTOTAL 51.39\n",
+      "expected": {
+        "merchantName": "Quick Lube", "dateIso": "2026-06-20", "subtotal": 48.48, "tax": 2.91, "total": 51.39, "expectTax": true,
+        "photoPrimaryIssueLabel": "low contrast", "photoReviewActionCode": "check_readability_or_add_closer_photo",
+        "photoShouldRetakeBeforeOcr": false, "photoCanContinueWithReview": true, "photoNeedsReview": true,
+        "photoLightLabel": "light OK", "photoFocusLabel": "usable", "photoWarningNeedles": ["low contrast", "hard to detect"],
+        "photoGuidanceNeedles": ["printed text", "stands out"]
+      }
+    }
+  ]
+}

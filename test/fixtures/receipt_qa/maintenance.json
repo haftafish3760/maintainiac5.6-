@@ -1,0 +1,44 @@
+{
+  "schema": "receipt_qa_fixture_v1",
+  "pack": "maintenance",
+  "fixtures": [
+    {
+      "name": "oil change interval baseline",
+      "merchantNeedle": "quick lube",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "text": "QUICK LUBE\n2026-06-30\n5W-20 SYNTHETIC OIL 39.99\nOIL FILTER 8.49\nTIRE ROTATION 19.99\nSALES TAX 4.11\nTOTAL 72.58\nNEXT SERVICE 92,500 MILES\n",
+      "expected": {
+        "merchantName": "Quick Lube", "expectTax": true, "expectLineItems": true, "expectMaintenance": true,
+        "lineCount": 3, "lineSubtotals": [39.99, 8.49, 19.99], "lineDescriptionNeedles": ["synthetic oil", "oil filter", "tire rotation"],
+        "lineCategories": ["Maintenance", "Maintenance", "Maintenance"], "lineFamilies": ["vehicle_supplies", "vehicle_supplies", "vehicle_supplies"], "lineUses": ["business", "business", "business"],
+        "maintenanceServiceType": "Oil Change", "maintenanceOilWeight": "5W-20", "maintenanceDueOdometer": 92500,
+        "businessTotal": 72.58, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Vehicle cost review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 3, "vehicle_cost_ready": 3, "category_family_vehicle_ready": 3}
+      }
+    },
+    {
+      "name": "oil change odometer due interval",
+      "merchantNeedle": "take 5",
+      "fixtureKind": "synthetic_text",
+      "sourcePolicy": "synthetic_or_redacted_only",
+      "redaction": {"status": "synthetic", "sensitiveFieldsRemoved": true},
+      "expectedEditable": true,
+      "text": "TAKE 5 OIL CHANGE\n06/12/2026 08:30 AM\nOdometer: 100000\nFull Synthetic Oil Change 5W-30 79.99\nOil Filter 12.99\nNext Service Due 105000\nEvery 6 months\nSubtotal 92.98\nTax 5.58\nTotal 98.56\n",
+      "expected": {
+        "merchantName": "Take 5 Oil Change", "dateIso": "2026-06-12", "subtotal": 92.98, "tax": 5.58, "total": 98.56,
+        "expectTax": true, "expectLineItems": true, "expectMaintenance": true,
+        "lineCount": 2, "lineSubtotals": [79.99, 12.99], "lineDescriptionNeedles": ["oil change", "oil filter"],
+        "lineCategories": ["Maintenance", "Maintenance"], "lineFamilies": ["vehicle_supplies", "vehicle_supplies"], "lineUses": ["business", "business"],
+        "maintenanceServiceType": "Oil Change", "maintenanceOilWeight": "5W-30", "maintenanceServiceOdometer": 100000,
+        "maintenanceDueOdometer": 105000, "maintenanceIntervalMiles": 5000, "maintenanceIntervalMonths": 6,
+        "businessTotal": 98.56, "personalTotal": 0, "reviewLineCount": 0,
+        "downstreamReadinessStatus": "vehicle_cost_ready", "downstreamReadinessSummary": "Vehicle cost review ready",
+        "downstreamReadinessCounts": {"parser_downstream_vehicle_cost_ready": 1, "line_ready": 2, "vehicle_cost_ready": 2, "category_family_vehicle_ready": 2}
+      }
+    }
+  ]
+}

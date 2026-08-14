@@ -1,7 +1,7 @@
 part of 'receipt_qa_runner.dart';
 
 const _receiptQaFixtureManifestVersion = 'receipt_qa_fixture_manifest_v1';
-const _receiptQaFixtureFormat = 'inline_dart_expected_fields_v1';
+const _receiptQaFixtureFormat = 'external_json_v1';
 const _receiptQaExternalFixtureSchema = 'receipt_qa_fixture_v1';
 const _receiptQaExternalFixtureRoot = 'test/fixtures/receipt_qa';
 const _receiptQaExternalFixtureSchemaFile =
@@ -12,16 +12,16 @@ const _receiptQaFixtureTextPolicy =
     'raw_text_allowed_only_in_fixture_files_not_reports';
 
 const _receiptQaFixtureSources = {
-  'adjustment': 'tool/receipt_qa_fixtures_adjustment_retail.dart',
-  'contractor_supply': 'tool/receipt_qa_fixtures_contractor_supply.dart',
-  'damaged_ocr': 'tool/receipt_qa_fixtures_damaged_ocr.dart',
-  'device_tiers': 'tool/receipt_qa_fixtures_device_tiers.dart',
-  'fuel': 'tool/receipt_qa_fixtures_fuel.dart',
-  'long_receipt': 'tool/receipt_qa_fixtures_long_receipt.dart',
-  'maintenance': 'tool/receipt_qa_fixtures_maintenance.dart',
-  'noisy': 'tool/receipt_qa_fixtures_fuel.dart',
-  'privacy_admin': 'tool/receipt_qa_fixtures_privacy_admin.dart',
-  'retail': 'tool/receipt_qa_fixtures_adjustment_retail.dart',
+  'adjustment': 'test/fixtures/receipt_qa/adjustment.json',
+  'contractor_supply': 'test/fixtures/receipt_qa/contractor_supply.json',
+  'damaged_ocr': 'test/fixtures/receipt_qa/damaged_ocr.json',
+  'device_tiers': 'test/fixtures/receipt_qa/device_tiers.json',
+  'fuel': 'test/fixtures/receipt_qa/fuel.json',
+  'long_receipt': 'test/fixtures/receipt_qa/long_receipt.json',
+  'maintenance': 'test/fixtures/receipt_qa/maintenance.json',
+  'noisy': 'test/fixtures/receipt_qa/noisy.json',
+  'privacy_admin': 'test/fixtures/receipt_qa/privacy_admin.json',
+  'retail': 'test/fixtures/receipt_qa/retail.json',
 };
 
 const _receiptQaFixtureRequiredFields = [
@@ -59,7 +59,8 @@ Map<String, Object?> _fixtureManifestToJson(List<String> availablePacks) {
     },
     'externalFixturePlan': _externalFixturePlanToJson(packs),
     'realFixtureSupport': _realFixtureSupportToJson(),
-    'externalFixtureFilesReady': false,
+    'externallyLoadedPacks': _externallyLoadedReceiptQaPacks.toList()..sort(),
+    'externalFixtureFilesReady': true,
   };
 }
 
@@ -86,7 +87,7 @@ Map<String, Object?> _fixtureFieldCoverageToJson(
   final packs = grouped.keys.toList()..sort();
   return {
     'format': 'fixture_field_coverage_v1',
-    'externalFixtureFilesReady': false,
+    'externalFixtureFilesReady': true,
     'allRequiredFields': _receiptQaFixtureRequiredFields,
     'packs': {
       for (final pack in packs)

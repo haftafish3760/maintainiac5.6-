@@ -10,14 +10,7 @@ import 'package:maintaniac/shared/widgets/receipt_capture/receipt_capture_models
 import 'receipt_qa_barcode_summary.dart';
 
 part 'receipt_qa_fixtures.dart';
-part 'receipt_qa_fixtures_adjustment_retail.dart';
-part 'receipt_qa_fixtures_contractor_supply.dart';
-part 'receipt_qa_fixtures_damaged_ocr.dart';
-part 'receipt_qa_fixtures_device_tiers.dart';
-part 'receipt_qa_fixtures_fuel.dart';
-part 'receipt_qa_fixtures_long_receipt.dart';
-part 'receipt_qa_fixtures_maintenance.dart';
-part 'receipt_qa_fixtures_privacy_admin.dart';
+part 'receipt_qa_external_fixture_loader.dart';
 part 'receipt_qa_fixture_manifest.dart';
 part 'receipt_qa_report_models.dart';
 part 'receipt_qa_scoring_matchers.dart';
@@ -66,8 +59,10 @@ void main(List<String> args) {
 }
 
 _ReceiptQaReport _runReceiptQa(_ReceiptQaConfig config) {
-  final availablePacks = _availableFixturePacks();
-  final selectedFixtures = _fixtures
+  final externalLoad = _loadExternalReceiptQaFixtures();
+  final fixtures = [..._fixtures, ...externalLoad.fixtures];
+  final availablePacks = _availableFixturePacks(fixtures);
+  final selectedFixtures = fixtures
       .where((fixture) => config.pack == 'all' || fixture.pack == config.pack)
       .toList(growable: false);
   final fixtureReports = selectedFixtures.map(_scoreFixture).toList();
@@ -91,12 +86,13 @@ _ReceiptQaReport _runReceiptQa(_ReceiptQaConfig config) {
             'Extract line roles, amount recovery, and parser handoff into pure '
             'Dart libraries before this runner can score production logic.',
       ..._fixtureManifestBlockers(availablePacks),
+      ...externalLoad.blockers,
     ],
   );
 }
 
-List<String> _availableFixturePacks() {
-  return (_fixtures.map((fixture) => fixture.pack).toSet().toList()..sort())
+List<String> _availableFixturePacks(List<_ReceiptQaFixture> fixtures) {
+  return (fixtures.map((fixture) => fixture.pack).toSet().toList()..sort())
     ..insert(0, 'all');
 }
 
