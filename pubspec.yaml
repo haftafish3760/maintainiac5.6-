@@ -41,6 +41,8 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   image_picker: ^1.2.1
+  image_picker_android: ^0.8.13+17
+  image_picker_platform_interface: ^2.11.1
   image: ^4.6.0
   disk_space_plus: ^0.2.6
   google_mlkit_text_recognition: ^0.15.1

@@ -1,4 +1,6 @@
 import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_android/image_picker_android.dart';
+import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 
 import 'receipt_photo_path_identity.dart';
 
@@ -46,6 +48,14 @@ class ReceiptImagePicker {
   }
 
   static Future<ReceiptPickedPhotoSet> chooseReceiptImageSet() async {
+    final platformPicker = ImagePickerPlatform.instance;
+    if (platformPicker is ImagePickerAndroid) {
+      // Use Android's direct photo-picker contract. Leaving this disabled sends
+      // modern Samsung devices through the ACTION_GET_CONTENT compatibility
+      // activity, which can leave its Done surface visible while it prepares
+      // the result instead of returning promptly to Maintainiac's handoff.
+      platformPicker.useAndroidPhotoPicker = true;
+    }
     final images = await _picker.pickMultiImage(requestFullMetadata: false);
     return ReceiptPickedPhotoSet.fromFiles(images);
   }
