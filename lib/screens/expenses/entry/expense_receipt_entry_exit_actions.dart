@@ -1,6 +1,16 @@
 part of 'expense_receipt_entry_screen.dart';
 
 extension _ExpenseReceiptEntryExitActions on _ExpenseReceiptEntryScreenState {
+  /// Ends the entire receipt transaction at its documented owner destination.
+  /// A plain pop is unsafe here because a source chooser, review route, or
+  /// caller from another app section can still be above or below this route.
+  /// Returning through the section root makes Android Back, iOS Back, Save
+  /// Draft, and Exit Without Saving converge on the Expenses landing screen.
+  void _returnToExpensesHome() {
+    if (!mounted) return;
+    openAppSectionRoot(context, AppSection.expenses);
+  }
+
   /// Completes one owner-level route transaction after the review route and
   /// import chooser have already closed. Repeated taps cannot stack pops.
   Future<bool> _saveReceiptDraftAndExit() async {
@@ -15,7 +25,7 @@ extension _ExpenseReceiptEntryExitActions on _ExpenseReceiptEntryScreenState {
     }
 
     _receiptExitResolved = true;
-    if (mounted) await Navigator.of(context).maybePop();
+    _returnToExpensesHome();
     return true;
   }
 
@@ -38,7 +48,7 @@ extension _ExpenseReceiptEntryExitActions on _ExpenseReceiptEntryScreenState {
     }
 
     _receiptExitResolved = true;
-    if (mounted) await Navigator.of(context).maybePop();
+    _returnToExpensesHome();
     return true;
   }
 }

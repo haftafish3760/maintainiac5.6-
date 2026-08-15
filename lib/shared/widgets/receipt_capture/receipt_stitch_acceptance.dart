@@ -86,32 +86,16 @@ int receiptTextAwareSeamCropPixels({
   );
 }
 
-int receiptTextAwarePlacementOverlapPixels({
-  required int geometricOverlapPixels,
+int receiptGeometryPlacementOverlapPixels({
+  required int seamSkipPixels,
+  required int overlapPixels,
   required int nextImageHeight,
-  required double continuationTextStart,
-  required double continuationTextEnd,
-  required bool hasHighTrustPositionedText,
 }) {
-  final safeOverlap = geometricOverlapPixels.clamp(1, nextImageHeight - 1);
-  if (!hasHighTrustPositionedText || nextImageHeight <= 24) {
-    return safeOverlap;
-  }
-  final seamFraction = safeOverlap / nextImageHeight;
-  final continuationBandHeight = math.max(
-    0.0,
-    continuationTextEnd - continuationTextStart,
-  );
-  final continuationTouchesSeam =
-      continuationTextStart > 0 &&
-      continuationTextStart < seamFraction + continuationBandHeight * .5 &&
-      continuationTextEnd > seamFraction;
-  if (!continuationTouchesSeam) return safeOverlap;
-  final continuationEndPixels =
-      (continuationTextEnd * nextImageHeight).ceil() + 2;
-  return math
-      .max(safeOverlap, continuationEndPixels)
-      .clamp(1, nextImageHeight - 1);
+  if (nextImageHeight <= 1) return 0;
+  final geometricPlacement = seamSkipPixels > 0
+      ? seamSkipPixels
+      : overlapPixels;
+  return geometricPlacement.clamp(0, nextImageHeight - 1);
 }
 
 Duration receiptRemainingStitchWorkerTimeout({
@@ -237,31 +221,20 @@ ReceiptStitchEvidenceDecision evaluateReceiptStitchEvidence({
   final noTextGeometryIsSafe =
       !hasNoTextEvidence ||
       (geometrySignal && (visualSignal || continuitySignal));
-  final positionedTextBackedAcceptance =
-      reliablePositionedText &&
-      // The OCR anchors define the proposed transform; the image still has
-      // to provide at least minimal independent support. Requiring the normal
-      // .48 visual threshold here defeats faded and wrinkled receipts—the
-      // exact cases positioned text is intended to rescue.
-      (continuitySignal || safeVisual >= .44) &&
-      textBackedConfidence >= .55;
-  final densePositionedTextBackedAcceptance =
-      hasHighTrustPositionedReceiptOverlap(
-        visualConfidence: safeVisual,
-        textConfidence: safeText,
-        matchedTextLineCount: matchedTextLineCount,
-        hasTextPositionEvidence: hasTextPositionEvidence,
-        textPositionalConfidence: textPositionalConfidence,
-      );
+  // Geometry owns physical placement. OCR can corroborate or veto that
+  // placement, but even dense repeated text cannot rescue unsupported image
+  // geometry. This prevents one evidence system from silently cancelling the
+  // failure reported by another.
   final accepted =
-      densePositionedTextBackedAcceptance ||
-      positionedTextBackedAcceptance ||
-      (confidence >= .50 &&
-          signalCount >= 2 &&
-          hasStructuralCorroboration &&
-          noTextGeometryIsSafe);
+      geometrySignal &&
+      safeVisual >= .35 &&
+      (continuitySignal || reliablePositionedText) &&
+      confidence >= .50 &&
+      signalCount >= 2 &&
+      hasStructuralCorroboration &&
+      noTextGeometryIsSafe;
   final reportedConfidence =
-      positionedTextBackedAcceptance && textBackedConfidence > confidence
+      accepted && reliablePositionedText && textBackedConfidence > confidence
       ? textBackedConfidence
       : confidence;
   return ReceiptStitchEvidenceDecision(
@@ -269,13 +242,13 @@ ReceiptStitchEvidenceDecision evaluateReceiptStitchEvidence({
     confidence: reportedConfidence,
     corroboratingSignalCount: signalCount,
     reasonCode: accepted
-        ? densePositionedTextBackedAcceptance
-              ? 'dense_positioned_text_and_image_overlap'
-              : positionedTextBackedAcceptance
-              ? 'positioned_text_and_receipt_continuity'
-              : textSignal
-              ? 'fused_text_and_document_geometry'
+        ? reliablePositionedText
+              ? 'positioned_text_corroborates_document_geometry'
               : 'fused_visual_document_geometry'
+        : !geometrySignal
+        ? 'document_geometry_not_proven'
+        : safeVisual < .35
+        ? 'visual_overlap_support_low'
         : !noTextGeometryIsSafe
         ? 'no_text_requires_geometry_corroboration'
         : signalCount < 2

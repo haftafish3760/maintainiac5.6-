@@ -17,6 +17,11 @@ void main() {
     expect(manualFlow, contains("'Save draft and exit'"));
     expect(exitActions, contains('_saveDraftNow()'));
     expect(exitActions, contains('deleteDraft(_draftId)'));
+    expect(
+      exitActions,
+      contains('openAppSectionRoot(context, AppSection.expenses);'),
+    );
+    expect(exitActions, isNot(contains('Navigator.of(context).maybePop()')));
     expect(manualFlow, contains('Colors.redAccent'));
     expect(manualFlow, contains('backgroundColor: const Color(0xFF28A745)'));
   });

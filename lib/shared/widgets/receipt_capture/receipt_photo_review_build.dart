@@ -176,7 +176,10 @@ extension _ReceiptPhotoReviewBuild on _ReceiptPhotoReviewScreenState {
                         // Ordered source sections are already a complete,
                         // safe receipt.  A failed visual match never turns
                         // Continue into another attempt at the same match.
-                        onUse: continueReceiptPhotoReview,
+                        onUse: _stitchPreviewResult?.didStitch == true
+                            ? _acceptCurrentStitchAndContinue
+                            : continueReceiptPhotoReview,
+                        onReject: _rejectCurrentStitch,
                         // This is a review detour, never a destructive cancel.
                         // Returning must keep every original receipt section.
                         onCancel: () =>

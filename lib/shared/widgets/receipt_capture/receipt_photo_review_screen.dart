@@ -154,6 +154,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   final _qualityCheckKeysInFlight = <String>{};
   final _postFrameReviewWorkKeys = <String>{};
   final _reviewDecisionState = ReceiptPhotoReviewDecisionState();
+  final _stitchDecisionState = ReceiptStitchReviewDecisionState();
   Set<String> get _completionPromptedPhotoPaths =>
       _reviewDecisionState.promptedPhotoPaths;
   Map<String, Map<String, Object?>> get _completionDecisionsByPath =>
@@ -182,6 +183,7 @@ class _ReceiptPhotoReviewScreenState extends State<ReceiptPhotoReviewScreen> {
   String? _stitchPreviewKey;
   String? _stitchOrderEvidenceKey;
   bool _stitchPreviewInFlight = false;
+  var _stitchInputRevision = 0;
   Future<void>? _stitchOrderWork;
   var _stitchOrderUserAdjusted = false;
   var _stitchPreviewRequested = false;

@@ -654,7 +654,7 @@ extension _ExpenseReceiptEntryManualFlow on _ExpenseReceiptEntryScreenState {
       hasRecoverableContent: _hasDraftContentWorthRecovering,
     )) {
       case ExpenseReceiptBackAction.popRoute:
-        Navigator.of(context).maybePop();
+        _returnToExpensesHome();
         return;
       case ExpenseReceiptBackAction.confirmExit:
         unawaited(_confirmLeaveManualReceipt());

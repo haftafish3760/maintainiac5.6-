@@ -15,9 +15,10 @@ Future<ReceiptStitchResult> _composeReceiptStitchOutput({
 }) async {
   final placementOverlaps = <int>[
     for (var index = 1; index < normalized.length; index++)
-      _receiptTextAwarePlacementOverlap(
-        pair: pairs[index - 1],
-        nextHeight: normalized[index].height,
+      receiptGeometryPlacementOverlapPixels(
+        seamSkipPixels: pairs[index - 1].seamSkipPixels,
+        overlapPixels: pairs[index - 1].overlapPixels,
+        nextImageHeight: normalized[index].height,
       ),
   ];
   final compositionHeight =
@@ -126,21 +127,6 @@ Future<ReceiptStitchResult> _composeReceiptStitchOutput({
     stitchedWidth: canvasWidth,
     stitchedHeight: compositionHeight,
     usedManualAdjustment: pairs.any((pair) => pair.usedManualAdjustment),
-  );
-}
-
-int _receiptTextAwarePlacementOverlap({
-  required ReceiptStitchPairResult pair,
-  required int nextHeight,
-}) {
-  return receiptTextAwarePlacementOverlapPixels(
-    geometricOverlapPixels: pair.seamSkipPixels > 0
-        ? pair.seamSkipPixels
-        : pair.overlapPixels,
-    nextImageHeight: nextHeight,
-    continuationTextStart: pair.nextContinuationTextStart,
-    continuationTextEnd: pair.nextContinuationTextEnd,
-    hasHighTrustPositionedText: _receiptHasHighTrustPositionedText(pair),
   );
 }
 

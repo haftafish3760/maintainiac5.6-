@@ -1,9 +1,50 @@
 part of 'receipt_photo_review_screen.dart';
 
 extension _ReceiptPhotoReviewSaveActions on _ReceiptPhotoReviewScreenState {
+  Future<void> _acceptCurrentStitchAndContinue() async {
+    final preview = _stitchPreviewResult;
+    final key = _stitchPreviewKey;
+    if (preview == null || !preview.didStitch || key == null) return;
+    if (key != _currentStitchPreviewKey()) return;
+    _stitchDecisionState.accept(key);
+    await continueReceiptPhotoReview();
+  }
+
+  Future<void> _rejectCurrentStitch() async {
+    final preview = _stitchPreviewResult;
+    final key = _stitchPreviewKey;
+    if (preview == null || !preview.didStitch || key == null) return;
+    if (key != _currentStitchPreviewKey()) return;
+    _stitchDecisionState.reject(key);
+    final rejectedPath = preview.stitchedPath;
+    _updateReviewState(() {
+      _stitchPreviewResult = ReceiptStitchResult.fallback(
+        inputPaths: _photoPaths,
+        warning:
+            'You rejected the combined image. Your original photos are unchanged and will remain in order.',
+        fallbackReasonCode: 'user_rejected_stitch',
+        confidence: preview.confidence,
+        failedPairIndex: preview.failedPairIndex,
+        pairs: preview.pairs,
+        stitchedWidth: preview.stitchedWidth,
+        stitchedHeight: preview.stitchedHeight,
+      );
+      _manualAlignmentRequested = false;
+    });
+    await _deleteStitchPreviewPath(rejectedPath);
+  }
+
   Future<void> continueReceiptPhotoReview() async {
     if (_savingPhotos || _closingReview) return;
     if (_photoPaths.isEmpty) return;
+    if (_reviewMode == _ReceiptReviewMode.stitch &&
+        _stitchPreviewResult?.didStitch == true &&
+        !_stitchDecisionState.isAccepted(_stitchPreviewKey)) {
+      _showCameraError(
+        'Choose Use Combined Receipt, or reject it and continue with the original photos.',
+      );
+      return;
+    }
     final completionDecision = await _confirmReceiptCompleteIfNeeded();
     if (completionDecision != _ReceiptContinueDecision.continueAnyway ||
         !_reviewWorkActive) {

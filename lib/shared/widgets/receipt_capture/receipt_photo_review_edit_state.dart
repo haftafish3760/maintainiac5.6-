@@ -75,3 +75,31 @@ class ReceiptPhotoReviewDecisionState {
     decisionsByPath.remove(photoPath);
   }
 }
+
+/// Keeps the person's decision separate from the stitch engine's result.
+/// Producing a composite is never equivalent to accepting it as OCR input.
+class ReceiptStitchReviewDecisionState {
+  String? _acceptedPreviewKey;
+  String? _rejectedPreviewKey;
+
+  bool isAccepted(String? previewKey) =>
+      previewKey != null && _acceptedPreviewKey == previewKey;
+
+  bool isRejected(String? previewKey) =>
+      previewKey != null && _rejectedPreviewKey == previewKey;
+
+  void accept(String previewKey) {
+    _acceptedPreviewKey = previewKey;
+    _rejectedPreviewKey = null;
+  }
+
+  void reject(String previewKey) {
+    _acceptedPreviewKey = null;
+    _rejectedPreviewKey = previewKey;
+  }
+
+  void invalidate() {
+    _acceptedPreviewKey = null;
+    _rejectedPreviewKey = null;
+  }
+}

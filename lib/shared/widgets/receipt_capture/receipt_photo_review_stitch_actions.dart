@@ -26,6 +26,7 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
     required this.manualAlignmentActive,
     required this.saving,
     required this.onUse,
+    required this.onReject,
     required this.onRedo,
     required this.onCancel,
   });
@@ -35,6 +36,7 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
   final bool manualAlignmentActive;
   final bool saving;
   final VoidCallback onUse;
+  final VoidCallback onReject;
   final VoidCallback onRedo;
   final VoidCallback onCancel;
 
@@ -58,12 +60,18 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
               icon: const Icon(Icons.photo_library_outlined),
             );
             final redo = OutlinedButton.icon(
-              onPressed: enabled ? onRedo : null,
+              onPressed: enabled ? (ready ? onReject : onRedo) : null,
               icon: Icon(
-                fallback ? Icons.open_with_rounded : Icons.refresh_rounded,
+                ready
+                    ? Icons.close_rounded
+                    : fallback
+                    ? Icons.open_with_rounded
+                    : Icons.refresh_rounded,
               ),
               label: Text(
-                fallback
+                ready
+                    ? 'This Stitch Is Wrong'
+                    : fallback
                     ? manualAlignmentActive
                           ? 'Try alignment'
                           : 'Align two photos'
@@ -85,7 +93,13 @@ class _ReceiptStitchReviewActions extends StatelessWidget {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.check_rounded),
-              label: Text(saving ? 'Continuing' : 'Continue'),
+              label: Text(
+                saving
+                    ? 'Continuing'
+                    : ready
+                    ? 'Use Combined Receipt'
+                    : 'Continue With Original Photos',
+              ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
                 backgroundColor: const Color(0xFF28A745),

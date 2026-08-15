@@ -142,6 +142,7 @@ extension _ReceiptPhotoReviewOrderActions on _ReceiptPhotoReviewScreenState {
 
   void _recoverReviewAfterPhotoSetChanged() {
     _invalidateStitchPreview();
+    _stitchInputRevision++;
     _resetPhotoPreviewZoom();
     if (_photoPaths.isEmpty) return;
     _updateReviewState(() {

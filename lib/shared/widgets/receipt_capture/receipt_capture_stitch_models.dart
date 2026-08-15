@@ -314,6 +314,7 @@ class ReceiptStitchResult {
       'output_too_large' => 'Receipt is too long for this device',
       'stitch_exception' => 'Stitching hit a safe fallback',
       'stitch_timeout' => 'Putting photos together took too long',
+      'user_rejected_stitch' => 'Combined image rejected during review',
       'unreadable_section_image' => 'One photo is not readable as a receipt',
       _ => 'Stitching was not trusted',
     };

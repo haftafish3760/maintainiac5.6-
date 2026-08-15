@@ -51,7 +51,12 @@ void main() {
       expect(exitActions, contains('await _drafts?.deleteDraft(_draftId)'));
       expect(exitActions, contains('_receiptReviewExitInFlight = false;'));
       expect(exitActions, contains('_receiptExitResolved = true'));
-      expect(exitActions, contains('await Navigator.of(context).maybePop();'));
+      expect(
+        exitActions,
+        contains('openAppSectionRoot(context, AppSection.expenses);'),
+      );
+      expect(exitActions, isNot(contains('Navigator.of(context).maybePop()')));
+      expect(manualFlow, contains('_returnToExpensesHome();'));
       expect(screen, contains('var _receiptReviewExitInFlight = false;'));
       expect(screen, contains('var _receiptExitResolved = false;'));
       expect(lifecycle, contains('!_receiptReviewExitInFlight'));

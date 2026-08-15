@@ -102,26 +102,6 @@ void main() {
       1190,
     );
     expect(
-      receiptTextAwarePlacementOverlapPixels(
-        geometricOverlapPixels: 1197,
-        nextImageHeight: 2275,
-        continuationTextStart: .524,
-        continuationTextEnd: .547,
-        hasHighTrustPositionedText: true,
-      ),
-      1247,
-    );
-    expect(
-      receiptTextAwarePlacementOverlapPixels(
-        geometricOverlapPixels: 1180,
-        nextImageHeight: 2275,
-        continuationTextStart: .5246,
-        continuationTextEnd: .5466,
-        hasHighTrustPositionedText: true,
-      ),
-      1246,
-    );
-    expect(
       receiptTextAwareSeamCropPixels(
         geometricOverlapPixels: 1180,
         nextImageHeight: 2275,
@@ -131,6 +111,17 @@ void main() {
         hasHighTrustPositionedText: true,
       ),
       1191,
+    );
+  });
+
+  test('OCR continuation bounds never move physical photo placement', () {
+    expect(
+      receiptGeometryPlacementOverlapPixels(
+        seamSkipPixels: 1197,
+        overlapPixels: 1100,
+        nextImageHeight: 2275,
+      ),
+      1197,
     );
   });
 
@@ -192,59 +183,53 @@ void main() {
     );
 
     expect(decision.accepted, isFalse);
-    expect(decision.reasonCode, 'insufficient_independent_signals');
+    expect(decision.reasonCode, 'document_geometry_not_proven');
   });
 
-  test(
-    'accepts dense positioned OCR with independent device image support',
-    () {
-      final decision = evaluateReceiptStitchEvidence(
-        visualConfidence: .506,
-        continuityCorrelation: .174,
-        continuityDetailedBands: 7,
-        continuityMatchingBands: 4,
-        continuityProven: false,
-        geometryCorrelation: .087,
-        geometryDetailedCells: 12,
-        geometryMatchingCells: 0,
-        geometryProven: false,
-        textConfidence: 1,
-        matchedTextLineCount: 10,
-        textStrong: true,
-        hasTextPositionEvidence: true,
-        textPositionalConfidence: .947,
-      );
+  test('dense positioned OCR cannot replace missing document geometry', () {
+    final decision = evaluateReceiptStitchEvidence(
+      visualConfidence: .506,
+      continuityCorrelation: .174,
+      continuityDetailedBands: 7,
+      continuityMatchingBands: 4,
+      continuityProven: false,
+      geometryCorrelation: .087,
+      geometryDetailedCells: 12,
+      geometryMatchingCells: 0,
+      geometryProven: false,
+      textConfidence: 1,
+      matchedTextLineCount: 10,
+      textStrong: true,
+      hasTextPositionEvidence: true,
+      textPositionalConfidence: .947,
+    );
 
-      expect(decision.accepted, isTrue);
-      expect(decision.reasonCode, 'dense_positioned_text_and_image_overlap');
-    },
-  );
+    expect(decision.accepted, isFalse);
+    expect(decision.reasonCode, 'document_geometry_not_proven');
+  });
 
-  test(
-    'accepts two positioned receipt lines corroborated by strong continuity',
-    () {
-      final decision = evaluateReceiptStitchEvidence(
-        visualConfidence: .26,
-        continuityCorrelation: .75,
-        continuityDetailedBands: 6,
-        continuityMatchingBands: 6,
-        continuityProven: true,
-        geometryCorrelation: .08,
-        geometryDetailedCells: 12,
-        geometryMatchingCells: 0,
-        geometryProven: false,
-        textConfidence: 1,
-        matchedTextLineCount: 2,
-        textStrong: true,
-        hasTextPositionEvidence: true,
-        textPositionalConfidence: .99,
-      );
+  test('positioned receipt lines and continuity cannot replace geometry', () {
+    final decision = evaluateReceiptStitchEvidence(
+      visualConfidence: .26,
+      continuityCorrelation: .75,
+      continuityDetailedBands: 6,
+      continuityMatchingBands: 6,
+      continuityProven: true,
+      geometryCorrelation: .08,
+      geometryDetailedCells: 12,
+      geometryMatchingCells: 0,
+      geometryProven: false,
+      textConfidence: 1,
+      matchedTextLineCount: 2,
+      textStrong: true,
+      hasTextPositionEvidence: true,
+      textPositionalConfidence: .99,
+    );
 
-      expect(decision.accepted, isTrue);
-      expect(decision.reasonCode, 'positioned_text_and_receipt_continuity');
-      expect(decision.confidence, greaterThan(.60));
-    },
-  );
+    expect(decision.accepted, isFalse);
+    expect(decision.reasonCode, 'document_geometry_not_proven');
+    expect(decision.confidence, lessThan(.50));
+  });
 
   test('requires two-dimensional geometry when OCR is unavailable', () {
     final decision = evaluateReceiptStitchEvidence(
@@ -265,10 +250,10 @@ void main() {
     );
 
     expect(decision.accepted, isFalse);
-    expect(decision.reasonCode, 'no_text_requires_geometry_corroboration');
+    expect(decision.reasonCode, 'document_geometry_not_proven');
   });
 
-  test('accepts moderate 2D geometry only with exceptional continuity', () {
+  test('rejects a geometry candidate with weak direct visual support', () {
     final decision = evaluateReceiptStitchEvidence(
       visualConfidence: .32,
       continuityCorrelation: .76,
@@ -286,8 +271,8 @@ void main() {
       textPositionalConfidence: 0,
     );
 
-    expect(decision.accepted, isTrue);
-    expect(decision.reasonCode, 'fused_visual_document_geometry');
+    expect(decision.accepted, isFalse);
+    expect(decision.reasonCode, 'visual_overlap_support_low');
   });
 
   test('accepts bounded drift when every continuity band corroborates it', () {

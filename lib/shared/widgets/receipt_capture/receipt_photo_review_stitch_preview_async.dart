@@ -156,6 +156,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     _stitchPreviewResult = null;
     _stitchPreviewInFlight = false;
     _manualAlignmentRequested = false;
+    _stitchDecisionState.invalidate();
     unawaited(_deleteStitchPreviewPath(previousPreviewPath));
   }
 
@@ -183,6 +184,9 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     }
     _stitchPreviewDebounce?.cancel();
     final previousPreviewPath = _stitchPreviewResult?.stitchedPath;
+    // A retry creates a new decision surface even when its inputs are the
+    // same. Never carry acceptance from an older set of rendered pixels.
+    _stitchDecisionState.invalidate();
     if (!_updateReviewState(() {
       _stitchPreviewInFlight = true;
       _stitchPreviewKey = key;
@@ -289,7 +293,7 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
     final zeroOverlapKey = _manualZeroOverlapPairs
         .map((value) => value ? 'zero' : 'auto')
         .join('|');
-    return '${_photoPaths.join('||')}::$overlapKey::$transformKey::$zeroOverlapKey';
+    return 'revision=$_stitchInputRevision::${_photoPaths.join('||')}::$overlapKey::$transformKey::$zeroOverlapKey';
   }
 
   Future<void> _deleteGeneratedStitchPreview() async {
@@ -300,6 +304,9 @@ extension _ReceiptPhotoReviewStitchPreviewAsync
   Future<void> _deleteStitchPreviewPath(String? path) async {
     if (path == null || _photoPaths.contains(path)) return;
     try {
+      // FileImage keys are path based. Evict before deleting or replacing a
+      // generated preview so a later render cannot display stale pixels.
+      await FileImage(File(path)).evict();
       final file = File(path);
       if (await file.exists()) await file.delete();
     } catch (_) {

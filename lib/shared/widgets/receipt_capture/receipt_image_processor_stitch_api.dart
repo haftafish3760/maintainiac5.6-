@@ -232,81 +232,17 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
         // available and imperfect receipts can lose exactly the overlap text.
         // Always evaluate bounded registration, then require multiple
         // independent signals before any repeated rows are removed.
-        var match = textPlan.safelyAcceleratesGeometry
-            ? _textGuidedReceiptOverlap(
-                previous: normalizedForComparison[pairIndex],
-                next: comparisonPrepared[index],
-                targetWidth: targetWidth,
-                evidence: textEvidence,
-              )
-            : null;
-        if (match != null) {
-          final guidedContinuity = _receiptOverlapContinuityEvidence(
-            previous: normalizedForComparison[pairIndex],
-            match: match,
-          );
-          final guidedGeometry = _receiptOverlapGeometryEvidence(
-            previous: normalizedForComparison[pairIndex],
-            match: match,
-          );
-          final guidedDecision = evaluateReceiptStitchEvidence(
-            visualConfidence: match.confidence,
-            continuityCorrelation: guidedContinuity.correlation,
-            continuityDetailedBands: guidedContinuity.detailedBands,
-            continuityMatchingBands: guidedContinuity.matchingBands,
-            continuityProven: guidedContinuity.isProven,
-            geometryCorrelation: guidedGeometry.correlation,
-            geometryDetailedCells: guidedGeometry.detailedCells,
-            geometryMatchingCells: guidedGeometry.matchingCells,
-            geometryProven: guidedGeometry.isProven,
-            textConfidence: textEvidence.confidence,
-            matchedTextLineCount: textEvidence.matchedLineCount,
-            textStrong: textEvidence.isStrong,
-            hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
-            textPositionalConfidence: textEvidence.positionalConfidence,
-          );
-          _traceReceiptStitchPairDecision(
-            'text_guided',
-            pairIndex: pairIndex,
-            stopwatch: pairStopwatch,
-            accepted: guidedDecision.accepted,
-            visualConfidence: match.confidence,
-            continuityConfidence: guidedContinuity.correlation,
-            geometryConfidence: guidedGeometry.correlation,
-            reason: guidedDecision.reasonCode,
-          );
-          if (!guidedDecision.accepted) {
-            match = null;
-          }
-        }
-        var usedNativeRegistration = false;
-        if (match == null) {
-          match = _verifiedNativeGuidedReceiptOverlap(
-            previous: normalizedForComparison[pairIndex],
-            next: comparisonPrepared[index],
-            targetWidth: targetWidth,
-            comparisonWidth: comparisonWidth,
-            proposal: _receiptNativeRegistrationProposalForPair(
-              mappedNativeProposals,
-              pairIndex,
-            ),
-          );
-          usedNativeRegistration = match != null;
-          _traceReceiptStitchPairDecision(
-            'native_guided',
-            pairIndex: pairIndex,
-            stopwatch: pairStopwatch,
-            accepted: usedNativeRegistration,
-          );
-        }
-        if (match == null) {
-          _traceReceiptStitchPairDecision(
-            'bounded_search_started',
-            pairIndex: pairIndex,
-            stopwatch: pairStopwatch,
-          );
-        }
-        match ??= _bestScaleTolerantVerticalOverlap(
+        // One subsystem owns physical placement. OCR and native features are
+        // evidence about a geometry candidate; they must not independently
+        // replace that candidate and then be replaced again by another
+        // heuristic. The former chain made the final seam depend on which
+        // helper happened to run last.
+        _traceReceiptStitchPairDecision(
+          'bounded_search_started',
+          pairIndex: pairIndex,
+          stopwatch: pairStopwatch,
+        );
+        final match = _bestScaleTolerantVerticalOverlap(
           previous: normalizedForComparison[pairIndex],
           next: comparisonPrepared[index],
           targetWidth: targetWidth,
@@ -323,55 +259,14 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
           stopwatch: pairStopwatch,
           visualConfidence: match.confidence,
         );
-        match = _preferVerifiedSequenceGuidedReceiptOverlap(
-          previous: normalizedForComparison[pairIndex],
-          next: comparisonPrepared[index],
-          current: match,
-          priorPair: pairResults.isEmpty ? null : pairResults.last,
-        );
-        var continuity = _receiptOverlapContinuityEvidence(
+        final continuity = _receiptOverlapContinuityEvidence(
           previous: normalizedForComparison[pairIndex],
           match: match,
         );
-        var geometry = _receiptOverlapGeometryEvidence(
+        final geometry = _receiptOverlapGeometryEvidence(
           previous: normalizedForComparison[pairIndex],
           match: match,
         );
-        final guidedMatchHasHighTrustPositionedText =
-            hasHighTrustPositionedReceiptOverlap(
-              visualConfidence: match.confidence,
-              textConfidence: textEvidence.confidence,
-              matchedTextLineCount: textEvidence.matchedLineCount,
-              hasTextPositionEvidence: textEvidence.hasPositionalEvidence,
-              textPositionalConfidence: textEvidence.positionalConfidence,
-            );
-        if (shouldTryFixedScaleReceiptFallback(
-          continuityProven: continuity.isProven,
-          hasHighTrustPositionedText: guidedMatchHasHighTrustPositionedText,
-          scaleCorrection: match.scaleCorrection,
-          rotationCorrectionDegrees: match.rotationCorrectionDegrees,
-          perspectiveCorrection: match.perspectiveCorrection,
-        )) {
-          final fixedMatch = _fixedScaleVerticalOverlap(
-            previous: normalizedForComparison[pairIndex],
-            next: comparisonPrepared[index],
-            targetWidth: targetWidth,
-            comparisonWidth: comparisonWidth,
-            horizontalOffsetHint: documentHorizontalOffsetHint,
-          );
-          final fixedContinuity = _receiptOverlapContinuityEvidence(
-            previous: normalizedForComparison[pairIndex],
-            match: fixedMatch,
-          );
-          if (fixedContinuity.isProven) {
-            match = fixedMatch;
-            continuity = fixedContinuity;
-            geometry = _receiptOverlapGeometryEvidence(
-              previous: normalizedForComparison[pairIndex],
-              match: match,
-            );
-          }
-        }
         final evidenceDecision = evaluateReceiptStitchEvidence(
           visualConfidence: match.confidence,
           continuityCorrelation: continuity.correlation,
@@ -505,7 +400,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             geometryDetailedCells: geometry.detailedCells,
             geometryMatchingCells: geometry.matchingCells,
             visualConfidence: match.confidence,
-            usedNativeRegistration: usedNativeRegistration,
+            usedNativeRegistration: false,
           );
           return ReceiptStitchResult.fallback(
             inputPaths: inputPaths,
@@ -557,7 +452,7 @@ Future<ReceiptStitchResult> _stitchReceiptPhotosForOcr({
             geometryDetailedCells: geometry.detailedCells,
             geometryMatchingCells: geometry.matchingCells,
             visualConfidence: match.confidence,
-            usedNativeRegistration: usedNativeRegistration,
+            usedNativeRegistration: false,
           ),
         );
         expectedHeight += nextImage.height - match.nextSkipPixels;

@@ -63,7 +63,9 @@ extension _ReceiptPhotoReviewExitStitchActions
     final previewCanBeUsed =
         preview != null &&
         _stitchPreviewKey == _currentStitchPreviewKey() &&
-        currentPathOrderMatches;
+        currentPathOrderMatches &&
+        (!preview.didStitch ||
+            _stitchDecisionState.isAccepted(_stitchPreviewKey));
     if (previewCanBeUsed && preview.didStitch && preparedOcrPaths.length == 1) {
       return preview.copyForFinalOcr(
         inputPaths: inputPaths,
