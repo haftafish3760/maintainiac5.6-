@@ -21,18 +21,29 @@ class ContractorDashboardSnapshot {
     required int vehicleCount,
     required int milesToday,
     required bool dayStarted,
+    String viewerMemberId = 'local-owner',
+    bool includeAllJobs = true,
+    bool includeReceiptReview = true,
+    bool includeUnpaidInvoices = true,
     MaintainiacJobController? jobs,
     ExpenseLedgerController? expenses,
     InvoiceLedgerStore? invoices,
   }) {
-    final activeJobs = jobs?.activeJobs ?? const <MaintainiacJobRecord>[];
+    final allActiveJobs = jobs?.activeJobs ?? const <MaintainiacJobRecord>[];
+    final activeJobs = includeAllJobs
+        ? allActiveJobs
+        : allActiveJobs
+              .where((job) => job.assignedMemberIds.contains(viewerMemberId))
+              .toList(growable: false);
     final jobsToday =
         activeJobs
             .where((job) => _sameDay(job.scheduledStart, now))
             .toList(growable: false)
           ..sort((left, right) => _jobTime(left).compareTo(_jobTime(right)));
     final expenseSummary = expenses?.summaryForWeek(now);
-    final receiptReviewCount = expenses?.receiptsNeedingOcrReview.length ?? 0;
+    final receiptReviewCount = includeReceiptReview
+        ? expenses?.receiptsNeedingOcrReview.length ?? 0
+        : 0;
     final invoiceRecords =
         invoices?.records
             .where(
@@ -43,9 +54,10 @@ class ContractorDashboardSnapshot {
             )
             .toList(growable: false) ??
         const [];
-    final unpaidRecords = invoiceRecords
-        .where((record) => record.balanceDue > 0)
-        .toList(growable: false);
+    final unpaidRecords =
+        (includeUnpaidInvoices ? invoiceRecords : const <InvoiceRecord>[])
+            .where((record) => record.balanceDue > 0)
+            .toList(growable: false);
     final overdueRecords = unpaidRecords
         .where(
           (record) =>
@@ -138,6 +150,7 @@ class ContractorDashboardSnapshot {
                 'Confirm the receipt details before relying on the expense record.',
             color: const Color(0xFFFFC44D),
             icon: Icons.receipt_long_rounded,
+            target: ContractorMetricTarget.receiptsToReview,
           ),
         if (overdueRecords.isNotEmpty)
           ContractorAttentionItem(
@@ -146,11 +159,13 @@ class ContractorDashboardSnapshot {
             detail: 'Open invoices to review balances and payment history.',
             color: const Color(0xFFFF8552),
             icon: Icons.request_quote_rounded,
+            target: ContractorMetricTarget.unpaidInvoices,
           ),
       ],
       jobsToday: [
         for (final job in jobsToday)
           ContractorJobPreview(
+            id: job.id,
             time: _timeLabel(job.scheduledStart),
             title: job.name,
             summary: _jobSummary(job),

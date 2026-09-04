@@ -17,7 +17,7 @@ class DashboardSettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 10, 0, 18),
         children: const [
-          GlobalOdometerHeader(),
+          GlobalOdometerHeader(settingsActionEnabled: false),
           SizedBox(height: 12),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),

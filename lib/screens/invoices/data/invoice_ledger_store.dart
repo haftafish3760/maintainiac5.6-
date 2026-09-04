@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../../../shared/storage/app_storage_guard.dart';
+import '../../../shared/storage/maintainiac_secure_storage.dart';
 import 'invoice_ledger_models.dart';
 import 'invoice_record.dart';
 
@@ -50,7 +51,7 @@ class InvoiceLedgerStore extends ChangeNotifier {
         return InvoiceLedgerStore.memory(canPersist: false);
       }
       final encryptionKey = await _loadOrCreateEncryptionKey(
-        const FlutterSecureStorage(),
+        maintainiacSecureStorage,
       );
       final box = await Hive.openBox<dynamic>(
         boxName,

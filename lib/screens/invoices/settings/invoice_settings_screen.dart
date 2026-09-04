@@ -12,7 +12,10 @@ class InvoiceSettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
         children: const [
-          GlobalOdometerHeader(section: AppSection.invoices),
+          GlobalOdometerHeader(
+            section: AppSection.invoices,
+            settingsActionEnabled: false,
+          ),
           SizedBox(height: 10),
           _InvoiceSettingsPanel(),
         ],

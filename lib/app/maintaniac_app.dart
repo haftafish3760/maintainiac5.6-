@@ -1,11 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 
 import 'incoming_receipt_destination_screen.dart';
-import '../screens/dashboard/dashboard.dart';
+import '../screens/dashboard/contractor/contractor_dashboard_screen.dart';
 import '../main.dart';
 import '../shared/navigation/app_page_routes.dart';
 import '../shared/device_capabilities/device_capability_scope.dart';
@@ -186,7 +187,7 @@ class _MaintaniacAppState extends State<MaintaniacApp>
           ),
           home: const AnnotatedRegion<SystemUiOverlayStyle>(
             value: maintaniacSystemUiStyle,
-            child: DashboardScreen(),
+            child: ContractorDashboardScreen(),
           ),
         ),
       ),

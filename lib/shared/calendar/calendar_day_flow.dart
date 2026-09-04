@@ -6,7 +6,6 @@ import '../jobs/maintainiac_job_store.dart';
 import '../context/operational_context_store.dart';
 import '../profiles/employee_work_time_store.dart';
 import '../navigation/app_page_routes.dart';
-import '../widgets/app_back_button.dart';
 import '../widgets/app_screen_shell.dart';
 import 'app_date_picker.dart';
 import 'calendar_employee_day_projection.dart';
@@ -54,9 +53,7 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final mode = calendarModeFor(_selectedDay);
-    final profile = calendarModeProfileFor(mode);
-    final data = _calendarDataFor(context, _selectedDay);
+    final profile = calendarModeProfileFor(calendarModeFor(_selectedDay));
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F2528),
@@ -68,28 +65,18 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
         onPressed: () => _openScheduleEditor(context, _selectedDay),
       ),
       body: SafeArea(
-        top: false,
+        top: true,
         child: ListView(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 92),
           children: [
-            AppScreenHeader(
-              title: calendarScreenTitle(widget.source),
-              actions: [
-                IconButton(
-                  tooltip: 'Calendar settings',
-                  onPressed: () => _openCalendarSettings(context),
-                  icon: const Icon(Icons.settings_rounded),
-                  color: const Color(0xFFE2E8EA),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
             GlobalOdometerHeader(
               section: calendarAppSectionFor(widget.source),
-              headerLabel: 'ACTIVE VEHICLE / WORK PROFILE',
+              headerLabel: 'ACTIVE VEHICLE / EMPLOYEE PROFILE',
+              profileLabel: 'EMPLOYEE PROFILE',
+              profileName: _employeeProfileName(context),
+              showBackButton: true,
+              onSettingsPressed: () => _openCalendarSettings(context),
             ),
-            const SizedBox(height: 12),
-            const CalendarActiveContextStrip(),
             const SizedBox(height: 12),
             CalendarDayNavigation(
               day: _selectedDay,
@@ -97,14 +84,17 @@ class _CalendarDayFlowScreenState extends State<CalendarDayFlowScreen> {
               onNextDay: () => _shiftDay(1),
               onPickDate: _pickDay,
             ),
-            const SizedBox(height: 12),
-            CalendarModeHeader(day: _selectedDay, profile: profile),
-            const SizedBox(height: 12),
-            ..._sectionsForMode(context, _selectedDay, mode, data),
           ],
         ),
       ),
     );
+  }
+
+  String _employeeProfileName(BuildContext context) {
+    final operational = OperationalContextScope.maybeOf(context)?.context;
+    return operational?.userName.trim().isNotEmpty == true
+        ? operational!.userName
+        : 'No employee profile selected';
   }
 
   List<Widget> _sectionsForMode(

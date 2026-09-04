@@ -195,9 +195,14 @@ class ContractorDayControlPanel extends StatelessWidget {
 }
 
 class ContractorAttentionPanel extends StatelessWidget {
-  const ContractorAttentionPanel({required this.items, super.key});
+  const ContractorAttentionPanel({
+    required this.items,
+    required this.onItemSelected,
+    super.key,
+  });
 
   final List<ContractorAttentionItem> items;
+  final ValueChanged<ContractorMetricTarget> onItemSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +262,10 @@ class ContractorAttentionPanel extends StatelessWidget {
                 )
               else
                 for (final item in items) ...[
-                  _AttentionRow(item: item),
+                  _AttentionRow(
+                    item: item,
+                    onTap: () => onItemSelected(item.target),
+                  ),
                   if (item != items.last)
                     const Divider(height: 12, color: Color(0x66FFC44D)),
                 ],
@@ -306,42 +314,52 @@ class ContractorCommandGrid extends StatelessWidget {
 }
 
 class _AttentionRow extends StatelessWidget {
-  const _AttentionRow({required this.item});
+  const _AttentionRow({required this.item, required this.onTap});
 
   final ContractorAttentionItem item;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(item.icon, color: item.color, size: 22),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Icon(item.icon, color: item.color, size: 22),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.detail,
+                    style: const TextStyle(
+                      color: Color(0xFFFFE5B8),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                item.detail,
-                style: const TextStyle(
-                  color: Color(0xFFFFE5B8),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w800,
-                  height: 1.2,
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.chevron_right_rounded, color: item.color, size: 22),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

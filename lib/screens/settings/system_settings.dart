@@ -24,7 +24,7 @@ class SystemSettingsScreen extends StatelessWidget {
             child: AppScreenHeader(title: 'Menu'),
           ),
           const SizedBox(height: 12),
-          const GlobalOdometerHeader(),
+          const GlobalOdometerHeader(settingsActionEnabled: false),
           const SizedBox(height: 12),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 12),

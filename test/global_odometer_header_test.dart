@@ -55,6 +55,48 @@ void main() {
     expect(find.text('+2 mi live'), findsOneWidget);
   });
 
+  testWidgets(
+    'shared header keeps its menu icon on a main screen in a route stack',
+    (tester) async {
+      final appState = AppStateController();
+      final odometer = GlobalOdometerController(initialReading: 1000);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AppStateScope(
+            controller: appState,
+            child: GlobalOdometerScope(
+              controller: odometer,
+              child: Builder(
+                builder: (context) => Scaffold(
+                  body: TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => AppStateScope(
+                          controller: appState,
+                          child: GlobalOdometerScope(
+                            controller: odometer,
+                            child: const Scaffold(body: GlobalOdometerHeader()),
+                          ),
+                        ),
+                      ),
+                    ),
+                    child: const Text('Open main screen'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Open main screen'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.arrow_back_rounded), findsNothing);
+    },
+  );
+
   testWidgets('shared odometer header redraws from accepted GPS trip samples', (
     tester,
   ) async {

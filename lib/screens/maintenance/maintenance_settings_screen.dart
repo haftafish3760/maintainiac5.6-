@@ -14,7 +14,10 @@ class MaintenanceSettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
         children: [
-          const GlobalOdometerHeader(section: AppSection.maintenance),
+          const GlobalOdometerHeader(
+            section: AppSection.maintenance,
+            settingsActionEnabled: false,
+          ),
           const SizedBox(height: 10),
           const _MaintenanceSettingsPanel(),
           const SizedBox(height: 10),

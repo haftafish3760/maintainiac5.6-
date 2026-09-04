@@ -6,6 +6,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'account_creation_gate_contract.dart';
+import '../storage/maintainiac_secure_storage.dart';
 
 class AppInstallationIdentity {
   const AppInstallationIdentity({
@@ -38,7 +39,7 @@ abstract class InstallationIdentityVault {
 
 class SecureInstallationIdentityVault implements InstallationIdentityVault {
   const SecureInstallationIdentityVault({
-    FlutterSecureStorage storage = const FlutterSecureStorage(),
+    FlutterSecureStorage storage = maintainiacSecureStorage,
   }) : _storage = storage;
 
   final FlutterSecureStorage _storage;

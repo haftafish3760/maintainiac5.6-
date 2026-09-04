@@ -72,6 +72,7 @@ void main() {
           body: ContractorJobsPanel(
             jobs: const [],
             onOpenJobs: () => openJobsCalls += 1,
+            onOpenJob: (_) {},
           ),
         ),
       ),
@@ -126,22 +127,15 @@ void main() {
     expect(find.text('Back'), findsOneWidget);
     expect(find.text('Contractor Command Center'), findsOneWidget);
     expect(find.byIcon(Icons.menu_rounded), findsOneWidget);
-    expect(find.text('Mode'), findsOneWidget);
-    expect(find.text('Contractor'), findsOneWidget);
-    expect(find.text('Jobs'), findsOneWidget);
-    expect(find.text('Operations Pulse'), findsOneWidget);
-    expect(find.text('Day status'), findsOneWidget);
-    expect(find.text('Jobs today'), findsOneWidget);
-    expect(find.text('Receipts to review'), findsOneWidget);
-    expect(find.text('Unpaid invoices'), findsOneWidget);
+    expect(find.text('Start Day'), findsOneWidget);
+    expect(find.text('Needs Attention'), findsOneWidget);
+    expect(find.text('Today Work Queue'), findsOneWidget);
+    expect(find.text('Mode'), findsNothing);
+    expect(find.text('Operations Pulse'), findsNothing);
+    expect(find.text('Jobs today'), findsNothing);
+    expect(find.text('Quick Actions'), findsNothing);
+    expect(find.text('Business Snapshot'), findsNothing);
     expect(find.text('Employees Active'), findsNothing);
-    await tester.scrollUntilVisible(
-      find.text('Payments this week'),
-      360,
-      scrollable: find.byType(Scrollable).last,
-    );
-    expect(find.text('Payments this week'), findsOneWidget);
-    expect(find.text('Expenses this week'), findsOneWidget);
     expect(find.text('No jobs are scheduled for today.'), findsOneWidget);
   });
 
@@ -169,11 +163,7 @@ void main() {
     expect(find.text('Shift Timer'), findsOneWidget);
     expect(find.text('Miles Today'), findsOneWidget);
     expect(find.text('14.2'), findsNothing);
-    expect(find.text('Add Stop'), findsOneWidget);
-    expect(find.text('Fuel'), findsOneWidget);
-    expect(find.text('Expense'), findsOneWidget);
-    expect(find.text('Invoice'), findsOneWidget);
-    expect(find.text('Payment'), findsOneWidget);
+    expect(find.text('Quick Actions'), findsNothing);
     expect(find.text('Proof Photo'), findsNothing);
     await tester.binding.handlePopRoute();
     await tester.pumpAndSettle();
@@ -205,63 +195,6 @@ void main() {
     expect(find.text('Pause Day'), findsOneWidget);
     expect(find.text('End Day'), findsOneWidget);
     expect(activeWorkday.activeSession?.status, ActiveWorkdayStatus.active);
-  });
-
-  testWidgets('contractor record payment opens the payment workflow', (
-    tester,
-  ) async {
-    final activeWorkday = ActiveWorkdayController.memory();
-    await _pumpDashboard(
-      tester,
-      appState,
-      odometer,
-      workProfiles,
-      activeWorkday: activeWorkday,
-    );
-
-    await tester.tap(find.text('Contractor'));
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Start Day'),
-      220,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await _completeContractorStartDay(tester);
-
-    await tester.tap(find.text('Payment'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Payments'), findsWidgets);
-    expect(find.text('Payment Amount'), findsOneWidget);
-  });
-
-  testWidgets('active day fuel opens its review before expense entry', (
-    tester,
-  ) async {
-    final activeWorkday = ActiveWorkdayController.memory();
-    await _pumpDashboard(
-      tester,
-      appState,
-      odometer,
-      workProfiles,
-      activeWorkday: activeWorkday,
-    );
-
-    await tester.tap(find.text('Contractor'));
-    await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.text('Start Day'),
-      220,
-      scrollable: find.byType(Scrollable).last,
-    );
-    await _completeContractorStartDay(tester);
-
-    await tester.tap(find.text('Fuel'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Fuel Review'), findsOneWidget);
-    expect(find.text('Add expense'), findsOneWidget);
-    expect(find.text('Fuel Stop Odometer'), findsNothing);
   });
 
   testWidgets('contractor cannot create a UI-only day without storage', (

@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app/maintaniac_app.dart';
 import 'screens/dashboard/active_workday_actions.dart';
@@ -38,6 +37,7 @@ import 'shared/records/maintainiac_durable_record_store.dart';
 import 'shared/signatures/app_signature_store.dart';
 import 'shared/state/global_odometer.dart';
 import 'shared/storage/app_storage_guard.dart';
+import 'shared/storage/maintainiac_hive_bootstrap.dart';
 import 'shared/odometer/odometer_store.dart';
 import 'shared/odometer/odometer_vehicle_snapshot.dart';
 import 'shared/trip_tracking/trip_tracking_controller.dart';
@@ -70,7 +70,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MaintainiacMapRuntime.initializeFromEnvironment();
   final firebaseSupported = await MaintainiacFirebase.initializeIfSupported();
-  await Hive.initFlutter();
+  await MaintainiacHiveBootstrap.initialize();
   final installationIdentity = await AppInstallationIdentityStore()
       .getOrCreate();
   final expenseSettings = await ExpenseSettingsController.create();

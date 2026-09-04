@@ -6,11 +6,22 @@ class GlobalOdometerHeader extends StatelessWidget {
     this.section = AppSection.dashboard,
     this.onSettingsPressed,
     this.headerLabel,
+    this.settingsActionEnabled = true,
+    this.showBackButton = false,
+    this.profileLabel = 'WORK PROFILE',
+    this.profileName,
   });
 
   final AppSection section;
   final VoidCallback? onSettingsPressed;
   final String? headerLabel;
+
+  /// Settings pages retain the contextual gear but must not push a duplicate
+  /// copy of themselves onto the navigation stack.
+  final bool settingsActionEnabled;
+  final bool showBackButton;
+  final String profileLabel;
+  final String? profileName;
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +29,7 @@ class GlobalOdometerHeader extends StatelessWidget {
     final operationalContext = OperationalContextScope.maybeOf(context);
     final vehicle = appState.activeVehicle;
     final hasMultipleVehicles = appState.vehicles.length > 1;
+    final hasPreviousScreen = showBackButton;
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 600),
@@ -43,14 +55,18 @@ class GlobalOdometerHeader extends StatelessWidget {
                       width: 38,
                       height: 40,
                       child: IconButton(
-                        onPressed: () => _openSystemSettings(context),
+                        onPressed: hasPreviousScreen
+                            ? () => Navigator.of(context).maybePop()
+                            : () => _openSystemSettings(context),
                         constraints: const BoxConstraints.tightFor(
                           width: 38,
                           height: 40,
                         ),
                         padding: EdgeInsets.zero,
-                        icon: const Icon(
-                          Icons.menu_rounded,
+                        icon: Icon(
+                          hasPreviousScreen
+                              ? Icons.arrow_back_rounded
+                              : Icons.menu_rounded,
                           color: Color(0xFF101416),
                           size: 24,
                         ),
@@ -97,9 +113,10 @@ class GlobalOdometerHeader extends StatelessWidget {
                       width: 38,
                       height: 40,
                       child: IconButton(
-                        onPressed:
-                            onSettingsPressed ??
-                            () => _openDashboardSettings(context),
+                        onPressed: settingsActionEnabled
+                            ? (onSettingsPressed ??
+                                  () => _openDashboardSettings(context))
+                            : () {},
                         constraints: const BoxConstraints.tightFor(
                           width: 38,
                           height: 40,
@@ -117,7 +134,10 @@ class GlobalOdometerHeader extends StatelessWidget {
                 if (operationalContext != null) ...[
                   const SizedBox(height: 5),
                   _ActiveWorkProfileLine(
-                    workProfileName: operationalContext.context.workProfileName,
+                    label: profileLabel,
+                    profileName:
+                        profileName ??
+                        operationalContext.context.workProfileName,
                   ),
                 ],
               ],
@@ -151,13 +171,17 @@ class GlobalOdometerHeader extends StatelessWidget {
 }
 
 class _ActiveWorkProfileLine extends StatelessWidget {
-  const _ActiveWorkProfileLine({required this.workProfileName});
+  const _ActiveWorkProfileLine({
+    required this.label,
+    required this.profileName,
+  });
 
-  final String workProfileName;
+  final String label;
+  final String profileName;
 
   @override
   Widget build(BuildContext context) => Semantics(
-    label: 'Active work profile: $workProfileName',
+    label: '$label: $profileName',
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -165,7 +189,7 @@ class _ActiveWorkProfileLine extends StatelessWidget {
         const SizedBox(width: 5),
         Flexible(
           child: Text(
-            'WORK PROFILE · $workProfileName',
+            '$label · $profileName',
             textAlign: TextAlign.center,
             softWrap: true,
             style: const TextStyle(

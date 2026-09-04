@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'app_signature_models.dart';
+import '../storage/maintainiac_secure_storage.dart';
 
 class AppSignatureStore extends ChangeNotifier {
   AppSignatureStore._(this._box, {required this.canPersistOwnerSignature});
@@ -21,7 +22,7 @@ class AppSignatureStore extends ChangeNotifier {
   static Future<AppSignatureStore> create() async {
     try {
       final encryptionKey = await _loadOrCreateEncryptionKey(
-        const FlutterSecureStorage(),
+        maintainiacSecureStorage,
       );
       final box = await Hive.openBox<dynamic>(
         boxName,

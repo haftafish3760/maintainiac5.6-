@@ -62,7 +62,7 @@ class _DashboardTitleBand extends StatelessWidget {
         const SizedBox(width: 8),
         const Expanded(
           child: Text(
-            'Delivery dashboard',
+            'Recap',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
@@ -77,7 +77,7 @@ class _DashboardTitleBand extends StatelessWidget {
             appNativeRoute<void>(context, const ContractorDashboardScreen()),
           ),
           icon: const Icon(Icons.dashboard_customize_rounded, size: 18),
-          label: const Text('Contractor'),
+          label: const Text('Dashboard'),
         ),
       ],
     );

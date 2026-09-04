@@ -44,22 +44,26 @@ class ContractorAttentionItem {
     required this.detail,
     required this.color,
     required this.icon,
+    required this.target,
   });
 
   final String title;
   final String detail;
   final Color color;
   final IconData icon;
+  final ContractorMetricTarget target;
 }
 
 class ContractorJobPreview {
   const ContractorJobPreview({
+    required this.id,
     required this.time,
     required this.title,
     required this.summary,
     required this.status,
   });
 
+  final String id;
   final String time;
   final String title;
   final String summary;

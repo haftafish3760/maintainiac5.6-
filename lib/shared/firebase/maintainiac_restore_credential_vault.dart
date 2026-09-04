@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'maintainiac_restore_callable_source.dart';
 import 'maintainiac_restore_session_client.dart';
+import '../storage/maintainiac_secure_storage.dart';
 
 const _credentialPrefix = 'maintainiac_restore_credential_v1_';
 
@@ -17,7 +18,7 @@ abstract interface class MaintainiacSecureValueStore {
 class FlutterMaintainiacSecureValueStore
     implements MaintainiacSecureValueStore {
   const FlutterMaintainiacSecureValueStore({
-    FlutterSecureStorage storage = const FlutterSecureStorage(),
+    FlutterSecureStorage storage = maintainiacSecureStorage,
   }) : _storage = storage;
 
   final FlutterSecureStorage _storage;

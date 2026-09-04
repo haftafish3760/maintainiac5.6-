@@ -38,7 +38,10 @@ class _ExpenseSettingsScreenState extends State<ExpenseSettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(12, 10, 12, 18),
         children: [
-          const GlobalOdometerHeader(section: AppSection.expenses),
+          const GlobalOdometerHeader(
+            section: AppSection.expenses,
+            settingsActionEnabled: false,
+          ),
           const SizedBox(height: 10),
           const _SettingsIntro(),
           const SizedBox(height: 12),

@@ -44,7 +44,7 @@ class TripTrackingSettingsScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 10, 0, 22),
         children: [
-          const GlobalOdometerHeader(),
+          const GlobalOdometerHeader(settingsActionEnabled: false),
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),

@@ -51,7 +51,10 @@ class _WorkSupplySettingsScreenState extends State<WorkSupplySettingsScreen> {
       section: AppSection.materials,
       body: Column(
         children: [
-          const GlobalOdometerHeader(section: AppSection.materials),
+          const GlobalOdometerHeader(
+            section: AppSection.materials,
+            settingsActionEnabled: false,
+          ),
           const SizedBox(height: 10),
           Expanded(
             child: FutureBuilder<WorkSupplyInventorySettingsController>(

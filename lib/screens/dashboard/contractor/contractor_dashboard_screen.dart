@@ -6,34 +6,29 @@ import '../../../shared/navigation/app_page_routes.dart';
 import '../../../shared/jobs/maintainiac_job_store.dart';
 import '../../../shared/widgets/app_back_button.dart';
 import '../../../shared/widgets/app_screen_shell.dart';
+import '../dashboard.dart';
 import '../../expenses/data/expense_ledger_store.dart';
-import '../../expenses/data/expense_ledger_models.dart';
 import '../../expenses/data/expense_work_profile_store.dart';
-import '../../expenses/entry/expense_receipt_entry_screen.dart';
 import '../../expenses/home/expenses_home_screen.dart';
-import '../../profiles/employee_permissions_screen.dart';
 import '../../invoices/data/invoice_ledger_store.dart';
 import '../../invoices/home/invoice_workspace_screen.dart';
 import '../../invoices/home/invoice_home_models.dart';
-import '../../invoices/home/invoice_info_screens.dart';
 import '../../work_supplies/jobs/work_supply_jobs_screen.dart';
-import '../../work_supplies/work_supply_screen.dart';
+import '../../work_supplies/jobs/maintainiac_job_detail_screen.dart';
 import '../../../shared/calendar/calendar.dart';
 import '../../../shared/state/app_state.dart';
 import '../../../shared/state/global_odometer.dart';
 import '../../../shared/odometer/open_odometer_entry.dart';
+import '../../../shared/profiles/user_profile_store.dart';
 import '../../../shared/trip_tracking/trip_tracking_settings_store.dart';
-import '../../../shared/trip_tracking/trip_tracking_controller.dart';
-import '../../../shared/trip_tracking/trip_tracking_session_store.dart';
 import '../active_workday_screen.dart';
 import '../data/active_workday_store.dart';
 import '../start_day_confirmation_sheet.dart';
 import '../vehicle_profile_widgets.dart';
-import '../workday_note_sheet.dart';
 import 'contractor_active_shift_panel.dart';
+import 'contractor_dashboard_access.dart';
 import 'contractor_dashboard_models.dart';
 import 'contractor_dashboard_jobs_panel.dart';
-import 'contractor_dashboard_pulse.dart';
 import 'contractor_dashboard_sections.dart';
 import 'contractor_dashboard_snapshot.dart';
 import 'contractor_weekly_expenses_screen.dart';
@@ -73,6 +68,9 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     final activeSession = activeWorkday?.activeSession;
     final odometer = GlobalOdometerScope.of(context);
     final appState = AppStateScope.of(context);
+    final access = ContractorDashboardAccess.fromProfile(
+      UserProfileScope.maybeOf(context)?.activeProfile,
+    );
     final dayStarted = activeSession != null;
     final milesToday = activeSession?.milesSoFar(odometer.reading) ?? 0;
     final snapshot = ContractorDashboardSnapshot.fromControllers(
@@ -80,6 +78,10 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
       vehicleCount: appState.vehicles.length,
       milesToday: milesToday,
       dayStarted: dayStarted,
+      viewerMemberId: access.memberId,
+      includeAllJobs: access.canViewAllJobs,
+      includeReceiptReview: access.canReviewReceipts,
+      includeUnpaidInvoices: access.canViewUnpaidInvoices,
       jobs: MaintainiacJobScope.maybeOf(context),
       expenses: ExpenseLedgerScope.maybeOf(context),
       invoices: InvoiceLedgerScope.maybeOf(context),
@@ -89,23 +91,36 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 8, 0, 24),
         children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: AppScreenHeader(title: 'Contractor Command Center'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: AppScreenHeader(
+              title: 'Contractor Command Center',
+              actions: [
+                TextButton.icon(
+                  onPressed: () => Navigator.of(context).push(
+                    appNativeRoute<void>(context, const DashboardScreen()),
+                  ),
+                  icon: const Icon(Icons.history_rounded, size: 18),
+                  label: const Text('Recap'),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           const GlobalOdometerHeader(),
           const SizedBox(height: 10),
-          ContractorScaleStrip(metrics: snapshot.scaleMetrics),
-          const SizedBox(height: 10),
-          ContractorOperationsPulse(
-            items: snapshot.operationsMetrics,
-            onMetricSelected: _openMetric,
-          ),
-          const SizedBox(height: 10),
-          ContractorAttentionPanel(items: snapshot.attentionItems),
-          const SizedBox(height: 10),
-          if (dayStarted) ...[
+          if (!access.canStartOwnDay)
+            const _DashboardAccessNotice(
+              message: 'Your role cannot start or manage a mileage workday.',
+            )
+          else if (dayStarted) ...[
+            ContractorDayControlPanel(
+              dayStarted: true,
+              onStartDay: _startContractorDay,
+              onOpenDay: _openActiveWorkday,
+              onStartGps: () => _openActiveWorkday(startGpsWhenOpened: true),
+            ),
+            const SizedBox(height: 10),
             AnimatedBuilder(
               animation: odometer,
               builder: (context, _) => ContractorActiveShiftPanel(
@@ -122,41 +137,39 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
                     : snapshot.jobsToday.first.title,
               ),
             ),
-            const SizedBox(height: 10),
-            ContractorCommandGrid(
-              commands: contractorActiveCommands,
-              onCommand: _handleCommand,
-            ),
-            const SizedBox(height: 10),
-            ContractorDayControlPanel(
-              dayStarted: true,
-              onStartDay: _startContractorDay,
-              onOpenDay: _openActiveWorkday,
-              onStartGps: () => _openActiveWorkday(startGpsWhenOpened: true),
-            ),
           ] else ...[
-            ContractorCommandGrid(
-              commands: contractorPreDayCommands,
-              onCommand: _handleCommand,
-            ),
-            const SizedBox(height: 10),
             ContractorDayControlPanel(
               dayStarted: false,
               onStartDay: _startContractorDay,
             ),
           ],
           const SizedBox(height: 10),
-          ContractorJobsPanel(jobs: snapshot.jobsToday, onOpenJobs: _openJobs),
-          const SizedBox(height: 10),
-          ContractorMetricsStrip(
-            metrics: snapshot.businessMetrics,
-            onMetricSelected: _openMetric,
+          ContractorAttentionPanel(
+            items: snapshot.attentionItems,
+            onItemSelected: _openMetric,
           ),
-          const SizedBox(height: 76),
+          const SizedBox(height: 10),
+          if (access.canViewJobs)
+            ContractorJobsPanel(
+              jobs: snapshot.jobsToday,
+              onOpenJobs: _openJobs,
+              onOpenJob: _openJob,
+            )
+          else
+            const _DashboardAccessNotice(
+              message: 'No job access is assigned to this role.',
+            ),
+          const SizedBox(height: 18),
           const ContractorCalendar(),
           const SizedBox(height: 18),
         ],
       ),
+    );
+  }
+
+  void _openJob(String jobId) {
+    Navigator.of(context).push(
+      appNativeRoute<void>(context, MaintainiacJobDetailScreen(jobId: jobId)),
     );
   }
 
@@ -269,64 +282,6 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
     );
   }
 
-  Future<bool> _recordContractorDayEvent(
-    ActiveWorkdayController activeWorkday,
-    ActiveWorkdayEventType type, {
-    int? odometerReading,
-    String? note,
-  }) async {
-    try {
-      final odometer = GlobalOdometerScope.of(context);
-      final tripTracking = TripTrackingScope.maybeOf(context);
-      final updated = await activeWorkday.addEvent(
-        type: type,
-        odometerReading: odometerReading ?? odometer.reading,
-        note: note,
-      );
-      final tripEventType = switch (type) {
-        ActiveWorkdayEventType.stop => TripManualEventType.stop,
-        ActiveWorkdayEventType.pickup => TripManualEventType.pickup,
-        ActiveWorkdayEventType.dropOff => TripManualEventType.dropoff,
-        _ => null,
-      };
-      if (updated != null &&
-          updated.events.isNotEmpty &&
-          tripEventType != null &&
-          tripTracking?.isTracking == true) {
-        final workdayEvent = updated.events.last;
-        final attached = await tripTracking!.recordUserTripEvent(
-          commandId: 'workday.${workdayEvent.id}',
-          type: tripEventType,
-          initiatingSource: 'dashboard',
-          occurredAt: workdayEvent.occurredAt,
-          note: note,
-        );
-        if (!attached && mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'The stop was saved to your workday but could not be attached to the active GPS trip.',
-              ),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-      if (!mounted) return updated != null;
-      setState(() {});
-      return updated != null;
-    } catch (error) {
-      if (!mounted) return false;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Could not update contractor day: $error'),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return false;
-    }
-  }
-
   String _shiftTimeLabel(ActiveWorkdaySessionRecord? session) {
     final elapsed = session?.elapsedWorkTimeAt(_now) ?? Duration.zero;
     final hours = elapsed.inHours.toString().padLeft(2, '0');
@@ -340,6 +295,37 @@ class _ContractorDashboardScreenState extends State<ContractorDashboardScreen> {
   }) {
     if (session == null) return '0';
     return session.milesSoFar(odometerReading).toString();
+  }
+}
+
+class _DashboardAccessNotice extends StatelessWidget {
+  const _DashboardAccessNotice({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF101719),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFF5B6A70), width: 1.4),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            message,
+            style: const TextStyle(
+              color: Color(0xFFC7D0D4),
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
